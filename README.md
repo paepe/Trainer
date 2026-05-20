@@ -1,6 +1,6 @@
 # TrAIner — Fitness & Gym Workout App
 
-Interactive high-fidelity prototype for **TrAIner** ("The PT & ME Experience"), an AI-powered fitness app that pairs real trainers with KI-personalized workouts. Based on the brand brief in `uploads/Kamil-Fijalkowski-Datum-18-Juni-2025-6bec6931.pdf`.
+Interactive high-fidelity prototype for **TrAIner** ("The PT & ME Experience"), an AI-powered fitness app that pairs real trainers with AI-personalized workouts. Based on the brand brief in `uploads/Kamil-Fijalkowski-Datum-18-Juni-2025-6bec6931.pdf`.
 
 ---
 
@@ -27,6 +27,7 @@ Interactive high-fidelity prototype for **TrAIner** ("The PT & ME Experience"), 
 | `assets/trainer-logo-circle.png` | Circular crop of original (kept for reference). |
 | `assets/trainer-logo-clean.png` | **Use this one.** Transparent BG, no navy. Used on Welcome / Login / Register. |
 | `uploads/` | Source materials from user — PDF brief + logo screenshot. |
+| `policies/` | Project governance — professional profile + executive technology directive (mandatory reading for all contributors). |
 | `pdf-page-*.png` | Cached renderings of pages 1, 9, 10, 19 of the PDF (for reference). |
 
 ---
