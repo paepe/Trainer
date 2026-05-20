@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TrAIner · App Prototype (PDF)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #e8ecf2;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      color: #102236;
+    }
+    button { font-family: inherit; }
+    /* Hide scrollbars on simulated phone scroll areas */
+    .page div::-webkit-scrollbar { display: none; }
+    .page div { scrollbar-width: none; }
+
+    /* ─── PAGE LAYOUT ─── */
+    .page {
+      width: 297mm; height: 210mm;            /* A4 landscape */
+      padding: 14mm 16mm 12mm;
+      background: #fff;
+      margin: 14px auto;
+      display: flex; flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      overflow: hidden;
+      page-break-after: always;
+      break-after: page;
+      position: relative;
+    }
+    .page:last-child { page-break-after: auto; }
+
+    .page-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 8mm;
+      border-bottom: 1px solid #E7ECF3;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-name {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700;
+      font-size: 18px; letter-spacing: -0.01em; line-height: 1;
+    }
+    .brand-claim {
+      font-size: 9.5px; color: #5a6878; margin-top: 3px;
+      letter-spacing: .04em; font-weight: 500;
+    }
+    .page-title {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600;
+      font-size: 14px; letter-spacing: -0.01em;
+      color: #102236;
+    }
+    .phone-wrap {
+      flex: 1; min-height: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 6mm 0;
+    }
+    /* Scale the 398×798 phone to fit the page nicely */
+    .phone-wrap > div {
+      transform: scale(0.78);
+      transform-origin: center;
+      flex-shrink: 0;
+    }
+    .page-ftr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 5mm;
+      border-top: 1px solid #E7ECF3;
+      font-size: 10px; color: #8a96a4;
+      letter-spacing: .02em;
+    }
+
+    /* ─── COVER ─── */
+    .page-cover {
+      padding: 0;
+      color: #fff;
+      overflow: hidden;
+      background: #0E1A2B;
+    }
+    .cover-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(1100px 700px at 85% -10%, rgba(45,212,224,.20), transparent 55%),
+        radial-gradient(900px 600px at -5% 110%, rgba(239,92,60,.18), transparent 50%),
+        linear-gradient(160deg,#0E1A2B 0%, #08111E 100%);
+    }
+    .cover-inner {
+      position: relative; z-index: 1;
+      padding: 22mm 22mm 16mm;
+      height: 100%; display: flex; flex-direction: column;
+    }
+    .cover-brand { display: flex; align-items: center; gap: 18px; }
+    .cover-name {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800;
+      font-size: 44px; letter-spacing: -0.025em; line-height: 1;
+    }
+    .cover-claim {
+      font-size: 13px; color: rgba(255,255,255,.65); margin-top: 6px;
+      letter-spacing: .04em; font-weight: 500;
+    }
+    .cover-tag { margin-top: 14mm; font-size: 11px; letter-spacing: .12em; }
+    .cover-h1 {
+      margin: 8px 0 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700;
+      font-size: 46px; line-height: 1.05; letter-spacing: -0.025em;
+      max-width: 220mm;
+    }
+    .cover-sub {
+      margin: 0; max-width: 180mm;
+      color: rgba(255,255,255,.7); font-size: 14px; line-height: 1.55;
+    }
+    .cover-grid {
+      margin-top: 12mm;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5mm 10mm;
+      flex: 1;
+    }
+    .feat { display: flex; gap: 10px; align-items: flex-start; }
+    .feat-dot {
+      width: 10px; height: 10px; border-radius: 3px;
+      background: #2DD4E0; margin-top: 6px; flex-shrink: 0;
+    }
+    .feat-title {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700;
+      font-size: 14px; letter-spacing: -0.01em; margin-bottom: 2px;
+    }
+    .feat-desc { font-size: 11.5px; color: rgba(255,255,255,.62); line-height: 1.45; }
+
+    .cover-palette {
+      display: flex; gap: 8px; margin-top: 6mm;
+    }
+    .swatch {
+      flex: 1; height: 18mm; border-radius: 10px;
+      display: flex; align-items: flex-end; padding: 8px 10px;
+      color: #fff; font-size: 9.5px; font-weight: 600;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .03em;
+    }
+
+    /* ─── PRINT ─── */
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+    @media print {
+      html, body { background: #fff; }
+      .page {
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+        break-after: page;
+      }
+      .page:last-child { page-break-after: auto; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" src="screens.jsx"></script>
+  <script type="text/babel" src="app-print.jsx"></script>
+</body>
+</html>
