@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"/Users/pauloeduardoperes/Development/TrAIner Project/public/assets\")",
+      "Bash(cp \"/Users/pauloeduardoperes/Development/TrAIner Project/assets/\"*.png \"/Users/pauloeduardoperes/Development/TrAIner Project/public/assets/\")",
+      "Bash(npx cap *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(pod --version)",
+      "Bash(brew --version)",
+      "Bash(brew install *)",
+      "Bash(npx vercel *)"
+    ]
+  }
+}
