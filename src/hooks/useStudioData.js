@@ -5,6 +5,7 @@ export function useStudioData(userId) {
   const [studio, setStudio] = useState(null);
   const [members, setMembers] = useState([]);
   const [protocols, setProtocols] = useState([]);
+  const [clients, setClients] = useState([]);
   const [stats, setStats] = useState({ clients: 0, trainers: 0, plansThisWeek: 0, completedThisWeek: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +46,20 @@ export function useStudioData(userId) {
 
     const trainerIds = memberList.map(m => m.user_id);
     if (trainerIds.length > 0) {
+      // Fetch full client list with profile + physical_profile + trainer name
+      const { data: clientRows } = await supabase
+        .from('trainer_clients')
+        .select(`
+          id, status, trainer_id,
+          client:profiles!trainer_clients_client_id_fkey(id, name, email),
+          trainer:profiles!trainer_clients_trainer_id_fkey(id, name),
+          physical:physical_profiles(primary_goal, fitness_level, available_minutes, location_preference)
+        `)
+        .in('trainer_id', trainerIds)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      setClients(clientRows || []);
+
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const [clientsRes, plansRes, sessionsRes] = await Promise.all([
         // Active clients: unique clients linked to this studio's trainers
@@ -67,6 +82,7 @@ export function useStudioData(userId) {
         completedThisWeek: sessionsRes.count   || 0,
       });
     } else {
+      setClients([]);
       setStats({ clients: 0, trainers: 0, plansThisWeek: 0, completedThisWeek: 0 });
     }
 
@@ -124,7 +140,7 @@ export function useStudioData(userId) {
   }
 
   return {
-    studio, members, protocols, stats, loading,
+    studio, members, protocols, clients, stats, loading,
     createStudio, inviteTrainer, removeMember,
     createProtocol, addProtocolExercise, deleteProtocol,
     reload: () => loadAll(userId),
