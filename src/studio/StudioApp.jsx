@@ -242,10 +242,49 @@ function TeamView({ data }) {
 // ─── PROTOCOLS VIEW ───────────────────────────────────────────
 function ProtocolsView({ data }) {
   const [showCreate, setShowCreate] = React.useState(false);
-  const [form, setForm] = React.useState({ name: '', objective: '', level: 'beginner', duration_minutes: 45, description: '' });
+  const [form, setForm]   = React.useState({ name: '', objective: '', level: 'beginner', duration_minutes: 45, description: '' });
   const [loading, setLoading] = React.useState(false);
-  const [err, setErr] = React.useState('');
+  const [err, setErr]     = React.useState('');
   const [expanded, setExpanded] = React.useState(null);
+
+  // ── Filter & sort state ──────────────────────────────────────────
+  const [search, setSearch]         = React.useState('');
+  const [levelFilter, setLevelFilter] = React.useState('all');
+  const [sortBy, setSortBy]         = React.useState('name');
+  const [sortDir, setSortDir]       = React.useState('asc');
+
+  const LEVELS = ['all', 'beginner', 'intermediate', 'advanced'];
+  const LEVEL_COLORS = { beginner: '#10B981', intermediate: '#F59E0B', advanced: C.accent };
+
+  const handleSort = (field) => {
+    if (sortBy === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortBy(field); setSortDir('asc'); }
+  };
+
+  const sortIcon = (field) => {
+    if (sortBy !== field) return <span style={{ color: C.textMute, fontSize: 11 }}>↕</span>;
+    return <span style={{ color: C.primary, fontSize: 11 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+  };
+
+  const LEVEL_ORDER = { beginner: 0, intermediate: 1, advanced: 2 };
+
+  const visible = React.useMemo(() => {
+    return data.protocols
+      .filter(p =>
+        (levelFilter === 'all' || p.level === levelFilter) &&
+        (!search || p.name.toLowerCase().includes(search.toLowerCase()) ||
+          (p.objective || '').toLowerCase().includes(search.toLowerCase()))
+      )
+      .sort((a, b) => {
+        let va, vb;
+        if (sortBy === 'level')     { va = LEVEL_ORDER[a.level] ?? 0; vb = LEVEL_ORDER[b.level] ?? 0; }
+        else if (sortBy === 'duration')  { va = a.duration_minutes ?? 0; vb = b.duration_minutes ?? 0; }
+        else if (sortBy === 'exercises') { va = a.exercises?.length ?? 0; vb = b.exercises?.length ?? 0; }
+        else { va = a.name.toLowerCase(); vb = b.name.toLowerCase(); }
+        if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        return sortDir === 'asc' ? va - vb : vb - va;
+      });
+  }, [data.protocols, search, levelFilter, sortBy, sortDir]);
 
   async function create() {
     if (!form.name.trim()) return;
@@ -258,10 +297,14 @@ function ProtocolsView({ data }) {
 
   return (
     <>
-      <PageHeader title="Protocol Library" sub={`${data.protocols.length} protocol${data.protocols.length !== 1 ? 's' : ''}`}>
+      <PageHeader
+        title="Protocol Library"
+        sub={`${visible.length} of ${data.protocols.length} protocol${data.protocols.length !== 1 ? 's' : ''}`}
+      >
         <Btn onClick={() => setShowCreate(v => !v)}>+ New protocol</Btn>
       </PageHeader>
 
+      {/* ── Create form ──────────────────────────────────────────── */}
       {showCreate && (
         <div style={{ marginBottom: 24, padding: 24, borderRadius: 16, background: C.surface, border: `1.5px solid ${C.primary}` }}>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>New protocol</div>
@@ -286,29 +329,133 @@ function ProtocolsView({ data }) {
         </div>
       )}
 
+      {/* ── Filter toolbar ───────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+        {/* Search box */}
+        <div style={{ position: 'relative', flex: '1 1 220px' }}>
+          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.textMute, fontSize: 14, pointerEvents: 'none' }}>🔍</span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name or objective…"
+            style={{
+              width: '100%', padding: '10px 12px 10px 34px',
+              borderRadius: 10, background: C.surface2,
+              border: `1px solid ${search ? C.primary : C.border}`,
+              color: C.textPri, fontSize: 14, outline: 'none', boxSizing: 'border-box',
+              transition: 'border-color .15s',
+            }}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{
+              position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', color: C.textMute, cursor: 'pointer', fontSize: 16, lineHeight: 1,
+            }}>×</button>
+          )}
+        </div>
+
+        {/* Level filter pills */}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {LEVELS.map(lv => {
+            const active = levelFilter === lv;
+            const color  = lv === 'all' ? C.primary : LEVEL_COLORS[lv];
+            return (
+              <button key={lv} onClick={() => setLevelFilter(lv)} style={{
+                padding: '8px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                background: active ? color : 'transparent',
+                color: active ? (lv === 'all' ? '#07101D' : '#fff') : C.textSec,
+                border: `1.5px solid ${active ? color : C.border}`,
+                fontFamily: 'inherit', cursor: 'pointer', transition: 'all .12s',
+                textTransform: lv === 'all' ? 'none' : 'capitalize',
+              }}>
+                {lv === 'all' ? 'All levels' : lv}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Sort bar ─────────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex', gap: 4, marginBottom: 12,
+        padding: '8px 14px', borderRadius: 10,
+        background: C.surface, border: `1px solid ${C.border}`,
+        fontSize: 12, color: C.textMute, alignItems: 'center',
+      }}>
+        <span style={{ marginRight: 8, fontWeight: 600 }}>Sort by:</span>
+        {[
+          { key: 'name',      label: 'Name' },
+          { key: 'level',     label: 'Level' },
+          { key: 'duration',  label: 'Duration' },
+          { key: 'exercises', label: 'Exercises' },
+        ].map(col => (
+          <button key={col.key} onClick={() => handleSort(col.key)} style={{
+            padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: sortBy === col.key ? 700 : 500,
+            background: sortBy === col.key ? `${C.primary}18` : 'transparent',
+            color: sortBy === col.key ? C.primary : C.textSec,
+            border: `1px solid ${sortBy === col.key ? C.primary : 'transparent'}`,
+            fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+            transition: 'all .12s',
+          }}>
+            {col.label} {sortIcon(col.key)}
+          </button>
+        ))}
+        {(search || levelFilter !== 'all') && (
+          <button onClick={() => { setSearch(''); setLevelFilter('all'); }} style={{
+            marginLeft: 'auto', padding: '5px 12px', borderRadius: 8, fontSize: 12,
+            background: `${C.accent}18`, color: C.accent, border: 'none',
+            fontFamily: 'inherit', cursor: 'pointer',
+          }}>
+            Clear filters ×
+          </button>
+        )}
+      </div>
+
+      {/* ── Protocol list ────────────────────────────────────────── */}
       {data.protocols.length === 0 ? (
         <Empty text="No protocols yet. Create your first protocol above."/>
+      ) : visible.length === 0 ? (
+        <Empty text={`No protocols match "${search}"${levelFilter !== 'all' ? ` at ${levelFilter} level` : ''}.`}/>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {data.protocols.map(p => (
-            <div key={p.id} style={{ borderRadius: 14, background: C.surface, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer' }}
-                onClick={() => setExpanded(expanded === p.id ? null : p.id)}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600 }}>{p.name}</div>
-                  <div style={{ fontSize: 12, color: C.textSec, marginTop: 3 }}>
-                    {p.objective || 'General'} · {p.level} · {p.duration_minutes}min · {p.exercises?.length || 0} exercises
+          {visible.map(p => {
+            const levelColor = LEVEL_COLORS[p.level] || C.primary;
+            return (
+              <div key={p.id} style={{ borderRadius: 14, background: C.surface, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
+                <div
+                  style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer' }}
+                  onClick={() => setExpanded(expanded === p.id ? null : p.id)}
+                >
+                  {/* Level colour strip */}
+                  <div style={{ width: 4, height: 36, borderRadius: 2, background: levelColor, flexShrink: 0 }}/>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                    <div style={{ fontSize: 11, color: C.textSec, marginTop: 2 }}>
+                      {p.objective || 'General'} · {p.duration_minutes} min · {p.exercises?.length || 0} exercises
+                    </div>
                   </div>
+
+                  <span style={{
+                    padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                    background: `${levelColor}22`, color: levelColor,
+                    letterSpacing: '.04em', textTransform: 'capitalize', flexShrink: 0,
+                  }}>{p.level}</span>
+
+                  <Btn variant="danger" size="sm" onClick={e => { e.stopPropagation(); data.deleteProtocol(p.id); }}>Delete</Btn>
+
+                  <span style={{
+                    color: C.textMute, fontSize: 18, flexShrink: 0,
+                    transition: 'transform .2s', transform: expanded === p.id ? 'rotate(90deg)' : 'none',
+                  }}>›</span>
                 </div>
-                <Badge>{p.level}</Badge>
-                <Btn variant="danger" size="sm" onClick={e => { e.stopPropagation(); data.deleteProtocol(p.id); }}>Delete</Btn>
-                <span style={{ color: C.textMute, fontSize: 18, transition: 'transform .2s', transform: expanded === p.id ? 'rotate(90deg)' : 'none' }}>›</span>
+
+                {expanded === p.id && (
+                  <ProtocolDetail protocol={p} onAddExercise={(ex) => data.addProtocolExercise(p.id, ex)}/>
+                )}
               </div>
-              {expanded === p.id && (
-                <ProtocolDetail protocol={p} onAddExercise={(ex) => data.addProtocolExercise(p.id, ex)}/>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </>
