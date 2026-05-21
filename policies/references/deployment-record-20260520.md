@@ -31,5 +31,18 @@
 ## Notes
 
 - Initial prototype deployment. No backend, all state is in-memory via React `useState`.
-- Subsequent migration to Vite + React + Capacitor in progress (uncommitted as of this record).
 - `.env.local` contains Supabase credentials — properly gitignored, never deployed.
+
+---
+
+## Deployment #2 — Vite + Capacitor migration
+
+**Date:** 20/05/2026 13:35 (UTC-3)  
+**Commit SHA:** `daefdba`  
+**Commit message:** Migrate to Vite + React + Capacitor + Supabase; add deployment record per §8.3  
+**Framework:** Vite 6.4.2 → React 18.3.1 + Supabase JS + Capacitor 7  
+**Build output:** `dist/` (430 KB JS, 1.2 KB HTML gzipped)  
+**Inspect URL:** https://vercel.com/paulo-eduardo-peress-projects/trainer/4SSVxBsgf1wWNq4nThS7JqYxZEhS  
+**Production:** https://trainer-lake.vercel.app  
+
+**Policy compliance re-verified:** All checks from Deployment #1 still pass. New dependencies: Supabase credentials remain gitignored.
