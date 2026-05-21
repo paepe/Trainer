@@ -46,19 +46,25 @@ export function useStudioData(userId) {
     const trainerIds = memberList.map(m => m.user_id);
     if (trainerIds.length > 0) {
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const [clientsRes, plansRes, completedRes] = await Promise.all([
+      const [clientsRes, plansRes, sessionsRes] = await Promise.all([
+        // Active clients: unique clients linked to this studio's trainers
         supabase.from('trainer_clients').select('*', { count: 'exact', head: true })
           .in('trainer_id', trainerIds).eq('status', 'active'),
+        // Plans sent this week: plans created by this studio's trainers
         supabase.from('workout_plans').select('*', { count: 'exact', head: true })
-          .in('created_by', trainerIds).gte('created_at', weekAgo),
-        supabase.from('workout_plans').select('*', { count: 'exact', head: true })
-          .in('created_by', trainerIds).eq('status', 'completed').gte('updated_at', weekAgo),
+          .in('created_by', trainerIds)
+          .in('status', ['sent', 'active', 'completed'])
+          .gte('created_at', weekAgo),
+        // Completed this week: workout sessions logged by clients this week
+        supabase.from('workout_sessions').select('*', { count: 'exact', head: true })
+          .not('completed_at', 'is', null)
+          .gte('completed_at', weekAgo),
       ]);
       setStats({
-        clients: clientsRes.count || 0,
-        trainers: memberList.length,
-        plansThisWeek: plansRes.count || 0,
-        completedThisWeek: completedRes.count || 0,
+        clients:           clientsRes.count   || 0,
+        trainers:          memberList.length,
+        plansThisWeek:     plansRes.count      || 0,
+        completedThisWeek: sessionsRes.count   || 0,
       });
     } else {
       setStats({ clients: 0, trainers: 0, plansThisWeek: 0, completedThisWeek: 0 });
