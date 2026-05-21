@@ -46,19 +46,40 @@ export function useStudioData(userId) {
 
     const trainerIds = memberList.map(m => m.user_id);
     if (trainerIds.length > 0) {
-      // Fetch full client list with profile + physical_profile + trainer name
-      const { data: clientRows } = await supabase
+      // Step A — get trainer_client rows (IDs only, avoids dual-FK PostgREST ambiguity)
+      const { data: tcRows } = await supabase
         .from('trainer_clients')
-        .select(`
-          id, status, trainer_id,
-          client:profiles!trainer_clients_client_id_fkey(id, name, email),
-          trainer:profiles!trainer_clients_trainer_id_fkey(id, name),
-          physical:physical_profiles(primary_goal, fitness_level, available_minutes, location_preference)
-        `)
+        .select('id, status, trainer_id, client_id')
         .in('trainer_id', trainerIds)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
-      setClients(clientRows || []);
+
+      if (tcRows?.length > 0) {
+        const clientIds = [...new Set(tcRows.map(r => r.client_id))];
+
+        // Step B — fetch client profiles + physical profiles in parallel
+        const [profRes, physRes] = await Promise.all([
+          supabase.from('profiles').select('id, name, email').in('id', clientIds),
+          supabase.from('physical_profiles')
+            .select('user_id, primary_goal, fitness_level, available_minutes, location_preference')
+            .in('user_id', clientIds),
+        ]);
+
+        const profMap  = Object.fromEntries((profRes.data  || []).map(p => [p.id,       p]));
+        const physMap  = Object.fromEntries((physRes.data  || []).map(p => [p.user_id,  p]));
+        const trMap    = Object.fromEntries(memberList.map(m => [m.user_id, m.profile]));
+
+        setClients(tcRows.map(tc => ({
+          id:         tc.id,
+          status:     tc.status,
+          trainer_id: tc.trainer_id,
+          client:     profMap[tc.client_id]  || null,
+          trainer:    trMap[tc.trainer_id]   || null,
+          physical:   physMap[tc.client_id]  || null,
+        })));
+      } else {
+        setClients([]);
+      }
 
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const [clientsRes, plansRes, sessionsRes] = await Promise.all([
