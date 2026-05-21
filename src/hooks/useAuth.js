@@ -38,12 +38,12 @@ export function useAuth() {
   }
 
   async function signUp(email, password, name) {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name } },
     });
-    return { error };
+    return { data, error };
   }
 
   async function signOut() {

@@ -454,8 +454,13 @@ function RegisterScreen({ nav, t, dark, signUp }) {
     if (!name || !email || !pw) { setErr('All fields are required.'); return; }
     if (pw !== pw2) { setErr('Passwords do not match.'); return; }
     setLoading(true); setErr('');
-    const { error } = await signUp(email, pw, name);
+    const { data, error } = await signUp(email, pw, name);
     if (error) { setErr(error.message); setLoading(false); return; }
+    if (!data.session) {
+      setErr('Account created! Check your email to confirm your address before logging in.');
+      setLoading(false);
+      return;
+    }
     nav('onboarding');
   };
   const oauth = () => setErr('OAuth coming soon.');
