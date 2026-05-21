@@ -1,0 +1,528 @@
+import React from 'react';
+import { supabase } from '../supabase';
+import { useStudioData } from '../hooks/useStudioData';
+
+const C = {
+  primary:  '#2DD4E0',
+  accent:   '#EF5B3C',
+  bg:       '#07101D',
+  surface:  '#0D1B2E',
+  surface2: '#122034',
+  border:   '#1C2E44',
+  textPri:  '#FFFFFF',
+  textSec:  'rgba(255,255,255,.6)',
+  textMute: 'rgba(255,255,255,.35)',
+};
+
+// ─── TOP-LEVEL APP ────────────────────────────────────────────
+export default function StudioApp() {
+  const [session, setSession] = React.useState(undefined);
+  const [profile, setProfile] = React.useState(null);
+  const [view, setView] = React.useState('dashboard');
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      if (s) fetchProfile(s.user.id);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      if (s) fetchProfile(s.user.id);
+      else { setProfile(null); setSession(null); }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function fetchProfile(uid) {
+    const { data } = await supabase.from('profiles').select('*').eq('id', uid).single();
+    setProfile(data);
+  }
+
+  if (session === undefined) return <Loader/>;
+  if (!session) return <LoginView/>;
+  if (!profile) return <Loader/>;
+  if (profile.role !== 'studio_admin') return <AccessDenied onSignOut={() => supabase.auth.signOut()}/>;
+
+  return <Dashboard session={session} profile={profile} view={view} setView={setView}/>;
+}
+
+// ─── MAIN DASHBOARD ──────────────────────────────────────────
+function Dashboard({ session, profile, view, setView }) {
+  const data = useStudioData(session.user.id);
+
+  const NAV = [
+    { key: 'dashboard', icon: '◈', label: 'Dashboard' },
+    { key: 'team',      icon: '⬡', label: 'Team' },
+    { key: 'protocols', icon: '▤', label: 'Protocols' },
+  ];
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', background: C.bg, color: C.textPri }}>
+      {/* Sidebar */}
+      <aside style={{ width: 224, background: C.surface, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '28px 22px 24px' }}>
+          <div style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em' }}>
+            Tr<span style={{ color: C.primary }}>AI</span>ner
+          </div>
+          <div style={{ fontSize: 10, color: C.textMute, marginTop: 3, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+            Studio
+          </div>
+        </div>
+
+        {data.studio && (
+          <div style={{ margin: '0 14px 20px', padding: '12px 14px', borderRadius: 12, background: `${C.primary}12`, border: `1px solid ${C.primary}30` }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.primary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{data.studio.name}</div>
+            <div style={{ fontSize: 11, color: C.textMute, marginTop: 2 }}>{data.stats.trainers} trainer{data.stats.trainers !== 1 ? 's' : ''} · {data.stats.clients} clients</div>
+          </div>
+        )}
+
+        <nav style={{ padding: '0 12px', flex: 1 }}>
+          {NAV.map(n => (
+            <button key={n.key} onClick={() => setView(n.key)} style={{
+              width: '100%', textAlign: 'left', padding: '10px 12px', borderRadius: 10, marginBottom: 2,
+              background: view === n.key ? `${C.primary}18` : 'transparent',
+              color: view === n.key ? C.primary : C.textSec,
+              border: 'none', fontFamily: 'inherit', fontSize: 14,
+              fontWeight: view === n.key ? 600 : 400, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 10, transition: 'all .12s',
+            }}>
+              <span style={{ fontSize: 16, opacity: view === n.key ? 1 : 0.6 }}>{n.icon}</span>
+              {n.label}
+            </button>
+          ))}
+        </nav>
+
+        <div style={{ padding: '16px 18px', borderTop: `1px solid ${C.border}` }}>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{profile.name || '—'}</div>
+          <div style={{ fontSize: 11, color: C.textMute, marginBottom: 12, overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.email}</div>
+          <Btn variant="danger" size="sm" onClick={() => supabase.auth.signOut()} full>Sign out</Btn>
+        </div>
+      </aside>
+
+      {/* Content */}
+      <main style={{ flex: 1, overflow: 'auto', padding: '36px 44px' }}>
+        {data.loading ? (
+          <Loader inline/>
+        ) : !data.studio ? (
+          <CreateStudioView onCreate={data.createStudio}/>
+        ) : view === 'dashboard' ? (
+          <DashboardView data={data}/>
+        ) : view === 'team' ? (
+          <TeamView data={data}/>
+        ) : (
+          <ProtocolsView data={data}/>
+        )}
+      </main>
+    </div>
+  );
+}
+
+// ─── CREATE STUDIO ────────────────────────────────────────────
+function CreateStudioView({ onCreate }) {
+  const [name, setName] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState('');
+
+  async function submit() {
+    if (!name.trim()) return;
+    setLoading(true);
+    const { error } = await onCreate(name.trim());
+    if (error) { setErr(error.message); setLoading(false); }
+  }
+
+  return (
+    <div style={{ maxWidth: 480, margin: '80px auto', textAlign: 'center' }}>
+      <div style={{ fontSize: 48, marginBottom: 20 }}>🏢</div>
+      <h1 style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 28, fontWeight: 800, margin: '0 0 10px' }}>Create your Studio</h1>
+      <p style={{ color: C.textSec, marginBottom: 32 }}>Give your studio a name to get started. You can always change this later.</p>
+      <input
+        value={name} onChange={e => setName(e.target.value)}
+        placeholder="Studio name (e.g. FitCore Lisboa)"
+        style={{ width: '100%', padding: '14px 16px', borderRadius: 12, background: C.surface2, border: `1.5px solid ${C.border}`, color: C.textPri, fontSize: 15, outline: 'none', marginBottom: 12 }}
+      />
+      {err && <div style={{ color: C.accent, fontSize: 13, marginBottom: 12 }}>{err}</div>}
+      <Btn onClick={submit} loading={loading} full>Create Studio →</Btn>
+    </div>
+  );
+}
+
+// ─── DASHBOARD VIEW ───────────────────────────────────────────
+function DashboardView({ data }) {
+  const { stats, protocols, members } = data;
+  return (
+    <>
+      <PageHeader title="Dashboard" sub="Studio overview"/>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 36 }}>
+        {[
+          { label: 'Active clients',     value: stats.clients,          color: C.primary },
+          { label: 'Active trainers',    value: stats.trainers,         color: '#7B5CFF' },
+          { label: 'Plans this week',    value: stats.plansThisWeek,    color: '#F59E0B' },
+          { label: 'Completed this week',value: stats.completedThisWeek,color: '#10B981' },
+        ].map(k => (
+          <div key={k.label} style={{ padding: '22px 24px', borderRadius: 16, background: C.surface, border: `1px solid ${C.border}` }}>
+            <div style={{ fontSize: 32, fontWeight: 800, fontFamily: '"Plus Jakarta Sans",sans-serif', color: k.color, letterSpacing: '-0.03em' }}>{k.value}</div>
+            <div style={{ fontSize: 12, color: C.textSec, marginTop: 6 }}>{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <Section title="Trainers" count={members.length}>
+          {members.length === 0 ? (
+            <Empty text="No trainers yet. Go to Team to invite."/>
+          ) : members.slice(0, 5).map(m => (
+            <Row key={m.id} label={m.profile?.name || '—'} sub={m.profile?.email} badge={m.role}/>
+          ))}
+        </Section>
+
+        <Section title="Protocols" count={protocols.length}>
+          {protocols.length === 0 ? (
+            <Empty text="No protocols yet. Go to Protocols to create."/>
+          ) : protocols.slice(0, 5).map(p => (
+            <Row key={p.id} label={p.name} sub={`${p.objective || 'General'} · ${p.exercises?.length || 0} exercises`} badge={p.level}/>
+          ))}
+        </Section>
+      </div>
+    </>
+  );
+}
+
+// ─── TEAM VIEW ────────────────────────────────────────────────
+function TeamView({ data }) {
+  const [showInvite, setShowInvite] = React.useState(false);
+  const [email, setEmail] = React.useState('');
+  const [err, setErr] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  async function invite() {
+    if (!email) return;
+    setLoading(true); setErr('');
+    const { error } = await data.inviteTrainer(email);
+    if (error) { setErr(error.message); setLoading(false); return; }
+    setEmail(''); setShowInvite(false); setLoading(false);
+  }
+
+  return (
+    <>
+      <PageHeader title="Team" sub={`${data.stats.trainers} trainer${data.stats.trainers !== 1 ? 's' : ''}`}>
+        <Btn onClick={() => setShowInvite(v => !v)}>+ Invite trainer</Btn>
+      </PageHeader>
+
+      {showInvite && (
+        <div style={{ marginBottom: 24, padding: 24, borderRadius: 16, background: C.surface, border: `1.5px solid ${C.primary}` }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 14 }}>Invite trainer by email</div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <input value={email} onChange={e => setEmail(e.target.value)} placeholder="trainer@email.com"
+              style={{ flex: 1, padding: '12px 14px', borderRadius: 10, background: C.surface2, border: `1px solid ${C.border}`, color: C.textPri, fontSize: 14, outline: 'none' }}/>
+            <Btn onClick={invite} loading={loading}>Send</Btn>
+            <Btn variant="ghost" onClick={() => { setShowInvite(false); setEmail(''); setErr(''); }}>Cancel</Btn>
+          </div>
+          {err && <div style={{ color: C.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
+        </div>
+      )}
+
+      {data.members.length === 0 ? (
+        <Empty text="No trainers yet. Invite your first trainer above."/>
+      ) : (
+        <Table
+          headers={['Name', 'Email', 'Role', 'Actions']}
+          rows={data.members.map(m => [
+            <span style={{ fontWeight: 600 }}>{m.profile?.name || '—'}</span>,
+            <span style={{ color: C.textSec }}>{m.profile?.email}</span>,
+            <Badge>{m.role}</Badge>,
+            <Btn variant="danger" size="sm" onClick={() => data.removeMember(m.id)}>Remove</Btn>,
+          ])}
+        />
+      )}
+    </>
+  );
+}
+
+// ─── PROTOCOLS VIEW ───────────────────────────────────────────
+function ProtocolsView({ data }) {
+  const [showCreate, setShowCreate] = React.useState(false);
+  const [form, setForm] = React.useState({ name: '', objective: '', level: 'beginner', duration_minutes: 45, description: '' });
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState('');
+  const [expanded, setExpanded] = React.useState(null);
+
+  async function create() {
+    if (!form.name.trim()) return;
+    setLoading(true); setErr('');
+    const { error } = await data.createProtocol(form);
+    if (error) { setErr(error.message); setLoading(false); return; }
+    setForm({ name: '', objective: '', level: 'beginner', duration_minutes: 45, description: '' });
+    setShowCreate(false); setLoading(false);
+  }
+
+  return (
+    <>
+      <PageHeader title="Protocol Library" sub={`${data.protocols.length} protocol${data.protocols.length !== 1 ? 's' : ''}`}>
+        <Btn onClick={() => setShowCreate(v => !v)}>+ New protocol</Btn>
+      </PageHeader>
+
+      {showCreate && (
+        <div style={{ marginBottom: 24, padding: 24, borderRadius: 16, background: C.surface, border: `1.5px solid ${C.primary}` }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>New protocol</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <Field label="Name" value={form.name} onChange={v => setForm({ ...form, name: v })} placeholder="e.g. Hypertrophy Beginner"/>
+            <Field label="Objective" value={form.objective} onChange={v => setForm({ ...form, objective: v })} placeholder="e.g. Muscle building"/>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: C.textMute, textTransform: 'uppercase', letterSpacing: '.06em' }}>Level</span>
+              <select value={form.level} onChange={e => setForm({ ...form, level: e.target.value })}
+                style={{ padding: '11px 12px', borderRadius: 10, background: C.surface2, border: `1px solid ${C.border}`, color: C.textPri, fontSize: 14, outline: 'none' }}>
+                {['beginner', 'intermediate', 'advanced'].map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </label>
+            <Field label="Duration (min)" value={String(form.duration_minutes)} onChange={v => setForm({ ...form, duration_minutes: Number(v) || 45 })} placeholder="45"/>
+          </div>
+          <Field label="Description" value={form.description} onChange={v => setForm({ ...form, description: v })} placeholder="Brief description of this protocol…" multiline/>
+          {err && <div style={{ color: C.accent, fontSize: 12, margin: '10px 0' }}>{err}</div>}
+          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+            <Btn onClick={create} loading={loading}>Create protocol</Btn>
+            <Btn variant="ghost" onClick={() => { setShowCreate(false); setErr(''); }}>Cancel</Btn>
+          </div>
+        </div>
+      )}
+
+      {data.protocols.length === 0 ? (
+        <Empty text="No protocols yet. Create your first protocol above."/>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {data.protocols.map(p => (
+            <div key={p.id} style={{ borderRadius: 14, background: C.surface, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer' }}
+                onClick={() => setExpanded(expanded === p.id ? null : p.id)}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>{p.name}</div>
+                  <div style={{ fontSize: 12, color: C.textSec, marginTop: 3 }}>
+                    {p.objective || 'General'} · {p.level} · {p.duration_minutes}min · {p.exercises?.length || 0} exercises
+                  </div>
+                </div>
+                <Badge>{p.level}</Badge>
+                <Btn variant="danger" size="sm" onClick={e => { e.stopPropagation(); data.deleteProtocol(p.id); }}>Delete</Btn>
+                <span style={{ color: C.textMute, fontSize: 18, transition: 'transform .2s', transform: expanded === p.id ? 'rotate(90deg)' : 'none' }}>›</span>
+              </div>
+              {expanded === p.id && (
+                <ProtocolDetail protocol={p} onAddExercise={(ex) => data.addProtocolExercise(p.id, ex)}/>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+function ProtocolDetail({ protocol, onAddExercise }) {
+  const [showAdd, setShowAdd] = React.useState(false);
+  const [draft, setDraft] = React.useState({ exercise_name: '', muscle_group: 'Chest', sets: 3, reps: 10, load_kg: '', rest_seconds: 60 });
+
+  async function add() {
+    if (!draft.exercise_name.trim()) return;
+    await onAddExercise({ ...draft, order_index: protocol.exercises?.length || 0 });
+    setDraft({ exercise_name: '', muscle_group: 'Chest', sets: 3, reps: 10, load_kg: '', rest_seconds: 60 });
+    setShowAdd(false);
+  }
+
+  return (
+    <div style={{ borderTop: `1px solid ${C.border}`, padding: '16px 20px 20px' }}>
+      {protocol.description && (
+        <p style={{ fontSize: 13, color: C.textSec, marginBottom: 16 }}>{protocol.description}</p>
+      )}
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.textMute, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+        Exercises ({protocol.exercises?.length || 0})
+      </div>
+      {protocol.exercises?.length === 0 && !showAdd && (
+        <div style={{ color: C.textMute, fontSize: 13, marginBottom: 12 }}>No exercises yet.</div>
+      )}
+      {showAdd && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 14, padding: 16, borderRadius: 12, background: C.surface2 }}>
+          <Field label="Exercise" value={draft.exercise_name} onChange={v => setDraft({ ...draft, exercise_name: v })} placeholder="e.g. Bench Press"/>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: C.textMute, textTransform: 'uppercase', letterSpacing: '.06em' }}>Muscle group</span>
+            <select value={draft.muscle_group} onChange={e => setDraft({ ...draft, muscle_group: e.target.value })}
+              style={{ padding: '10px 12px', borderRadius: 8, background: C.surface, border: `1px solid ${C.border}`, color: C.textPri, fontSize: 13, outline: 'none' }}>
+              {['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs', 'Full body', 'Cardio'].map(g => <option key={g}>{g}</option>)}
+            </select>
+          </label>
+          <Field label="Sets" value={String(draft.sets)} onChange={v => setDraft({ ...draft, sets: Number(v) || 3 })} placeholder="3"/>
+          <Field label="Reps" value={String(draft.reps)} onChange={v => setDraft({ ...draft, reps: Number(v) || 10 })} placeholder="10"/>
+          <Field label="Load (kg)" value={String(draft.load_kg || '')} onChange={v => setDraft({ ...draft, load_kg: v })} placeholder="optional"/>
+          <Field label="Rest (s)" value={String(draft.rest_seconds)} onChange={v => setDraft({ ...draft, rest_seconds: Number(v) || 60 })} placeholder="60"/>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8 }}>
+            <Btn size="sm" onClick={add}>Add</Btn>
+            <Btn variant="ghost" size="sm" onClick={() => setShowAdd(false)}>Cancel</Btn>
+          </div>
+        </div>
+      )}
+      {!showAdd && (
+        <button onClick={() => setShowAdd(true)} style={{ padding: '8px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, background: `${C.primary}18`, color: C.primary, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          + Add exercise
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── SHARED UI ATOMS ─────────────────────────────────────────
+function PageHeader({ title, sub, children }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 }}>
+      <div>
+        <h1 style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 26, fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{title}</h1>
+        {sub && <div style={{ fontSize: 13, color: C.textSec, marginTop: 4 }}>{sub}</div>}
+      </div>
+      {children && <div style={{ display: 'flex', gap: 10 }}>{children}</div>}
+    </div>
+  );
+}
+
+function Section({ title, count, children }) {
+  return (
+    <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
+      <div style={{ padding: '18px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 13, fontWeight: 700 }}>{title}</div>
+        <Badge>{count}</Badge>
+      </div>
+      <div style={{ padding: '0 8px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>{children}</div>
+    </div>
+  );
+}
+
+function Row({ label, sub, badge }) {
+  return (
+    <div style={{ padding: '10px 12px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: C.textSec, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>}
+      </div>
+      {badge && <Badge>{badge}</Badge>}
+    </div>
+  );
+}
+
+function Table({ headers, rows }) {
+  return (
+    <div style={{ background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: `1px solid ${C.border}` }}>
+            {headers.map(h => (
+              <th key={h} style={{ padding: '14px 20px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: C.textMute, letterSpacing: '.08em', textTransform: 'uppercase' }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} style={{ borderBottom: i < rows.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+              {row.map((cell, j) => (
+                <td key={j} style={{ padding: '14px 20px', fontSize: 14 }}>{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Badge({ children }) {
+  return (
+    <span style={{ padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: `${C.primary}18`, color: C.primary, letterSpacing: '.04em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+      {children}
+    </span>
+  );
+}
+
+function Empty({ text }) {
+  return <div style={{ padding: '28px 0', textAlign: 'center', color: C.textMute, fontSize: 13 }}>{text}</div>;
+}
+
+function Btn({ children, onClick, loading, full, variant = 'primary', size = 'md' }) {
+  const styles = {
+    primary: { background: C.primary,  color: '#07101D', border: 'none' },
+    ghost:   { background: 'transparent', color: C.textSec, border: `1px solid ${C.border}` },
+    danger:  { background: `${C.accent}18`, color: C.accent, border: 'none' },
+  };
+  const pad = size === 'sm' ? '7px 14px' : '11px 22px';
+  const fs  = size === 'sm' ? 12 : 14;
+  return (
+    <button onClick={onClick} disabled={loading} style={{
+      padding: pad, borderRadius: 10, fontSize: fs, fontWeight: 700,
+      cursor: loading ? 'default' : 'pointer', width: full ? '100%' : 'auto',
+      opacity: loading ? 0.7 : 1, fontFamily: 'inherit', transition: 'opacity .12s',
+      ...styles[variant],
+    }}>
+      {loading ? 'Loading…' : children}
+    </button>
+  );
+}
+
+function Field({ label, value, onChange, placeholder, multiline }) {
+  const style = { padding: '10px 12px', borderRadius: 10, background: C.surface2, border: `1px solid ${C.border}`, color: C.textPri, fontSize: 14, outline: 'none', width: '100%', resize: 'vertical' };
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color: C.textMute, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</span>
+      {multiline
+        ? <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3} style={style}/>
+        : <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={style}/>
+      }
+    </label>
+  );
+}
+
+function Loader({ inline }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: inline ? 200 : '100vh', background: inline ? 'transparent' : C.bg }}>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.primary, animation: 'spin 0.7s linear infinite' }}/>
+    </div>
+  );
+}
+
+function AccessDenied({ onSignOut }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.bg, color: C.textPri, fontFamily: 'system-ui' }}>
+      <div style={{ textAlign: 'center', maxWidth: 360 }}>
+        <div style={{ fontSize: 52, marginBottom: 20 }}>🚫</div>
+        <h2 style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', margin: '0 0 10px' }}>Access denied</h2>
+        <p style={{ color: C.textSec }}>This dashboard requires a Studio Admin account.</p>
+        <Btn onClick={onSignOut} full style={{ marginTop: 24 }}>Sign out</Btn>
+      </div>
+    </div>
+  );
+}
+
+function LoginView() {
+  const [email, setEmail] = React.useState('');
+  const [pw, setPw] = React.useState('');
+  const [err, setErr] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  async function login() {
+    setLoading(true); setErr('');
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+    if (error) { setErr(error.message); setLoading(false); }
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.bg, color: C.textPri }}>
+      <div style={{ width: 380 }}>
+        <div style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 28, fontWeight: 800, marginBottom: 6 }}>
+          Tr<span style={{ color: C.primary }}>AI</span>ner Studio
+        </div>
+        <p style={{ color: C.textSec, marginBottom: 32 }}>Sign in to manage your studio.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email"
+            style={{ padding: '14px 16px', borderRadius: 12, background: C.surface, border: `1px solid ${C.border}`, color: C.textPri, fontSize: 15, outline: 'none' }}/>
+          <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Password"
+            onKeyDown={e => e.key === 'Enter' && login()}
+            style={{ padding: '14px 16px', borderRadius: 12, background: C.surface, border: `1px solid ${C.border}`, color: C.textPri, fontSize: 15, outline: 'none' }}/>
+        </div>
+        {err && <div style={{ color: C.accent, fontSize: 13, marginBottom: 12 }}>{err}</div>}
+        <Btn onClick={login} loading={loading} full>Sign in</Btn>
+      </div>
+    </div>
+  );
+}

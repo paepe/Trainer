@@ -12,6 +12,7 @@
     "cap:android": "npx cap open android"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.97.1",
     "@capacitor/android": "^7.0.0",
     "@capacitor/core": "^7.0.0",
     "@capacitor/ios": "^7.0.0",

@@ -1,11 +1,14 @@
 import React from 'react';
 import { BRAND } from './theme';
 import { useAuth } from './hooks/useAuth';
+import { useData } from './hooks/useData';
 import {
   WelcomeScreen, LoginScreen, RegisterScreen, OnboardingScreen,
   ProfileScreen, EditProfileScreen, CheckInScreen,
   StartWorkoutScreen, GoalAchievedScreen, StatsScreen, HistoryScreen,
   CycleScreen, TrainerStudioScreen, SettingsScreen,
+  TrainerDashboardScreen,
+  WorkoutPlanEditorScreen,
   SideMenu, Icon,
 } from './screens';
 
@@ -13,13 +16,17 @@ const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
 
 export default function App() {
   const { session, profile, loading, signIn, signUp, signOut, updateProfile } = useAuth();
+  const { savePhysicalProfile, saveCheckin, logWorkoutSession } = useData(session?.user?.id);
 
   const [dark, setDark] = React.useState(true);
   const [cycleEnabled] = React.useState(true);
+
+  const isTrainer = profile?.role === 'trainer' || profile?.role === 'studio_trainer' || profile?.role === 'studio_admin';
   const t = { ...BRAND, dark, cycleEnabled, role: profile?.role ?? 'client' };
 
   const [screen, setScreen] = React.useState('welcome');
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [selectedClient, setSelectedClient] = React.useState(null);
   const [prefs, setPrefs] = React.useState({
     notifications: true, goals: true, alerts: true,
     analysis: true, behaviour: true, sounds: false,
@@ -39,12 +46,12 @@ export default function App() {
     }
   }, [session, loading]);
 
-  // Navigate to profile after login
+  // Role-based navigation after login (only when both session and profile are loaded)
   React.useEffect(() => {
-    if (session && PUBLIC_SCREENS.includes(screen)) {
-      setScreen('profile');
+    if (session && profile && ['welcome', 'login'].includes(screen)) {
+      setScreen(isTrainer ? 'trainerDashboard' : 'profile');
     }
-  }, [session]);
+  }, [session, profile]);
 
   const nav = (target) => {
     if (target === 'menu') { setMenuOpen(true); return; }
@@ -52,12 +59,16 @@ export default function App() {
     setScreen(target);
   };
 
+  const selectClient = (client) => {
+    setSelectedClient(client);
+    setScreen('workoutPlanEditor');
+  };
+
   const contentRef = React.useRef(null);
   React.useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [screen]);
 
-  // Intercept setUser — SideMenu calls it with mock data on Sign Out
   const handleSetUser = async (data) => {
     if (!data || data.email === 'frances@trainer.app') {
       await signOut();
@@ -68,8 +79,8 @@ export default function App() {
   };
 
   const user = profile
-    ? { name: profile.name ?? '', email: profile.email ?? '', role: profile.role ?? 'Client' }
-    : { name: '', email: '', role: 'Client' };
+    ? { id: profile.id, name: profile.name ?? '', email: profile.email ?? '', role: profile.role ?? 'Client' }
+    : { id: null, name: '', email: '', role: 'Client' };
 
   const surfaceBg = dark ? '#0E1A2B' : '#FFFFFF';
   const common = {
@@ -78,41 +89,57 @@ export default function App() {
     checkin, setCheckin,
     cycleConfig, setCycleConfig,
     signIn, signUp,
+    savePhysicalProfile,
+    saveCheckin,
+    logWorkoutSession,
+    selectedClient,
+    selectClient,
   };
 
   const showTabs = [
     'profile','workout','goal','stats','history',
     'settings','editProfile','targets','checkin','cycle','studio',
+    'trainerDashboard','workoutPlanEditor',
   ].includes(screen);
 
-  const tabs = [
-    ['profile', 'user',    'Profile'],
-    ['checkin', 'sparkle', 'Coach'],
-    ['workout', 'play',    'Workout'],
-    ['stats',   'chart',   'Stats'],
-    ['history', 'history', 'History'],
-  ];
+  const tabs = isTrainer
+    ? [
+        ['trainerDashboard', 'user',    'Clients'],
+        ['checkin',          'sparkle', 'Coach'],
+        ['workout',          'play',    'Workout'],
+        ['stats',            'chart',   'Stats'],
+        ['history',          'history', 'History'],
+      ]
+    : [
+        ['profile',  'user',    'Profile'],
+        ['checkin',  'sparkle', 'Coach'],
+        ['workout',  'play',    'Workout'],
+        ['stats',    'chart',   'Stats'],
+        ['history',  'history', 'History'],
+      ];
 
   if (loading) return <LoadingScreen dark={dark} primary={BRAND.primary} />;
 
   const screenContent = (() => {
     switch (screen) {
-      case 'welcome':     return <WelcomeScreen      {...common}/>;
-      case 'login':       return <LoginScreen        {...common}/>;
-      case 'register':    return <RegisterScreen     {...common}/>;
-      case 'onboarding':  return <OnboardingScreen   {...common}/>;
-      case 'profile':     return <ProfileScreen      {...common} prefs={prefs}/>;
-      case 'editProfile': return <EditProfileScreen  {...common}/>;
-      case 'checkin':     return <CheckInScreen      {...common}/>;
-      case 'workout':     return <StartWorkoutScreen {...common}/>;
-      case 'goal':        return <GoalAchievedScreen {...common}/>;
-      case 'stats':       return <StatsScreen        {...common}/>;
-      case 'history':     return <HistoryScreen      {...common}/>;
-      case 'cycle':       return <CycleScreen        {...common}/>;
-      case 'studio':      return <TrainerStudioScreen {...common}/>;
-      case 'settings':    return <SettingsScreen     {...common} prefs={prefs} setPrefs={setPrefs} setDark={setDark}/>;
-      case 'targets':     return <GoalAchievedScreen {...common}/>;
-      default:            return <WelcomeScreen      {...common}/>;
+      case 'welcome':          return <WelcomeScreen           {...common}/>;
+      case 'login':            return <LoginScreen             {...common}/>;
+      case 'register':         return <RegisterScreen          {...common}/>;
+      case 'onboarding':       return <OnboardingScreen        {...common}/>;
+      case 'profile':          return <ProfileScreen           {...common} prefs={prefs}/>;
+      case 'editProfile':      return <EditProfileScreen       {...common}/>;
+      case 'checkin':          return <CheckInScreen           {...common}/>;
+      case 'workout':          return <StartWorkoutScreen      {...common}/>;
+      case 'goal':             return <GoalAchievedScreen      {...common}/>;
+      case 'stats':            return <StatsScreen             {...common}/>;
+      case 'history':          return <HistoryScreen           {...common}/>;
+      case 'cycle':            return <CycleScreen             {...common}/>;
+      case 'studio':           return <TrainerStudioScreen     {...common}/>;
+      case 'settings':         return <SettingsScreen          {...common} prefs={prefs} setPrefs={setPrefs} setDark={setDark}/>;
+      case 'targets':          return <GoalAchievedScreen      {...common}/>;
+      case 'trainerDashboard':   return <TrainerDashboardScreen  {...common}/>;
+      case 'workoutPlanEditor':  return <WorkoutPlanEditorScreen {...common}/>;
+      default:                   return <WelcomeScreen           {...common}/>;
     }
   })();
 

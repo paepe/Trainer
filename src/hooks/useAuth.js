@@ -37,11 +37,11 @@ export function useAuth() {
     return { error };
   }
 
-  async function signUp(email, password, name) {
+  async function signUp(email, password, name, role = 'client') {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: { data: { name, role } },
     });
     return { data, error };
   }

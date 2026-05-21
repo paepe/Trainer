@@ -1,4 +1,5 @@
 import React from 'react';
+import { supabase } from './supabase';
 // screens.jsx — TrAIner v2 screens (brand palette: navy/cyan/teal/coral)
 
 // ─────────── ICON ATOM ───────────
@@ -444,59 +445,85 @@ function PillInput({ icon, placeholder, value, onChange, type = 'text', primary,
 
 // ─────────── 3. REGISTER ───────────
 function RegisterScreen({ nav, t, dark, signUp }) {
+  const [role, setRole] = React.useState('client');
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [pw, setPw] = React.useState('');
   const [pw2, setPw2] = React.useState('');
   const [err, setErr] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+
+  const ROLES = [
+    { key: 'client',       label: 'Aluno',   icon: 'user',     desc: 'Quero treinar' },
+    { key: 'trainer',      label: 'Trainer', icon: 'dumbbell', desc: 'Prescrevo treinos' },
+    { key: 'studio_admin', label: 'Studio',  icon: 'grad',     desc: 'Giro uma academia' },
+  ];
+
   const submit = async () => {
     if (!name || !email || !pw) { setErr('All fields are required.'); return; }
     if (pw !== pw2) { setErr('Passwords do not match.'); return; }
     setLoading(true); setErr('');
-    const { data, error } = await signUp(email, pw, name);
+    const { data, error } = await signUp(email, pw, name, role);
     if (error) { setErr(error.message); setLoading(false); return; }
     if (!data.session) {
       setErr('Account created! Check your email to confirm your address before logging in.');
       setLoading(false);
       return;
     }
-    nav('onboarding');
+    nav(role === 'client' ? 'onboarding' : 'profile');
   };
+
   const oauth = () => setErr('OAuth coming soon.');
+
   return (
     <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <button onClick={() => nav('welcome')} style={{ ...iconBtn(dark), marginLeft: -8 }}>
         <Icon name="chevL" size={22} color={textPri(dark)}/>
       </button>
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0 4px' }}>
-        <img
-          src="assets/trainer-logo-clean.png"
-          alt="TrAIner"
-          width={110}
-          height={110}
-          style={{
-            width: 110, height: 110, objectFit: 'contain',
-            filter: `drop-shadow(0 10px 24px ${t.primary}55)`,
-          }}
-        />
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0 2px' }}>
+        <img src="assets/trainer-logo-clean.png" alt="TrAIner" width={90} height={90}
+          style={{ width: 90, height: 90, objectFit: 'contain', filter: `drop-shadow(0 8px 20px ${t.primary}55)` }}/>
       </div>
       <h1 style={{
-        margin: '4px 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 24, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
+        margin: '4px 0 2px', fontFamily: '"Plus Jakarta Sans",sans-serif',
+        fontSize: 22, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>Create account</h1>
-      <div style={{ color: textSec(dark), fontSize: 13 }}>Get a coach in your pocket — backed by real trainers.</div>
-      <div style={{ marginTop: 16 }}>
-        <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel="or sign up with email"/>
+      <div style={{ color: textSec(dark), fontSize: 13, marginBottom: 14 }}>
+        Get a coach in your pocket — backed by real trainers.
       </div>
+
+      {/* Account type selector */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+        {ROLES.map(r => {
+          const on = role === r.key;
+          return (
+            <button key={r.key} onClick={() => setRole(r.key)} style={{
+              flex: 1, padding: '10px 4px', borderRadius: 14,
+              border: `1.5px solid ${on ? t.primary : (dark ? '#1F2E45' : '#E7ECF3')}`,
+              background: on ? `${t.primary}1A` : (dark ? '#142233' : '#F4F6FA'),
+              color: on ? t.primary : textSec(dark),
+              fontFamily: 'inherit', cursor: 'pointer',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+              transition: 'border-color .15s, background .15s',
+            }}>
+              <Icon name={r.icon} size={18} color={on ? t.primary : textSec(dark)} stroke={on ? 2.5 : 2}/>
+              <span style={{ fontSize: 11, fontWeight: on ? 700 : 500 }}>{r.label}</span>
+              <span style={{ fontSize: 9.5, color: on ? t.primary : textMute(dark), textAlign: 'center', lineHeight: 1.3 }}>{r.desc}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel="or sign up with email"/>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <PillInput icon="user"  placeholder="Full Name"       value={name}  onChange={setName}  primary={t.primary} dark={dark}/>
-        <PillInput icon="mail"  placeholder="Email"  type="email"    value={email} onChange={setEmail} primary={t.primary} dark={dark}/>
-        <PillInput icon="lock"  placeholder="Password"        value={pw}    onChange={setPw}    primary={t.primary} dark={dark} type="password"/>
-        <PillInput icon="lock"  placeholder="Confirm Password" value={pw2}  onChange={setPw2}   primary={t.primary} dark={dark} type="password"/>
+        <PillInput icon="user" placeholder="Full Name"         value={name}  onChange={setName}  primary={t.primary} dark={dark}/>
+        <PillInput icon="mail" placeholder="Email" type="email" value={email} onChange={setEmail} primary={t.primary} dark={dark}/>
+        <PillInput icon="lock" placeholder="Password"          value={pw}    onChange={setPw}    primary={t.primary} dark={dark} type="password"/>
+        <PillInput icon="lock" placeholder="Confirm Password"  value={pw2}   onChange={setPw2}   primary={t.primary} dark={dark} type="password"/>
       </div>
       {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
-      <div style={{ flex: 1, minHeight: 12 }}/>
+      <div style={{ flex: 1, minHeight: 10 }}/>
       <button onClick={submit} disabled={loading} style={{ ...primaryBtn(t.primary, dark), opacity: loading ? 0.7 : 1 }}>
         {loading ? 'Creating account…' : 'Register'}
       </button>
@@ -506,7 +533,7 @@ function RegisterScreen({ nav, t, dark, signUp }) {
 }
 
 // ─────────── 4. ONBOARDING (4-step quiz) ───────────
-function OnboardingScreen({ nav, t, dark, setCheckin, cycleConfig, setCycleConfig }) {
+function OnboardingScreen({ nav, t, dark, setCheckin, cycleConfig, setCycleConfig, savePhysicalProfile }) {
   const [step, setStep] = React.useState(0);
   const [goal, setGoal] = React.useState('Endurance');
   const [level, setLevel] = React.useState('Intermediate');
@@ -528,10 +555,18 @@ function OnboardingScreen({ nav, t, dark, setCheckin, cycleConfig, setCycleConfi
 
   const toggleIssue = (i) => setRestrictions(r => r.includes(i) ? r.filter(x => x !== i) : [...r, i]);
 
-  const finish = () => {
+  const finish = async () => {
     setCheckin({ energy: 7, soreness: restrictions, minutes, goal });
     if (cycle && setCycleConfig) {
       setCycleConfig({ ...(cycleConfig || {}), length });
+    }
+    if (savePhysicalProfile) {
+      await savePhysicalProfile({
+        primary_goal: goal,
+        fitness_level: level.toLowerCase(),
+        available_minutes: minutes,
+        restrictions,
+      });
     }
     nav('profile');
   };
@@ -888,7 +923,7 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
 }
 
 // ─────────── 7. DAILY CHECK-IN ───────────
-function CheckInScreen({ nav, t, dark, checkin, setCheckin }) {
+function CheckInScreen({ nav, t, dark, checkin, setCheckin, saveCheckin }) {
   const issues = ['Lower back', 'Knees', 'Shoulder', 'Wrist', 'Ankle', 'Neck', 'Hip', 'None'];
   const goals = ['Endurance', 'Strength', 'Mobility', 'Recovery'];
 
@@ -1020,7 +1055,10 @@ function CheckInScreen({ nav, t, dark, checkin, setCheckin }) {
       </div>
 
       <div style={{ padding: '8px 22px 28px' }}>
-        <button onClick={() => nav('workout')} style={{ ...primaryBtn(t.primary, dark), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <button onClick={async () => {
+          if (saveCheckin) await saveCheckin({ energy: checkin.energy, soreness: checkin.soreness, minutes: checkin.minutes, goal: checkin.goal });
+          nav('workout');
+        }} style={{ ...primaryBtn(t.primary, dark), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <Icon name="play" size={14} color="#0E1A2B"/> Generate today&rsquo;s workout
         </button>
       </div>
@@ -1962,10 +2000,460 @@ function SideMenu({ open, nav, t, user, current, setUser }) {
   );
 }
 
+// ─────────── WORKOUT PLAN EDITOR ───────────
+function WorkoutPlanEditorScreen({ nav, t, dark, user, selectedClient }) {
+  const [context, setContext] = React.useState(null);
+  const [exercises, setExercises] = React.useState([]);
+  const [showAddForm, setShowAddForm] = React.useState(false);
+  const [draft, setDraft] = React.useState({
+    exercise_name: '', muscle_group: '', sets: 3, reps: 10, load_kg: '', rest_seconds: 60,
+  });
+  const [trainerNotes, setTrainerNotes] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
+  const [saved, setSaved] = React.useState(false);
+  const [aiLoading, setAiLoading] = React.useState(false);
+  const [aiError, setAiError] = React.useState('');
+
+  const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs', 'Full body', 'Cardio'];
+
+  async function askAI() {
+    setAiLoading(true); setAiError('');
+    try {
+      const apiBase = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || '';
+      const res = await fetch(`${apiBase}/api/generate-workout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          checkin: context?.latestCheckin,
+          physicalProfile: context?.physicalProfile,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate workout');
+      if (data.exercises?.length) {
+        setExercises(data.exercises.map(ex => ({
+          exercise_name: ex.exercise_name,
+          muscle_group: ex.muscle_group || '',
+          sets: ex.sets || 3,
+          reps: ex.reps || 10,
+          load_kg: ex.load_kg ?? '',
+          rest_seconds: ex.rest_seconds || 60,
+          notes: ex.notes || '',
+        })));
+      }
+    } catch (err) {
+      setAiError(err.message);
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  React.useEffect(() => {
+    if (!selectedClient?.id) return;
+    Promise.all([
+      supabase.from('physical_profiles').select('*').eq('user_id', selectedClient.id).maybeSingle(),
+      supabase.from('checkins').select('*').eq('user_id', selectedClient.id).order('date', { ascending: false }).limit(1).maybeSingle(),
+    ]).then(([profileRes, checkinRes]) => {
+      setContext({ physicalProfile: profileRes.data, latestCheckin: checkinRes.data });
+    });
+  }, [selectedClient?.id]);
+
+  function addExercise() {
+    if (!draft.exercise_name.trim()) return;
+    setExercises([...exercises, { ...draft }]);
+    setDraft({ exercise_name: '', muscle_group: '', sets: 3, reps: 10, load_kg: '', rest_seconds: 60 });
+    setShowAddForm(false);
+  }
+
+  async function sendPlan(status) {
+    if (!selectedClient?.id || exercises.length === 0) return;
+    setSaving(true);
+    const { data: plan, error } = await supabase
+      .from('workout_plans')
+      .insert({
+        created_by: user.id,
+        assigned_to: selectedClient.id,
+        source: 'manual',
+        status,
+        trainer_notes: trainerNotes || null,
+        scheduled_date: new Date().toISOString().split('T')[0],
+      })
+      .select()
+      .single();
+    if (error) { setSaving(false); return; }
+    await supabase.from('plan_exercises').insert(
+      exercises.map((ex, i) => ({ plan_id: plan.id, ...ex, order_index: i }))
+    );
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => { setSaved(false); nav('trainerDashboard'); }, 1200);
+  }
+
+  if (!selectedClient) return (
+    <div style={{ padding: '60px 32px', textAlign: 'center', color: textSec(dark), fontSize: 13 }}>
+      No client selected.
+      <button onClick={() => nav('trainerDashboard')} style={{ ...ghostBtn(dark), display: 'block', margin: '16px auto 0' }}>
+        ← Back to clients
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Header */}
+      <div style={{ padding: '20px 22px 0', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <button onClick={() => nav('trainerDashboard')} style={{ ...iconBtn(dark), marginLeft: -4 }}>
+          <Icon name="chevL" size={22} color={textPri(dark)}/>
+        </button>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
+            Workout Plan
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: textPri(dark), fontFamily: '"Plus Jakarta Sans",sans-serif' }}>
+            {selectedClient.name || 'Client'}
+          </div>
+        </div>
+        {saved && (
+          <div style={{ padding: '6px 14px', borderRadius: 999, background: `${t.primary}22`, color: t.primary, fontSize: 12, fontWeight: 700 }}>
+            Sent ✓
+          </div>
+        )}
+      </div>
+
+      {/* Client context card */}
+      {context && (
+        <div style={{ margin: '14px 22px 0', padding: '14px 16px', borderRadius: 14, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
+            Today's context
+          </div>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            {context.latestCheckin ? (
+              <>
+                <span style={{ fontSize: 12, color: textSec(dark) }}>
+                  Energy <span style={{ fontWeight: 700, color: t.primary }}>{context.latestCheckin.energy}/10</span>
+                </span>
+                {context.latestCheckin.soreness?.length > 0 && context.latestCheckin.soreness[0] !== 'None' && (
+                  <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>
+                    ⚠ {context.latestCheckin.soreness.join(', ')}
+                  </span>
+                )}
+                <span style={{ fontSize: 12, color: textSec(dark) }}>
+                  <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.latestCheckin.minutes}min</span> available
+                </span>
+              </>
+            ) : (
+              <span style={{ fontSize: 12, color: textMute(dark) }}>No check-in today</span>
+            )}
+            {context.physicalProfile?.primary_goal && (
+              <span style={{ fontSize: 12, color: textSec(dark) }}>
+                Goal <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.primary_goal}</span>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Exercise list */}
+      <div style={{ padding: '16px 22px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
+            Exercises ({exercises.length})
+          </div>
+          <button onClick={() => setShowAddForm(v => !v)} style={{
+            padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+            background: `${t.primary}22`, color: t.primary, border: 'none',
+            fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            <Icon name="plus" size={12} color={t.primary}/> Add
+          </button>
+        </div>
+
+        {exercises.length === 0 && !showAddForm && (
+          <div style={{ padding: '18px 0', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
+            Tap Add to build the plan.
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {exercises.map((ex, i) => (
+            <div key={i} style={{
+              padding: '12px 14px', borderRadius: 12,
+              background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{ex.exercise_name}</div>
+                <div style={{ fontSize: 11, color: textSec(dark), marginTop: 3 }}>
+                  {ex.muscle_group && `${ex.muscle_group} · `}{ex.sets}×{ex.reps}
+                  {ex.load_kg ? ` · ${ex.load_kg}kg` : ''}{ex.rest_seconds ? ` · ${ex.rest_seconds}s` : ''}
+                </div>
+              </div>
+              <button onClick={() => setExercises(exercises.filter((_, idx) => idx !== i))} style={{
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                color: textMute(dark), fontSize: 18, lineHeight: 1, padding: '2px 6px', fontFamily: 'inherit',
+              }}>×</button>
+            </div>
+          ))}
+        </div>
+
+        {/* Add exercise form */}
+        {showAddForm && (
+          <div style={{ marginTop: 10, padding: 16, borderRadius: 14, background: surfRaised(dark), border: `1.5px solid ${t.primary}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>New exercise</div>
+            <PillInput icon="dumbbell" placeholder="Exercise name"
+              value={draft.exercise_name} onChange={v => setDraft({ ...draft, exercise_name: v })}
+              primary={t.primary} dark={dark}/>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {MUSCLE_GROUPS.map(mg => {
+                const on = draft.muscle_group === mg;
+                return (
+                  <button key={mg} onClick={() => setDraft({ ...draft, muscle_group: on ? '' : mg })} style={{
+                    padding: '5px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    background: on ? t.primary : (dark ? '#1F2E45' : '#EEF1F7'),
+                    color: on ? '#0E1A2B' : textSec(dark),
+                    border: 'none', fontFamily: 'inherit', cursor: 'pointer',
+                  }}>{mg}</button>
+                );
+              })}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {[['Sets', 'sets', 1, 10], ['Reps', 'reps', 1, 50]].map(([label, key, min, max]) => (
+                <div key={key}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: textMute(dark), marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>{label}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <button onClick={() => setDraft({ ...draft, [key]: Math.max(min, draft[key] - 1) })} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 16, cursor: 'pointer' }}>−</button>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: textPri(dark), minWidth: 24, textAlign: 'center' }}>{draft[key]}</span>
+                    <button onClick={() => setDraft({ ...draft, [key]: Math.min(max, draft[key] + 1) })} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 16, cursor: 'pointer' }}>+</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <PillInput icon="bolt"  placeholder="Load (kg)" value={String(draft.load_kg || '')}
+                onChange={v => setDraft({ ...draft, load_kg: v })} primary={t.primary} dark={dark}/>
+              <PillInput icon="clock" placeholder="Rest (s)"  value={String(draft.rest_seconds || '')}
+                onChange={v => setDraft({ ...draft, rest_seconds: Number(v) || 60 })} primary={t.primary} dark={dark}/>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setShowAddForm(false)} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>Cancel</button>
+              <button onClick={addExercise} style={{ flex: 2, padding: '12px 0', borderRadius: 999, background: t.primary, color: '#0E1A2B', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                Add exercise
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Trainer notes */}
+      <div style={{ padding: '14px 22px 0' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
+          Trainer notes
+        </div>
+        <textarea value={trainerNotes} onChange={e => setTrainerNotes(e.target.value)}
+          placeholder="Notes visible to the client…" rows={2}
+          style={{
+            width: '100%', padding: '12px 14px', borderRadius: 12, boxSizing: 'border-box',
+            background: dark ? '#142233' : '#F4F6FA',
+            border: `1.5px solid ${borderSubtle(dark)}`,
+            color: textPri(dark), fontFamily: 'inherit', fontSize: 13,
+            resize: 'none', outline: 'none',
+          }}/>
+      </div>
+
+      {/* AI error */}
+      {aiError && (
+        <div style={{ margin: '0 22px', padding: '10px 14px', borderRadius: 10, background: `${t.accent}22`, color: t.accent, fontSize: 12 }}>
+          {aiError}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div style={{ padding: '14px 22px 32px', display: 'flex', gap: 10 }}>
+        <button onClick={askAI} disabled={aiLoading} style={{
+          flex: 1, padding: '13px 0', borderRadius: 14,
+          border: `1.5px solid ${aiLoading ? borderSubtle(dark) : t.primary}`,
+          background: aiLoading ? (dark ? '#142233' : '#F4F6FA') : `${t.primary}18`,
+          color: aiLoading ? textMute(dark) : t.primary,
+          fontFamily: 'inherit', fontSize: 11, fontWeight: 700, cursor: aiLoading ? 'default' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          transition: 'all .15s',
+        }}>
+          {aiLoading ? (
+            <>
+              <div style={{ width: 12, height: 12, borderRadius: '50%', border: `2px solid ${t.primary}44`, borderTopColor: t.primary, animation: 'spin 0.7s linear infinite' }}/>
+              Generating…
+            </>
+          ) : '✦ Ask AI'}
+        </button>
+        <button onClick={() => sendPlan('draft')} disabled={saving || exercises.length === 0} style={{
+          flex: 1, padding: '13px 0', borderRadius: 14,
+          border: `1.5px solid ${dark ? '#1F2E45' : '#D0D8E4'}`,
+          background: 'transparent', color: textPri(dark),
+          fontFamily: 'inherit', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+          opacity: exercises.length === 0 ? 0.4 : 1,
+        }}>Save draft</button>
+        <button onClick={() => sendPlan('sent')} disabled={saving || exercises.length === 0} style={{
+          flex: 2, padding: '13px 0', borderRadius: 999,
+          background: exercises.length === 0 ? (dark ? '#1F2E45' : '#D0D8E4') : t.primary,
+          color: exercises.length === 0 ? textMute(dark) : '#0E1A2B',
+          border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          opacity: saving ? 0.7 : 1,
+        }}>{saving ? 'Sending…' : 'Send to client →'}</button>
+      </div>
+    </>
+  );
+}
+
+// ─────────── TRAINER DASHBOARD ───────────
+function TrainerDashboardScreen({ nav, t, dark, user, selectClient }) {
+  const [clients, setClients] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [showInvite, setShowInvite] = React.useState(false);
+  const [inviteEmail, setInviteEmail] = React.useState('');
+  const [inviteErr, setInviteErr] = React.useState('');
+  const [inviting, setInviting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    fetchClients();
+  }, [user?.id]);
+
+  async function fetchClients() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('trainer_clients')
+      .select('id, status, created_at, client:profiles!trainer_clients_client_id_fkey(id, name, email)')
+      .eq('trainer_id', user.id)
+      .in('status', ['active', 'pending'])
+      .order('created_at', { ascending: false });
+    setClients(data || []);
+    setLoading(false);
+  }
+
+  async function invite() {
+    if (!inviteEmail) return;
+    setInviting(true); setInviteErr('');
+    const { data: found } = await supabase.from('profiles').select('id').eq('email', inviteEmail).single();
+    if (!found) { setInviteErr('No account found with that email.'); setInviting(false); return; }
+    const { error } = await supabase.from('trainer_clients').insert({
+      trainer_id: user.id, client_id: found.id, status: 'pending',
+    });
+    if (error) { setInviteErr(error.message); setInviting(false); return; }
+    setShowInvite(false); setInviteEmail(''); fetchClients(); setInviting(false);
+  }
+
+  const activeClients  = clients.filter(c => c.status === 'active');
+  const pendingClients = clients.filter(c => c.status === 'pending');
+
+  return (
+    <>
+      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
+      <ScreenTitle dark={dark} sub={`${activeClients.length} active · ${pendingClients.length} pending`}>
+        My Clients
+      </ScreenTitle>
+
+      <div style={{ padding: '0 22px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: 40, color: textMute(dark), fontSize: 13 }}>Loading…</div>
+        )}
+
+        {!loading && clients.length === 0 && (
+          <div style={{
+            padding: 32, borderRadius: 18,
+            background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+            textAlign: 'center',
+          }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: 16, margin: '0 auto 14px',
+              background: `${t.primary}22`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="user" size={24} color={t.primary} stroke={2}/>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: textPri(dark), marginBottom: 6 }}>No clients yet</div>
+            <div style={{ fontSize: 13, color: textSec(dark) }}>Invite your first client by email to get started.</div>
+          </div>
+        )}
+
+        {clients.map(tc => (
+          <div key={tc.id} style={{
+            padding: '14px 16px', borderRadius: 16,
+            background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+            display: 'flex', alignItems: 'center', gap: 14,
+          }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 14, flexShrink: 0,
+              background: `${t.primary}22`, color: t.primary,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 700, fontSize: 16, fontFamily: '"Plus Jakarta Sans",sans-serif',
+            }}>
+              {(tc.client?.name || '?')[0].toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>{tc.client?.name || 'Unknown'}</div>
+              <div style={{ fontSize: 12, color: textSec(dark), marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tc.client?.email}</div>
+            </div>
+            {tc.status === 'pending' ? (
+              <div style={{
+                padding: '4px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                background: `${t.accent}22`, color: t.accent, letterSpacing: '.05em', textTransform: 'uppercase',
+                flexShrink: 0,
+              }}>Pending</div>
+            ) : (
+              <button onClick={() => selectClient && selectClient(tc.client)} style={{
+                padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
+                background: `${t.primary}22`, color: t.primary,
+                border: 'none', fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0,
+              }}>View →</button>
+            )}
+          </div>
+        ))}
+
+        {/* Invite form */}
+        {showInvite ? (
+          <div style={{
+            padding: 18, borderRadius: 16,
+            background: surfRaised(dark), border: `1.5px solid ${t.primary}`,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), marginBottom: 10 }}>Invite by email</div>
+            <PillInput icon="mail" placeholder="client@email.com" type="email"
+              value={inviteEmail} onChange={setInviteEmail} primary={t.primary} dark={dark}/>
+            {inviteErr && <div style={{ color: t.accent, fontSize: 11, marginTop: 8 }}>{inviteErr}</div>}
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button onClick={() => { setShowInvite(false); setInviteEmail(''); setInviteErr(''); }}
+                style={{ ...ghostBtn(dark), flex: 1, padding: '12px 0', textAlign: 'center', borderRadius: 12 }}>
+                Cancel
+              </button>
+              <button onClick={invite} disabled={inviting} style={{
+                flex: 2, padding: '13px 0', border: 'none', borderRadius: 999,
+                background: t.primary, color: '#0E1A2B', fontSize: 14, fontWeight: 700,
+                fontFamily: 'inherit', cursor: 'pointer', opacity: inviting ? 0.7 : 1,
+              }}>
+                {inviting ? 'Sending…' : 'Send invite'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => setShowInvite(true)} style={{
+            padding: '14px 18px', borderRadius: 14,
+            border: `1.5px dashed ${dark ? '#1F2E45' : '#D0D8E4'}`,
+            background: 'transparent', color: t.primary,
+            fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            <Icon name="plus" size={16} color={t.primary}/> Invite client
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
 export {
   WelcomeScreen, LoginScreen, RegisterScreen, OnboardingScreen,
   ProfileScreen, EditProfileScreen, CheckInScreen,
   StartWorkoutScreen, GoalAchievedScreen, StatsScreen, HistoryScreen,
   CycleScreen, TrainerStudioScreen, SettingsScreen,
+  TrainerDashboardScreen, WorkoutPlanEditorScreen,
   SideMenu, Icon,
 };
