@@ -1347,8 +1347,9 @@ function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }) {
     ? 'http://localhost:3000'
     : '';
 
-  // Derive current cycle phase from cycleConfig
+  // Derive current cycle phase — only for female users with cycle tracking data
   const getCycleContext = () => {
+    if (user?.gender !== 'female') return null;
     if (!cycleConfig?.length) return null;
     const day = Math.min(cycleConfig.length, Math.max(1, (cycleConfig.lastStartOffset || 0) + 1));
     const phases = computeCyclePhases(cycleConfig.length, t);
