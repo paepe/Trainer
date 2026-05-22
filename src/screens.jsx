@@ -1639,9 +1639,26 @@ function WorkoutInProgressScreen({ nav, t, dark, user, planId, exercises, logWor
 
 // ─────────── 10. GOAL ACHIEVED ───────────
 function GoalAchievedScreen({ nav, t, dark, sessionData }) {
-  const duration    = sessionData?.durationMinutes ?? null;
-  const completed   = sessionData?.completedCount  ?? null;
-  const total       = sessionData?.total           ?? null;
+  const duration = sessionData?.durationMinutes ?? null;
+  const planId   = sessionData?.planId          ?? null;
+
+  const [completed,   setCompleted]   = React.useState(sessionData?.completedCount ?? null);
+  const [total,       setTotal]       = React.useState(sessionData?.total          ?? null);
+
+  // When opened from History (no completedCount), fetch plan_exercises from DB
+  React.useEffect(() => {
+    if (completed !== null || !planId) return;
+    supabase
+      .from('plan_exercises')
+      .select('id, completed')
+      .eq('plan_id', planId)
+      .then(({ data }) => {
+        if (!data?.length) return;
+        setTotal(data.length);
+        setCompleted(data.filter(e => e.completed).length);
+      });
+  }, [planId]);
+
   const completePct = total > 0 ? Math.round((completed / total) * 100) : null;
 
   const fmtDuration = (min) => {
@@ -2031,7 +2048,9 @@ function HistoryScreen({ nav, t, dark, user }) {
             </div>
             <button onClick={() => nav('goal', {
               durationMinutes: s.duration_minutes,
-              startedAt: s.started_at,
+              startedAt:       s.started_at,
+              planId:          s.plan_id,
+              sessionId:       s.id,
             })} style={{
               padding: '7px 14px', borderRadius: 999, border: 'none',
               background: t.primary, color: '#0E1A2B', fontSize: 12, fontWeight: 700,
