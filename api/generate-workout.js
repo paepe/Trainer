@@ -1,10 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-// Cached system prompt — stable across all requests, Anthropic caches this block
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.
 
@@ -37,6 +30,11 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'AI service not configured.' });
+  }
+
   const { checkin, physicalProfile, cycleContext } = req.body || {};
 
   // Build client context
@@ -59,9 +57,9 @@ export default async function handler(req, res) {
     lines.push(`Soreness: ${sore.length ? sore.join(', ') : 'none'}`);
     lines.push(`Available today: ${checkin.minutes || 45} min`);
     lines.push(`Session goal: ${checkin.goal || 'general'}`);
-    if (checkin.location)      lines.push(`Location: ${checkin.location}`);
-    if (checkin.sleep_quality) lines.push(`Sleep quality: ${checkin.sleep_quality}`);
-    if (checkin.equipment?.length) lines.push(`Available equipment: ${checkin.equipment.join(', ')}`);
+    if (checkin.location)           lines.push(`Location: ${checkin.location}`);
+    if (checkin.sleep_quality)      lines.push(`Sleep quality: ${checkin.sleep_quality}`);
+    if (checkin.equipment?.length)  lines.push(`Available equipment: ${checkin.equipment.join(', ')}`);
   }
 
   if (cycleContext?.phase) {
@@ -83,20 +81,29 @@ export default async function handler(req, res) {
     : 'Generate a balanced 45-minute intermediate full-body workout. Return 5 exercises as a JSON array.';
 
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: [
-        {
-          type: 'text',
-          text: SYSTEM_PROMPT,
-          cache_control: { type: 'ephemeral' }, // cache stable system prompt
-        },
-      ],
-      messages: [{ role: 'user', content: userContent }],
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        max_tokens: 1024,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user',   content: userContent   },
+        ],
+      }),
     });
 
-    const text = message.content[0]?.type === 'text' ? message.content[0].text.trim() : '';
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'DeepSeek request failed');
+    }
+
+    const text = data.choices?.[0]?.message?.content?.trim() ?? '';
 
     // Extract JSON array even if model adds surrounding text
     const match = text.match(/\[[\s\S]*\]/);
@@ -109,10 +116,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       exercises,
       usage: {
-        input_tokens: message.usage.input_tokens,
-        output_tokens: message.usage.output_tokens,
-        cache_read: message.usage.cache_read_input_tokens ?? 0,
-        cache_write: message.usage.cache_creation_input_tokens ?? 0,
+        input_tokens:  data.usage?.prompt_tokens     ?? 0,
+        output_tokens: data.usage?.completion_tokens ?? 0,
       },
     });
   } catch (err) {
