@@ -1710,14 +1710,33 @@ function WorkoutInProgressScreen({ nav, t, dark, user, planId, exercises, logWor
 }
 
 // ─────────── 10. GOAL ACHIEVED ───────────
-function GoalAchievedScreen({ nav, t, dark, sessionData }) {
-  const duration = sessionData?.durationMinutes ?? null;
-  const planId   = sessionData?.planId          ?? null;
+function GoalAchievedScreen({ nav, t, dark, sessionData, user }) {
+  const [duration,  setDuration]  = React.useState(sessionData?.durationMinutes ?? null);
+  const [planId,    setPlanId]    = React.useState(sessionData?.planId          ?? null);
+  const [completed, setCompleted] = React.useState(sessionData?.completedCount  ?? null);
+  const [total,     setTotal]     = React.useState(sessionData?.total           ?? null);
+  const [loading,   setLoading]   = React.useState(false);
 
-  const [completed,   setCompleted]   = React.useState(sessionData?.completedCount ?? null);
-  const [total,       setTotal]       = React.useState(sessionData?.total          ?? null);
+  // No payload (opened from Profile) — load the most recent session from DB
+  React.useEffect(() => {
+    if (sessionData || !user?.id) return;
+    setLoading(true);
+    supabase
+      .from('workout_sessions')
+      .select('id, duration_minutes, plan_id, started_at')
+      .eq('user_id', user.id)
+      .order('started_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) { setLoading(false); return; }
+        setDuration(data.duration_minutes ?? null);
+        setPlanId(data.plan_id ?? null);
+        setLoading(false);
+      });
+  }, [user?.id]);
 
-  // When opened from History (no completedCount), fetch plan_exercises from DB
+  // Fetch plan_exercises whenever planId becomes available and completed is unknown
   React.useEffect(() => {
     if (completed !== null || !planId) return;
     supabase
@@ -1749,7 +1768,7 @@ function GoalAchievedScreen({ nav, t, dark, sessionData }) {
           fontFamily: '"Plus Jakarta Sans",sans-serif',
           fontSize: 40, fontWeight: 700, color: t.primary, letterSpacing: '-0.02em',
         }}>
-          {duration ? fmtDuration(duration) : '—'}
+          {loading ? '…' : duration ? fmtDuration(duration) : '—'}
         </div>
         <div style={{ color: textSec(dark), fontSize: 12.5, marginTop: 2 }}>Session duration</div>
       </div>
