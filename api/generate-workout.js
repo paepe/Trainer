@@ -37,7 +37,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { checkin, physicalProfile } = req.body || {};
+  const { checkin, physicalProfile, cycleContext } = req.body || {};
 
   // Build client context
   const lines = [];
@@ -59,8 +59,23 @@ export default async function handler(req, res) {
     lines.push(`Soreness: ${sore.length ? sore.join(', ') : 'none'}`);
     lines.push(`Available today: ${checkin.minutes || 45} min`);
     lines.push(`Session goal: ${checkin.goal || 'general'}`);
-    if (checkin.location) lines.push(`Location: ${checkin.location}`);
-    if (checkin.sleep_quality) lines.push(`Sleep: ${checkin.sleep_quality}`);
+    if (checkin.location)      lines.push(`Location: ${checkin.location}`);
+    if (checkin.sleep_quality) lines.push(`Sleep quality: ${checkin.sleep_quality}`);
+    if (checkin.equipment?.length) lines.push(`Available equipment: ${checkin.equipment.join(', ')}`);
+  }
+
+  if (cycleContext?.phase) {
+    lines.push('');
+    lines.push('CYCLE CONTEXT');
+    lines.push(`Current phase: ${cycleContext.phase} (day ${cycleContext.day} of ${cycleContext.cycleLength})`);
+    lines.push('Phase-specific guidance:');
+    const phaseGuidance = {
+      Menstrual:  'Lower intensity preferred. Prioritise mobility, gentle yoga, light walking. Avoid heavy compound lifts.',
+      Follicular: 'Rising energy. Good for strength training and progressive overload. Introduce new movements.',
+      Ovulatory:  'Peak energy and strength. Push intensity. High-power exercises, HIIT, and PRs are appropriate.',
+      Luteal:     'Moderate and consistent. Steady-state cardio and moderate weights. Avoid maximal efforts late in phase.',
+    };
+    lines.push(phaseGuidance[cycleContext.phase] || 'Adapt to current energy reported in check-in.');
   }
 
   const userContent = lines.length

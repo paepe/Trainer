@@ -58,6 +58,20 @@ const textPri = (dark) => dark ? '#FFFFFF' : '#102236';
 const textSec = (dark) => dark ? 'rgba(255,255,255,.65)' : '#5a6878';
 const textMute = (dark) => dark ? 'rgba(255,255,255,.45)' : '#8a96a4';
 
+// Renders a real avatar if url is available, falls back to PhotoSlot stripe pattern
+const AvatarImage = ({ url, label, w, h, dark = true, radius = 10, style = {} }) => {
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={label}
+        style={{ width: w, height: h, borderRadius: radius, objectFit: 'cover', flexShrink: 0, ...style }}
+      />
+    );
+  }
+  return <PhotoSlot label={label} w={w} h={h} dark={dark} radius={radius} style={style}/>;
+};
+
 const PhotoSlot = ({ label, w, h, dark = true, radius = 10, style = {} }) => (
   <div style={{
     width: w, height: h, borderRadius: radius,
@@ -374,7 +388,13 @@ function LoginScreen({ nav, t, dark, signIn }) {
     const { error } = await signIn(email, p);
     if (error) { setErr(error.message); setLoading(false); return; }
   };
-  const oauth = () => setErr('OAuth coming soon.');
+  const oauth = async (provider) => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) setErr(error.message);
+  };
   return (
     <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <button onClick={() => nav('welcome')} style={{ ...iconBtn(dark), marginLeft: -8 }}>
@@ -473,7 +493,13 @@ function RegisterScreen({ nav, t, dark, signUp }) {
     nav(role === 'client' ? 'onboarding' : 'profile');
   };
 
-  const oauth = () => setErr('OAuth coming soon.');
+  const oauth = async (provider) => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) setErr(error.message);
+  };
 
   return (
     <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -787,13 +813,39 @@ function OnboardingScreen({ nav, t, dark, setCheckin, cycleConfig, setCycleConfi
 }
 
 // ─────────── 5. PROFILE ───────────
-function ProfileScreen({ nav, t, user, dark, prefs }) {
+function ProfileScreen({ nav, t, user, dark, prefs, cycleConfig }) {
+  const [sessionCount,   setSessionCount]   = React.useState(null);
+  const [completedToday, setCompletedToday] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from('workout_sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }) => setSessionCount(count ?? 0));
+
+    const today = new Date().toISOString().split('T')[0];
+    supabase
+      .from('checkins')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('date', today)
+      .maybeSingle()
+      .then(({ data }) => setCompletedToday(!!data));
+  }, [user?.id]);
+
+  const cycleDay = cycleConfig?.lastStartOffset != null
+    ? cycleConfig.lastStartOffset + 1
+    : null;
+  const cycleLen = cycleConfig?.length || 28;
+
   return (
     <>
       <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>User Profile</ScreenTitle>
       <div style={{ padding: '0 22px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
-        <PhotoSlot label="photo" w={88} h={88} radius={16} dark={dark}/>
+        <AvatarImage url={user.avatar_url} label="photo" w={88} h={88} radius={16} dark={dark}/>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 19, fontWeight: 600, color: textPri(dark), fontFamily: '"Plus Jakarta Sans",sans-serif' }}>{user.name}</div>
           <div style={{
@@ -840,12 +892,14 @@ function ProfileScreen({ nav, t, user, dark, prefs }) {
         padding: '0 18px 16px',
         display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
       }}>
-        <StatCard icon="target" label="Targets" sub="67% Achieved" t={t} dark={dark} onClick={() => nav('goal')}/>
-        <StatCard icon="rocket" label="Activity" sub="8,000 steps" t={t} dark={dark} onClick={() => nav('history')}/>
-        <StatCard icon="flame" label="Workout" sub="78% Complete" t={t} dark={dark} onClick={() => nav('workout')}/>
+        <StatCard icon="target"  label="Targets"  sub={completedToday ? '✓ Checked in today' : 'Check in to start'} t={t} dark={dark} onClick={() => nav('goal')}/>
+        <StatCard icon="history" label="History"  sub={sessionCount !== null ? `${sessionCount} session${sessionCount !== 1 ? 's' : ''}` : '…'} t={t} dark={dark} onClick={() => nav('history')}/>
+        <StatCard icon="flame"   label="Workout"  sub="Start today's plan" t={t} dark={dark} onClick={() => nav('workout')}/>
         {prefs && prefs.cycle
-          ? <StatCard icon="moon" label="Cycle" sub="Day 12 · Follicular" t={t} dark={dark} accent onClick={() => nav('cycle')}/>
-          : <StatCard icon="settings" label="Settings" sub="100% Complete" t={t} dark={dark} onClick={() => nav('settings')}/>}
+          ? <StatCard icon="moon" label="Cycle"
+              sub={cycleDay ? `Day ${cycleDay} / ${cycleLen}` : 'Set up cycle'}
+              t={t} dark={dark} accent onClick={() => nav('cycle')}/>
+          : <StatCard icon="settings" label="Settings" sub="Manage preferences" t={t} dark={dark} onClick={() => nav('settings')}/>}
       </div>
 
       <div style={{ padding: '0 22px 28px' }}>
@@ -885,27 +939,81 @@ function StatCard({ icon, label, sub, t, dark, onClick, accent = false }) {
 // ─────────── 6. EDIT PROFILE ───────────
 function EditProfileScreen({ nav, t, user, setUser, dark }) {
   const [draft, setDraft] = React.useState({
-    name: user.name || 'Mr. Danny Garg',
-    email: user.email || 'dannygarg@gmail.com',
-    phone: '+1 234 567 890',
-    dob: '29/05/1984',
-    loc: 'New York, USA',
-    gender: 'Male',
+    name:   user.name     || '',
+    email:  user.email    || '',
+    phone:  user.phone    || '',
+    dob:    user.dob      || '',
+    loc:    user.location || '',
+    gender: user.gender   || '',
   });
+  const [avatarUrl,     setAvatarUrl]     = React.useState(user.avatar_url || null);
+  const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
+
   const save = () => {
-    setUser({ ...user, name: draft.name, email: draft.email });
+    setUser({
+      name:       draft.name,
+      email:      draft.email,
+      phone:      draft.phone,
+      dob:        draft.dob,
+      location:   draft.loc,
+      gender:     draft.gender,
+      avatar_url: avatarUrl,
+    });
     setSaved(true);
     setTimeout(() => { setSaved(false); nav('profile'); }, 700);
   };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    setUploadingAvatar(true);
+    const ext  = file.name.split('.').pop();
+    const path = `${user.id}/avatar.${ext}`;
+    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+    if (!error) {
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+      setAvatarUrl(`${data.publicUrl}?t=${Date.now()}`);
+    }
+    setUploadingAvatar(false);
+  };
+
   const fields = [
     ['name', 'user'], ['email', 'mail'], ['phone', 'phone'],
     ['dob', 'cal'], ['loc', 'pin'], ['gender', 'male'],
   ];
+
   return (
     <>
       <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Edit Profile</ScreenTitle>
+
+      {/* Avatar upload */}
+      <div style={{ padding: '0 22px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <AvatarImage url={avatarUrl} label="photo" w={80} h={80} radius={16} dark={dark}/>
+          <label style={{
+            position: 'absolute', bottom: 0, right: 0,
+            width: 26, height: 26, borderRadius: '50%',
+            background: t.primary, color: '#0E1A2B',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', border: `2px solid ${dark ? '#0E1A2B' : '#fff'}`,
+          }}>
+            <Icon name="edit" size={12} color="#0E1A2B" stroke={2.5}/>
+            <input type="file" accept="image/*" onChange={handleAvatarChange}
+              style={{ display: 'none' }} disabled={uploadingAvatar}/>
+          </label>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
+            {uploadingAvatar ? 'Uploading…' : 'Tap the icon to change your photo'}
+          </div>
+          <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>
+            JPG or PNG · stored securely
+          </div>
+        </div>
+      </div>
+
       <div style={{ padding: '0 22px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {fields.map(([k, ic]) => (
           <PillInput key={k} icon={ic} placeholder={k}
@@ -924,8 +1032,19 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
 
 // ─────────── 7. DAILY CHECK-IN ───────────
 function CheckInScreen({ nav, t, dark, checkin, setCheckin, saveCheckin }) {
-  const issues = ['Lower back', 'Knees', 'Shoulder', 'Wrist', 'Ankle', 'Neck', 'Hip', 'None'];
-  const goals = ['Endurance', 'Strength', 'Mobility', 'Recovery'];
+  const issues    = ['Lower back', 'Knees', 'Shoulder', 'Wrist', 'Ankle', 'Neck', 'Hip', 'None'];
+  const goals     = ['Endurance', 'Strength', 'Mobility', 'Recovery'];
+  const locations = [
+    { key: 'gym',     label: '🏋️ Gym'      },
+    { key: 'home',    label: '🏠 Home'     },
+    { key: 'outdoor', label: '🌳 Outdoor'  },
+  ];
+  const sleepOpts = [
+    { key: 'poor', label: '😴 Poor'  },
+    { key: 'fair', label: '😐 Fair'  },
+    { key: 'good', label: '⚡ Good'  },
+  ];
+  const equipOpts = ['Dumbbells', 'Resistance bands', 'Kettlebell', 'Pull-up bar', 'Bench', 'Mat', 'Bodyweight only'];
 
   const update = (k, v) => setCheckin({ ...checkin, [k]: v });
   const toggleSore = (i) => {
@@ -933,6 +1052,10 @@ function CheckInScreen({ nav, t, dark, checkin, setCheckin, saveCheckin }) {
       ? checkin.soreness.filter(x => x !== i)
       : [...checkin.soreness.filter(x => x !== 'None'), i];
     update('soreness', i === 'None' ? ['None'] : cur);
+  };
+  const toggleEquip = (e) => {
+    const cur = checkin.equipment || [];
+    update('equipment', cur.includes(e) ? cur.filter(x => x !== e) : [...cur, e]);
   };
 
   // Energy → workout recommendation
@@ -987,6 +1110,65 @@ function CheckInScreen({ nav, t, dark, checkin, setCheckin, saveCheckin }) {
           ))}
         </div>
       </div>
+
+      {/* Location */}
+      <div style={{ padding: '14px 22px 0' }}>
+        <SectionLabel dark={dark}>Where are you training?</SectionLabel>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {locations.map(({ key, label }) => {
+            const on = (checkin.location || 'gym') === key;
+            return (
+              <button key={key} onClick={() => update('location', key)} style={{
+                flex: 1, padding: '11px 4px', borderRadius: 14,
+                background: on ? `${t.primary}1a` : surfRaised(dark),
+                color: on ? t.primary : textPri(dark),
+                border: `1.5px solid ${on ? t.primary : borderSubtle(dark)}`,
+                fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+              }}>{label}</button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Sleep quality */}
+      <div style={{ padding: '14px 22px 0' }}>
+        <SectionLabel dark={dark}>How did you sleep?</SectionLabel>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {sleepOpts.map(({ key, label }) => {
+            const on = (checkin.sleep_quality || 'good') === key;
+            return (
+              <button key={key} onClick={() => update('sleep_quality', key)} style={{
+                flex: 1, padding: '11px 4px', borderRadius: 14,
+                background: on ? `${t.primary}1a` : surfRaised(dark),
+                color: on ? t.primary : textPri(dark),
+                border: `1.5px solid ${on ? t.primary : borderSubtle(dark)}`,
+                fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+              }}>{label}</button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Equipment (only when not at the gym) */}
+      {(checkin.location || 'gym') !== 'gym' && (
+        <div style={{ padding: '14px 22px 0' }}>
+          <SectionLabel dark={dark}>Available equipment</SectionLabel>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {equipOpts.map(e => {
+              const on = (checkin.equipment || []).includes(e);
+              return (
+                <button key={e} onClick={() => toggleEquip(e)} style={{
+                  padding: '8px 13px', borderRadius: 999,
+                  background: on ? `${t.primary}22` : surfRaised(dark),
+                  color: on ? t.primary : textPri(dark),
+                  border: `1.5px solid ${on ? t.primary : borderSubtle(dark)}`,
+                  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+                }}>{e}</button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Soreness */}
       <div style={{ padding: '14px 22px 0' }}>
@@ -1056,7 +1238,15 @@ function CheckInScreen({ nav, t, dark, checkin, setCheckin, saveCheckin }) {
 
       <div style={{ padding: '8px 22px 28px' }}>
         <button onClick={async () => {
-          if (saveCheckin) await saveCheckin({ energy: checkin.energy, soreness: checkin.soreness, minutes: checkin.minutes, goal: checkin.goal });
+          if (saveCheckin) await saveCheckin({
+            energy:        checkin.energy,
+            soreness:      checkin.soreness,
+            minutes:       checkin.minutes,
+            goal:          checkin.goal,
+            location:      checkin.location      || 'gym',
+            sleep_quality: checkin.sleep_quality || 'good',
+            equipment:     checkin.equipment     || [],
+          });
           nav('workout');
         }} style={{ ...primaryBtn(t.primary, dark), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <Icon name="play" size={14} color="#0E1A2B"/> Generate today&rsquo;s workout
@@ -1076,13 +1266,108 @@ function SectionLabel({ children, dark }) {
 }
 
 // ─────────── 8. START WORKOUT ───────────
-function StartWorkoutScreen({ nav, t, dark, checkin }) {
-  const [mode, setMode] = React.useState('Running');
-  const modes = ['Treadmill', 'Running', 'Walking'];
+function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }) {
+  const [plan,    setPlan]    = React.useState(null);
+  const [planId,  setPlanId]  = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error,   setError]   = React.useState(null);
+
+  const apiBase = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : '';
+
+  // Derive current cycle phase from cycleConfig
+  const getCycleContext = () => {
+    if (!cycleConfig?.length) return null;
+    const day = Math.min(cycleConfig.length, Math.max(1, (cycleConfig.lastStartOffset || 0) + 1));
+    const phases = computeCyclePhases(cycleConfig.length, t);
+    const phase = phases.find(p => day >= p.range[0] && day <= p.range[1]);
+    return phase ? { phase: phase.name, day, cycleLength: cycleConfig.length } : null;
+  };
+
+  const fetchPlan = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch physical profile for this user
+      let physicalProfile = null;
+      if (user?.id) {
+        const { data } = await supabase
+          .from('physical_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        physicalProfile = data;
+      }
+
+      const cycleContext = getCycleContext();
+      const res = await fetch(`${apiBase}/api/generate-workout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ checkin, physicalProfile, cycleContext }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate workout');
+
+      const exercises = data.exercises;
+      setPlan(exercises);
+
+      // Persist workout_plan + plan_exercises + ai_suggestion
+      if (user?.id) {
+        const { data: planRow } = await supabase
+          .from('workout_plans')
+          .insert({
+            assigned_to: user.id,
+            created_by:  user.id,
+            source:      'ai_generated',
+            status:      'active',
+            ai_notes:    cycleContext ? `Phase: ${cycleContext.phase}, Day ${cycleContext.day}/${cycleContext.cycleLength}` : null,
+            scheduled_date: new Date().toISOString().split('T')[0],
+          })
+          .select('id')
+          .single();
+
+        if (planRow?.id) {
+          setPlanId(planRow.id);
+          await supabase.from('plan_exercises').insert(
+            exercises.map((ex, i) => ({
+              plan_id:       planRow.id,
+              exercise_name: ex.exercise_name,
+              muscle_group:  ex.muscle_group,
+              sets:          ex.sets,
+              reps:          ex.reps,
+              load_kg:       ex.load_kg,
+              rest_seconds:  ex.rest_seconds,
+              notes:         ex.notes,
+              order_index:   i,
+            }))
+          );
+          await supabase.from('ai_suggestions').insert({
+            user_id:    user.id,
+            plan_id:    planRow.id,
+            checkin_id: null,
+            context:    { checkin, cycleContext, physicalProfile },
+            suggestion: JSON.stringify(exercises),
+            accepted:   null,
+          });
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => { fetchPlan(); }, []);
+
+  const sore = (checkin.soreness || []).filter(s => s !== 'None');
+
   return (
     <>
       <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Start Workout</ScreenTitle>
+
       <div style={{ padding: '0 22px 16px' }}>
         <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden' }}>
           <PhotoSlot label="trainer · gym lift" w="100%" h={170} radius={18} dark/>
@@ -1096,54 +1381,92 @@ function StartWorkoutScreen({ nav, t, dark, checkin }) {
               background: t.accent, color: '#fff', fontSize: 9.5, fontWeight: 700, letterSpacing: '.05em',
               marginBottom: 6,
             }}>YOUR TRAINER</div>
-            <div style={{ fontSize: 19, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>Norman Lloyd</div>
-            <div style={{ fontSize: 12, opacity: .82, marginTop: 2 }}>Gym Trainer · adds his methodology to your plan</div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ padding: '4px 22px 14px', display: 'flex', gap: 4, justifyContent: 'space-between', borderBottom: `1px solid ${borderSubtle(dark)}` }}>
-        {modes.map(m => (
-          <button key={m} onClick={() => setMode(m)} style={{
-            flex: 1, padding: '12px 4px', background: 'transparent', border: 'none',
-            fontFamily: 'inherit', fontSize: 13.5, cursor: 'pointer',
-            color: mode === m ? t.primary : textSec(dark),
-            fontWeight: mode === m ? 600 : 500,
-            borderBottom: `2px solid ${mode === m ? t.primary : 'transparent'}`,
-            marginBottom: -1,
-          }}>{m}</button>
-        ))}
-      </div>
-
-      <div style={{ padding: '14px 22px 0' }}>
-        <MapPlaceholder h={150} withPin primary={t.primary} dark={dark}/>
-      </div>
-
-      {/* Live AI plan (synthesizes daily check-in) */}
-      <div style={{ padding: '14px 22px 0' }}>
-        <SectionLabel dark={dark}>Today&rsquo;s AI plan</SectionLabel>
-        <div style={{
-          padding: 14, borderRadius: 14,
-          background: dark ? 'rgba(45,212,224,.08)' : `${t.primary}10`,
-          border: `1px solid ${t.primary}55`,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
-            <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>{checkin.goal} session · {checkin.minutes} min</div>
-          </div>
-          <PlanRow label="Warm-up"   detail="Dynamic mobility · 6 min" t={t} dark={dark}/>
-          <PlanRow label="Main set"  detail={`${mode} · 4 × 800 m · pace 5:30/km`} t={t} dark={dark}/>
-          <PlanRow label="Cool down" detail="Walk + stretch · 8 min" t={t} dark={dark}/>
-          {checkin.soreness.length > 0 && checkin.soreness[0] !== 'None' && (
-            <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 10, background: `${t.accent}1a`, color: t.accent, fontSize: 11.5, fontWeight: 600 }}>
-              Adjusted for: {checkin.soreness.join(', ').toLowerCase()}
+            <div style={{ fontSize: 19, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>AI-Powered Plan</div>
+            <div style={{ fontSize: 12, opacity: .82, marginTop: 2 }}>
+              {checkin.goal} · {checkin.minutes} min · {checkin.location || 'gym'}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
-      <div style={{ padding: '14px 22px 28px' }}>
-        <button onClick={() => nav('goal')} style={{ ...primaryBtn(t.primary, dark), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+      {/* Today's AI plan */}
+      <div style={{ padding: '4px 22px 0' }}>
+        <SectionLabel dark={dark}>Today&rsquo;s AI plan</SectionLabel>
+
+        {loading && (
+          <div style={{
+            padding: '28px 0', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: 12,
+          }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: '50%',
+              border: `3px solid ${dark ? '#1F2E45' : '#E5EAF1'}`,
+              borderTopColor: t.primary,
+              animation: 'spin 0.7s linear infinite',
+            }}/>
+            <div style={{ fontSize: 13, color: textSec(dark) }}>Generating your plan…</div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+
+        {error && (
+          <div style={{
+            padding: '16px', borderRadius: 14,
+            background: `${t.accent}1a`, border: `1px solid ${t.accent}55`,
+          }}>
+            <div style={{ fontSize: 13, color: t.accent, marginBottom: 10 }}>{error}</div>
+            <button onClick={fetchPlan} style={{
+              padding: '8px 18px', borderRadius: 999, border: 'none',
+              background: t.accent, color: '#fff',
+              fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+            }}>Retry</button>
+          </div>
+        )}
+
+        {plan && !loading && (
+          <div style={{
+            padding: 14, borderRadius: 14,
+            background: dark ? 'rgba(45,212,224,.08)' : `${t.primary}10`,
+            border: `1px solid ${t.primary}55`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
+              <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>
+                {checkin.goal} · {checkin.minutes} min
+              </div>
+            </div>
+            {plan.map((ex, i) => (
+              <PlanRow
+                key={i}
+                label={ex.exercise_name}
+                detail={[
+                  ex.sets && ex.reps ? `${ex.sets}×${ex.reps}` : null,
+                  ex.load_kg ? `${ex.load_kg} kg` : null,
+                  ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
+                  ex.muscle_group,
+                ].filter(Boolean).join(' · ')}
+                t={t} dark={dark}
+              />
+            ))}
+            {sore.length > 0 && (
+              <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 10, background: `${t.accent}1a`, color: t.accent, fontSize: 11.5, fontWeight: 600 }}>
+                Adjusted for: {sore.join(', ').toLowerCase()}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: '16px 22px 28px' }}>
+        <button
+          onClick={() => nav('workoutInProgress', { planId, exercises: plan })}
+          disabled={!plan || loading}
+          style={{
+            ...primaryBtn(t.primary, dark),
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            opacity: (!plan || loading) ? 0.5 : 1,
+          }}
+        >
           <Icon name="play" size={14} color="#0E1A2B"/> Start Workout
         </button>
       </div>
@@ -1163,38 +1486,210 @@ function PlanRow({ label, detail, t, dark }) {
   );
 }
 
-// ─────────── 9. GOAL ACHIEVED ───────────
-function GoalAchievedScreen({ nav, t, dark }) {
+// ─────────── 9. WORKOUT IN PROGRESS ───────────
+function WorkoutInProgressScreen({ nav, t, dark, user, planId, exercises, logWorkoutSession }) {
+  const [startedAt]  = React.useState(() => new Date());
+  const [elapsed,    setElapsed]    = React.useState(0);
+  const [done,       setDone]       = React.useState(() => (exercises || []).map(() => false));
+  const [finishing,  setFinishing]  = React.useState(false);
+
+  React.useEffect(() => {
+    const id = setInterval(() => setElapsed(s => s + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const ss = String(elapsed % 60).padStart(2, '0');
+  const completedCount = done.filter(Boolean).length;
+  const total = (exercises || []).length;
+
+  const finish = async () => {
+    setFinishing(true);
+    const completedAt = new Date();
+    const durationMinutes = Math.round((completedAt - startedAt) / 60_000) || 1;
+
+    if (logWorkoutSession) {
+      await logWorkoutSession({
+        plan_id:          planId || null,
+        started_at:       startedAt.toISOString(),
+        completed_at:     completedAt.toISOString(),
+        duration_minutes: durationMinutes,
+        performance_score: total > 0 ? +(completedCount / total * 10).toFixed(1) : null,
+      });
+    }
+
+    // Mark plan_exercises as completed for the ones the user ticked
+    if (planId && exercises?.length) {
+      const { data: rows } = await supabase
+        .from('plan_exercises')
+        .select('id, order_index')
+        .eq('plan_id', planId)
+        .order('order_index');
+      if (rows?.length) {
+        await Promise.all(
+          rows.map((row, i) =>
+            supabase.from('plan_exercises')
+              .update({ completed: done[i] ?? false })
+              .eq('id', row.id)
+          )
+        );
+      }
+    }
+
+    nav('goal', { durationMinutes, completedCount, total, startedAt: startedAt.toISOString() });
+  };
+
+  return (
+    <>
+      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
+
+      {/* Timer hero */}
+      <div style={{ padding: '8px 22px 16px', textAlign: 'center' }}>
+        <div style={{
+          fontFamily: '"Plus Jakarta Sans",sans-serif',
+          fontSize: 64, fontWeight: 700, letterSpacing: '-0.03em',
+          color: t.primary, lineHeight: 1,
+        }}>{mm}:{ss}</div>
+        <div style={{ fontSize: 12.5, color: textSec(dark), marginTop: 4 }}>
+          {completedCount} / {total} exercises done
+        </div>
+        <div style={{
+          marginTop: 10, height: 4, borderRadius: 4,
+          background: dark ? '#1F2E45' : '#E5EAF1',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            height: '100%', borderRadius: 4,
+            background: t.primary,
+            width: total > 0 ? `${(completedCount / total) * 100}%` : '0%',
+            transition: 'width .3s ease',
+          }}/>
+        </div>
+      </div>
+
+      {/* Exercise checklist */}
+      <div style={{ padding: '0 22px 16px' }}>
+        <SectionLabel dark={dark}>Exercises</SectionLabel>
+        <div style={{
+          background: surfRaised(dark), borderRadius: 16,
+          border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden',
+        }}>
+          {(exercises || []).map((ex, i) => (
+            <div key={i} onClick={() => {
+              const next = [...done];
+              next[i] = !next[i];
+              setDone(next);
+            }} style={{
+              display: 'flex', alignItems: 'flex-start', gap: 14,
+              padding: '14px 16px',
+              borderBottom: i < (exercises.length - 1) ? `1px solid ${borderSubtle(dark)}` : 'none',
+              cursor: 'pointer',
+              opacity: done[i] ? 0.55 : 1,
+              transition: 'opacity .2s',
+            }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1,
+                border: `2px solid ${done[i] ? t.primary : (dark ? '#2a3a52' : '#C8D0DB')}`,
+                background: done[i] ? t.primary : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all .15s',
+              }}>
+                {done[i] && <Icon name="check" size={13} color="#0E1A2B" stroke={3}/>}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 14, fontWeight: 600, color: textPri(dark),
+                  textDecoration: done[i] ? 'line-through' : 'none',
+                }}>{ex.exercise_name}</div>
+                <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>
+                  {[
+                    ex.sets && ex.reps ? `${ex.sets}×${ex.reps}` : null,
+                    ex.load_kg ? `${ex.load_kg} kg` : null,
+                    ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
+                    ex.muscle_group,
+                  ].filter(Boolean).join(' · ')}
+                </div>
+                {ex.notes && (
+                  <div style={{ fontSize: 11, color: t.primary, marginTop: 3, fontStyle: 'italic' }}>{ex.notes}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Finish CTA */}
+      <div style={{ padding: '0 22px 28px' }}>
+        <button
+          onClick={finish}
+          disabled={finishing}
+          style={{
+            ...primaryBtn(t.primary, dark),
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            opacity: finishing ? 0.6 : 1,
+          }}
+        >
+          <Icon name="trophy" size={16} color="#0E1A2B"/>
+          {finishing ? 'Saving…' : 'Finish Workout'}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ─────────── 10. GOAL ACHIEVED ───────────
+function GoalAchievedScreen({ nav, t, dark, sessionData }) {
+  const duration    = sessionData?.durationMinutes ?? null;
+  const completed   = sessionData?.completedCount  ?? null;
+  const total       = sessionData?.total           ?? null;
+  const completePct = total > 0 ? Math.round((completed / total) * 100) : null;
+
+  const fmtDuration = (min) => {
+    if (!min) return null;
+    return min >= 60 ? `${Math.floor(min / 60)}h ${min % 60 > 0 ? `${min % 60}m` : ''}`.trim() : `${min} min`;
+  };
+
   return (
     <>
       <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Goal Achieved</ScreenTitle>
+
+      {/* Primary metric */}
       <div style={{ padding: '0 22px 6px', textAlign: 'center' }}>
         <div style={{
           fontFamily: '"Plus Jakarta Sans",sans-serif',
           fontSize: 40, fontWeight: 700, color: t.primary, letterSpacing: '-0.02em',
-        }}>58.23 <span style={{ fontSize: 22, fontWeight: 600 }}>km</span></div>
-        <div style={{ color: textSec(dark), fontSize: 12.5, marginTop: 2 }}>Weekly Workout</div>
+        }}>
+          {duration ? fmtDuration(duration) : '—'}
+        </div>
+        <div style={{ color: textSec(dark), fontSize: 12.5, marginTop: 2 }}>Session duration</div>
       </div>
+
+      {/* Completion rings */}
       <div style={{
         padding: '18px 22px 8px',
         display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, justifyItems: 'center',
       }}>
-        <RingStat label="Walking" pct={32} t={t} dark={dark}/>
-        <RingStat label="Cycling" pct={75} t={t} dark={dark} big/>
-        <RingStat label="Treadmill" pct={23} t={t} dark={dark}/>
+        <RingStat label="Completed" pct={completePct ?? 0}  t={t} dark={dark} big/>
+        <RingStat label="Duration"  pct={Math.min(100, Math.round((duration ?? 0) / 60 * 100))} t={t} dark={dark}/>
+        <RingStat label="Exercises" pct={completePct ?? 0}  t={t} dark={dark}/>
       </div>
-      <div style={{ padding: '14px 22px 8px' }}>
-        <SectionDate label="23rd Dec, Friday" dark={dark}/>
-        <ActivityRow title="Gym workout" sub="Exercise" right="2 hours" t={t} dark={dark}/>
-        <ActivityRow title="Morning Workout" sub="Outdoor" right="1 hour" t={t} dark={dark}/>
-        <SectionDate label="24th Dec, Saturday" dark={dark}/>
-        <ActivityRow title="Gym Workout" sub="Exercise" right="1 hour" t={t} dark={dark}/>
-      </div>
-      <div style={{ padding: '8px 22px 16px' }}>
-        <MapPlaceholder h={160} withRoute primary={t.primary} dark={dark}/>
-      </div>
-      <div style={{ padding: '0 22px 12px' }}>
+
+      {/* Session summary row */}
+      {(completed !== null || duration !== null) && (
+        <div style={{ padding: '14px 22px 8px' }}>
+          <SectionDate label={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} dark={dark}/>
+          <ActivityRow
+            title="Workout session"
+            sub={completed !== null && total !== null ? `${completed} / ${total} exercises` : 'Completed'}
+            right={duration ? fmtDuration(duration) : ''}
+            t={t} dark={dark}
+          />
+        </div>
+      )}
+
+      {/* AI summary card */}
+      <div style={{ padding: '8px 22px 12px' }}>
         <div style={{
           padding: '14px 16px', borderRadius: 14,
           background: dark ? 'rgba(45,212,224,.08)' : `${t.primary}10`,
@@ -1202,15 +1697,18 @@ function GoalAchievedScreen({ nav, t, dark }) {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
-            <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>AI workout analysis</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>Session summary</div>
           </div>
           <div style={{ fontSize: 12.5, color: textSec(dark), lineHeight: 1.55 }}>
-            Your workout lasted <b style={{ color: textPri(dark) }}>1 h 5 min</b> and burned <b style={{ color: textPri(dark) }}>234 kcal</b>.
-            Heart rate stayed in <b style={{ color: t.primary }}>zone 3</b> for 72% — solid endurance work.
-            Norman recommends a recovery walk tomorrow.
+            {duration ? <>Your session lasted <b style={{ color: textPri(dark) }}>{fmtDuration(duration)}</b>. </> : null}
+            {completePct !== null
+              ? <><b style={{ color: t.primary }}>{completePct}%</b> of planned exercises completed. </>
+              : null}
+            Great work — check your stats for progress trends.
           </div>
         </div>
       </div>
+
       <div style={{ padding: '0 22px 28px' }}>
         <button onClick={() => nav('stats')} style={outlineBtn(t.primary, dark)}>View statistics</button>
       </div>
@@ -1267,58 +1765,101 @@ function ActivityRow({ title, sub, right, t, dark }) {
 }
 
 // ─────────── 10. STATS ───────────
-function StatsScreen({ nav, t, dark }) {
-  const [day, setDay] = React.useState('Mon');
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const seriesByDay = {
-    Sun: [1.2, 0.8, 1.5, 0.6, 1.1, 0.9, 1.4],
-    Mon: [0.9, 2.4, 0.5, 1.5, 1.2, 1.8, 1.2],
-    Tue: [1.5, 1.1, 0.7, 2.0, 0.9, 1.6, 1.3],
-    Wed: [0.6, 1.2, 2.1, 0.8, 1.4, 1.0, 1.7],
-    Thu: [1.0, 0.9, 1.6, 1.2, 0.5, 2.3, 0.8],
-    Fri: [1.4, 1.8, 0.9, 1.1, 2.0, 0.7, 1.5],
-    Sat: [2.0, 0.5, 1.3, 1.7, 0.8, 1.4, 1.9],
-  };
-  const series = seriesByDay[day];
+function StatsScreen({ nav, t, dark, user }) {
+  const days     = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const todayDow = new Date().getDay();
+  const [selectedDow, setSelectedDow] = React.useState(todayDow);
+  const [sessions,    setSessions]    = React.useState([]);
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    // Last 8 weeks
+    const since = new Date();
+    since.setDate(since.getDate() - 56);
+    supabase
+      .from('workout_sessions')
+      .select('started_at, duration_minutes, performance_score')
+      .eq('user_id', user.id)
+      .gte('started_at', since.toISOString())
+      .order('started_at')
+      .then(({ data }) => setSessions(data || []));
+  }, [user?.id]);
+
+  // Build chart series: duration per day-of-week bucket (last 7 occurrences of each DOW)
+  const byDow = Array.from({ length: 7 }, (_, dow) =>
+    sessions.filter(s => new Date(s.started_at).getDay() === dow)
+  );
+  // For the selected DOW, show duration per session (last 7), normalised to 0–1 scale
+  const selectedSessions = byDow[selectedDow].slice(-7);
+  const chartData = selectedSessions.length > 0
+    ? selectedSessions.map(s => (s.duration_minutes || 0) / 60)
+    : [0, 0, 0, 0, 0, 0, 0];
+
+  const totalSessions  = sessions.length;
+  const totalMinutes   = sessions.reduce((a, s) => a + (s.duration_minutes || 0), 0);
+  const avgScore       = sessions.length
+    ? (sessions.reduce((a, s) => a + (s.performance_score || 0), 0) / sessions.length).toFixed(1)
+    : '—';
+  const fmtTotal = totalMinutes >= 60
+    ? `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`
+    : `${totalMinutes}m`;
+
+  // Strongest DOW by total duration
+  const dowTotals   = byDow.map(g => g.reduce((a, s) => a + (s.duration_minutes || 0), 0));
+  const strongestDow = dowTotals.indexOf(Math.max(...dowTotals));
+
   return (
     <>
       <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Workout Statistics</ScreenTitle>
-      <div style={{ padding: '0 22px 14px' }}>
-        <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden' }}>
-          <PhotoSlot label="trainer · stretch" w="100%" h={170} radius={18} dark/>
-          <div style={{
-            position: 'absolute', inset: 0, padding: 18, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-            color: '#fff', background: 'linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.6))',
+
+      {/* Summary metrics strip */}
+      <div style={{
+        padding: '0 22px 14px',
+        display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10,
+      }}>
+        {[
+          { val: String(totalSessions),   lbl: 'Sessions' },
+          { val: fmtTotal || '0m',        lbl: 'Total time' },
+          { val: String(avgScore),        lbl: 'Avg score' },
+        ].map(({ val, lbl }) => (
+          <div key={lbl} style={{
+            padding: '14px 12px', borderRadius: 14,
+            background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+            textAlign: 'center',
           }}>
-            <div style={{ fontSize: 19, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>Norman Lloyd</div>
-            <div style={{ fontSize: 12, opacity: .82 }}>Gym Trainer</div>
-            <div style={{ display: 'flex', gap: 22, marginTop: 10 }}>
-              <Metric val="01:09" lbl="Time"/>
-              <Metric val="12.34" lbl="Speed"/>
-              <Metric val="234" lbl="Calories"/>
-            </div>
+            <div style={{
+              fontFamily: '"Plus Jakarta Sans",sans-serif',
+              fontSize: 22, fontWeight: 700, color: t.primary,
+            }}>{val}</div>
+            <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 2 }}>{lbl}</div>
           </div>
-        </div>
+        ))}
       </div>
+
+      {/* Day-of-week tabs */}
       <div style={{
         padding: '4px 22px 14px', display: 'flex', gap: 2, justifyContent: 'space-between',
         borderBottom: `1px solid ${borderSubtle(dark)}`,
       }}>
-        {days.map(d => (
-          <button key={d} onClick={() => setDay(d)} style={{
+        {days.map((d, i) => (
+          <button key={d} onClick={() => setSelectedDow(i)} style={{
             flex: 1, padding: '12px 0', background: 'transparent', border: 'none',
             fontFamily: 'inherit', fontSize: 12.5, cursor: 'pointer',
-            color: day === d ? t.primary : textMute(dark),
-            fontWeight: day === d ? 600 : 500,
-            borderBottom: `2px solid ${day === d ? t.primary : 'transparent'}`,
+            color: selectedDow === i ? t.primary : textMute(dark),
+            fontWeight: selectedDow === i ? 600 : 500,
+            borderBottom: `2px solid ${selectedDow === i ? t.primary : 'transparent'}`,
             marginBottom: -1,
-          }}>{d}</button>
+          }}>{dayLabels[i]}</button>
         ))}
       </div>
+
       <div style={{ padding: '20px 14px 8px' }}>
-        <PerfChart data={series} primary={t.primary} dark={dark}/>
+        <PerfChart data={chartData.length >= 2 ? chartData : [0, 0]} primary={t.primary} dark={dark}/>
       </div>
+
+      {/* AI trend insight */}
       <div style={{ padding: '0 22px 28px' }}>
         <div style={{
           padding: '14px 16px', borderRadius: 14,
@@ -1328,8 +1869,14 @@ function StatsScreen({ nav, t, dark }) {
         }}>
           <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
           <div style={{ fontSize: 12.5, color: textSec(dark), lineHeight: 1.55 }}>
-            Distance trend up <b style={{ color: t.primary }}>+18%</b> this week. Strongest day: <b style={{ color: textPri(dark) }}>{day}</b>.
-            Norman&rsquo;s feedback: recovery day suggested before Sat session.
+            {totalSessions === 0
+              ? 'Complete your first workout to see your performance trends here.'
+              : <>
+                  <b style={{ color: textPri(dark) }}>{totalSessions}</b> session{totalSessions !== 1 ? 's' : ''} logged.
+                  {' '}Strongest day: <b style={{ color: t.primary }}>{days[strongestDow]}</b>.
+                  {' '}Keep showing up — consistency builds results.
+                </>
+            }
           </div>
         </div>
       </div>
@@ -1386,56 +1933,106 @@ function PerfChart({ data, primary, dark }) {
 }
 
 // ─────────── 11. HISTORY ───────────
-function HistoryScreen({ nav, t, dark }) {
-  const [day, setDay] = React.useState('Mon');
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const items = [
-    { kind: 'Outdoor Cycling', km: '11.45 Km', t: '6:00 am to 7:00 am' },
-    { kind: 'Walking',         km: '05.42 Km', t: '6:00 am to 7:00 am' },
-    { kind: 'Treadmill',       km: '06.15 Km', t: '6:00 am to 7:00 am' },
-    { kind: 'Outdoor Running', km: '06.35 Km', t: '6:00 am to 7:00 am' },
-    { kind: 'Outdoor Cycling', km: '09.15 Km', t: '6:00 am to 7:00 am' },
-    { kind: 'Treadmill',       km: '08.45 Km', t: '6:00 am to 7:00 am' },
-  ];
+function HistoryScreen({ nav, t, dark, user }) {
+  const days      = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const todayDow  = new Date().getDay();
+  const [selectedDow, setSelectedDow] = React.useState(todayDow);
+  const [sessions, setSessions]       = React.useState([]);
+  const [loading,  setLoading]        = React.useState(true);
+
+  React.useEffect(() => {
+    if (!user?.id) { setLoading(false); return; }
+    supabase
+      .from('workout_sessions')
+      .select('id, started_at, completed_at, duration_minutes, performance_score, plan_id')
+      .eq('user_id', user.id)
+      .order('started_at', { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        setSessions(data || []);
+        setLoading(false);
+      });
+  }, [user?.id]);
+
+  const filtered = sessions.filter(s => {
+    if (!s.started_at) return false;
+    return new Date(s.started_at).getDay() === selectedDow;
+  });
+
+  const fmtTime = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  };
+  const fmtDate = (iso) => {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  };
+
   return (
     <>
       <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Workout History</ScreenTitle>
+
+      {/* Day-of-week filter */}
       <div style={{
         padding: '0 22px 0', display: 'flex', gap: 2, justifyContent: 'space-between',
         borderBottom: `1px solid ${borderSubtle(dark)}`,
       }}>
-        {days.map(d => (
-          <button key={d} onClick={() => setDay(d)} style={{
+        {days.map((d, i) => (
+          <button key={d} onClick={() => setSelectedDow(i)} style={{
             flex: 1, padding: '14px 0', background: 'transparent', border: 'none',
             fontFamily: 'inherit', fontSize: 12.5, cursor: 'pointer',
-            color: day === d ? t.primary : textMute(dark),
-            fontWeight: day === d ? 600 : 500,
-            borderBottom: `2px solid ${day === d ? t.primary : 'transparent'}`,
+            color: selectedDow === i ? t.primary : textMute(dark),
+            fontWeight: selectedDow === i ? 600 : 500,
+            borderBottom: `2px solid ${selectedDow === i ? t.primary : 'transparent'}`,
             marginBottom: -1,
-          }}>{d}</button>
+          }}>{dayLabels[i]}</button>
         ))}
       </div>
+
       <div style={{ padding: '8px 14px 28px' }}>
-        {items.map((it, i) => (
-          <div key={i} style={{
+        {loading && (
+          <div style={{ padding: '32px 0', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
+            Loading…
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
+          <div style={{ padding: '32px 0', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
+            No sessions on {days[selectedDow]}s yet.
+          </div>
+        )}
+        {!loading && filtered.map((s, i) => (
+          <div key={s.id} style={{
             display: 'flex', alignItems: 'center', gap: 12,
             padding: '14px 12px',
-            borderBottom: i < items.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
+            borderBottom: i < filtered.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
           }}>
             <div style={{
               width: 36, height: 36, borderRadius: '50%',
               border: `1.5px solid ${t.primary}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: t.primary, background: `${t.primary}1f`,
+              background: `${t.primary}1f`,
             }}>
               <Icon name="check" size={16} color={t.primary} stroke={2.6}/>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>{it.kind} {it.km}</div>
-              <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>From {it.t}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
+                Workout session
+                {s.duration_minutes ? ` · ${s.duration_minutes} min` : ''}
+              </div>
+              <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>
+                {fmtDate(s.started_at)}
+                {s.started_at && s.completed_at
+                  ? ` · ${fmtTime(s.started_at)} – ${fmtTime(s.completed_at)}`
+                  : ''}
+              </div>
             </div>
-            <button onClick={() => nav('goal')} style={{
+            <button onClick={() => nav('goal', {
+              durationMinutes: s.duration_minutes,
+              startedAt: s.started_at,
+            })} style={{
               padding: '7px 14px', borderRadius: 999, border: 'none',
               background: t.primary, color: '#0E1A2B', fontSize: 12, fontWeight: 700,
               fontFamily: 'inherit', cursor: 'pointer',
@@ -1463,7 +2060,7 @@ function computeCyclePhases(cycleLen, palette) {
   ];
 }
 
-function CycleScreen({ nav, t, dark, cycleConfig, setCycleConfig }) {
+function CycleScreen({ nav, t, dark, cycleConfig, setCycleConfig, saveCycleConfig }) {
   const cfg = cycleConfig || { length: 28 };
   const cycleLen = cfg.length || 28;
 
@@ -1726,9 +2323,23 @@ function CycleScreen({ nav, t, dark, cycleConfig, setCycleConfig }) {
                 fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
               }}>Cancel</button>
               <button onClick={() => {
-                setDay(Math.min(draftDay, draftLen));
-                if (setCycleConfig && draftLen !== cycleLen) {
-                  setCycleConfig({ ...(cycleConfig || {}), length: draftLen });
+                const newDay = Math.min(draftDay, draftLen);
+                setDay(newDay);
+                const newConfig = {
+                  ...(cycleConfig || {}),
+                  length: draftLen,
+                  lastStartOffset: newDay - 1,
+                };
+                if (setCycleConfig) setCycleConfig(newConfig);
+                if (saveCycleConfig) {
+                  const today = new Date();
+                  const lastStartDate = new Date(today.getTime() - (newDay - 1) * 86_400_000)
+                    .toISOString().split('T')[0];
+                  saveCycleConfig({
+                    cycleLength: draftLen,
+                    periodLength: newConfig.periodLength || 5,
+                    lastStartDate,
+                  });
                 }
                 setEditing(false);
               }} style={{
@@ -1963,7 +2574,7 @@ function SideMenu({ open, nav, t, user, current, setUser }) {
         overflow: 'hidden',
       }}>
         <div style={{ padding: '0 24px 22px' }}>
-          <PhotoSlot label="me" w={56} h={56} radius={14} dark/>
+          <AvatarImage url={user.avatar_url} label="me" w={56} h={56} radius={14} dark/>
           <div style={{ marginTop: 14, fontSize: 18, fontWeight: 700, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>{user.name}</div>
           <div style={{ fontSize: 12.5, opacity: .75 }}>{user.email}</div>
           <div style={{
@@ -2452,7 +3063,7 @@ function TrainerDashboardScreen({ nav, t, dark, user, selectClient }) {
 export {
   WelcomeScreen, LoginScreen, RegisterScreen, OnboardingScreen,
   ProfileScreen, EditProfileScreen, CheckInScreen,
-  StartWorkoutScreen, GoalAchievedScreen, StatsScreen, HistoryScreen,
+  StartWorkoutScreen, WorkoutInProgressScreen, GoalAchievedScreen, StatsScreen, HistoryScreen,
   CycleScreen, TrainerStudioScreen, SettingsScreen,
   TrainerDashboardScreen, WorkoutPlanEditorScreen,
   SideMenu, Icon,

@@ -5,7 +5,8 @@ import { useData } from './hooks/useData';
 import {
   WelcomeScreen, LoginScreen, RegisterScreen, OnboardingScreen,
   ProfileScreen, EditProfileScreen, CheckInScreen,
-  StartWorkoutScreen, GoalAchievedScreen, StatsScreen, HistoryScreen,
+  StartWorkoutScreen, WorkoutInProgressScreen, GoalAchievedScreen,
+  StatsScreen, HistoryScreen,
   CycleScreen, TrainerStudioScreen, SettingsScreen,
   TrainerDashboardScreen,
   WorkoutPlanEditorScreen,
@@ -16,7 +17,11 @@ const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
 
 export default function App() {
   const { session, profile, loading, signIn, signUp, signOut, updateProfile } = useAuth();
-  const { savePhysicalProfile, saveCheckin, logWorkoutSession } = useData(session?.user?.id);
+  const {
+    savePhysicalProfile, saveCheckin, logWorkoutSession,
+    saveCycleConfig, fetchCycleConfig,
+    savePreferences, fetchPreferences,
+  } = useData(session?.user?.id);
 
   const [dark, setDark] = React.useState(true);
   const [cycleEnabled] = React.useState(true);
@@ -34,10 +39,45 @@ export default function App() {
   });
   const [checkin, setCheckin] = React.useState({
     energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
+    location: 'gym', sleep_quality: 'good', equipment: [],
   });
   const [cycleConfig, setCycleConfig] = React.useState({
     length: 28, periodLength: 5, lastStartOffset: 11,
   });
+
+  // Load persisted cycle_config and preferences when user session is established
+  React.useEffect(() => {
+    if (!session?.user?.id) return;
+
+    fetchCycleConfig().then(({ data }) => {
+      if (!data) return;
+      const today = new Date();
+      const lastStart = data.last_start_date ? new Date(data.last_start_date) : null;
+      const offset = lastStart
+        ? Math.max(0, Math.floor((today - lastStart) / 86_400_000))
+        : 11;
+      setCycleConfig({
+        length: data.cycle_length || 28,
+        periodLength: data.period_length || 5,
+        lastStartOffset: Math.min(offset, (data.cycle_length || 28) - 1),
+      });
+    });
+
+    fetchPreferences().then(({ data }) => {
+      if (!data) return;
+      setPrefs({
+        notifications:     data.notifications      ?? true,
+        goals:             data.goals              ?? true,
+        alerts:            data.alerts             ?? true,
+        analysis:          data.analysis           ?? true,
+        behaviour:         data.behaviour          ?? true,
+        sounds:            data.sounds             ?? false,
+        cycle:             data.cycle_tracking     ?? true,
+        aiPersonalization: data.ai_personalization ?? true,
+        whiteLabel:        false,
+      });
+    });
+  }, [session?.user?.id]);
 
   // Redirect to welcome when session ends
   React.useEffect(() => {
@@ -53,9 +93,11 @@ export default function App() {
     }
   }, [session, profile]);
 
-  const nav = (target) => {
+  const [screenPayload, setScreenPayload] = React.useState(null);
+  const nav = (target, payload = null) => {
     if (target === 'menu') { setMenuOpen(true); return; }
     setMenuOpen(false);
+    setScreenPayload(payload);
     setScreen(target);
   };
 
@@ -69,6 +111,20 @@ export default function App() {
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [screen]);
 
+  const handleSetPrefs = (newPrefs) => {
+    setPrefs(newPrefs);
+    savePreferences({
+      notifications:     newPrefs.notifications,
+      goals:             newPrefs.goals,
+      alerts:            newPrefs.alerts,
+      analysis:          newPrefs.analysis,
+      behaviour:         newPrefs.behaviour,
+      sounds:            newPrefs.sounds,
+      cycle_tracking:    newPrefs.cycle,
+      ai_personalization: newPrefs.aiPersonalization,
+    });
+  };
+
   const handleSetUser = async (data) => {
     if (!data || data.email === 'frances@trainer.app') {
       await signOut();
@@ -79,8 +135,18 @@ export default function App() {
   };
 
   const user = profile
-    ? { id: profile.id, name: profile.name ?? '', email: profile.email ?? '', role: profile.role ?? 'Client' }
-    : { id: null, name: '', email: '', role: 'Client' };
+    ? {
+        id:         profile.id,
+        name:       profile.name       ?? '',
+        email:      profile.email      ?? '',
+        role:       profile.role       ?? 'Client',
+        phone:      profile.phone      ?? '',
+        dob:        profile.dob        ?? '',
+        location:   profile.location   ?? '',
+        gender:     profile.gender     ?? '',
+        avatar_url: profile.avatar_url ?? null,
+      }
+    : { id: null, name: '', email: '', role: 'Client', phone: '', dob: '', location: '', gender: '', avatar_url: null };
 
   const surfaceBg = dark ? '#0E1A2B' : '#FFFFFF';
   const common = {
@@ -88,6 +154,7 @@ export default function App() {
     setUser: handleSetUser,
     checkin, setCheckin,
     cycleConfig, setCycleConfig,
+    saveCycleConfig,
     signIn, signUp,
     savePhysicalProfile,
     saveCheckin,
@@ -97,7 +164,7 @@ export default function App() {
   };
 
   const showTabs = [
-    'profile','workout','goal','stats','history',
+    'profile','workout','workoutInProgress','goal','stats','history',
     'settings','editProfile','targets','checkin','cycle','studio',
     'trainerDashboard','workoutPlanEditor',
   ].includes(screen);
@@ -126,17 +193,18 @@ export default function App() {
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
       case 'onboarding':       return <OnboardingScreen        {...common}/>;
-      case 'profile':          return <ProfileScreen           {...common} prefs={prefs}/>;
+      case 'profile':          return <ProfileScreen           {...common} prefs={prefs} cycleConfig={cycleConfig}/>;
       case 'editProfile':      return <EditProfileScreen       {...common}/>;
       case 'checkin':          return <CheckInScreen           {...common}/>;
-      case 'workout':          return <StartWorkoutScreen      {...common}/>;
-      case 'goal':             return <GoalAchievedScreen      {...common}/>;
-      case 'stats':            return <StatsScreen             {...common}/>;
-      case 'history':          return <HistoryScreen           {...common}/>;
-      case 'cycle':            return <CycleScreen             {...common}/>;
-      case 'studio':           return <TrainerStudioScreen     {...common}/>;
-      case 'settings':         return <SettingsScreen          {...common} prefs={prefs} setPrefs={setPrefs} setDark={setDark}/>;
-      case 'targets':          return <GoalAchievedScreen      {...common}/>;
+      case 'workout':            return <StartWorkoutScreen      {...common}/>;
+      case 'workoutInProgress':  return <WorkoutInProgressScreen {...common} planId={screenPayload?.planId} exercises={screenPayload?.exercises}/>;
+      case 'goal':               return <GoalAchievedScreen      {...common} sessionData={screenPayload}/>;
+      case 'stats':              return <StatsScreen             {...common}/>;
+      case 'history':            return <HistoryScreen           {...common}/>;
+      case 'cycle':              return <CycleScreen             {...common}/>;
+      case 'studio':             return <TrainerStudioScreen     {...common}/>;
+      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={handleSetPrefs} setDark={setDark}/>;
+      case 'targets':            return <GoalAchievedScreen      {...common}/>;
       case 'trainerDashboard':   return <TrainerDashboardScreen  {...common}/>;
       case 'workoutPlanEditor':  return <WorkoutPlanEditorScreen {...common}/>;
       default:                   return <WelcomeScreen           {...common}/>;
