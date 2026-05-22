@@ -937,21 +937,33 @@ function StatCard({ icon, label, sub, t, dark, onClick, accent = false }) {
 }
 
 // ─────────── 6. EDIT PROFILE ───────────
-function EditProfileScreen({ nav, t, user, setUser, dark }) {
+function EditProfileScreen({ nav, t, user, setUser, dark, savePhysicalProfile, fetchPhysicalProfile }) {
   const [draft, setDraft] = React.useState({
     name:   user.name     || '',
     email:  user.email    || '',
     phone:  user.phone    || '',
-    dob:    user.dob      || '',   // stored as YYYY-MM-DD
+    dob:    user.dob      || '',
     loc:    user.location || '',
     gender: user.gender   || '',
   });
+  const [physDraft, setPhysDraft] = React.useState({ weight_kg: '', height_cm: '' });
   const [avatarUrl,       setAvatarUrl]       = React.useState(user.avatar_url || null);
   const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
   const [uploadErr,       setUploadErr]       = React.useState(null);
   const fileInputRef = React.useRef(null);
   const [saving,  setSaving]  = React.useState(false);
   const [saveErr, setSaveErr] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!fetchPhysicalProfile) return;
+    fetchPhysicalProfile().then(({ data }) => {
+      if (!data) return;
+      setPhysDraft({
+        weight_kg: data.weight_kg != null ? String(data.weight_kg) : '',
+        height_cm: data.height_cm != null ? String(data.height_cm) : '',
+      });
+    });
+  }, []);
 
   const genderOpts = [
     { key: 'male',              label: 'Male' },
@@ -969,17 +981,28 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
   const save = async () => {
     setSaving(true);
     setSaveErr(null);
-    const result = await setUser({
-      name:       draft.name.trim(),
-      email:      draft.email.trim(),
-      phone:      draft.phone.trim() || null,
-      dob:        draft.dob          || null,   // YYYY-MM-DD → DB date column
-      location:   draft.loc.trim()   || null,
-      gender:     draft.gender        || null,
-      avatar_url: avatarUrl,
-    });
-    if (result?.error) {
-      setSaveErr(result.error.message);
+
+    const [profileResult, physResult] = await Promise.all([
+      setUser({
+        name:       draft.name.trim(),
+        email:      draft.email.trim(),
+        phone:      draft.phone.trim() || null,
+        dob:        draft.dob          || null,
+        location:   draft.loc.trim()   || null,
+        gender:     draft.gender       || null,
+        avatar_url: avatarUrl,
+      }),
+      savePhysicalProfile
+        ? savePhysicalProfile({
+            weight_kg: physDraft.weight_kg ? parseFloat(physDraft.weight_kg) : null,
+            height_cm: physDraft.height_cm ? parseInt(physDraft.height_cm, 10) : null,
+          })
+        : Promise.resolve({}),
+    ]);
+
+    const err = profileResult?.error || physResult?.error;
+    if (err) {
+      setSaveErr(err.message);
       setSaving(false);
       return;
     }
@@ -1064,6 +1087,58 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
             onChange={v => setDraft({ ...draft, [k]: type === 'tel' ? formatPhone(v) : v })}
             primary={t.primary} dark={dark}/>
         ))}
+      </div>
+
+      {/* Physical measurements */}
+      <div style={{ padding: '0 22px 14px' }}>
+        <div style={{
+          fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em',
+          textTransform: 'uppercase', color: textMute(dark), marginBottom: 10,
+        }}>Body measurements</div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          {/* Weight */}
+          <div style={{ flex: 1, position: 'relative' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '14px 18px', borderRadius: 999,
+              background: dark ? '#142233' : '#F4F6FA',
+            }}>
+              <Icon name="activity" size={18} color={textMute(dark)} stroke={2}/>
+              <input
+                type="number" min="20" max="300" step="0.1"
+                placeholder="Weight"
+                value={physDraft.weight_kg}
+                onChange={e => setPhysDraft({ ...physDraft, weight_kg: e.target.value })}
+                style={{
+                  flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                  fontSize: 14, color: textPri(dark), fontFamily: 'inherit', minWidth: 0,
+                }}
+              />
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: textMute(dark), flexShrink: 0 }}>kg</span>
+            </div>
+          </div>
+          {/* Height */}
+          <div style={{ flex: 1 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '14px 18px', borderRadius: 999,
+              background: dark ? '#142233' : '#F4F6FA',
+            }}>
+              <Icon name="pulse" size={18} color={textMute(dark)} stroke={2}/>
+              <input
+                type="number" min="50" max="250" step="1"
+                placeholder="Height"
+                value={physDraft.height_cm}
+                onChange={e => setPhysDraft({ ...physDraft, height_cm: e.target.value })}
+                style={{
+                  flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                  fontSize: 14, color: textPri(dark), fontFamily: 'inherit', minWidth: 0,
+                }}
+              />
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: textMute(dark), flexShrink: 0 }}>cm</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Gender picker */}

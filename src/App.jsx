@@ -18,7 +18,7 @@ const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
 export default function App() {
   const { session, profile, loading, signIn, signUp, signOut, updateProfile } = useAuth();
   const {
-    savePhysicalProfile, saveCheckin, logWorkoutSession,
+    savePhysicalProfile, fetchPhysicalProfile, saveCheckin, logWorkoutSession,
     saveCycleConfig, fetchCycleConfig,
     savePreferences, fetchPreferences,
   } = useData(session?.user?.id);
@@ -167,6 +167,7 @@ export default function App() {
     saveCycleConfig,
     signIn, signUp,
     savePhysicalProfile,
+    fetchPhysicalProfile,
     saveCheckin,
     logWorkoutSession,
     selectedClient,

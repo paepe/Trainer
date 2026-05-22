@@ -32,6 +32,16 @@ export function useData(userId) {
     return { error };
   }
 
+  async function fetchPhysicalProfile() {
+    if (!userId) return { data: null, error: null };
+    const { data, error } = await supabase
+      .from('physical_profiles')
+      .select('weight_kg, height_cm, fitness_level, primary_goal, restrictions')
+      .eq('user_id', userId)
+      .maybeSingle();
+    return { data, error };
+  }
+
   // ── Cycle config ──────────────────────────────────────────────
 
   async function saveCycleConfig({ cycleLength, periodLength, lastStartDate }) {
@@ -86,6 +96,7 @@ export function useData(userId) {
 
   return {
     savePhysicalProfile,
+    fetchPhysicalProfile,
     saveCheckin,
     logWorkoutSession,
     saveCycleConfig,
