@@ -1338,10 +1338,11 @@ function SectionLabel({ children, dark }) {
 
 // ─────────── 8. START WORKOUT ───────────
 function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }) {
-  const [plan,    setPlan]    = React.useState(null);
-  const [planId,  setPlanId]  = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error,   setError]   = React.useState(null);
+  const [plan,       setPlan]       = React.useState(null);
+  const [planId,     setPlanId]     = React.useState(null);
+  const [cycleCtx,   setCycleCtx]   = React.useState(null);
+  const [loading,    setLoading]    = React.useState(false);
+  const [error,      setError]      = React.useState(null);
 
   const apiBase = typeof window !== 'undefined' && window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
@@ -1373,6 +1374,7 @@ function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }) {
       }
 
       const cycleContext = getCycleContext();
+      setCycleCtx(cycleContext);
       const res = await fetch(`${apiBase}/api/generate-workout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1501,12 +1503,24 @@ function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }) {
             background: dark ? 'rgba(45,212,224,.08)' : `${t.primary}10`,
             border: `1px solid ${t.primary}55`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: cycleCtx ? 6 : 8 }}>
               <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
               <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>
                 {checkin.goal} · {checkin.minutes} min
               </div>
             </div>
+            {cycleCtx && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                marginBottom: 10, padding: '4px 10px', borderRadius: 999,
+                background: '#A78BFA22', border: '1px solid #A78BFA55',
+              }}>
+                <span style={{ fontSize: 11 }}>🌙</span>
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: '#A78BFA' }}>
+                  {cycleCtx.phase} phase · Day {cycleCtx.day}/{cycleCtx.cycleLength} · Cycle-adapted
+                </span>
+              </div>
+            )}
             {plan.map((ex, i) => (
               <PlanRow
                 key={i}
