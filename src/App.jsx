@@ -135,9 +135,9 @@ export default function App() {
     if (!data || data.email === 'frances@trainer.app') {
       await signOut();
       setScreen('welcome');
-    } else {
-      await updateProfile(data);
+      return {};
     }
+    return await updateProfile(data);
   };
 
   const user = profile

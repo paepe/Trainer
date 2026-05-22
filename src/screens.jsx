@@ -942,26 +942,47 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
     name:   user.name     || '',
     email:  user.email    || '',
     phone:  user.phone    || '',
-    dob:    user.dob      || '',
+    dob:    user.dob      || '',   // stored as YYYY-MM-DD
     loc:    user.location || '',
     gender: user.gender   || '',
   });
-  const [avatarUrl,     setAvatarUrl]     = React.useState(user.avatar_url || null);
+  const [avatarUrl,       setAvatarUrl]       = React.useState(user.avatar_url || null);
   const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
-  const [saved, setSaved] = React.useState(false);
+  const [saving,  setSaving]  = React.useState(false);
+  const [saveErr, setSaveErr] = React.useState(null);
 
-  const save = () => {
-    setUser({
-      name:       draft.name,
-      email:      draft.email,
-      phone:      draft.phone,
-      dob:        draft.dob,
-      location:   draft.loc,
-      gender:     draft.gender,
+  const genderOpts = [
+    { key: 'male',              label: 'Male' },
+    { key: 'female',            label: 'Female' },
+    { key: 'non-binary',        label: 'Non-binary' },
+    { key: 'prefer_not_to_say', label: 'Prefer not to say' },
+  ];
+
+  // Phone: strip non-digit chars except leading +, format as user types
+  const formatPhone = (raw) => {
+    const cleaned = raw.replace(/[^\d+\s\-()]/g, '');
+    return cleaned;
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setSaveErr(null);
+    const result = await setUser({
+      name:       draft.name.trim(),
+      email:      draft.email.trim(),
+      phone:      draft.phone.trim() || null,
+      dob:        draft.dob          || null,   // YYYY-MM-DD → DB date column
+      location:   draft.loc.trim()   || null,
+      gender:     draft.gender        || null,
       avatar_url: avatarUrl,
     });
-    setSaved(true);
-    setTimeout(() => { setSaved(false); nav('profile'); }, 700);
+    if (result?.error) {
+      setSaveErr(result.error.message);
+      setSaving(false);
+      return;
+    }
+    setSaving(false);
+    nav('profile');
   };
 
   const handleAvatarChange = async (e) => {
@@ -978,9 +999,13 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
     setUploadingAvatar(false);
   };
 
+  // Text fields — [draftKey, icon, label, inputType]
   const fields = [
-    ['name', 'user'], ['email', 'mail'], ['phone', 'phone'],
-    ['dob', 'cal'], ['loc', 'pin'], ['gender', 'male'],
+    ['name',  'user',  'Full name',     'text'],
+    ['email', 'mail',  'Email',         'email'],
+    ['phone', 'phone', 'Phone number',  'tel'],
+    ['dob',   'cal',   'Date of birth', 'date'],
+    ['loc',   'pin',   'Location',      'text'],
   ];
 
   return (
@@ -1014,16 +1039,45 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
         </div>
       </div>
 
-      <div style={{ padding: '0 22px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {fields.map(([k, ic]) => (
-          <PillInput key={k} icon={ic} placeholder={k}
-            value={draft[k]} onChange={v => setDraft({ ...draft, [k]: v })}
+      {/* Text + date + tel fields */}
+      <div style={{ padding: '0 22px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {fields.map(([k, ic, label, type]) => (
+          <PillInput key={k} icon={ic} placeholder={label} type={type}
+            value={draft[k]}
+            onChange={v => setDraft({ ...draft, [k]: type === 'tel' ? formatPhone(v) : v })}
             primary={t.primary} dark={dark}/>
         ))}
       </div>
-      <div style={{ padding: '8px 22px 28px' }}>
-        <button onClick={save} style={primaryBtn(t.primary, dark)}>
-          {saved ? '✓ Saved' : 'Save changes'}
+
+      {/* Gender picker */}
+      <div style={{ padding: '0 22px 18px' }}>
+        <div style={{
+          fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em',
+          textTransform: 'uppercase', color: textMute(dark), marginBottom: 10,
+        }}>Gender</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {genderOpts.map(({ key, label }) => {
+            const on = draft.gender === key;
+            return (
+              <button key={key} onClick={() => setDraft({ ...draft, gender: key })} style={{
+                padding: '9px 16px', borderRadius: 999,
+                background: on ? `${t.primary}22` : surfRaised(dark),
+                color: on ? t.primary : textPri(dark),
+                border: `1.5px solid ${on ? t.primary : borderSubtle(dark)}`,
+                fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}>{label}</button>
+            );
+          })}
+        </div>
+      </div>
+
+      {saveErr && (
+        <div style={{ padding: '0 22px 10px', fontSize: 13, color: t.accent }}>{saveErr}</div>
+      )}
+
+      <div style={{ padding: '0 22px 28px' }}>
+        <button onClick={save} disabled={saving} style={{ ...primaryBtn(t.primary, dark), opacity: saving ? 0.7 : 1 }}>
+          {saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
     </>
