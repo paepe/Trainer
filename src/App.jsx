@@ -137,7 +137,11 @@ export default function App() {
       setScreen('welcome');
       return {};
     }
-    return await updateProfile(data);
+    const result = await updateProfile(data);
+    if (!result?.error && data.gender !== undefined && data.gender !== profile?.gender) {
+      handleSetPrefs({ ...prefs, cycle: data.gender === 'female' });
+    }
+    return result;
   };
 
   const user = profile
