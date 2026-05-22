@@ -35,7 +35,7 @@ export default function App() {
   const [prefs, setPrefs] = React.useState({
     notifications: true, goals: true, alerts: true,
     analysis: true, behaviour: true, sounds: false,
-    cycle: true, aiPersonalization: true, whiteLabel: false,
+    cycle: false, aiPersonalization: true, whiteLabel: false,
   });
   const [checkin, setCheckin] = React.useState({
     energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
@@ -45,9 +45,11 @@ export default function App() {
     length: 28, periodLength: 5, lastStartOffset: 11,
   });
 
-  // Load persisted cycle_config and preferences when user session is established
+  // Load persisted cycle_config and preferences once profile is known (gender required for cycle default)
   React.useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!profile?.id) return;
+
+    const cycleDefault = profile.gender === 'female';
 
     fetchCycleConfig().then(({ data }) => {
       if (!data) return;
@@ -64,7 +66,11 @@ export default function App() {
     });
 
     fetchPreferences().then(({ data }) => {
-      if (!data) return;
+      if (!data) {
+        // No preferences record yet — apply gender-based cycle default
+        setPrefs(prev => ({ ...prev, cycle: cycleDefault }));
+        return;
+      }
       setPrefs({
         notifications:     data.notifications      ?? true,
         goals:             data.goals              ?? true,
@@ -72,12 +78,12 @@ export default function App() {
         analysis:          data.analysis           ?? true,
         behaviour:         data.behaviour          ?? true,
         sounds:            data.sounds             ?? false,
-        cycle:             data.cycle_tracking     ?? true,
+        cycle:             data.cycle_tracking     ?? cycleDefault,
         aiPersonalization: data.ai_personalization ?? true,
         whiteLabel:        false,
       });
     });
-  }, [session?.user?.id]);
+  }, [profile?.id]);
 
   // Redirect to welcome when session ends
   React.useEffect(() => {
