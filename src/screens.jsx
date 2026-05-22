@@ -948,6 +948,7 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
   });
   const [avatarUrl,       setAvatarUrl]       = React.useState(user.avatar_url || null);
   const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
+  const [uploadErr,       setUploadErr]       = React.useState(null);
   const [saving,  setSaving]  = React.useState(false);
   const [saveErr, setSaveErr] = React.useState(null);
 
@@ -989,10 +990,16 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
     setUploadingAvatar(true);
-    const ext  = file.name.split('.').pop();
+    setUploadErr(null);
+    const ext  = file.name.split('.').pop().toLowerCase();
     const path = `${user.id}/avatar.${ext}`;
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
-    if (!error) {
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (error) {
+      console.error('[avatar upload]', error);
+      setUploadErr(error.message);
+    } else {
       const { data } = supabase.storage.from('avatars').getPublicUrl(path);
       setAvatarUrl(`${data.publicUrl}?t=${Date.now()}`);
     }
@@ -1030,11 +1037,11 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
           </label>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
-            {uploadingAvatar ? 'Uploading…' : 'Tap the icon to change your photo'}
+          <div style={{ fontSize: 14, fontWeight: 600, color: uploadErr ? t.accent : textPri(dark) }}>
+            {uploadingAvatar ? 'Uploading…' : uploadErr ? uploadErr : 'Tap the icon to change your photo'}
           </div>
           <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>
-            JPG or PNG · stored securely
+            JPG, PNG or WebP · max 5 MB
           </div>
         </div>
       </div>
