@@ -949,6 +949,7 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
   const [avatarUrl,       setAvatarUrl]       = React.useState(user.avatar_url || null);
   const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
   const [uploadErr,       setUploadErr]       = React.useState(null);
+  const fileInputRef = React.useRef(null);
   const [saving,  setSaving]  = React.useState(false);
   const [saveErr, setSaveErr] = React.useState(null);
 
@@ -1024,17 +1025,26 @@ function EditProfileScreen({ nav, t, user, setUser, dark }) {
       <div style={{ padding: '0 22px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <AvatarImage url={avatarUrl} label="photo" w={80} h={80} radius={16} dark={dark}/>
-          <label style={{
-            position: 'absolute', bottom: 0, right: 0,
-            width: 26, height: 26, borderRadius: '50%',
-            background: t.primary, color: '#0E1A2B',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', border: `2px solid ${dark ? '#0E1A2B' : '#fff'}`,
-          }}>
-            <Icon name="edit" size={12} color="#0E1A2B" stroke={2.5}/>
-            <input type="file" accept="image/*" onChange={handleAvatarChange}
-              style={{ display: 'none' }} disabled={uploadingAvatar}/>
-          </label>
+          <button
+            onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+            style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: 28, height: 28, borderRadius: '50%',
+              background: t.primary, color: '#0E1A2B',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', border: `2px solid ${dark ? '#0E1A2B' : '#fff'}`,
+              padding: 0,
+            }}
+          >
+            <Icon name="edit" size={13} color="#0E1A2B" stroke={2.5}/>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleAvatarChange}
+            style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
+          />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: uploadErr ? t.accent : textPri(dark) }}>
