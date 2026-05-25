@@ -24,18 +24,16 @@ export function Chip({ label, selected, onToggle, dark, primary, accent, disable
       onClick={onToggle}
       disabled={disabled}
       style={{
-        padding: '9px 14px', borderRadius: 999,
-        background: selected ? `${color}22` : surfRaised(dark),
-        color: selected ? color : textPri(dark),
+        padding: '9px 16px', borderRadius: 999,
+        background: selected ? color : surfRaised(dark),
+        color: selected ? '#0E1A2B' : textPri(dark),
         border: `1.5px solid ${selected ? color : borderSubtle(dark)}`,
         fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
         cursor: disabled ? 'default' : 'pointer',
-        display: 'flex', alignItems: 'center', gap: 5,
         opacity: disabled ? 0.45 : 1,
         transition: 'background .15s, border-color .15s, color .15s',
       }}
     >
-      {selected && <Icon name="check" size={11} color={color} stroke={3}/>}
       {label}
     </button>
   );
@@ -59,18 +57,18 @@ interface GoalCardProps {
 export function GoalCard({ label, icon, selected, onToggle, dark, primary }: GoalCardProps) {
   return (
     <button onClick={onToggle} style={{
-      textAlign: 'left', padding: 14, borderRadius: 16,
-      background: selected ? `${primary}1a` : surfRaised(dark),
+      textAlign: 'left', padding: 16, borderRadius: 16,
+      background: selected ? `${primary}18` : surfRaised(dark),
       border: `1.5px solid ${selected ? primary : borderSubtle(dark)}`,
       fontFamily: 'inherit', cursor: 'pointer',
       transition: 'background .15s, border-color .15s',
     }}>
       <div style={{
-        width: 36, height: 36, borderRadius: 11, marginBottom: 10,
+        width: 40, height: 40, borderRadius: 12, marginBottom: 12,
         background: selected ? primary : `${primary}22`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Icon name={icon} size={18} color={selected ? '#0E1A2B' : primary} stroke={2.2}/>
+        <Icon name={icon} size={20} color={selected ? '#0E1A2B' : primary} stroke={2.2}/>
       </div>
       <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), lineHeight: 1.3 }}>{label}</div>
     </button>
@@ -94,10 +92,10 @@ export function SegmentedRow({ options, value, onChange, dark, primary }: Segmen
         const on = value === o.value;
         return (
           <button key={o.value} onClick={() => onChange(o.value)} style={{
-            flex: 1, padding: '11px 0', borderRadius: 12,
-            background: on ? `${primary}1a` : surfRaised(dark),
+            flex: 1, padding: '11px 0', borderRadius: 999,
+            background: on ? primary : surfRaised(dark),
             border: `1.5px solid ${on ? primary : borderSubtle(dark)}`,
-            color: on ? primary : textSec(dark),
+            color: on ? '#0E1A2B' : textSec(dark),
             fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             transition: 'background .15s, border-color .15s, color .15s',
           }}>
@@ -356,52 +354,46 @@ interface WizardHeaderProps {
 export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge, moduleNum = 1, moduleTitle = 'Configuração inicial' }: WizardHeaderProps) {
   return (
     <div style={{ marginBottom: 20 }}>
-      {/* Module identity bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 14,
-        padding: '6px 10px', borderRadius: 10,
-        background: dark ? '#0B1624' : '#EDF1F7',
-      }}>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark) }}>
-          TRAINER · MÓDULO #{String(moduleNum).padStart(2, '0')} · {moduleTitle}
-        </span>
-        <div style={{
-          width: 18, height: 18, borderRadius: 5,
-          background: `${primary}22`, border: `1.5px solid ${primary}55`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Icon name="check" size={10} color={primary} stroke={3}/>
-        </div>
-      </div>
-
-      {/* Progress row */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: 12 }}>
+      {/* Nav row: back + module tag + check badge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <button onClick={onBack} style={iconBtn(dark)}>
           <Icon name="chevL" size={22} color={textPri(dark)}/>
         </button>
-        {stepNum > 0 && (
-          <div style={{
-            flex: 1, height: 4, borderRadius: 999,
-            background: dark ? '#1F2E45' : '#E7ECF3', overflow: 'hidden',
-          }}>
-            <div style={{
-              height: '100%', width: `${(stepNum / totalSteps) * 100}%`,
-              background: primary, borderRadius: 999, transition: 'width .3s ease',
-            }}/>
-          </div>
-        )}
-        {stepNum > 0 && (
-          <div style={{ fontSize: 11, fontWeight: 700, color: textMute(dark), whiteSpace: 'nowrap' }}>
-            {stepNum}/{totalSteps}
-          </div>
-        )}
+        <div style={{
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '5px 10px', borderRadius: 8,
+          background: dark ? '#0B1624' : '#EDF1F7',
+        }}>
+          <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.09em', textTransform: 'uppercase', color: textMute(dark) }}>
+            TRAINER · MÓDULO #{String(moduleNum).padStart(2, '0')} · {moduleTitle}
+          </span>
+        </div>
+        <div style={{
+          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+          background: `${primary}22`, border: `1.5px solid ${primary}55`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon name="check" size={12} color={primary} stroke={3}/>
+        </div>
       </div>
+
+      {/* Progress bar */}
+      {stepNum > 0 && (
+        <div style={{
+          height: 3, borderRadius: 999, marginBottom: 10,
+          background: dark ? '#1F2E45' : '#E7ECF3', overflow: 'hidden',
+        }}>
+          <div style={{
+            height: '100%', width: `${(stepNum / totalSteps) * 100}%`,
+            background: primary, borderRadius: 999, transition: 'width .3s ease',
+          }}/>
+        </div>
+      )}
 
       {/* BLOCO label + badge + Passo sub-label */}
       {stepNum > 0 && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
             <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>
               BLOCO #{String(stepNum).padStart(2, '0')} / {totalSteps}
             </span>
