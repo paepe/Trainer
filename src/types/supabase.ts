@@ -1130,6 +1130,132 @@ export type Database = {
           },
         ]
       }
+      active_context: {
+        Row: {
+          user_id:     string
+          active_role: string
+          studio_id:   string | null
+          switched_at: string
+        }
+        Insert: {
+          user_id:     string
+          active_role: string
+          studio_id?:  string | null
+          switched_at?: string
+        }
+        Update: {
+          user_id?:    string
+          active_role?: string
+          studio_id?:  string | null
+          switched_at?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          id:         string
+          actor_id:   string
+          actor_role: string
+          table_name: string
+          record_id:  string | null
+          action:     string
+          metadata:   Json | null
+          created_at: string
+        }
+        Insert: {
+          id?:        string
+          actor_id:   string
+          actor_role: string
+          table_name: string
+          record_id?: string | null
+          action:     string
+          metadata?:  Json | null
+          created_at?: string
+        }
+        Update: {
+          id?:        string
+          actor_id?:  string
+          actor_role?: string
+          table_name?: string
+          record_id?: string | null
+          action?:    string
+          metadata?:  Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      masked_operational_contexts: {
+        Row: {
+          id:               string
+          context_token:    string
+          resolved_user_id: string
+          purpose:          string
+          requested_by:     string
+          expires_at:       string
+          created_at:       string
+        }
+        Insert: {
+          id?:               string
+          context_token?:    string
+          resolved_user_id:  string
+          purpose:           string
+          requested_by:      string
+          expires_at?:       string
+          created_at?:       string
+        }
+        Update: {
+          id?:               string
+          context_token?:    string
+          resolved_user_id?: string
+          purpose?:          string
+          requested_by?:     string
+          expires_at?:       string
+          created_at?:       string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          role_code:       string
+          permission_code: string
+          granted_at:      string
+        }
+        Insert: {
+          role_code:       string
+          permission_code: string
+          granted_at?:     string
+        }
+        Update: {
+          role_code?:       string
+          permission_code?: string
+          granted_at?:      string
+        }
+        Relationships: []
+      }
+      roles: {
+        Row: {
+          code:        string
+          label:       string
+          description: string | null
+          is_system:   boolean
+          created_at:  string
+        }
+        Insert: {
+          code:         string
+          label:        string
+          description?: string | null
+          is_system?:   boolean
+          created_at?:  string
+        }
+        Update: {
+          code?:        string
+          label?:       string
+          description?: string | null
+          is_system?:   boolean
+          created_at?:  string
+        }
+        Relationships: []
+      }
       workouts: {
         Row: {
           completed: boolean | null
@@ -1179,7 +1305,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      studio_has_trainer: { Args: { trainer_uuid: string }; Returns: boolean }
+      studio_has_trainer:  { Args: { trainer_uuid: string };           Returns: boolean }
+      get_active_role:     { Args: { uid?: string };                   Returns: string  }
+      has_permission:      { Args: { perm: string; uid?: string };     Returns: boolean }
     }
     Enums: {
       [_ in never]: never

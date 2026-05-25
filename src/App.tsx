@@ -9,10 +9,11 @@ import {
   StatsScreen, HistoryScreen,
   CycleScreen, TrainerStudioScreen, SettingsScreen,
   TrainerDashboardScreen, TrainerClientDetailScreen,
-  WorkoutPlanEditorScreen,
+  WorkoutPlanEditorScreen, TrainerLibraryExercisesScreen,
 } from './screens';
 import { SideMenu, Icon, BottomTabs } from './components';
 import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './types';
+import { TRAINER_ROLES } from './types/auth';
 
 const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
 
@@ -59,7 +60,7 @@ export default function App() {
   const [dark, setDark] = React.useState(true);
   const [cycleEnabled] = React.useState(true);
 
-  const isTrainer = profile?.role === 'trainer' || profile?.role === 'studio_trainer' || profile?.role === 'studio_admin';
+  const isTrainer = profile?.role != null && (TRAINER_ROLES as readonly string[]).includes(profile.role);
   const t = {
     ...BRAND,
     dark,
@@ -220,7 +221,7 @@ export default function App() {
   const showTabs = [
     'profile','workout','workoutInProgress','goal','stats','history',
     'settings','editProfile','targets','checkin','cycle','studio',
-    'trainerDashboard','trainerClientDetail','workoutPlanEditor',
+    'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
   ].includes(screen);
 
   const tabs: [string, string, string][] = isTrainer
@@ -262,6 +263,7 @@ export default function App() {
       case 'trainerDashboard':    return <TrainerDashboardScreen     {...common} user={trainerUser}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  {...common} user={trainerUser}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    {...common} user={trainerUser}/>;
+      case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen {...common} user={trainerUser}/>;
       default:                   return <WelcomeScreen           {...common}/>;
     }
   })();
