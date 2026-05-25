@@ -1,0 +1,138 @@
+import React from 'react';
+import { Icon } from '../../components/Icon';
+import { TopBar } from '../../components/TopBar';
+import { ScreenTitle } from '../../components/ScreenTitle';
+import { SectionLabel } from '../../components/SectionLabel';
+import { surfRaised, borderSubtle, textPri, textSec, textMute, outlineBtn } from '../../theme';
+import type { NavFn } from '../../types';
+
+interface Theme {
+  primary:     string;
+  primaryDeep: string;
+  primarySoft: string;
+  accent:      string;
+}
+
+interface TrainerStudioScreenProps {
+  nav: NavFn;
+  t: Theme;
+  dark: boolean;
+}
+
+interface KpiProps {
+  val: string;
+  lbl: string;
+  t: Theme;
+  dark: boolean;
+  accent?: boolean;
+}
+
+function Kpi({ val, lbl, t, dark, accent = false }: KpiProps) {
+  const c = accent ? t.accent : t.primary;
+  return (
+    <div style={{
+      padding: '14px 12px', borderRadius: 14,
+      background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+    }}>
+      <div style={{ fontSize: 22, fontWeight: 700, color: c, fontFamily: '"Plus Jakarta Sans",sans-serif', lineHeight: 1 }}>{val}</div>
+      <div style={{ fontSize: 10.5, color: textMute(dark), letterSpacing: '.06em', textTransform: 'uppercase', fontWeight: 600, marginTop: 6 }}>{lbl}</div>
+    </div>
+  );
+}
+
+export function TrainerStudioScreen({ nav, t, dark }: TrainerStudioScreenProps) {
+  const clients = [
+    { name: 'Frances Scott',  goal: 'Endurance',    streak: 12, status: 'on-track', last: 'today' },
+    { name: 'Lukas Becker',   goal: 'Strength',     streak: 5,  status: 'behind',   last: '3d ago' },
+    { name: 'Marie Dubois',   goal: 'Mobility',     streak: 28, status: 'on-track', last: 'today' },
+    { name: 'Leon Brandt',    goal: 'Weight loss',  streak: 2,  status: 'new',      last: 'today' },
+  ];
+
+  const statusColor = (s: string) => {
+    if (s === 'on-track') return t.primary;
+    if (s === 'behind') return t.accent;
+    return t.primarySoft;
+  };
+
+  return (
+    <>
+      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent} badge={
+        <div style={{
+          padding: '3px 9px', borderRadius: 6, marginRight: 8,
+          background: t.accent, color: '#fff', fontSize: 9.5, fontWeight: 700, letterSpacing: '.05em',
+        }}>B2B</div>
+      }/>
+      <ScreenTitle dark={dark} sub="Feed the AI with your methodology — your clients get it daily.">Trainer Studio</ScreenTitle>
+
+      {/* KPI strip */}
+      <div style={{ padding: '0 22px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        <Kpi val="24"  lbl="Clients"     t={t} dark={dark}/>
+        <Kpi val="187" lbl="This week"   t={t} dark={dark}/>
+        <Kpi val="92%" lbl="Adherence"   t={t} dark={dark} accent/>
+      </div>
+
+      {/* Methodology feeder */}
+      <div style={{ padding: '0 22px 14px' }}>
+        <SectionLabel dark={dark}>Feed the AI</SectionLabel>
+        <div style={{
+          padding: 16, borderRadius: 16,
+          background: `linear-gradient(135deg, ${t.primaryDeep} 0%, ${t.primary}cc 100%)`,
+          color: '#0E1A2B',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <Icon name="flask" size={18} color="#0E1A2B" stroke={2.4}/>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>Your methodology · v3.2</div>
+          </div>
+          <div style={{ fontSize: 12, opacity: .85, lineHeight: 1.5, marginBottom: 12 }}>
+            42 workouts · 18 progressions · 7 client archetypes.<br/>
+            Last trained: 2 days ago. AI uses this to generate plans only for <b>your</b> clients.
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button style={{
+              padding: '9px 14px', borderRadius: 999, border: 'none',
+              background: '#0E1A2B', color: t.primary, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
+            }}>+ Add workout</button>
+            <button style={{
+              padding: '9px 14px', borderRadius: 999, border: '1.5px solid rgba(14,26,43,.4)',
+              background: 'transparent', color: '#0E1A2B', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
+            }}>Retrain AI</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Client list */}
+      <div style={{ padding: '0 22px 14px' }}>
+        <SectionLabel dark={dark}>Your clients</SectionLabel>
+        {clients.map((c, i) => (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '12px 14px', marginBottom: 8,
+            background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+            borderRadius: 14,
+          }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: `${statusColor(c.status)}26`, color: statusColor(c.status),
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 14, fontWeight: 700, fontFamily: '"Plus Jakarta Sans",sans-serif',
+            }}>{c.name.split(' ').map(n => n[0]).join('')}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark) }}>{c.name}</div>
+              <div style={{ fontSize: 11.5, color: textMute(dark) }}>{c.goal} · {c.last}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: statusColor(c.status), fontFamily: '"Plus Jakarta Sans",sans-serif' }}>{c.streak}d</div>
+              <div style={{ fontSize: 10, color: textMute(dark), letterSpacing: '.05em', textTransform: 'uppercase' }}>{c.status}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ padding: '0 22px 28px' }}>
+        <button onClick={() => alert('Invite link copied: trainer.app/coach/frances')} style={{ ...outlineBtn(t.primary), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <Icon name="plus" size={16} color={t.primary} stroke={2.4}/> Invite client
+        </button>
+      </div>
+    </>
+  );
+}

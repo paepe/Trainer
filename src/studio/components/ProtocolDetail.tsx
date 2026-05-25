@@ -1,0 +1,84 @@
+import React from 'react';
+import type { Protocol, ProtocolExercise } from '../../types';
+import { Btn, Field, C } from './SharedAtoms';
+
+interface ProtocolDetailProps {
+  protocol: Protocol;
+  onAddExercise: (
+    ex: Omit<ProtocolExercise, 'id' | 'protocol_id'> & { order_index: number }
+  ) => Promise<{ error: unknown }>;
+}
+
+export function ProtocolDetail({ protocol, onAddExercise }: ProtocolDetailProps) {
+  const [showAdd, setShowAdd] = React.useState(false);
+  const [draft, setDraft] = React.useState({
+    exercise_name: '',
+    muscle_group: 'Chest',
+    sets: '3',
+    reps: '10',
+    load_kg: '',
+    rest_seconds: '60',
+  });
+
+  async function add() {
+    if (!draft.exercise_name.trim()) return;
+    const parsedLoad = draft.load_kg.trim() === '' ? null : Number(draft.load_kg);
+    await onAddExercise({
+      exercise_name: draft.exercise_name.trim(),
+      muscle_group: draft.muscle_group,
+      sets: Number(draft.sets) || 3,
+      reps: Number(draft.reps) || 10,
+      load_kg: parsedLoad,
+      rest_seconds: Number(draft.rest_seconds) || 60,
+      order_index: protocol.exercises?.length || 0,
+    });
+    setDraft({
+      exercise_name: '',
+      muscle_group: 'Chest',
+      sets: '3',
+      reps: '10',
+      load_kg: '',
+      rest_seconds: '60',
+    });
+    setShowAdd(false);
+  }
+
+  return (
+    <div style={{ borderTop: `1px solid ${C.border}`, padding: '16px 20px 20px' }}>
+      {protocol.description && (
+        <p style={{ fontSize: 13, color: C.textSec, marginBottom: 16 }}>{protocol.description}</p>
+      )}
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.textMute, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+        Exercises ({protocol.exercises?.length || 0})
+      </div>
+      {protocol.exercises?.length === 0 && !showAdd && (
+        <div style={{ color: C.textMute, fontSize: 13, marginBottom: 12 }}>No exercises yet.</div>
+      )}
+      {showAdd && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 14, padding: 16, borderRadius: 12, background: C.surface2 }}>
+          <Field label="Exercise" value={draft.exercise_name} onChange={v => setDraft({ ...draft, exercise_name: v })} placeholder="e.g. Bench Press"/>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: C.textMute, textTransform: 'uppercase', letterSpacing: '.06em' }}>Muscle group</span>
+            <select value={draft.muscle_group} onChange={e => setDraft({ ...draft, muscle_group: e.target.value })}
+              style={{ padding: '10px 12px', borderRadius: 8, background: C.surface, border: `1px solid ${C.border}`, color: C.textPri, fontSize: 13, outline: 'none' }}>
+              {['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs', 'Full body', 'Cardio'].map(g => <option key={g}>{g}</option>)}
+            </select>
+          </label>
+          <Field label="Sets" value={draft.sets} onChange={v => setDraft({ ...draft, sets: v })} placeholder="3"/>
+          <Field label="Reps" value={draft.reps} onChange={v => setDraft({ ...draft, reps: v })} placeholder="10"/>
+          <Field label="Load (kg)" value={draft.load_kg} onChange={v => setDraft({ ...draft, load_kg: v })} placeholder="optional"/>
+          <Field label="Rest (s)" value={draft.rest_seconds} onChange={v => setDraft({ ...draft, rest_seconds: v })} placeholder="60"/>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8 }}>
+            <Btn size="sm" onClick={add}>Add</Btn>
+            <Btn variant="ghost" size="sm" onClick={() => setShowAdd(false)}>Cancel</Btn>
+          </div>
+        </div>
+      )}
+      {!showAdd && (
+        <button onClick={() => setShowAdd(true)} style={{ padding: '8px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, background: `${C.primary}18`, color: C.primary, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          + Add exercise
+        </button>
+      )}
+    </div>
+  );
+}
