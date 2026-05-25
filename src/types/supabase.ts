@@ -72,6 +72,83 @@ export type Database = {
           },
         ]
       }
+      checkin_prontidao: {
+        Row: {
+          ai_led_blocked:    boolean | null
+          available_minutes: number | null
+          created_at:        string | null
+          detailed_data:     Json | null
+          energy_level:      number | null
+          fatigue_level:     number | null
+          id:                string
+          input_source:      string
+          occurred_at:       string | null
+          pain_intensity:    number | null
+          pain_present:      boolean | null
+          post_workout_data: Json | null
+          quick_data:        Json | null
+          readiness_score:   number | null
+          safety_gate:       Json | null
+          sleep_quality:     string | null
+          training_location: string | null
+          user_id:           string
+          variant:           string
+          voice_data:        Json | null
+        }
+        Insert: {
+          ai_led_blocked?:    boolean | null
+          available_minutes?: number | null
+          created_at?:        string | null
+          detailed_data?:     Json | null
+          energy_level?:      number | null
+          fatigue_level?:     number | null
+          id?:                string
+          input_source?:      string
+          occurred_at?:       string | null
+          pain_intensity?:    number | null
+          pain_present?:      boolean | null
+          post_workout_data?: Json | null
+          quick_data?:        Json | null
+          readiness_score?:   number | null
+          safety_gate?:       Json | null
+          sleep_quality?:     string | null
+          training_location?: string | null
+          user_id:            string
+          variant:            string
+          voice_data?:        Json | null
+        }
+        Update: {
+          ai_led_blocked?:    boolean | null
+          available_minutes?: number | null
+          created_at?:        string | null
+          detailed_data?:     Json | null
+          energy_level?:      number | null
+          fatigue_level?:     number | null
+          id?:                string
+          input_source?:      string
+          occurred_at?:       string | null
+          pain_intensity?:    number | null
+          pain_present?:      boolean | null
+          post_workout_data?: Json | null
+          quick_data?:        Json | null
+          readiness_score?:   number | null
+          safety_gate?:       Json | null
+          sleep_quality?:     string | null
+          training_location?: string | null
+          user_id?:           string
+          variant?:           string
+          voice_data?:        Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_prontidao_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkins: {
         Row: {
           available_minutes: number | null
@@ -125,6 +202,38 @@ export type Database = {
           },
         ]
       }
+      churn_risk_signals: {
+        Row: {
+          computed_at: string | null
+          id: string
+          reasons: string[] | null
+          risk_score: number
+          user_id: string
+        }
+        Insert: {
+          computed_at?: string | null
+          id?: string
+          reasons?: string[] | null
+          risk_score?: number
+          user_id: string
+        }
+        Update: {
+          computed_at?: string | null
+          id?: string
+          reasons?: string[] | null
+          risk_score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "churn_risk_signals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cycle_config: {
         Row: {
           cycle_length: number | null
@@ -155,6 +264,125 @@ export type Database = {
             foreignKeyName: "cycle_config_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercises: {
+        Row: {
+          accessibility_tags: string[] | null
+          alternatives: string[] | null
+          approved_by: string | null
+          created_at: string | null
+          created_by: string | null
+          equipment: string[] | null
+          id: string
+          level: string
+          movement_pattern: string | null
+          muscle_group: string
+          name: string
+          relative_risk_regions: string[] | null
+          restrictions: string[] | null
+          short_instruction: string | null
+          status: string | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          accessibility_tags?: string[] | null
+          alternatives?: string[] | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          equipment?: string[] | null
+          id?: string
+          level: string
+          movement_pattern?: string | null
+          muscle_group: string
+          name: string
+          relative_risk_regions?: string[] | null
+          restrictions?: string[] | null
+          short_instruction?: string | null
+          status?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          accessibility_tags?: string[] | null
+          alternatives?: string[] | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          equipment?: string[] | null
+          id?: string
+          level?: string
+          movement_pattern?: string | null
+          muscle_group?: string
+          name?: string
+          relative_risk_regions?: string[] | null
+          restrictions?: string[] | null
+          short_instruction?: string | null
+          status?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pain_recurrence_signals: {
+        Row: {
+          alert_triggered: boolean | null
+          created_at: string | null
+          id: string
+          last_occurrence_at: string | null
+          occurrence_count: number
+          pain_region: string
+          updated_at: string | null
+          user_id: string
+          window_days: number
+        }
+        Insert: {
+          alert_triggered?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_occurrence_at?: string | null
+          occurrence_count?: number
+          pain_region: string
+          updated_at?: string | null
+          user_id: string
+          window_days?: number
+        }
+        Update: {
+          alert_triggered?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_occurrence_at?: string | null
+          occurrence_count?: number
+          pain_region?: string
+          updated_at?: string | null
+          user_id?: string
+          window_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pain_recurrence_signals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -215,217 +443,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      profile_v2: {
-        Row: {
-          id:                  string
-          user_id:             string
-          current_step:        string
-          completed_at:        string | null
-          basic_data:          Json | null
-          objectives:          Json | null
-          movement_history:    Json | null
-          functional_capacity: Json | null
-          environment:         Json | null
-          availability:        Json | null
-          preferences:         Json | null
-          abandon_history:     Json | null
-          habits:              Json | null
-          comorbidities:       Json | null
-          declared_health:     Json | null
-          sensitive_factors:   Json | null
-          body_rhythm:         Json | null
-          consent:             Json | null
-          risk:                Json | null
-          created_at:          string | null
-          updated_at:          string | null
-        }
-        Insert: {
-          id?:                  string
-          user_id:              string
-          current_step?:        string
-          completed_at?:        string | null
-          basic_data?:          Json | null
-          objectives?:          Json | null
-          movement_history?:    Json | null
-          functional_capacity?: Json | null
-          environment?:         Json | null
-          availability?:        Json | null
-          preferences?:         Json | null
-          abandon_history?:     Json | null
-          habits?:              Json | null
-          comorbidities?:       Json | null
-          declared_health?:     Json | null
-          sensitive_factors?:   Json | null
-          body_rhythm?:         Json | null
-          consent?:             Json | null
-          risk?:                Json | null
-          created_at?:          string | null
-          updated_at?:          string | null
-        }
-        Update: {
-          id?:                  string
-          user_id?:             string
-          current_step?:        string
-          completed_at?:        string | null
-          basic_data?:          Json | null
-          objectives?:          Json | null
-          movement_history?:    Json | null
-          functional_capacity?: Json | null
-          environment?:         Json | null
-          availability?:        Json | null
-          preferences?:         Json | null
-          abandon_history?:     Json | null
-          habits?:              Json | null
-          comorbidities?:       Json | null
-          declared_health?:     Json | null
-          sensitive_factors?:   Json | null
-          body_rhythm?:         Json | null
-          consent?:             Json | null
-          risk?:                Json | null
-          created_at?:          string | null
-          updated_at?:          string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profile_v2_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      checkin_prontidao: {
-        Row: {
-          id:                string
-          user_id:           string
-          variant:           string
-          occurred_at:       string | null
-          quick_data:        Json | null
-          detailed_data:     Json | null
-          voice_data:        Json | null
-          post_workout_data: Json | null
-          safety_gate:       Json | null
-          readiness_score:   number | null
-          ai_led_blocked:    boolean | null
-          created_at:        string | null
-        }
-        Insert: {
-          id?:                string
-          user_id:            string
-          variant:            string
-          occurred_at?:       string | null
-          quick_data?:        Json | null
-          detailed_data?:     Json | null
-          voice_data?:        Json | null
-          post_workout_data?: Json | null
-          safety_gate?:       Json | null
-          readiness_score?:   number | null
-          ai_led_blocked?:    boolean | null
-          created_at?:        string | null
-        }
-        Update: {
-          id?:                string
-          user_id?:           string
-          variant?:           string
-          occurred_at?:       string | null
-          quick_data?:        Json | null
-          detailed_data?:     Json | null
-          voice_data?:        Json | null
-          post_workout_data?: Json | null
-          safety_gate?:       Json | null
-          readiness_score?:   number | null
-          ai_led_blocked?:    boolean | null
-          created_at?:        string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "checkin_prontidao_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      safety_gate_events: {
-        Row: {
-          id:                    string
-          user_id:               string
-          checkin_id:            string | null
-          status:                string
-          triggered_signals:     string[] | null
-          readiness_score:       number | null
-          ai_led_blocked:        boolean | null
-          human_review_required: boolean | null
-          human_reviewed_at:     string | null
-          human_reviewed_by:     string | null
-          created_at:            string | null
-        }
-        Insert: {
-          id?:                    string
-          user_id:                string
-          checkin_id?:            string | null
-          status:                 string
-          triggered_signals?:     string[] | null
-          readiness_score?:       number | null
-          ai_led_blocked?:        boolean | null
-          human_review_required?: boolean | null
-          human_reviewed_at?:     string | null
-          human_reviewed_by?:     string | null
-          created_at?:            string | null
-        }
-        Update: {
-          id?:                    string
-          user_id?:               string
-          checkin_id?:            string | null
-          status?:                string
-          triggered_signals?:     string[] | null
-          readiness_score?:       number | null
-          ai_led_blocked?:        boolean | null
-          human_review_required?: boolean | null
-          human_reviewed_at?:     string | null
-          human_reviewed_by?:     string | null
-          created_at?:            string | null
-        }
-        Relationships: []
-      }
-      pain_recurrence_signals: {
-        Row: {
-          id:                  string
-          user_id:             string
-          pain_region:         string
-          occurrence_count:    number
-          window_days:         number
-          alert_triggered:     boolean | null
-          last_occurrence_at:  string | null
-          created_at:          string | null
-          updated_at:          string | null
-        }
-        Insert: {
-          id?:                 string
-          user_id:             string
-          pain_region:         string
-          occurrence_count?:   number
-          window_days?:        number
-          alert_triggered?:    boolean | null
-          last_occurrence_at?: string | null
-          created_at?:         string | null
-          updated_at?:         string | null
-        }
-        Update: {
-          id?:                 string
-          user_id?:            string
-          pain_region?:        string
-          occurrence_count?:   number
-          window_days?:        number
-          alert_triggered?:    boolean | null
-          last_occurrence_at?: string | null
-          created_at?:         string | null
-          updated_at?:         string | null
-        }
-        Relationships: []
       }
       plan_exercises: {
         Row: {
@@ -551,6 +568,86 @@ export type Database = {
           },
         ]
       }
+      profile_v2: {
+        Row: {
+          abandon_history: Json | null
+          availability: Json | null
+          basic_data: Json | null
+          body_rhythm: Json | null
+          comorbidities: Json | null
+          completed_at: string | null
+          consent: Json | null
+          created_at: string | null
+          current_step: string
+          declared_health: Json | null
+          environment: Json | null
+          functional_capacity: Json | null
+          habits: Json | null
+          id: string
+          movement_history: Json | null
+          objectives: Json | null
+          preferences: Json | null
+          risk: Json | null
+          sensitive_factors: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          abandon_history?: Json | null
+          availability?: Json | null
+          basic_data?: Json | null
+          body_rhythm?: Json | null
+          comorbidities?: Json | null
+          completed_at?: string | null
+          consent?: Json | null
+          created_at?: string | null
+          current_step?: string
+          declared_health?: Json | null
+          environment?: Json | null
+          functional_capacity?: Json | null
+          habits?: Json | null
+          id?: string
+          movement_history?: Json | null
+          objectives?: Json | null
+          preferences?: Json | null
+          risk?: Json | null
+          sensitive_factors?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          abandon_history?: Json | null
+          availability?: Json | null
+          basic_data?: Json | null
+          body_rhythm?: Json | null
+          comorbidities?: Json | null
+          completed_at?: string | null
+          consent?: Json | null
+          created_at?: string | null
+          current_step?: string
+          declared_health?: Json | null
+          environment?: Json | null
+          functional_capacity?: Json | null
+          habits?: Json | null
+          id?: string
+          movement_history?: Json | null
+          objectives?: Json | null
+          preferences?: Json | null
+          risk?: Json | null
+          sensitive_factors?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_v2_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -645,6 +742,70 @@ export type Database = {
             columns: ["protocol_id"]
             isOneToOne: false
             referencedRelation: "workout_protocols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      safety_gate_events: {
+        Row: {
+          ai_led_blocked: boolean | null
+          checkin_id: string | null
+          created_at: string | null
+          human_review_required: boolean | null
+          human_reviewed_at: string | null
+          human_reviewed_by: string | null
+          id: string
+          readiness_score: number | null
+          status: string
+          triggered_signals: string[] | null
+          user_id: string
+        }
+        Insert: {
+          ai_led_blocked?: boolean | null
+          checkin_id?: string | null
+          created_at?: string | null
+          human_review_required?: boolean | null
+          human_reviewed_at?: string | null
+          human_reviewed_by?: string | null
+          id?: string
+          readiness_score?: number | null
+          status: string
+          triggered_signals?: string[] | null
+          user_id: string
+        }
+        Update: {
+          ai_led_blocked?: boolean | null
+          checkin_id?: string | null
+          created_at?: string | null
+          human_review_required?: boolean | null
+          human_reviewed_at?: string | null
+          human_reviewed_by?: string | null
+          id?: string
+          readiness_score?: number | null
+          status?: string
+          triggered_signals?: string[] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_gate_events_checkin_id_fkey"
+            columns: ["checkin_id"]
+            isOneToOne: false
+            referencedRelation: "checkin_prontidao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_gate_events_human_reviewed_by_fkey"
+            columns: ["human_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "safety_gate_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
