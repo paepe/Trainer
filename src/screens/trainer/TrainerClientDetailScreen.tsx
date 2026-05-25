@@ -76,10 +76,15 @@ interface ProfileV2Row {
 }
 
 interface CheckInReadiness {
-  id:              string;
-  occurred_at:     string | null;
-  readiness_score: number | null;
-  variant:         string;
+  id:               string;
+  occurred_at:      string | null;
+  readiness_score:  number | null;
+  energy_level:     number | null;
+  fatigue_level:    number | null;
+  pain_present:     boolean | null;
+  sleep_quality:    string | null;
+  input_source:     string | null;
+  variant:          string;
 }
 
 interface TrainerDashboardUser {
@@ -119,7 +124,7 @@ export function TrainerClientDetailScreen({
       supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(5),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id)').eq('assigned_to', selectedClient.id).order('created_at', { ascending: false }).limit(5),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', selectedClient.id).maybeSingle(),
-      supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,variant').eq('user_id', selectedClient.id).not('readiness_score', 'is', null).order('occurred_at', { ascending: false }).limit(7),
+      supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,input_source,variant').eq('user_id', selectedClient.id).not('readiness_score', 'is', null).order('occurred_at', { ascending: false }).limit(7),
     ]).then(([physRes, checkinsRes, sessionsRes, plansRes, profV2Res, readinessRes]) => {
       setPhysical(physRes.data);
       setCheckins(checkinsRes.data || []);
@@ -345,24 +350,64 @@ export function TrainerClientDetailScreen({
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                 {[...readiness].reverse().map((r) => {
-                  const score = r.readiness_score ?? 0;
-                  const color = score >= 70 ? '#4ade80' : score >= 40 ? '#F5A623' : '#EF5B3C';
+                  const score     = r.readiness_score ?? 0;
+                  const barColor  = score >= 70 ? '#4ade80' : score >= 40 ? '#F5A623' : '#EF5B3C';
+                  const energyColor = r.energy_level != null
+                    ? (r.energy_level >= 7 ? '#4ade80' : r.energy_level >= 4 ? '#F5A623' : '#EF5B3C')
+                    : null;
                   return (
-                    <div key={r.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                      <div style={{ fontSize: 9, fontWeight: 700, color }}>{score}</div>
+                    <div key={r.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                      {/* Pain indicator */}
+                      <div style={{ height: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {r.pain_present && (
+                          <span style={{ fontSize: 8, color: '#EF5B3C' }}>●</span>
+                        )}
+                      </div>
+                      {/* Readiness score */}
+                      <div style={{ fontSize: 9, fontWeight: 700, color: barColor }}>{score}</div>
+                      {/* Bar */}
                       <div style={{
                         width: '100%', borderRadius: 4,
                         height: `${Math.max(6, (score / 100) * 44)}px`,
-                        background: color, opacity: 0.8,
+                        background: barColor, opacity: 0.85,
                       }} />
+                      {/* Energy dot */}
+                      {energyColor && (
+                        <div style={{
+                          width: 6, height: 6, borderRadius: '50%',
+                          background: energyColor, marginTop: 1,
+                        }} />
+                      )}
+                      {/* Date */}
                       <div style={{ fontSize: 8, color: textMute(dark), textAlign: 'center' }}>
                         {r.occurred_at
                           ? new Date(r.occurred_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
                           : '—'}
                       </div>
+                      {/* Voice badge */}
+                      {r.input_source === 'voice' && (
+                        <div style={{ fontSize: 7, color: t.primary, fontWeight: 700 }}>VOZ</div>
+                      )}
                     </div>
                   );
                 })}
+              </div>
+              {/* Legend */}
+              <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
+                {[
+                  { color: '#EF5B3C', dot: true, label: 'Dor reportada' },
+                  { color: '#4ade80', label: 'Energia alta' },
+                  { color: '#F5A623', label: 'Energia moderada' },
+                  { color: '#EF5B3C', label: 'Energia baixa' },
+                ].map(({ color, dot, label }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {dot
+                      ? <span style={{ fontSize: 9, color }}>●</span>
+                      : <div style={{ width: 6, height: 6, borderRadius: '50%', background: color }}/>
+                    }
+                    <span style={{ fontSize: 9, color: textMute(dark) }}>{label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -98,21 +98,33 @@ export interface SafetyGateResult {
   computed_at:            string;
 }
 
-// ── Unified check-in record ───────────────────────────────────────────────────
+// ── Unified check-in record (DB row) ─────────────────────────────────────────
 
 export interface CheckInProntidao {
   id:           string;
   user_id:      string;
   variant:      CheckInVariant;
+  input_source: 'voice' | 'form';
   occurred_at:  string;
-
-  quick?:        CheckInQuick;
-  detailed?:     CheckInDetailed;
-  voice?:        CheckInVoice;
-  post_workout?: CheckInPostWorkout;
-
-  safety_gate?: SafetyGateResult;
   created_at:   string;
+
+  // Denormalised columns — queryable without JSONB extraction
+  readiness_score:   number | null;
+  energy_level:      number | null;
+  sleep_quality:     SleepQualityV2 | null;
+  fatigue_level:     number | null;
+  pain_present:      boolean | null;
+  pain_intensity:    number | null;
+  available_minutes: number | null;
+  training_location: string | null;
+  ai_led_blocked:    boolean | null;
+
+  // Full variant blobs (populated on detailed reads)
+  quick_data?:        CheckInQuick        | null;
+  detailed_data?:     CheckInDetailed     | null;
+  voice_data?:        CheckInVoice        | null;
+  post_workout_data?: CheckInPostWorkout  | null;
+  safety_gate?:       SafetyGateResult    | null;
 }
 
 // ── Pain Recurrence Engine signal ─────────────────────────────────────────────
