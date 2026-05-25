@@ -5,16 +5,21 @@ import type { WizardStepProps } from './types';
 import type { LifestyleBarrier } from '../../../types/profile-v2';
 
 const BARRIERS: { value: LifestyleBarrier; label: string }[] = [
-  { value: 'sedentary_prolonged', label: 'Sedentarismo prolongado' },
-  { value: 'low_hydration',       label: 'Baixa hidratação'        },
-  { value: 'executive_routine',   label: 'Rotina executiva'        },
-  { value: 'chronic_stress',      label: 'Stress crônicos'         },
-  { value: 'irregular_meals',     label: 'Alimentação irregular'   },
-  { value: 'frequent_travel',     label: 'Viagens frequentes'      },
-  { value: 'caregiver_duty',      label: 'Cuidado de filhos/familiares' },
-  { value: 'smoking',             label: 'Tabagismo'               },
-  { value: 'regular_alcohol',     label: 'Álcool regular'          },
-  { value: 'transport_barriers',  label: 'Barreiras de transporte' },
+  { value: 'sedentary_prolonged', label: 'Sedentarismo prolongado'         },
+  { value: 'low_hydration',       label: 'Baixa hidratação'                },
+  { value: 'executive_routine',   label: 'Rotina muito intensa'            },
+  { value: 'chronic_stress',      label: 'Nível alto de stress'            },
+  { value: 'irregular_meals',     label: 'Alimentação irregular'           },
+  { value: 'frequent_travel',     label: 'Viagens frequentes'              },
+  { value: 'caregiver_duty',      label: 'Cuidado de dependentes'          },
+  { value: 'smoking',             label: 'Tabagismo'                       },
+  { value: 'regular_alcohol',     label: 'Consumo regular de álcool'       },
+  { value: 'transport_barriers',  label: 'Dificuldade de deslocamento'     },
+  { value: 'sleep_disorder',      label: 'Sono irregular ou insuficiente'  },
+  { value: 'chronic_fatigue',     label: 'Fadiga frequente'                },
+  { value: 'emotional_eating',    label: 'Relação emocional com comida'    },
+  { value: 'sedentary_commute',   label: 'Trabalho muito sedentário'       },
+  { value: 'financial_stress',    label: 'Pressão financeira'              },
 ];
 
 export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
@@ -35,10 +40,10 @@ export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, on
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Rotina que afeta energia<br/>e recuperação
+        Algumas rotinas podem<br/>influenciar o treino
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Seleção ponderada: informações sobre o que é mais relevante para o seu treino. Informe apenas o que achar relevante.
+        Selecione apenas o que achar relevante. Esses dados ajudam o plano a respeitar sua realidade.
       </p>
 
       <ChipGroup style={{ marginBottom: 20 }}>

@@ -160,8 +160,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
               soreness:      checkinRes.value.data.soreness ?? checkin.soreness,
               minutes:       checkinRes.value.data.minutes ?? checkin.minutes,
               goal:          checkinRes.value.data.goal ?? checkin.goal,
-              location:      checkinRes.value.data.location ?? checkin.location,
-              sleep_quality: checkinRes.value.data.sleep_quality ?? checkin.sleep_quality,
+              location:      (checkinRes.value.data.location ?? checkin.location) as typeof checkin.location,
+              sleep_quality: (checkinRes.value.data.sleep_quality ?? checkin.sleep_quality) as typeof checkin.sleep_quality,
               equipment:     checkinRes.value.data.equipment ?? checkin.equipment,
             };
           }

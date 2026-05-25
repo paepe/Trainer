@@ -104,8 +104,8 @@ export function WorkoutPlanEditorScreen({
     setAiError('');
     try {
       const generatedExercises = await requestWorkoutPlan({
-        checkin: context?.latestCheckin,
-        physicalProfile: context?.physicalProfile,
+        checkin:         (context?.latestCheckin ?? null) as never,
+        physicalProfile: (context?.physicalProfile ?? null) as never,
       });
 
       setExercises(generatedExercises.map(ex => ({

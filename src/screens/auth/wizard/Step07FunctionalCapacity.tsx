@@ -4,7 +4,7 @@ import { WizardHeader, WizardFooter, SegmentedRow, Chip, ChipGroup, AINote, Sect
 import type { WizardStepProps } from './types';
 import type {
   MobilityLevel, BalanceLevel, AutonomyLevel, EffortTolerance,
-  SupportResource, InstructionFormat,
+  PainLevel, AccessLevel, SupportResource, InstructionFormat,
 } from '../../../types/profile-v2';
 
 const MOBILITY_OPTS: { value: MobilityLevel; label: string }[] = [
@@ -34,6 +34,17 @@ const SUPPORT_RESOURCES: { value: SupportResource; label: string }[] = [
   { value: 'prosthesis',    label: 'Prótese'          },
   { value: 'nearby_support',label: 'Apoio próximo'    },
   { value: 'none',          label: 'Nenhum'           },
+];
+const PAIN_OPTS: { value: PainLevel; label: string }[] = [
+  { value: 'none',     label: 'Nenhuma'   },
+  { value: 'mild',     label: 'Leve'      },
+  { value: 'moderate', label: 'Moderada'  },
+  { value: 'severe',   label: 'Intensa'   },
+];
+const ACCESS_OPTS: { value: AccessLevel; label: string }[] = [
+  { value: 'full',    label: 'Pleno'     },
+  { value: 'partial', label: 'Parcial'   },
+  { value: 'limited', label: 'Limitado'  },
 ];
 const INSTRUCTION_FORMATS: { value: InstructionFormat; label: string }[] = [
   { value: 'visual',          label: 'Visual'             },
@@ -106,6 +117,16 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
         <div>
           <SectionLabel label="Tolerância ao esforço" dark={dark}/>
           <SegmentedRow options={EFFORT_OPTS} value={fc.effort_tolerance ?? ''} onChange={v => set({ effort_tolerance: v as EffortTolerance })} dark={dark} primary={primary}/>
+        </div>
+
+        <div>
+          <SectionLabel label="Nível de dor habitual" dark={dark}/>
+          <SegmentedRow options={PAIN_OPTS} value={fc.pain_level ?? ''} onChange={v => set({ pain_level: v as PainLevel })} dark={dark} primary={primary}/>
+        </div>
+
+        <div>
+          <SectionLabel label="Acesso ao ambiente de treino" dark={dark}/>
+          <SegmentedRow options={ACCESS_OPTS} value={fc.access_level ?? ''} onChange={v => set({ access_level: v as AccessLevel })} dark={dark} primary={primary}/>
         </div>
 
         <div>

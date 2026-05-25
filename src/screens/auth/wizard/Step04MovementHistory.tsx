@@ -1,12 +1,13 @@
 import React from 'react';
-import { textPri, textSec } from '../../../theme';
+import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
 import {
   WizardHeader, WizardFooter, Chip, ChipGroup, SegmentedRow,
-  SliderField, AINote, VoiceOption, SectionLabel, Toggle,
+  SliderField, AINote, VoiceOption, SectionLabel, Toggle, TextArea,
 } from './atoms';
 import type { WizardStepProps } from './types';
 import type {
   TrainingFrequency, FitnessLevelV2, TrainingModality, AbandonReason, PreferredIntensity,
+  ProfileAbandonHistory,
 } from '../../../types/profile-v2';
 
 const FREQUENCY_OPTIONS: { value: TrainingFrequency; label: string }[] = [
@@ -65,14 +66,14 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
     abandoned_before: false,
   };
 
-  const ah = data.abandon_history ?? {
+  const ah: ProfileAbandonHistory = data.abandon_history ?? {
     reasons: [],
     preferred_intensity: 'moderate' as PreferredIntensity,
     churn_risk_signals: [],
   };
 
   const setMH = (p: typeof mh) => onUpdate({ movement_history: p });
-  const setAH = (p: typeof ah) => onUpdate({ abandon_history: p });
+  const setAH = (p: ProfileAbandonHistory) => onUpdate({ abandon_history: p });
 
   const toggleModality = (v: TrainingModality) => {
     const next = mh.modalities?.includes(v)
@@ -141,6 +142,43 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
             dark={dark} primary={primary}
           />
         </div>
+
+        {/* Churn risk signals */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+          {([
+            { key: 'had_negative_experience', label: 'Tive experiências negativas no treino' },
+            { key: 'fear_of_injury',           label: 'Tenho medo de me machucar'            },
+            { key: 'felt_gym_constraint',      label: 'Me sinto constrangido na academia'    },
+          ] as { key: keyof ProfileAbandonHistory; label: string }[]).map(({ key, label }) => (
+            <button key={key} onClick={() => setAH({ ...ah, [key]: !ah[key] })} style={{
+              width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 12,
+              background: ah[key] ? `${primary}14` : surfRaised(dark),
+              border: `1.5px solid ${ah[key] ? primary : borderSubtle(dark)}`,
+              fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+              color: ah[key] ? primary : textPri(dark), cursor: 'pointer',
+              transition: 'background .15s, border-color .15s',
+            }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <TextArea
+          label="O que ajuda na consistência?"
+          value={ah.what_helped_consistency ?? ''}
+          onChange={v => setAH({ ...ah, what_helped_consistency: v })}
+          dark={dark} primary={primary}
+          placeholder="ex.: Treinar de manhã, parceiro de treino, ver progresso..."
+          rows={2}
+        />
+        <TextArea
+          label="O que interrompeu a rotina antes?"
+          value={ah.what_disrupted_routine ?? ''}
+          onChange={v => setAH({ ...ah, what_disrupted_routine: v })}
+          dark={dark} primary={primary}
+          placeholder="ex.: Viagem de trabalho, lesão, falta de tempo..."
+          rows={2}
+        />
 
         <VoiceOption dark={dark} primary={primary} note="Pode nos contar com suas próprias palavras."/>
 

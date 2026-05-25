@@ -9,33 +9,49 @@ import type { RiskLevel, OperationalRiskFlags, RiskClassification } from '../../
 function computeRisk(data: WizardStepProps['data']): RiskClassification {
   let score = 0;
 
+  // RN-1.1 — Any declared health condition adds baseline risk
   const health = data.declared_health;
   if (health?.has_condition) score += 1;
-  if (health?.categories?.some(c => ['cardiovascular', 'respiratory', 'neurological', 'post_operative'].includes(c))) score += 2;
 
+  // RN-1.2 — High-risk health categories trigger significant elevation
+  const HIGH_RISK_HEALTH = ['cardiovascular', 'respiratory', 'neurological', 'post_operative'];
+  if (health?.categories?.some(c => HIGH_RISK_HEALTH.includes(c))) score += 2;
+
+  // RN-1.3 — Comorbidities: any presence adds +1; critical cardiovascular/renal adds +1 more
   const co = data.comorbidities;
   const nonPref = (co?.conditions ?? []).filter(c => c !== 'prefer_not_to_say');
   if (nonPref.length > 0) score += 1;
   if (nonPref.some(c => ['cardiovascular', 'renal_condition', 'hypertension'].includes(c))) score += 1;
 
+  // RN-1.4 — Functional capacity limitations: mobility/balance/autonomy deficits
   const fc = data.functional_capacity;
   if (fc?.mobility === 'low' || fc?.balance === 'unstable') score += 1;
   if (fc?.autonomy === 'assisted') score += 1;
 
+  // RN-1.5 — Pain level: severe pain is a safety signal
+  if (fc?.pain_level === 'severe') score += 2;
+  else if (fc?.pain_level === 'moderate') score += 1;
+
+  // RN-1.6 — Access limitation: restricted environment reduces safety options
+  if (fc?.access_level === 'limited') score += 1;
+
+  // RN-1.7 — Sensitive factor declarations elevate privacy and validation requirements
   const sf = data.sensitive_factors;
   if (sf?.declares_emotional_history) score += 1;
+  if (sf?.declares_recreational_substance) score += 1;
 
+  // RN-1.8 — Final classification thresholds → R0–R4
   const level: RiskLevel =
     score === 0 ? 'R0' :
     score <= 1  ? 'R1' :
     score <= 3  ? 'R2' :
-    score <= 5  ? 'R3' : 'R4';
+    score <= 6  ? 'R3' : 'R4';
 
   const flags: OperationalRiskFlags = {
     active_allowed:              level !== 'R4',
     human_validation_required:   ['R3', 'R4'].includes(level),
     ai_privacy_masking_required: ['R2', 'R3', 'R4'].includes(level),
-    safety_gate_required:        ['R2', 'R3', 'R4'].includes(level),
+    safety_gate_required:        ['R3', 'R4'].includes(level),
   };
 
   return { level, flags, computed_at: new Date().toISOString() };

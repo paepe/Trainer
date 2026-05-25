@@ -271,12 +271,12 @@ export function SectionLabel({ label, dark }: { label: string; dark: boolean }) 
 type BadgeVariant = 'sensitive' | 'selective' | 'blinded' | 'opt-in' | 'lgpd' | 'technical';
 
 const BADGE_CFG: Record<BadgeVariant, { bg: string; fg: string; label: string }> = {
-  sensitive:  { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'SENSÍVEL'    },
-  selective:  { bg: '#F5A62322', fg: '#F5A623', label: 'SELETIVO'    },
-  blinded:    { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'BLINDADO'    },
-  'opt-in':   { bg: '#8B5CF622', fg: '#8B5CF6', label: 'OPT-IN'      },
-  lgpd:       { bg: '#2DD4E022', fg: '#2DD4E0', label: 'LGPD'        },
-  technical:  { bg: '#F5A62322', fg: '#F5A623', label: 'AÇÃO TÉCNICA' },
+  sensitive:  { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'SÓ SENSITIVO' },
+  selective:  { bg: '#F5A62322', fg: '#F5A623', label: 'SELETIVO'      },
+  blinded:    { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'SIGILOSO'      },
+  'opt-in':   { bg: '#8B5CF622', fg: '#8B5CF6', label: 'OPT-IN'        },
+  lgpd:       { bg: '#2DD4E022', fg: '#2DD4E0', label: 'LGPD'          },
+  technical:  { bg: '#F5A62322', fg: '#F5A623', label: 'AÇÃO TÉCNICA'  },
 };
 
 export function Badge({ variant }: { variant: BadgeVariant }) {
@@ -343,18 +343,40 @@ export function VoiceOption({ dark, primary, note }: { dark: boolean; primary: s
 // ── WizardHeader ──────────────────────────────────────────────────────────────
 
 interface WizardHeaderProps {
-  stepNum:    number;
-  totalSteps: number;
-  onBack:     () => void;
-  dark:       boolean;
-  primary:    string;
-  badge?:     BadgeVariant;
+  stepNum:     number;
+  totalSteps:  number;
+  onBack:      () => void;
+  dark:        boolean;
+  primary:     string;
+  badge?:      BadgeVariant;
+  moduleNum?:  number;
+  moduleTitle?:string;
 }
 
-export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge }: WizardHeaderProps) {
+export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge, moduleNum = 1, moduleTitle = 'Configuração inicial' }: WizardHeaderProps) {
   return (
     <div style={{ marginBottom: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16, gap: 12 }}>
+      {/* Module identity bar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 14,
+        padding: '6px 10px', borderRadius: 10,
+        background: dark ? '#0B1624' : '#EDF1F7',
+      }}>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark) }}>
+          TRAINER · MÓDULO #{String(moduleNum).padStart(2, '0')} · {moduleTitle}
+        </span>
+        <div style={{
+          width: 18, height: 18, borderRadius: 5,
+          background: `${primary}22`, border: `1.5px solid ${primary}55`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon name="check" size={10} color={primary} stroke={3}/>
+        </div>
+      </div>
+
+      {/* Progress row */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: 12 }}>
         <button onClick={onBack} style={iconBtn(dark)}>
           <Icon name="chevL" size={22} color={textPri(dark)}/>
         </button>
@@ -375,12 +397,19 @@ export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge
           </div>
         )}
       </div>
+
+      {/* BLOCO label + badge + Passo sub-label */}
       {stepNum > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>
-            BLOCO {stepNum} / {totalSteps}
-          </span>
-          {badge && <Badge variant={badge}/>}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>
+              BLOCO #{String(stepNum).padStart(2, '0')} / {totalSteps}
+            </span>
+            {badge && <Badge variant={badge}/>}
+          </div>
+          <div style={{ fontSize: 11, color: textMute(dark) }}>
+            Passo {stepNum} de {totalSteps}
+          </div>
         </div>
       )}
     </div>

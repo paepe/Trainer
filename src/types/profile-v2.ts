@@ -49,6 +49,8 @@ export type MobilityLevel    = 'low' | 'moderate' | 'good';
 export type BalanceLevel     = 'unstable' | 'assisted' | 'stable';
 export type AutonomyLevel    = 'assisted' | 'partial' | 'independent';
 export type EffortTolerance  = 'low' | 'moderate' | 'good';
+export type PainLevel        = 'none' | 'mild' | 'moderate' | 'severe';
+export type AccessLevel      = 'full' | 'partial' | 'limited';
 
 export type SupportResource =
   | 'wheelchair' | 'cane' | 'walker' | 'prosthesis' | 'nearby_support' | 'none';
@@ -58,7 +60,9 @@ export type InstructionFormat = 'visual' | 'auditory' | 'simplified_text' | 'vib
 export type LifestyleBarrier =
   | 'sedentary_prolonged' | 'low_hydration'   | 'executive_routine' | 'chronic_stress'
   | 'irregular_meals'     | 'frequent_travel' | 'caregiver_duty'    | 'smoking'
-  | 'regular_alcohol'     | 'transport_barriers';
+  | 'regular_alcohol'     | 'transport_barriers'
+  | 'sleep_disorder'      | 'chronic_fatigue' | 'emotional_eating'  | 'sedentary_commute'
+  | 'financial_stress';
 
 export type BodyRhythmAdaptation =
   | 'maintain_normal'   | 'reduce_intensity' | 'reduce_impact'  | 'increase_rest'
@@ -129,9 +133,14 @@ export interface ProfileMovementHistory {
 }
 
 export interface ProfileAbandonHistory {
-  reasons:             AbandonReason[];
-  preferred_intensity: PreferredIntensity;
-  churn_risk_signals:  string[];   // internal, masked in operational context
+  reasons:                AbandonReason[];
+  preferred_intensity:    PreferredIntensity;
+  churn_risk_signals:     string[];   // internal, masked in operational context
+  had_negative_experience?: boolean;
+  fear_of_injury?:          boolean;
+  felt_gym_constraint?:     boolean;
+  what_helped_consistency?: string;
+  what_disrupted_routine?:  string;
 }
 
 export interface ProfileDeclaredHealth {
@@ -149,6 +158,8 @@ export interface ProfileFunctionalCapacity {
   balance:           BalanceLevel;
   autonomy:          AutonomyLevel;
   effort_tolerance:  EffortTolerance;
+  pain_level?:       PainLevel;
+  access_level?:     AccessLevel;
   support_resources: SupportResource[];
   instruction_format: InstructionFormat[];
 }

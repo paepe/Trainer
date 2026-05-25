@@ -23,9 +23,9 @@ interface WorkoutGenerationResponse {
 }
 
 interface RequestWorkoutPlanInput {
-  checkin?:         Partial<CheckIn> | null;
-  physicalProfile?: Partial<PhysicalProfile> | Json | null;
-  cycleContext?:    CycleContext | null;
+  checkin?:         Partial<CheckIn> | null | undefined;
+  physicalProfile?: Partial<PhysicalProfile> | Json | null | undefined;
+  cycleContext?:    CycleContext | null | undefined;
 }
 
 export function resolveWorkoutApiBase(): string {

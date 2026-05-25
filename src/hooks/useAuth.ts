@@ -23,10 +23,10 @@ function normalizeProfileUpdates(updates: Partial<Profile>, userId: string): Par
     ...updates,
     name:       updates.name?.trim() ?? '',
     email:      updates.email?.trim() ?? '',
-    phone:      updates.phone?.trim() || null,
-    dob:        updates.dob || null,
-    location:   updates.location?.trim() || null,
-    gender:     updates.gender || null,
+    phone:      updates.phone?.trim() || '',
+    dob:        updates.dob || '',
+    location:   updates.location?.trim() || '',
+    gender:     updates.gender || '',
     avatar_url: updates.avatar_url ?? null,
   };
 }

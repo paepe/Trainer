@@ -35,7 +35,9 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
     set({ adaptation_preference: cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v] });
   };
 
-  const periodStarting = (br.cycle_current_day ?? 14) <= 3;
+  const isDay1 = (br.cycle_current_day ?? 14) === 1;
+
+  const markPeriodToday = () => set({ cycle_current_day: 1 });
 
   return (
     <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -85,16 +87,27 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
             dark={dark} primary={primary}
           />
 
-          {periodStarting && (
-            <div style={{
-              padding: '10px 14px', borderRadius: 10,
-              background: '#8B5CF622', border: '1px solid #8B5CF644',
-              display: 'flex', alignItems: 'center', gap: 8,
-            }}>
-              <span style={{ fontSize: 15 }}>🌙</span>
-              <span style={{ fontSize: 12.5, color: '#8B5CF6', fontWeight: 600 }}>Menstruação começa hoje</span>
+          <button
+            onClick={markPeriodToday}
+            style={{
+              width: '100%', padding: '12px 16px', borderRadius: 12, textAlign: 'left',
+              background: isDay1 ? '#8B5CF622' : (dark ? '#0B1624' : '#EDF1F7'),
+              border: `1.5px solid ${isDay1 ? '#8B5CF6' : (dark ? '#1F2E45' : '#D5DCEA')}`,
+              display: 'flex', alignItems: 'center', gap: 10,
+              fontFamily: 'inherit', cursor: 'pointer',
+              transition: 'background .15s, border-color .15s',
+            }}
+          >
+            <span style={{ fontSize: 16 }}>🌙</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: isDay1 ? '#8B5CF6' : textPri(dark) }}>
+                Menstruação começa hoje
+              </div>
+              <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2 }}>
+                {isDay1 ? 'Dia 1 marcado — adaptação conservadora ativada' : 'Toque para marcar o dia 1 do ciclo'}
+              </div>
             </div>
-          )}
+          </button>
 
           <div>
             <SectionLabel label="Preferência de adaptação" dark={dark}/>
