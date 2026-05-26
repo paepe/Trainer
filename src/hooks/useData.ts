@@ -117,6 +117,17 @@ export function useData(userId: string | undefined) {
     return { error };
   }
 
+  async function fetchProfileV2(): Promise<DataResult<Partial<UserProfileV2> & { current_step?: string; completed_at?: string | null }>> {
+    if (!userId) return { data: null, error: null };
+    const { data, error } = await supabase
+      .from('profile_v2')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) console.error('[useData] fetchProfileV2 error:', error);
+    return { data: data as (Partial<UserProfileV2> & { current_step?: string; completed_at?: string | null }) | null, error };
+  }
+
   // ── Check-in v2 ────────────────────────────────────────────────────────────
 
   async function saveCheckinV2(data: {
@@ -491,6 +502,7 @@ export function useData(userId: string | undefined) {
     savePreferences,
     fetchPreferences,
     saveProfileV2,
+    fetchProfileV2,
     saveCheckinV2,
     updatePainRecurrence,
     fetchExercises,

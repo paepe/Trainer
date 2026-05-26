@@ -54,7 +54,7 @@ export default function App() {
   const {
     saveCycleConfig, fetchCycleConfig,
     savePreferences, fetchPreferences,
-    saveProfileV2, saveCheckinV2, updatePainRecurrence,
+    saveProfileV2, fetchProfileV2, saveCheckinV2, updatePainRecurrence,
     startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
     reportWorkoutPain, completeWorkoutSession, savePostWorkoutFeedback,
   } = useData(session?.user?.id);
@@ -135,9 +135,14 @@ export default function App() {
 
   // Role-based navigation after login (only when both session and profile are loaded)
   React.useEffect(() => {
-    if (session && profile && ['welcome', 'login'].includes(screen)) {
-      setScreen(isTrainer ? 'trainerDashboard' : 'profile');
-    }
+    if (!session || !profile || !['welcome', 'login'].includes(screen)) return;
+    if (isTrainer) { setScreen('trainerDashboard'); return; }
+    // For clients: check if profile wizard was already completed
+    fetchProfileV2().then(({ data }) => {
+      const completed = data && (data as Record<string, unknown>).completed_at;
+      setScreen(completed ? 'checkin' : 'profile');
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, profile, isTrainer, screen]);
 
   const [screenPayload, setScreenPayload] = React.useState<Record<string, unknown> | null>(null);
@@ -245,7 +250,7 @@ export default function App() {
       case 'welcome':          return <WelcomeScreen           {...common}/>;
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
-      case 'profile':          return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2}/>;
+      case 'profile':          return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2}/>;
       case 'editProfile':      return <EditProfileScreen       {...common} setUser={handleSetUser}/>;
       case 'checkin':          return <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} userName={profile?.name ?? undefined} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>;
       case 'workout':            return <StartWorkoutScreen      {...common}/>;

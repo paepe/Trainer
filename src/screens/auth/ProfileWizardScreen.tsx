@@ -1,5 +1,5 @@
 import React from 'react';
-import { textPri, textSec, textMute, primaryBtn } from '../../theme';
+import { textSec, textMute, primaryBtn } from '../../theme';
 import { Icon } from '../../components/Icon';
 import type { NavFn } from '../../types';
 import type { ProfileV2Step, RiskClassification } from '../../types/profile-v2';
@@ -37,21 +37,40 @@ const STEP_NUM: Partial<Record<ProfileV2Step, number>> = {
 };
 
 interface ProfileWizardScreenProps {
-  nav:            NavFn;
-  t:              { primary: string; accent: string };
-  dark:           boolean;
-  saveProfileV2?: (data: WizardData, step: string) => Promise<{ error: unknown }>;
+  nav:             NavFn;
+  t:               { primary: string; accent: string };
+  dark:            boolean;
+  saveProfileV2?:  (data: WizardData, step: string) => Promise<{ error: unknown }>;
+  fetchProfileV2?: () => Promise<{ data: WizardData | null; error: unknown }>;
 }
 
-export function ProfileWizardScreen({ nav, t, dark, saveProfileV2 }: ProfileWizardScreenProps) {
+export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV2 }: ProfileWizardScreenProps) {
   const [currentStep, setCurrentStep] = React.useState<ProfileV2Step>('welcome');
   const [data, setData]               = React.useState<WizardData>({});
   const [generating, setGenerating]   = React.useState(false);
   const [done, setDone]               = React.useState(false);
+  const [saveError, setSaveError]     = React.useState<string | null>(null);
+  const [saving, setSaving]           = React.useState(false);
+
+  // Pre-fill with existing profile data on mount
+  React.useEffect(() => {
+    if (!fetchProfileV2) return;
+    fetchProfileV2().then(({ data: existing }) => {
+      if (!existing || Object.keys(existing).length === 0) return;
+      const { current_step, completed_at, ...profileData } =
+        existing as WizardData & { current_step?: string; completed_at?: string | null };
+      setData(profileData);
+      if (completed_at) {
+        setDone(true);
+      } else if (current_step && STEP_SEQUENCE.includes(current_step as ProfileV2Step)) {
+        setCurrentStep(current_step as ProfileV2Step);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const stepIndex = STEP_SEQUENCE.indexOf(currentStep);
-
-  const update = (patch: WizardData) => setData(prev => ({ ...prev, ...patch }));
+  const update    = (patch: WizardData) => setData(prev => ({ ...prev, ...patch }));
 
   const goNext = () => {
     const next = STEP_SEQUENCE[stepIndex + 1] as ProfileV2Step | undefined;
@@ -65,10 +84,18 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2 }: ProfileWiza
   };
 
   const saveLater = async () => {
+    setSaving(true);
+    setSaveError(null);
     if (saveProfileV2) {
-      await saveProfileV2(data, currentStep);
+      const { error } = await saveProfileV2(data, currentStep);
+      if (error) {
+        setSaveError('Erro ao salvar. Verifique sua conexão e tente novamente.');
+        setSaving(false);
+        return;
+      }
     }
-    nav('profile');
+    setSaving(false);
+    nav('checkin');
   };
 
   const handleGenerate = async (risk: RiskClassification) => {
@@ -76,7 +103,6 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2 }: ProfileWiza
     const finalData = { ...data, risk };
     update({ risk });
 
-    // Fire AI enrichment + DB save in parallel; don't block completion on AI
     const saveP = saveProfileV2 ? saveProfileV2(finalData, 'completed') : Promise.resolve();
     const aiP   = fetch('/api/generate-amplified', {
       method:  'POST',
@@ -104,35 +130,57 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2 }: ProfileWiza
 
   if (done) return <CompletionScreen dark={dark} primary={t.primary} nav={nav}/>;
 
-  switch (currentStep) {
-    case 'welcome':             return <Step01Welcome            {...common}/>;
-    case 'basic_data':          return <Step02BasicData           {...common}/>;
-    case 'objectives':          return <Step03Objectives          {...common}/>;
-    case 'movement_history':    return <Step04MovementHistory     {...common}/>;
-    case 'declared_health':     return <Step05DeclaredHealth      {...common}/>;
-    case 'comorbidities':       return <Step06Comorbidities       {...common}/>;
-    case 'functional_capacity': return <Step07FunctionalCapacity  {...common}/>;
-    case 'habits':              return <Step08Habits              {...common}/>;
-    case 'sensitive_factors':   return <Step09SensitiveFactors    {...common}/>;
-    case 'body_rhythm':         return (
-      <Step10BodyRhythm
-        {...common}
-        biologicalSex={data.basic_data?.biological_sex}
-      />
-    );
-    case 'environment':         return <Step11Environment         {...common}/>;
-    case 'availability':        return <Step12Availability        {...common}/>;
-    case 'preferences':         return <Step13Preferences         {...common}/>;
-    case 'consent':             return <Step14Consent             {...common}/>;
-    case 'risk_classification': return (
-      <Step15RiskClassification
-        {...common}
-        onGenerate={handleGenerate}
-        generating={generating}
-      />
-    );
-    default: return <Step01Welcome {...common}/>;
-  }
+  const statusBanner = saveError ? (
+    <div style={{
+      margin: '0 20px 12px', padding: '10px 14px', borderRadius: 10,
+      background: '#EF5B3C22', border: '1px solid #EF5B3C66',
+      fontSize: 13, color: '#EF5B3C', fontFamily: 'inherit',
+    }}>
+      {saveError}
+    </div>
+  ) : saving ? (
+    <div style={{
+      margin: '0 20px 12px', padding: '8px 14px', borderRadius: 10,
+      background: '#2DD4E022', border: '1px solid #2DD4E044',
+      fontSize: 12, color: '#2DD4E0', fontFamily: 'inherit',
+    }}>
+      Salvando…
+    </div>
+  ) : null;
+
+  const stepContent = (() => {
+    switch (currentStep) {
+      case 'welcome':             return <Step01Welcome            {...common}/>;
+      case 'basic_data':          return <Step02BasicData           {...common}/>;
+      case 'objectives':          return <Step03Objectives          {...common}/>;
+      case 'movement_history':    return <Step04MovementHistory     {...common}/>;
+      case 'declared_health':     return <Step05DeclaredHealth      {...common}/>;
+      case 'comorbidities':       return <Step06Comorbidities       {...common}/>;
+      case 'functional_capacity': return <Step07FunctionalCapacity  {...common}/>;
+      case 'habits':              return <Step08Habits              {...common}/>;
+      case 'sensitive_factors':   return <Step09SensitiveFactors    {...common}/>;
+      case 'body_rhythm':         return (
+        <Step10BodyRhythm
+          {...common}
+          biologicalSex={data.basic_data?.biological_sex}
+        />
+      );
+      case 'environment':         return <Step11Environment         {...common}/>;
+      case 'availability':        return <Step12Availability        {...common}/>;
+      case 'preferences':         return <Step13Preferences         {...common}/>;
+      case 'consent':             return <Step14Consent             {...common}/>;
+      case 'risk_classification': return (
+        <Step15RiskClassification
+          {...common}
+          onGenerate={handleGenerate}
+          generating={generating}
+        />
+      );
+      default: return <Step01Welcome {...common}/>;
+    }
+  })();
+
+  return <>{statusBanner}{stepContent}</>;
 }
 
 // ── Completion screen ─────────────────────────────────────────────────────────
@@ -143,7 +191,6 @@ function CompletionScreen({ dark, primary, nav }: { dark: boolean; primary: stri
       padding: '48px 28px 36px', display: 'flex', flexDirection: 'column',
       alignItems: 'center', minHeight: '100%',
     }}>
-      {/* Success icon */}
       <div style={{
         width: 72, height: 72, borderRadius: 22,
         background: `${primary}22`, border: `2px solid ${primary}55`,
@@ -169,7 +216,6 @@ function CompletionScreen({ dark, primary, nav }: { dark: boolean; primary: stri
         O AI agora tem contexto completo para adaptar intensidade, segurança e progressão do seu plano.
       </p>
 
-      {/* Summary chips */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 36 }}>
         {['Perfil de Treinabilidade', 'Safety Gate', 'Privacy masking', 'Ritmo do Corpo', 'LGPD'].map(tag => (
           <span key={tag} style={{
@@ -184,16 +230,16 @@ function CompletionScreen({ dark, primary, nav }: { dark: boolean; primary: stri
 
       <div style={{ flex: 1 }}/>
 
-      <button onClick={() => nav('profile')} style={primaryBtn(primary)}>
-        Ver meu perfil
+      <button onClick={() => nav('checkin')} style={primaryBtn(primary)}>
+        Começar agora
       </button>
-      <button onClick={() => nav('checkin')} style={{
+      <button onClick={() => nav('editProfile')} style={{
         width: '100%', padding: '15px', borderRadius: 999,
         background: 'transparent', border: `1.5px solid ${primary}`,
         color: primary, fontSize: 15, fontWeight: 600,
-        fontFamily: 'inherit', cursor: 'pointer',
+        fontFamily: 'inherit', cursor: 'pointer', marginTop: 10,
       }}>
-        Fazer check-in de hoje
+        Ver meu perfil
       </button>
       <p style={{ fontSize: 11.5, color: textMute(dark), textAlign: 'center', marginTop: 16, lineHeight: 1.45 }}>
         Você pode editar qualquer bloco do perfil a qualquer momento em Configurações.
