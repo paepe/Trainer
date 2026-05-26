@@ -58,7 +58,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user }: Props) {
       case 'performance': return <TelaPerformance data={data}/>;
       case 'dor':         return <TelaDor         data={data}/>;
       case 'scores':      return <TelaScores      data={data}/>;
-      case 'voz':         return <TelaVoz />;
+      case 'voz':         return <TelaVoz data={data}/>;
       case 'marcos':      return <TelaMarcos      data={data}/>;
     }
   })();
@@ -673,9 +673,87 @@ function TelaScores({ data }: { data: M5Data }) {
   );
 }
 
-// ── Tela 06 — Voz analítica (placeholder) ────────────────────────────────────
+// ── Voice query engine ────────────────────────────────────────────────────────
 
-function TelaVoz() {
+function processVoiceQuery(q: string, data: M5Data): string {
+  const n = q.toLowerCase();
+
+  if (n.includes('resumo') || n.includes('mensal')) {
+    return `Resumo: ${data.completedSessions} sessões completas de ${data.plannedSessions} planejadas — ${data.adherenceRate}% de aderência. Sequência atual: ${data.workoutStreak} dia(s). ${data.scores.fatigueRisk.desc}`;
+  }
+  if (n.includes('fadiga') || n.includes('fadigado')) {
+    const s = data.scores.fatigueRisk;
+    return `Risco de fadiga: ${s.score}/100. ${s.desc} ${s.action}`;
+  }
+  if (n.includes('abandono') || n.includes('churn') || n.includes('desistir')) {
+    const s = data.scores.churnRisk;
+    return `Risco de abandono: ${s.score}/100. ${s.desc} ${s.action}`;
+  }
+  if (n.includes('carga') || n.includes('aumentar') || n.includes('progressão')) {
+    const s = data.scores.progressionReadiness;
+    return `Prontidão para progressão: ${s.score}/100. ${s.action}`;
+  }
+  if (n.includes('sessões') || n.includes('completei') || n.includes('mês') || n.includes('mes')) {
+    return `Você completou ${data.completedSessions} sessões de ${data.plannedSessions} planejadas — ${data.adherenceRate}% de aderência. Streak atual: ${data.workoutStreak} dia(s).`;
+  }
+  if (n.includes('performance') || n.includes('semana')) {
+    const last = data.weeklyStats[data.weeklyStats.length - 1];
+    if (!last) return 'Ainda não há dados de performance registrados.';
+    return `Esta semana: ${last.sessions} sessão(ões), RPE médio ${last.rpe.toFixed(1)}, volume ${last.volume} séries.`;
+  }
+  if (n.includes('dor') || n.includes('doendo') || n.includes('machucou')) {
+    if (data.painEvents14d.length === 0) return 'Nenhum episódio de dor nos últimos 14 dias.';
+    return `${data.painEvents14d.length} episódio(s) de dor nos últimos 14 dias. Principal região: ${data.primaryPainRegion ?? 'não identificada'}.`;
+  }
+  if (n.includes('sono') || n.includes('energia')) {
+    return `Média de sono: ${data.sleepAvg.toFixed(1)}/10. Média de energia: ${data.energyAvg.toFixed(1)}/10.`;
+  }
+  return 'Não entendi sua pergunta. Tente: "Estou em risco de fadiga?", "Quantas sessões completei este mês?", "Quando posso aumentar a carga?" ou "Gere meu resumo mensal."';
+}
+
+// ── Tela 06 — Voz analítica ───────────────────────────────────────────────────
+
+const SUGGESTED_QUESTIONS = [
+  'Como foi minha performance esta semana?',
+  'Estou em risco de fadiga?',
+  'Quando posso aumentar a carga?',
+  'Quantas sessões completei este mês?',
+  'Tenho risco de abandono?',
+  'Gere meu resumo mensal.',
+];
+
+function TelaVoz({ data }: { data: M5Data }) {
+  const [query,     setQuery]     = React.useState('');
+  const [response,  setResponse]  = React.useState<string | null>(null);
+  const [listening, setListening] = React.useState(false);
+  const [noSupport, setNoSupport] = React.useState(false);
+
+  const process = (q: string) => {
+    setQuery(q);
+    setResponse(processVoiceQuery(q, data));
+  };
+
+  const startListening = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
+    if (!SR) { setNoSupport(true); return; }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec = new SR() as any;
+    rec.lang = 'pt-BR';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.start();
+    setListening(true);
+    setResponse(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
+      setListening(false);
+      process(e.results[0][0].transcript as string);
+    };
+    rec.onerror = () => setListening(false);
+    rec.onend   = () => setListening(false);
+  };
+
   return (
     <ScreenWrap>
       <ScreenTitle
@@ -684,47 +762,75 @@ function TelaVoz() {
         sub="Interface de consulta por voz aos seus dados de performance."
       />
 
-      {/* Mic input placeholder */}
+      {/* Mic button */}
       <div style={{
         padding: 24, borderRadius: 16, background: T.surf,
-        border: `1px solid ${T.border}`,
+        border: `1px solid ${listening ? C.cyan : T.border}`,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
+        transition: 'border-color .2s',
       }}>
-        <div style={{
-          width: 72, height: 72, borderRadius: '50%',
-          background: `linear-gradient(135deg, ${C.cyan} 0%, ${C.cyanDeep} 100%)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 28,
-          boxShadow: `0 8px 24px ${C.cyan}44`,
-          cursor: 'pointer',
-        }}>
+        <button
+          onClick={startListening}
+          disabled={listening}
+          style={{
+            width: 72, height: 72, borderRadius: '50%', border: 'none',
+            background: listening
+              ? `radial-gradient(circle, ${C.cyan}cc 0%, ${C.cyanDeep} 100%)`
+              : `linear-gradient(135deg, ${C.cyan} 0%, ${C.cyanDeep} 100%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 28, cursor: listening ? 'default' : 'pointer',
+            boxShadow: listening ? `0 0 0 8px ${C.cyan}33, 0 8px 24px ${C.cyan}44` : `0 8px 24px ${C.cyan}44`,
+            transition: 'box-shadow .3s',
+          }}
+        >
           🎙️
+        </button>
+        <div style={{ fontFamily: FF_MONO, fontSize: 11, color: listening ? C.cyan : T.textMute, letterSpacing: '0.06em' }}>
+          {listening ? 'Ouvindo…' : 'Toque para falar'}
         </div>
-        <div style={{ fontFamily: FF_MONO, fontSize: 11, color: T.textMute, letterSpacing: '0.06em' }}>
-          Toque para falar
-        </div>
+        {noSupport && (
+          <div style={{ fontSize: 11, color: C.coral, textAlign: 'center' }}>
+            Reconhecimento de voz não suportado neste browser. Use as perguntas abaixo.
+          </div>
+        )}
       </div>
+
+      {/* Response card */}
+      {(query || response) && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {query && (
+            <div style={{
+              padding: '10px 14px', borderRadius: 12,
+              background: `${C.cyan}15`, border: `1px solid ${C.cyan}33`,
+              fontSize: 12, color: T.textSec, fontStyle: 'italic',
+            }}>
+              "{query}"
+            </div>
+          )}
+          {response && (
+            <AIMessage title="Resposta" body={response} tone="cyan" />
+          )}
+        </div>
+      )}
 
       {/* Suggested questions */}
       <Section title="Perguntas sugeridas">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[
-            '"Como foi minha performance esta semana?"',
-            '"Estou em risco de fadiga?"',
-            '"Quando posso aumentar a carga?"',
-            '"Quantas sessões completei este mês?"',
-            '"Tenho risco de abandono?"',
-            '"Gere meu resumo mensal."',
-          ].map(q => (
-            <div key={q} style={{
-              padding: '9px 12px', borderRadius: 999,
-              background: T.surf, border: `1px solid ${T.border}`,
-              display: 'flex', alignItems: 'center', gap: 8,
-              cursor: 'pointer',
-            }}>
-              <span style={{ fontSize: 11, color: T.textMute }}>🎙</span>
-              <span style={{ fontSize: 12, color: T.textSec }}>{q}</span>
-            </div>
+          {SUGGESTED_QUESTIONS.map(q => (
+            <button
+              key={q}
+              onClick={() => process(q)}
+              style={{
+                padding: '9px 12px', borderRadius: 999,
+                background: T.surf, border: `1px solid ${T.border}`,
+                display: 'flex', alignItems: 'center', gap: 8,
+                cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+                width: '100%',
+              }}
+            >
+              <span style={{ fontSize: 11, color: T.textMute, flexShrink: 0 }}>🎙</span>
+              <span style={{ fontSize: 12, color: T.textSec }}>"{q}"</span>
+            </button>
           ))}
         </div>
       </Section>
