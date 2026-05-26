@@ -3,10 +3,11 @@ import React from 'react';
 type IconName =
   | 'menu' | 'search' | 'more' | 'user' | 'lock' | 'mail' | 'phone'
   | 'cal' | 'pin' | 'trophy' | 'rocket' | 'flame' | 'settings' | 'check'
-  | 'chev' | 'chevL' | 'chevR' | 'play' | 'target' | 'bolt' | 'bell' | 'sparkle'
+  | 'chev' | 'chevL' | 'chevR' | 'back' | 'forward' | 'close'
+  | 'play' | 'target' | 'bolt' | 'bell' | 'sparkle'
   | 'logout' | 'plus' | 'male' | 'activity' | 'history' | 'chart' | 'map'
-  | 'edit' | 'heart' | 'moon' | 'clock' | 'pulse' | 'dumbbell' | 'grad'
-  | 'chat' | 'flask' | 'bookmark';
+  | 'edit' | 'heart' | 'moon' | 'sun' | 'clock' | 'pulse' | 'dumbbell' | 'grad'
+  | 'chat' | 'flask' | 'bookmark' | 'shield' | 'list' | 'mic';
 
 interface IconProps {
   name:    IconName | string;
@@ -55,6 +56,13 @@ export const Icon: React.FC<IconProps> = ({ name, size = 22, color = 'currentCol
     chat:     <><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></>,
     flask:    <><path d="M10 2v6.7L3 18a2 2 0 0 0 1.8 3h14.4A2 2 0 0 0 21 18l-7-9.3V2"/><line x1="9" y1="2" x2="15" y2="2"/></>,
     chevR:    <><polyline points="9 18 15 12 9 6"/></>,
+    back:     <><polyline points="15 18 9 12 15 6"/></>,
+    forward:  <><polyline points="9 18 15 12 9 6"/></>,
+    close:    <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    sun:      <><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>,
+    shield:   <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
+    list:     <><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill={color}/><circle cx="4" cy="12" r="1.5" fill={color}/><circle cx="4" cy="18" r="1.5" fill={color}/></>,
+    mic:      <><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></>,
     bookmark: <><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></>,
   };
 

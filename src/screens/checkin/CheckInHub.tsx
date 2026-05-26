@@ -30,7 +30,7 @@ const OPTIONS: {
 }[] = [
   {
     key:   'voice',
-    icon:  'radio',
+    icon:  'mic',
     label: 'Falar com o app',
     desc:  'O jeito mais rápido. A IA estrutura sua fala em campos.',
     time:  '~30 seg',
@@ -66,7 +66,7 @@ export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, 
           background: 'none', border: 'none', padding: 4,
           cursor: 'pointer', color: textMute(dark), flexShrink: 0,
         }}>
-          <Icon name="chevron-left" size={22} color={textMute(dark)}/>
+          <Icon name="back" size={22} color={textMute(dark)}/>
         </button>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 1 }}>
@@ -135,7 +135,7 @@ export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, 
                 <div style={{ fontSize: 11.5, color: textSec(dark), lineHeight: 1.4, marginBottom: 4 }}>{opt.desc}</div>
                 <div style={{ fontSize: 10, fontWeight: 700, color: primary, letterSpacing: '.04em' }}>{opt.time}</div>
               </div>
-              <Icon name="chevron-right" size={16} color={textMute(dark)}/>
+              <Icon name="forward" size={16} color={textMute(dark)}/>
             </button>
           ))}
         </div>

@@ -778,12 +778,12 @@ function TelaVoz({ data }: { data: M5Data }) {
               ? `radial-gradient(circle, ${C.cyan}cc 0%, ${C.cyanDeep} 100%)`
               : `linear-gradient(135deg, ${C.cyan} 0%, ${C.cyanDeep} 100%)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 28, cursor: listening ? 'default' : 'pointer',
+            cursor: listening ? 'default' : 'pointer',
             boxShadow: listening ? `0 0 0 8px ${C.cyan}33, 0 8px 24px ${C.cyan}44` : `0 8px 24px ${C.cyan}44`,
             transition: 'box-shadow .3s',
           }}
         >
-          🎙️
+          <Icon name="mic" size={30} color="#0E1A2B" stroke={2}/>
         </button>
         <div style={{ fontFamily: FF_MONO, fontSize: 11, color: listening ? C.cyan : T.textMute, letterSpacing: '0.06em' }}>
           {listening ? 'Ouvindo…' : 'Toque para falar'}
