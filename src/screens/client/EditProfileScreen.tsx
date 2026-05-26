@@ -2,7 +2,6 @@ import React from 'react';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { AvatarImage } from '../../components/Avatar';
-import { TopBar } from '../../components/TopBar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { PillInput } from '../../components/PillInput';
 import { surfRaised, borderSubtle, textPri, textMute, primaryBtn } from '../../theme';
@@ -126,7 +125,6 @@ export function EditProfileScreen({ nav, t, dark, user, setUser }: EditProfileSc
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Edit Profile</ScreenTitle>
 
       {/* Avatar upload */}

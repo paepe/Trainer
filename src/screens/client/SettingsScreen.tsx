@@ -1,6 +1,5 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
-import { TopBar } from '../../components/TopBar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
 import { surfRaised, borderSubtle, textPri, textMute } from '../../theme';
@@ -41,7 +40,6 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark }: SettingsScreen
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Settings</ScreenTitle>
       <div style={{ padding: '0 22px 14px' }}>
         {groups.map(g => (

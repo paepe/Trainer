@@ -1,6 +1,5 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
-import { TopBar } from '../../components/TopBar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, outlineBtn } from '../../theme';
@@ -56,12 +55,6 @@ export function TrainerStudioScreen({ nav, t, dark }: TrainerStudioScreenProps) 
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent} badge={
-        <div style={{
-          padding: '3px 9px', borderRadius: 6, marginRight: 8,
-          background: t.accent, color: '#fff', fontSize: 9.5, fontWeight: 700, letterSpacing: '.05em',
-        }}>B2B</div>
-      }/>
       <ScreenTitle dark={dark} sub="Feed the AI with your methodology — your clients get it daily.">Trainer Studio</ScreenTitle>
 
       {/* KPI strip */}

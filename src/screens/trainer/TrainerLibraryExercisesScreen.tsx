@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
-import { TopBar } from '../../components/TopBar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
 import { useData } from '../../hooks/useData';
@@ -162,7 +161,6 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent} />
       <ScreenTitle dark={dark} sub="Manage exercises catalog, accessibility variants, and workout protocols.">
         Exercise Library
       </ScreenTitle>

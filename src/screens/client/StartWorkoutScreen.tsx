@@ -1,6 +1,6 @@
 import React from 'react';
 import { supabase } from '../../supabase';
-import { Icon, PhotoSlot, TopBar, ScreenTitle, SectionLabel } from '../../components';
+import { Icon, PhotoSlot, ScreenTitle, SectionLabel } from '../../components';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn } from '../../types';
 import type { Json } from '../../types/supabase';
@@ -209,7 +209,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Start Workout</ScreenTitle>
 
       <div style={{ padding: '0 22px 16px' }}>

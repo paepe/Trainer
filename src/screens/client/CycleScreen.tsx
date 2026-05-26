@@ -1,6 +1,5 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
-import { TopBar } from '../../components/TopBar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../theme';
@@ -119,7 +118,6 @@ export function CycleScreen({
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark} sub="Tap or drag the dial — your plan adapts to your current phase.">Cycle</ScreenTitle>
 
       <div style={{ padding: '0 22px 8px', display: 'flex', justifyContent: 'center' }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, TopBar } from '../../components';
+import { Icon } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, primaryBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
@@ -222,7 +222,6 @@ export function WorkoutModeScreen({
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
 
       {/* Timer hero */}
       <div style={{ padding: '4px 22px 14px', textAlign: 'center' }}>

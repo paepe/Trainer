@@ -7,7 +7,7 @@ import {
   EditProfileScreen, CheckInProntidaoScreen,
   StartWorkoutScreen, GoalAchievedScreen,
   WorkoutModeScreen, PostWorkoutSummaryScreen,
-  StatsScreen, PerformanceDashboardScreen, HistoryScreen,
+  PerformanceDashboardScreen, HistoryScreen,
   CycleScreen, TrainerStudioScreen, SettingsScreen,
   TrainerDashboardScreen, TrainerClientDetailScreen,
   WorkoutPlanEditorScreen, TrainerLibraryExercisesScreen,
@@ -225,22 +225,23 @@ export default function App() {
     'profile','workout','workoutMode','goal','stats','history',
     'settings','editProfile','targets','checkin','cycle','studio',
     'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
+    'postWorkoutSummary',
   ].includes(screen);
 
   const tabs: [string, string, string][] = isTrainer
     ? [
-        ['trainerDashboard', 'user',    'Clients'],
+        ['trainerDashboard', 'user',    'Clientes'],
         ['checkin',          'sparkle', 'Coach'],
-        ['workout',          'play',    'Workout'],
-        ['stats',            'chart',   'Evolução'],
-        ['history',          'history', 'History'],
+        ['workout',          'play',    'Treino'],
+        ['history',          'history', 'Histórico'],
+        ['menu',             'menu',    'Menu'],
       ]
     : [
-        ['profile',  'user',    'Profile'],
         ['checkin',  'sparkle', 'Coach'],
-        ['workout',  'play',    'Workout'],
-        ['stats',    'chart',   'Stats'],
-        ['history',  'history', 'History'],
+        ['workout',  'play',    'Treino'],
+        ['stats',    'chart',   'Evolução'],
+        ['history',  'history', 'Histórico'],
+        ['menu',     'menu',    'Menu'],
       ];
 
   if (loading) return <LoadingScreen dark={dark} primary={BRAND.primary} />;

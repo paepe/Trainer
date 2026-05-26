@@ -1,6 +1,6 @@
 import React from 'react';
 import { supabase } from '../../supabase';
-import { Icon, TopBar, ScreenTitle, SectionLabel } from '../../components';
+import { Icon, ScreenTitle, SectionLabel } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, outlineBtn } from '../../theme';
 import type { NavFn } from '../../types';
 
@@ -83,7 +83,6 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Goal Achieved</ScreenTitle>
 
       {/* Primary metric */}

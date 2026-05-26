@@ -3,7 +3,6 @@ import { supabase } from '../../supabase';
 import { useAlerts } from '../../hooks/useAlerts';
 import { Icon } from '../../components/Icon';
 import { PillInput } from '../../components/PillInput';
-import { TopBar } from '../../components/TopBar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, ghostBtn } from '../../theme';
 import type { NavFn } from '../../types';
@@ -168,7 +167,6 @@ export function TrainerDashboardScreen({
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent} />
       <ScreenTitle dark={dark} sub={`${activeClients.length} active · ${pendingClients.length} pending`}>
         My Clients
       </ScreenTitle>

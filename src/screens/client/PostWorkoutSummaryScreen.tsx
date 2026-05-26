@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, TopBar } from '../../components';
+import { Icon } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, primaryBtn } from '../../theme';
 import type { NavFn } from '../../types';
 
@@ -54,7 +54,6 @@ export function PostWorkoutSummaryScreen({
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
 
       {/* Hero */}
       <div style={{ padding: '16px 22px 20px', textAlign: 'center' }}>

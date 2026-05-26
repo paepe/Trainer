@@ -1,7 +1,6 @@
 import React from 'react';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
-import { TopBar } from '../../components/TopBar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { borderSubtle, textPri, textMute } from '../../theme';
 import type { NavFn } from '../../types';
@@ -70,7 +69,6 @@ export function HistoryScreen({ nav, t, dark, user }: HistoryScreenProps) {
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
       <ScreenTitle dark={dark}>Workout History</ScreenTitle>
 
       {/* Day-of-week filter */}

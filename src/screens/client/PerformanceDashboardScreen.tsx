@@ -1,5 +1,4 @@
 import React from 'react';
-import { TopBar } from '../../components/TopBar';
 import { Icon } from '../../components/Icon';
 import type { NavFn } from '../../types';
 import { useM5Data, C, scoreColor, goodScoreColor, band } from './performance/perf-engines';
@@ -66,7 +65,6 @@ export function PerformanceDashboardScreen({ nav, t, dark, user }: Props) {
 
   return (
     <>
-      <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
 
       {/* Internal tab bar */}
       <div
