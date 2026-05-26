@@ -1,0 +1,137 @@
+import { supabase } from '../supabase';
+import { emitEvent, handlePainReport } from '../lib/events';
+import type { WorkoutSessionExercise, SessionExerciseStatus } from '../types';
+import type { GeneratedWorkoutExercise } from '../lib/workoutGeneration';
+
+interface DataResult<T>  { data: T | null; error: unknown }
+interface MutateResult   { error: unknown }
+
+export function useWorkoutData(userId: string | undefined) {
+
+  async function startWorkoutSession(input: {
+    planId:    string | null;
+    exercises: GeneratedWorkoutExercise[];
+  }): Promise<DataResult<{ sessionId: string; sessionExercises: WorkoutSessionExercise[] }>> {
+    if (!userId) return { data: null, error: 'no user' };
+
+    const { data: session, error: sessionError } = await supabase
+      .from('workout_sessions')
+      .insert({
+        user_id:    userId,
+        plan_id:    input.planId,
+        status:     'active',
+        started_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+
+    if (sessionError || !session) {
+      console.error('[useWorkoutData] startWorkoutSession:', sessionError);
+      return { data: null, error: sessionError };
+    }
+
+    const sessionId = session.id as string;
+    const exerciseRows = input.exercises.map((ex, i) => ({
+      session_id:         sessionId,
+      exercise_name:      ex.exercise_name,
+      muscle_group:       ex.muscle_group       ?? null,
+      order_index:        i,
+      sets_prescribed:    ex.sets               ?? null,
+      reps_prescribed:    ex.reps               ?? null,
+      load_kg_prescribed: ex.load_kg            ?? null,
+      rest_seconds:       ex.rest_seconds       ?? null,
+      notes:              ex.notes              ?? null,
+      status:             'pending',
+    }));
+
+    const { data: inserted, error: exError } = await supabase
+      .from('workout_session_exercises')
+      .insert(exerciseRows)
+      .select('*');
+
+    if (exError) {
+      console.error('[useWorkoutData] startWorkoutSession exercises:', exError);
+      return { data: null, error: exError };
+    }
+
+    void emitEvent(userId, 'workout_started', 'workout_session', sessionId);
+    return { data: { sessionId, sessionExercises: (inserted ?? []) as WorkoutSessionExercise[] }, error: null };
+  }
+
+  async function logWorkoutSet(data: {
+    session_exercise_id: string;
+    session_id:          string;
+    set_number:          number;
+    reps_done:           number | null;
+    load_kg:             number | null;
+    rpe:                 number | null;
+  }): Promise<MutateResult> {
+    const { error } = await supabase
+      .from('workout_set_logs')
+      .insert({ ...data, completed_at: new Date().toISOString() });
+    if (error) console.error('[useWorkoutData] logWorkoutSet:', error);
+    return { error };
+  }
+
+  async function updateSessionExerciseStatus(
+    sessionExerciseId: string,
+    status: SessionExerciseStatus,
+  ): Promise<MutateResult> {
+    const { error } = await supabase
+      .from('workout_session_exercises')
+      .update({ status })
+      .eq('id', sessionExerciseId);
+    if (error) console.error('[useWorkoutData] updateSessionExerciseStatus:', error);
+    return { error };
+  }
+
+  async function reportWorkoutPain(data: {
+    session_id:          string;
+    session_exercise_id: string | null;
+    body_region:         string;
+    intensity:           number;
+  }): Promise<MutateResult> {
+    const { error } = await supabase
+      .from('workout_pain_events')
+      .insert({ ...data, reported_at: new Date().toISOString(), trainer_notified: false });
+    if (error) { console.error('[useWorkoutData] reportWorkoutPain:', error); return { error }; }
+    if (userId) void handlePainReport(userId, data.session_id, data.body_region, data.intensity);
+    return { error };
+  }
+
+  async function completeWorkoutSession(data: {
+    sessionId:          string;
+    completed_at:       string;
+    total_duration_min: number;
+    notes?:             string | null;
+  }): Promise<MutateResult> {
+    const { error } = await supabase
+      .from('workout_sessions')
+      .update({
+        status:             'completed',
+        completed_at:       data.completed_at,
+        total_duration_min: data.total_duration_min,
+        notes:              data.notes ?? null,
+      })
+      .eq('id', data.sessionId);
+    if (error) { console.error('[useWorkoutData] completeWorkoutSession:', error); return { error }; }
+    if (userId) void emitEvent(userId, 'workout_completed', 'workout_session', data.sessionId, { duration_min: data.total_duration_min });
+    return { error };
+  }
+
+  async function savePostWorkoutFeedback(data: {
+    session_id:      string;
+    overall_feeling: number;
+    energy_after:    number | null;
+    notes:           string | null;
+  }): Promise<MutateResult> {
+    if (!userId) return { error: null };
+    const { error } = await supabase
+      .from('post_workout_feedback')
+      .insert({ ...data, user_id: userId, submitted_at: new Date().toISOString() });
+    if (error) console.error('[useWorkoutData] savePostWorkoutFeedback:', error);
+    return { error };
+  }
+
+  return { startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus, reportWorkoutPain, completeWorkoutSession, savePostWorkoutFeedback };
+}
