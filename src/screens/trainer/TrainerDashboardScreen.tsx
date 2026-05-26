@@ -1,11 +1,13 @@
 import React from 'react';
 import { supabase } from '../../supabase';
+import { useAlerts } from '../../hooks/useAlerts';
 import { Icon } from '../../components/Icon';
 import { PillInput } from '../../components/PillInput';
 import { TopBar } from '../../components/TopBar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, ghostBtn } from '../../theme';
 import type { NavFn } from '../../types';
+import type { TrainerAlert, OperationalTask } from '../../types/workout';
 
 interface Theme {
   primary:     string;
@@ -57,6 +59,8 @@ export function TrainerDashboardScreen({
   user,
   selectClient,
 }: TrainerDashboardScreenProps) {
+  const { alerts, tasks, acknowledgeAlert, resolveAlert, completeTask } = useAlerts(user?.id);
+
   const [clients, setClients]           = React.useState<TrainerClient[]>([]);
   const [loading, setLoading]           = React.useState(true);
   const [showInvite, setShowInvite]     = React.useState(false);
@@ -239,6 +243,29 @@ export function TrainerDashboardScreen({
           </div>
         )}
 
+        {/* Open alerts */}
+        {alerts.length > 0 && (
+          <AlertsSection
+            alerts={alerts}
+            dark={dark}
+            t={t}
+            clientNameMap={clientNameMap}
+            onAcknowledge={acknowledgeAlert}
+            onResolve={resolveAlert}
+          />
+        )}
+
+        {/* Pending tasks */}
+        {tasks.length > 0 && (
+          <TasksSection
+            tasks={tasks}
+            dark={dark}
+            t={t}
+            clientNameMap={clientNameMap}
+            onComplete={completeTask}
+          />
+        )}
+
         {!loading && clients.length === 0 && (
           <div style={{
             padding: 32, borderRadius: 18,
@@ -374,5 +401,195 @@ export function TrainerDashboardScreen({
         )}
       </div>
     </>
+  );
+}
+
+// ── Alerts sub-component ─────────────────────────────────────────────────────
+
+const SEVERITY_COLOR: Record<string, string> = {
+  critical: '#EF5B3C',
+  high:     '#F5A623',
+  medium:   '#F5C842',
+  low:      '#4ade80',
+};
+
+function AlertsSection({
+  alerts, dark, t, clientNameMap, onAcknowledge, onResolve,
+}: {
+  alerts:         TrainerAlert[];
+  dark:           boolean;
+  t:              Theme;
+  clientNameMap:  Record<string, string>;
+  onAcknowledge:  (id: string) => Promise<void>;
+  onResolve:      (id: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = React.useState<string | null>(null);
+
+  const handle = async (fn: (id: string) => Promise<void>, id: string) => {
+    setBusy(id);
+    await fn(id);
+    setBusy(null);
+  };
+
+  return (
+    <div style={{
+      padding: '14px 16px', borderRadius: 16,
+      background: '#EF5B3C0D', border: '1.5px solid #EF5B3C33',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#EF5B3C' }}>
+          Alerts
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#EF5B3C', color: '#fff' }}>
+          {alerts.length}
+        </div>
+      </div>
+
+      {alerts.map((alert, i) => (
+        <div key={alert.id} style={{
+          padding: '10px 0',
+          borderBottom: i < alerts.length - 1 ? '1px solid #EF5B3C22' : 'none',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
+                  background: `${SEVERITY_COLOR[alert.severity] ?? '#F5A623'}22`,
+                  color: SEVERITY_COLOR[alert.severity] ?? '#F5A623',
+                }}>
+                  {alert.severity.toUpperCase()}
+                </span>
+                <span style={{ fontSize: 11, color: textMute(dark) }}>
+                  {clientNameMap[alert.client_id] ?? 'Cliente'}
+                </span>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{alert.title}</div>
+              {alert.body && (
+                <div style={{ fontSize: 11.5, color: textSec(dark), marginTop: 2 }}>{alert.body}</div>
+              )}
+              <div style={{ fontSize: 10, color: textMute(dark), marginTop: 3 }}>
+                {new Date(alert.created_at).toLocaleDateString('pt-BR')}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              {alert.status === 'open' && (
+                <button
+                  onClick={() => handle(onAcknowledge, alert.id)}
+                  disabled={busy === alert.id}
+                  style={{
+                    padding: '6px 10px', borderRadius: 8, fontSize: 10.5, fontWeight: 600,
+                    background: '#F5A62318', color: '#F5A623',
+                    border: '1px solid #F5A62340', fontFamily: 'inherit', cursor: 'pointer',
+                    opacity: busy === alert.id ? 0.5 : 1,
+                  }}
+                >
+                  Ack
+                </button>
+              )}
+              <button
+                onClick={() => handle(onResolve, alert.id)}
+                disabled={busy === alert.id}
+                style={{
+                  padding: '6px 10px', borderRadius: 8, fontSize: 10.5, fontWeight: 600,
+                  background: '#4ade8018', color: '#4ade80',
+                  border: '1px solid #4ade8040', fontFamily: 'inherit', cursor: 'pointer',
+                  opacity: busy === alert.id ? 0.5 : 1,
+                }}
+              >
+                {busy === alert.id ? '…' : 'Resolve'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Tasks sub-component ──────────────────────────────────────────────────────
+
+const PRIORITY_COLOR: Record<string, string> = {
+  urgent: '#EF5B3C',
+  high:   '#F5A623',
+  medium: '#2DD4BF',
+  low:    '#94A3B8',
+};
+
+function TasksSection({
+  tasks, dark, t, clientNameMap, onComplete,
+}: {
+  tasks:          OperationalTask[];
+  dark:           boolean;
+  t:              Theme;
+  clientNameMap:  Record<string, string>;
+  onComplete:     (id: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = React.useState<string | null>(null);
+
+  const handle = async (id: string) => {
+    setBusy(id);
+    await onComplete(id);
+    setBusy(null);
+  };
+
+  return (
+    <div style={{
+      padding: '14px 16px', borderRadius: 16,
+      background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
+          Tasks
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: t.primary, color: '#0E1A2B' }}>
+          {tasks.length}
+        </div>
+      </div>
+
+      {tasks.map((task, i) => (
+        <div key={task.id} style={{
+          padding: '10px 0',
+          borderBottom: i < tasks.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
+                background: `${PRIORITY_COLOR[task.priority] ?? '#2DD4BF'}22`,
+                color: PRIORITY_COLOR[task.priority] ?? '#2DD4BF',
+              }}>
+                {task.priority.toUpperCase()}
+              </span>
+              <span style={{ fontSize: 11, color: textMute(dark) }}>
+                {clientNameMap[task.client_id] ?? 'Cliente'}
+              </span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{task.title}</div>
+            {task.description && (
+              <div style={{
+                fontSize: 11.5, color: textSec(dark), marginTop: 2,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {task.description}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => handle(task.id)}
+            disabled={busy === task.id}
+            style={{
+              padding: '8px 12px', borderRadius: 10, fontSize: 11, fontWeight: 600,
+              background: `${t.primary}22`, color: t.primary,
+              border: `1px solid ${t.primary}40`, fontFamily: 'inherit', cursor: 'pointer',
+              opacity: busy === task.id ? 0.5 : 1, flexShrink: 0,
+            }}
+          >
+            {busy === task.id ? '…' : '✓ Done'}
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }

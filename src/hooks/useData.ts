@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { emitEvent, handlePainReport } from '../lib/events';
 import type {
   CycleConfig,
   Preferences,
@@ -157,7 +158,8 @@ export function useData(userId: string | undefined) {
         readiness_score:   data.safety_gate?.readiness_score ?? null,
         ai_led_blocked:    data.safety_gate?.ai_led_blocked  ?? false,
       });
-    if (error) console.error('[useData] saveCheckinV2 error:', error);
+    if (error) { console.error('[useData] saveCheckinV2 error:', error); return { error }; }
+    void emitEvent(userId, 'checkin_submitted', 'checkin_prontidao', undefined, { variant: data.variant });
     return { error };
   }
 
@@ -281,6 +283,8 @@ export function useData(userId: string | undefined) {
       return { data: null, error: exError };
     }
 
+    void emitEvent(userId, 'workout_started', 'workout_session', sessionId);
+
     return {
       data: { sessionId, sessionExercises: (inserted ?? []) as WorkoutSessionExercise[] },
       error: null,
@@ -323,7 +327,8 @@ export function useData(userId: string | undefined) {
     const { error } = await supabase
       .from('workout_pain_events')
       .insert({ ...data, reported_at: new Date().toISOString(), trainer_notified: false });
-    if (error) console.error('[useData] reportWorkoutPain error:', error);
+    if (error) { console.error('[useData] reportWorkoutPain error:', error); return { error }; }
+    if (userId) void handlePainReport(userId, data.session_id, data.body_region, data.intensity);
     return { error };
   }
 
@@ -342,7 +347,8 @@ export function useData(userId: string | undefined) {
         notes:              data.notes ?? null,
       })
       .eq('id', data.sessionId);
-    if (error) console.error('[useData] completeWorkoutSession error:', error);
+    if (error) { console.error('[useData] completeWorkoutSession error:', error); return { error }; }
+    if (userId) void emitEvent(userId, 'workout_completed', 'workout_session', data.sessionId, { duration_min: data.total_duration_min });
     return { error };
   }
 

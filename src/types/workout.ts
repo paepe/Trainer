@@ -132,6 +132,69 @@ export interface PostWorkoutFeedback {
   submitted_at:    string;
 }
 
+// ── Events, Alerts, Operational Tasks (MVP #9) ──────────────────────────────
+
+export type SystemEventType =
+  | 'profile_completed'
+  | 'checkin_submitted'
+  | 'safety_gate_triggered'
+  | 'workout_plan_created'
+  | 'workout_plan_activated'
+  | 'workout_started'
+  | 'set_completed'
+  | 'pain_reported'
+  | 'workout_completed'
+  | 'alert_created'
+  | 'task_created';
+
+export type AlertType     = 'high_pain' | 'safety_gate_blocked' | 'pain_recurrence' | 'missed_sessions' | 'general';
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type AlertStatus   = 'open' | 'acknowledged' | 'resolved';
+export type TaskType      = 'review_pain' | 'replan' | 'adjust_load' | 'safety_review' | 'general';
+export type TaskPriority  = 'low' | 'medium' | 'high' | 'urgent';
+export type TaskStatus    = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface SystemEvent {
+  id:          string;
+  user_id:     string;
+  event_type:  SystemEventType;
+  entity_type: string | null;
+  entity_id:   string | null;
+  payload:     Record<string, unknown>;
+  created_at:  string;
+}
+
+export interface TrainerAlert {
+  id:          string;
+  trainer_id:  string;
+  client_id:   string;
+  alert_type:  AlertType;
+  severity:    AlertSeverity;
+  title:       string;
+  body:        string | null;
+  status:      AlertStatus;
+  session_id:  string | null;
+  event_id:    string | null;
+  created_at:  string;
+  resolved_at: string | null;
+}
+
+export interface OperationalTask {
+  id:                 string;
+  trainer_id:         string;
+  client_id:          string;
+  task_type:          TaskType;
+  title:              string;
+  description:        string | null;
+  priority:           TaskPriority;
+  status:             TaskStatus;
+  due_date:           string | null;
+  related_session_id: string | null;
+  related_alert_id:   string | null;
+  created_at:         string;
+  completed_at:       string | null;
+}
+
 export interface ExerciseCatalogItem {
   id: string;
   name: string;

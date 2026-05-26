@@ -1471,6 +1471,162 @@ export type Database = {
           },
         ]
       }
+      system_events: {
+        Row: {
+          id:          string
+          user_id:     string
+          event_type:  string
+          entity_type: string | null
+          entity_id:   string | null
+          payload:     Json
+          created_at:  string
+        }
+        Insert: {
+          id?:          string
+          user_id:      string
+          event_type:   string
+          entity_type?: string | null
+          entity_id?:   string | null
+          payload?:     Json
+          created_at?:  string
+        }
+        Update: {
+          id?:          string
+          user_id?:     string
+          event_type?:  string
+          entity_type?: string | null
+          entity_id?:   string | null
+          payload?:     Json
+          created_at?:  string
+        }
+        Relationships: []
+      }
+      trainer_alerts: {
+        Row: {
+          id:          string
+          trainer_id:  string
+          client_id:   string
+          alert_type:  string
+          severity:    string
+          title:       string
+          body:        string | null
+          status:      string
+          session_id:  string | null
+          event_id:    string | null
+          created_at:  string
+          resolved_at: string | null
+        }
+        Insert: {
+          id?:          string
+          trainer_id:   string
+          client_id:    string
+          alert_type:   string
+          severity?:    string
+          title:        string
+          body?:        string | null
+          status?:      string
+          session_id?:  string | null
+          event_id?:    string | null
+          created_at?:  string
+          resolved_at?: string | null
+        }
+        Update: {
+          id?:          string
+          trainer_id?:  string
+          client_id?:   string
+          alert_type?:  string
+          severity?:    string
+          title?:       string
+          body?:        string | null
+          status?:      string
+          session_id?:  string | null
+          event_id?:    string | null
+          created_at?:  string
+          resolved_at?: string | null
+        }
+        Relationships: []
+      }
+      operational_tasks: {
+        Row: {
+          id:                 string
+          trainer_id:         string
+          client_id:          string
+          task_type:          string
+          title:              string
+          description:        string | null
+          priority:           string
+          status:             string
+          due_date:           string | null
+          related_session_id: string | null
+          related_alert_id:   string | null
+          created_at:         string
+          completed_at:       string | null
+        }
+        Insert: {
+          id?:                 string
+          trainer_id:          string
+          client_id:           string
+          task_type:           string
+          title:               string
+          description?:        string | null
+          priority?:           string
+          status?:             string
+          due_date?:           string | null
+          related_session_id?: string | null
+          related_alert_id?:   string | null
+          created_at?:         string
+          completed_at?:       string | null
+        }
+        Update: {
+          id?:                 string
+          trainer_id?:         string
+          client_id?:          string
+          task_type?:          string
+          title?:              string
+          description?:        string | null
+          priority?:           string
+          status?:             string
+          due_date?:           string | null
+          related_session_id?: string | null
+          related_alert_id?:   string | null
+          created_at?:         string
+          completed_at?:       string | null
+        }
+        Relationships: []
+      }
+      audit_log: {
+        Row: {
+          id:          string
+          actor_id:    string | null
+          action:      string
+          entity_type: string | null
+          entity_id:   string | null
+          old_value:   Json | null
+          new_value:   Json | null
+          created_at:  string
+        }
+        Insert: {
+          id?:          string
+          actor_id?:    string | null
+          action:       string
+          entity_type?: string | null
+          entity_id?:   string | null
+          old_value?:   Json | null
+          new_value?:   Json | null
+          created_at?:  string
+        }
+        Update: {
+          id?:          string
+          actor_id?:    string | null
+          action?:      string
+          entity_type?: string | null
+          entity_id?:   string | null
+          old_value?:   Json | null
+          new_value?:   Json | null
+          created_at?:  string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
