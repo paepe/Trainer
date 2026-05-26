@@ -24,6 +24,7 @@ interface SessionData {
   completedCount?:  number | null;
   total?:           number | null;
   startedAt?:       string;
+  sessionId?:       string | null;
 }
 
 interface GoalAchievedScreenProps {
@@ -36,43 +37,43 @@ interface GoalAchievedScreenProps {
 
 export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchievedScreenProps) {
   const [duration,  setDuration]  = React.useState<number | null>(sessionData?.durationMinutes ?? null);
-  const [planId,    setPlanId]    = React.useState<string | null>(sessionData?.planId          ?? null);
   const [completed, setCompleted] = React.useState<number | null>(sessionData?.completedCount  ?? null);
   const [total,     setTotal]     = React.useState<number | null>(sessionData?.total           ?? null);
   const [loading,   setLoading]   = React.useState<boolean>(false);
 
-  // No payload (opened from Profile) — load the most recent session from DB
+  const sessionId = sessionData?.sessionId ?? null;
+
+  // No payload — load the most recent session from DB
   React.useEffect(() => {
     if (sessionData || !user?.id) return;
     setLoading(true);
     supabase
       .from('workout_sessions')
-      .select('id, duration_minutes, plan_id, started_at')
+      .select('id, total_duration_min, plan_id, started_at')
       .eq('user_id', user.id)
       .order('started_at', { ascending: false })
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
         if (!data) { setLoading(false); return; }
-        setDuration(data.duration_minutes ?? null);
-        setPlanId(data.plan_id ?? null);
+        setDuration((data as { total_duration_min: number | null }).total_duration_min ?? null);
         setLoading(false);
       });
   }, [user?.id, sessionData]);
 
-  // Fetch plan_exercises whenever planId becomes available and completed is unknown
+  // Fetch exercise counts from workout_session_exercises using sessionId
   React.useEffect(() => {
-    if (completed !== null || !planId) return;
+    if (completed !== null || !sessionId) return;
     supabase
-      .from('plan_exercises')
-      .select('id, completed')
-      .eq('plan_id', planId)
+      .from('workout_session_exercises')
+      .select('id, status')
+      .eq('session_id', sessionId)
       .then(({ data }) => {
         if (!data?.length) return;
         setTotal(data.length);
-        setCompleted(data.filter(e => e.completed).length);
+        setCompleted(data.filter(e => e.status === 'completed').length);
       });
-  }, [planId, completed]);
+  }, [sessionId, completed]);
 
   const completePct = total && total > 0 && completed !== null ? Math.round((completed / total) * 100) : null;
 

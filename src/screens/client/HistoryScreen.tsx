@@ -22,12 +22,11 @@ interface HistoryScreenProps {
 }
 
 interface Session {
-  id:                string;
-  started_at:        string;
-  completed_at:      string;
-  duration_minutes:  number | null;
-  performance_score: number | null;
-  plan_id:           string | null;
+  id:                 string;
+  started_at:         string;
+  completed_at:       string | null;
+  total_duration_min: number | null;
+  plan_id:            string | null;
 }
 
 export function HistoryScreen({ nav, t, dark, user }: HistoryScreenProps) {
@@ -42,7 +41,7 @@ export function HistoryScreen({ nav, t, dark, user }: HistoryScreenProps) {
     if (!user?.id) { setLoading(false); return; }
     supabase
       .from('workout_sessions')
-      .select('id, started_at, completed_at, duration_minutes, performance_score, plan_id')
+      .select('id, started_at, completed_at, total_duration_min, plan_id')
       .eq('user_id', user.id)
       .order('started_at', { ascending: false })
       .limit(50)
@@ -116,7 +115,7 @@ export function HistoryScreen({ nav, t, dark, user }: HistoryScreenProps) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
                 Workout session
-                {s.duration_minutes ? ` · ${s.duration_minutes} min` : ''}
+                {s.total_duration_min ? ` · ${s.total_duration_min} min` : ''}
               </div>
               <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>
                 {fmtDate(s.started_at)}
@@ -126,7 +125,7 @@ export function HistoryScreen({ nav, t, dark, user }: HistoryScreenProps) {
               </div>
             </div>
             <button onClick={() => nav('goal', {
-              durationMinutes: s.duration_minutes,
+              durationMinutes: s.total_duration_min,
               startedAt:       s.started_at,
               planId:          s.plan_id,
               sessionId:       s.id,
