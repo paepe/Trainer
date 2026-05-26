@@ -315,25 +315,57 @@ export function AINote({ text, dark, primary, variant = 'info' }: AINoteProps) {
 
 // ── VoiceOption ───────────────────────────────────────────────────────────────
 
-export function VoiceOption({ dark, primary, note }: { dark: boolean; primary: string; note?: string }) {
+interface VoiceOptionProps {
+  dark:    boolean;
+  primary: string;
+  note?:   string;
+  onClick: () => void;
+}
+
+export function VoiceOption({ dark, primary, note, onClick }: VoiceOptionProps) {
+  const [hover, setHover] = React.useState(false);
   return (
-    <button style={{
-      width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 14,
-      background: surfRaised(dark),
-      border: `1.5px dashed ${borderSubtle(dark)}`,
-      display: 'flex', alignItems: 'center', gap: 10,
-      fontFamily: 'inherit', cursor: 'pointer',
-    }}>
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      aria-label="Falar com o app — entrada por voz"
+      style={{
+        width: '100%', textAlign: 'left', padding: '14px 16px', borderRadius: 14,
+        background: hover ? `${primary}12` : surfRaised(dark),
+        border: `1.5px solid ${hover ? primary : primary + '55'}`,
+        display: 'flex', alignItems: 'center', gap: 12,
+        fontFamily: 'inherit', cursor: 'pointer',
+        transition: 'background .15s, border-color .15s',
+      }}
+    >
+      {/* Pulsing mic icon */}
       <div style={{
-        width: 32, height: 32, borderRadius: 10, background: `${primary}22`,
+        position: 'relative',
+        width: 40, height: 40, borderRadius: 12,
+        background: `${primary}22`,
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        border: `1.5px solid ${primary}55`,
       }}>
-        <Icon name="chat" size={15} color={primary} stroke={2}/>
+        {/* Mic SVG — universally recognised */}
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke={primary} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
       </div>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>Falar com o app</div>
-        {note && <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2 }}>{note}</div>}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: primary, marginBottom: 2 }}>
+          🎙 Falar com o app
+        </div>
+        <div style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.45 }}>
+          {note ?? 'Diga com suas próprias palavras — a IA organiza antes de salvar.'}
+        </div>
       </div>
+      {/* Arrow caret */}
+      <Icon name="chevR" size={16} color={primary} stroke={2}/>
     </button>
   );
 }
@@ -425,16 +457,24 @@ export function WizardFooter({ onNext, onSaveLater, nextLabel = 'Continuar', nex
       <button
         onClick={onNext}
         disabled={nextDisabled}
-        style={{ ...primaryBtn(primary), marginBottom: 4, opacity: nextDisabled ? 0.5 : 1 }}
+        style={{ ...primaryBtn(primary), marginBottom: 10, opacity: nextDisabled ? 0.5 : 1 }}
       >
         {nextLabel} →
       </button>
-      <button onClick={onSaveLater} style={{
-        width: '100%', padding: '12px', borderRadius: 999,
-        background: 'transparent', border: 'none',
-        color: textMute(dark), fontSize: 13, fontFamily: 'inherit', cursor: 'pointer',
-      }}>
-        Salvar ao depois
+      <button
+        onClick={onSaveLater}
+        style={{
+          width: '100%', padding: '12px 16px', borderRadius: 999,
+          background: 'transparent',
+          border: `1.5px solid ${borderSubtle(dark)}`,
+          color: textSec(dark), fontSize: 13, fontWeight: 600,
+          fontFamily: 'inherit', cursor: 'pointer',
+          transition: 'border-color .15s, color .15s',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}
+      >
+        <Icon name="bookmark" size={14} color={textSec(dark)} stroke={2}/>
+        Salvar para depois
       </button>
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { textPri, textSec } from '../../../theme';
 import { WizardHeader, WizardFooter, Chip, ChipGroup, VoiceOption } from './atoms';
+import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { Comorbidity } from '../../../types/profile-v2';
 
@@ -24,6 +25,7 @@ const CONDITIONS: { value: Comorbidity; label: string }[] = [
 
 export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
   const co = data.comorbidities ?? { conditions: [] };
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
 
   const toggleCondition = (v: Comorbidity) => {
     let next: Comorbidity[];
@@ -66,10 +68,27 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
         ))}
       </ChipGroup>
 
-      <VoiceOption dark={dark} primary={primary} note="Você pode descrever sua situação de saúde com suas palavras."/>
+      <VoiceOption
+        dark={dark} primary={primary}
+        note="Você pode descrever sua situação de saúde com suas palavras."
+        onClick={() => setVoiceOpen(true)}
+      />
 
       <div style={{ flex: 1 }}/>
       <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+
+      {voiceOpen && (
+        <WizardVoiceOverlay
+          dark={dark} primary={primary}
+          context="Conte sobre suas condições"
+          onConfirm={(text) => {
+            onUpdate({ comorbidities: { ...co, voice_note: text } });
+            setVoiceOpen(false);
+            onNext();
+          }}
+          onClose={() => setVoiceOpen(false)}
+        />
+      )}
     </div>
   );
 }

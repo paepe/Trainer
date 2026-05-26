@@ -75,6 +75,9 @@ ALTER TABLE workout_pain_events       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_workout_feedback     ENABLE ROW LEVEL SECURITY;
 
 -- workout_session_exercises
+DROP POLICY IF EXISTS "owner access session exercises"          ON workout_session_exercises;
+DROP POLICY IF EXISTS "trainer reads client session exercises"  ON workout_session_exercises;
+
 CREATE POLICY "owner access session exercises" ON workout_session_exercises
   FOR ALL USING (
     EXISTS (
@@ -95,6 +98,9 @@ CREATE POLICY "trainer reads client session exercises" ON workout_session_exerci
   );
 
 -- workout_set_logs
+DROP POLICY IF EXISTS "owner access set logs"           ON workout_set_logs;
+DROP POLICY IF EXISTS "trainer reads client set logs"   ON workout_set_logs;
+
 CREATE POLICY "owner access set logs" ON workout_set_logs
   FOR ALL USING (
     EXISTS (
@@ -115,6 +121,9 @@ CREATE POLICY "trainer reads client set logs" ON workout_set_logs
   );
 
 -- workout_pain_events
+DROP POLICY IF EXISTS "owner access pain events"          ON workout_pain_events;
+DROP POLICY IF EXISTS "trainer reads client pain events"  ON workout_pain_events;
+
 CREATE POLICY "owner access pain events" ON workout_pain_events
   FOR ALL USING (
     EXISTS (
@@ -135,6 +144,9 @@ CREATE POLICY "trainer reads client pain events" ON workout_pain_events
   );
 
 -- post_workout_feedback
+DROP POLICY IF EXISTS "owner access post workout feedback"  ON post_workout_feedback;
+DROP POLICY IF EXISTS "trainer reads client feedback"       ON post_workout_feedback;
+
 CREATE POLICY "owner access post workout feedback" ON post_workout_feedback
   FOR ALL USING (auth.uid() = user_id);
 

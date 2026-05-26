@@ -7,7 +7,7 @@ import {
   EditProfileScreen, CheckInProntidaoScreen,
   StartWorkoutScreen, GoalAchievedScreen,
   WorkoutModeScreen, PostWorkoutSummaryScreen,
-  StatsScreen, HistoryScreen,
+  StatsScreen, PerformanceDashboardScreen, HistoryScreen,
   CycleScreen, TrainerStudioScreen, SettingsScreen,
   TrainerDashboardScreen, TrainerClientDetailScreen,
   WorkoutPlanEditorScreen, TrainerLibraryExercisesScreen,
@@ -227,7 +227,7 @@ export default function App() {
         ['trainerDashboard', 'user',    'Clients'],
         ['checkin',          'sparkle', 'Coach'],
         ['workout',          'play',    'Workout'],
-        ['stats',            'chart',   'Stats'],
+        ['stats',            'chart',   'Evolução'],
         ['history',          'history', 'History'],
       ]
     : [
@@ -270,7 +270,7 @@ export default function App() {
           savePostWorkoutFeedback={savePostWorkoutFeedback}
         />;
       case 'goal':               return <GoalAchievedScreen      {...common} sessionData={screenPayload}/>;
-      case 'stats':              return <StatsScreen             {...common}/>;
+      case 'stats':              return <PerformanceDashboardScreen nav={nav} t={t} dark={dark} user={user}/>;
       case 'history':            return <HistoryScreen           {...common}/>;
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;

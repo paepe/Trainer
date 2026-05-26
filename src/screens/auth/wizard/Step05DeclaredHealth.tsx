@@ -1,6 +1,7 @@
 import React from 'react';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
 import { WizardHeader, WizardFooter, Badge, Chip, ChipGroup, AINote, TextArea, VoiceOption, SectionLabel } from './atoms';
+import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { HealthCategory } from '../../../types/profile-v2';
 
@@ -27,6 +28,7 @@ type Disclosure = 'yes' | 'no' | 'prefer_not';
 
 export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
   const dh = data.declared_health ?? { has_condition: null, categories: [], free_text: '' };
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
 
   const disclosure: Disclosure =
     dh.has_condition === null   ? 'prefer_not' :
@@ -119,13 +121,30 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
           )}
 
           <div style={{ marginTop: 14 }}>
-            <VoiceOption dark={dark} primary={primary} note="Nos conte sobre sua condição com suas palavras."/>
+            <VoiceOption
+              dark={dark} primary={primary}
+              note="Nos conte sobre sua condição com suas palavras."
+              onClick={() => setVoiceOpen(true)}
+            />
           </div>
         </>
       )}
 
       <div style={{ flex: 1 }}/>
       <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+
+      {voiceOpen && (
+        <WizardVoiceOverlay
+          dark={dark} primary={primary}
+          context="Conte sobre sua saúde"
+          onConfirm={(text) => {
+            onUpdate({ declared_health: { ...dh, voice_note: text } });
+            setVoiceOpen(false);
+            onNext();
+          }}
+          onClose={() => setVoiceOpen(false)}
+        />
+      )}
     </div>
   );
 }

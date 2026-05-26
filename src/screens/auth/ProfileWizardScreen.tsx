@@ -64,7 +64,12 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2 }: ProfileWiza
     setCurrentStep(STEP_SEQUENCE[stepIndex - 1] as ProfileV2Step);
   };
 
-  const saveLater = () => nav('profile');
+  const saveLater = async () => {
+    if (saveProfileV2) {
+      await saveProfileV2(data, currentStep);
+    }
+    nav('profile');
+  };
 
   const handleGenerate = async (risk: RiskClassification) => {
     setGenerating(true);

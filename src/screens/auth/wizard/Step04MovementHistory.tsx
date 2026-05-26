@@ -4,6 +4,7 @@ import {
   WizardHeader, WizardFooter, Chip, ChipGroup, SegmentedRow,
   SliderField, AINote, VoiceOption, SectionLabel, Toggle, TextArea,
 } from './atoms';
+import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type {
   TrainingFrequency, FitnessLevelV2, TrainingModality, AbandonReason, PreferredIntensity,
@@ -57,6 +58,7 @@ const INTENSITY_OPTIONS: { value: PreferredIntensity; label: string }[] = [
 export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
   // Page 0 = main history, page 1 = abandon details (conditional)
   const [page, setPage] = React.useState(0);
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
 
   const mh = data.movement_history ?? {
     frequency: undefined as unknown as TrainingFrequency,
@@ -180,10 +182,27 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
           rows={2}
         />
 
-        <VoiceOption dark={dark} primary={primary} note="Pode nos contar com suas próprias palavras."/>
+        <VoiceOption
+          dark={dark} primary={primary}
+          note="Pode nos contar com suas próprias palavras."
+          onClick={() => setVoiceOpen(true)}
+        />
 
         <div style={{ flex: 1 }}/>
         <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+
+        {voiceOpen && (
+          <WizardVoiceOverlay
+            dark={dark} primary={primary}
+            context="Conte sobre seu histórico"
+            onConfirm={(text) => {
+              setAH({ ...ah, voice_note: text });
+              setVoiceOpen(false);
+              onNext();
+            }}
+            onClose={() => setVoiceOpen(false)}
+          />
+        )}
       </div>
     );
   }

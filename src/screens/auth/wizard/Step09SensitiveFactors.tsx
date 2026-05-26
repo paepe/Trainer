@@ -1,6 +1,7 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
 import { WizardHeader, WizardFooter, AINote, VoiceOption, FieldInput } from './atoms';
+import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 
 export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
@@ -10,6 +11,7 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
   };
 
   const [medOpen, setMedOpen] = React.useState(!!sf.regular_medications);
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
 
   const set = (patch: Partial<typeof sf>) =>
     onUpdate({ sensitive_factors: { ...sf, ...patch } });
@@ -111,11 +113,28 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
           </p>
         </div>
 
-        <VoiceOption dark={dark} primary={primary} note="Fale livremente — a IA estrutura antes do salvar."/>
+        <VoiceOption
+          dark={dark} primary={primary}
+          note="Fale livremente — a IA estrutura antes do salvar."
+          onClick={() => setVoiceOpen(true)}
+        />
       </div>
 
       <div style={{ flex: 1 }}/>
       <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+
+      {voiceOpen && (
+        <WizardVoiceOverlay
+          dark={dark} primary={primary}
+          context="Conte sobre fatores sensíveis"
+          onConfirm={(text) => {
+            onUpdate({ sensitive_factors: { ...sf, voice_note: text } });
+            setVoiceOpen(false);
+            onNext();
+          }}
+          onClose={() => setVoiceOpen(false)}
+        />
+      )}
     </div>
   );
 }

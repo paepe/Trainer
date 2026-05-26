@@ -122,6 +122,7 @@ export interface ProfileBasicData {
 export interface ProfileObjectives {
   primary_goal:    PrimaryGoal;
   secondary_goals: SecondaryGoal[];
+  voice_note?:     string;
 }
 
 export interface ProfileMovementHistory {
@@ -141,16 +142,19 @@ export interface ProfileAbandonHistory {
   felt_gym_constraint?:     boolean;
   what_helped_consistency?: string;
   what_disrupted_routine?:  string;
+  voice_note?:              string;
 }
 
 export interface ProfileDeclaredHealth {
   has_condition: boolean | null;   // null = prefer_not_to_say
   categories:    HealthCategory[];
   free_text?:    string;
+  voice_note?:   string;
 }
 
 export interface ProfileComorbidities {
   conditions: Comorbidity[];
+  voice_note?: string;
 }
 
 export interface ProfileFunctionalCapacity {
@@ -172,6 +176,7 @@ export interface ProfileSensitiveFactors {
   regular_medications?:             string;   // opt-in, masked operationally
   declares_emotional_history:       boolean;
   declares_recreational_substance:  boolean;
+  voice_note?:                      string;
 }
 
 export interface ProfileBodyRhythm {

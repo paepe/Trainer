@@ -1,6 +1,7 @@
 import React from 'react';
 import { textPri, textSec } from '../../../theme';
 import { WizardHeader, WizardFooter, GoalCard, Chip, ChipGroup, VoiceOption, SectionLabel } from './atoms';
+import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { PrimaryGoal, SecondaryGoal } from '../../../types/profile-v2';
 
@@ -45,6 +46,7 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
 
   const availableSecondary = SECONDARY_GOALS.filter(g => g.value !== obj.primary_goal);
   const canAdvance = !!obj.primary_goal;
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
 
   return (
     <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -92,7 +94,11 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
         </>
       )}
 
-      <VoiceOption dark={dark} primary={primary} note="Nos conte sobre seus objetivos com suas próprias palavras."/>
+      <VoiceOption
+        dark={dark} primary={primary}
+        note="Nos conte sobre seus objetivos com suas próprias palavras."
+        onClick={() => setVoiceOpen(true)}
+      />
 
       <div style={{ flex: 1 }}/>
       <WizardFooter
@@ -100,6 +106,19 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
         nextDisabled={!canAdvance}
         dark={dark} primary={primary}
       />
+
+      {voiceOpen && (
+        <WizardVoiceOverlay
+          dark={dark} primary={primary}
+          context="Conte sobre seus objetivos"
+          onConfirm={(text) => {
+            onUpdate({ objectives: { ...obj, voice_note: text } });
+            setVoiceOpen(false);
+            if (canAdvance) onNext();
+          }}
+          onClose={() => setVoiceOpen(false)}
+        />
+      )}
     </div>
   );
 }

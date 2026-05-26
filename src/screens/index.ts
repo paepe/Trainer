@@ -8,6 +8,7 @@ export {
 export {
   EditProfileScreen,
   StatsScreen,
+  PerformanceDashboardScreen,
   HistoryScreen,
   CycleScreen,
   SettingsScreen,

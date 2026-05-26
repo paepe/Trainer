@@ -3,10 +3,10 @@ import React from 'react';
 type IconName =
   | 'menu' | 'search' | 'more' | 'user' | 'lock' | 'mail' | 'phone'
   | 'cal' | 'pin' | 'trophy' | 'rocket' | 'flame' | 'settings' | 'check'
-  | 'chev' | 'chevL' | 'play' | 'target' | 'bolt' | 'bell' | 'sparkle'
+  | 'chev' | 'chevL' | 'chevR' | 'play' | 'target' | 'bolt' | 'bell' | 'sparkle'
   | 'logout' | 'plus' | 'male' | 'activity' | 'history' | 'chart' | 'map'
   | 'edit' | 'heart' | 'moon' | 'clock' | 'pulse' | 'dumbbell' | 'grad'
-  | 'chat' | 'flask';
+  | 'chat' | 'flask' | 'bookmark';
 
 interface IconProps {
   name:    IconName | string;
@@ -54,6 +54,8 @@ export const Icon: React.FC<IconProps> = ({ name, size = 22, color = 'currentCol
     grad:     <><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></>,
     chat:     <><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></>,
     flask:    <><path d="M10 2v6.7L3 18a2 2 0 0 0 1.8 3h14.4A2 2 0 0 0 21 18l-7-9.3V2"/><line x1="9" y1="2" x2="15" y2="2"/></>,
+    chevR:    <><polyline points="9 18 15 12 9 6"/></>,
+    bookmark: <><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></>,
   };
 
   return (
