@@ -25,22 +25,6 @@ interface ClientProfile {
   email: string;
 }
 
-interface PhysicalProfile {
-  primary_goal?:  string | null;
-  fitness_level?: string | null;
-  weight_kg?:     number | null;
-  height_cm?:     number | null;
-}
-
-interface CheckIn {
-  energy?:        number | null;
-  soreness?:      string[] | null;
-  minutes?:       number | null;
-  goal?:          string | null;
-  sleep_quality?: string | null;
-  date?:          string | null;
-}
-
 interface WorkoutSession {
   id:                 string;
   started_at?:        string | null;
@@ -76,15 +60,17 @@ interface ProfileV2Row {
 }
 
 interface CheckInReadiness {
-  id:               string;
-  occurred_at:      string | null;
-  readiness_score:  number | null;
-  energy_level:     number | null;
-  fatigue_level:    number | null;
-  pain_present:     boolean | null;
-  sleep_quality:    string | null;
-  input_source:     string | null;
-  variant:          string;
+  id:                string;
+  occurred_at:       string | null;
+  readiness_score:   number | null;
+  energy_level:      number | null;
+  fatigue_level:     number | null;
+  pain_present:      boolean | null;
+  sleep_quality:     string | null;
+  available_minutes: number | null;
+  training_location: string | null;
+  input_source:      string | null;
+  variant:           string;
 }
 
 interface TrainerDashboardUser {
@@ -107,8 +93,6 @@ export function TrainerClientDetailScreen({
   dark,
   selectedClient,
 }: TrainerClientDetailScreenProps) {
-  const [physical, setPhysical]     = React.useState<PhysicalProfile | null>(null);
-  const [checkins, setCheckins]     = React.useState<CheckIn[]>([]);
   const [sessions, setSessions]     = React.useState<WorkoutSession[]>([]);
   const [plans, setPlans]           = React.useState<WorkoutPlan[]>([]);
   const [profileV2, setProfileV2]   = React.useState<ProfileV2Row | null>(null);
@@ -119,15 +103,11 @@ export function TrainerClientDetailScreen({
     if (!selectedClient?.id) return;
     setLoading(true);
     Promise.all([
-      supabase.from('physical_profiles').select('*').eq('user_id', selectedClient.id).maybeSingle(),
-      supabase.from('checkins').select('energy,soreness,minutes,goal,sleep_quality,date').eq('user_id', selectedClient.id).order('date', { ascending: false }).limit(5),
       supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(5),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id)').eq('assigned_to', selectedClient.id).order('created_at', { ascending: false }).limit(5),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', selectedClient.id).maybeSingle(),
-      supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,input_source,variant').eq('user_id', selectedClient.id).not('readiness_score', 'is', null).order('occurred_at', { ascending: false }).limit(7),
-    ]).then(([physRes, checkinsRes, sessionsRes, plansRes, profV2Res, readinessRes]) => {
-      setPhysical(physRes.data);
-      setCheckins(checkinsRes.data || []);
+      supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', selectedClient.id).order('occurred_at', { ascending: false }).limit(7),
+    ]).then(([sessionsRes, plansRes, profV2Res, readinessRes]) => {
       setSessions(sessionsRes.data || []);
       setPlans(plansRes.data || []);
       setProfileV2(profV2Res.data as unknown as ProfileV2Row | null);
@@ -251,28 +231,6 @@ export function TrainerClientDetailScreen({
               }}>{selectedClient.email}</div>
             </div>
           </div>
-
-          {/* Physical profile */}
-          {physical && (
-            <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-                Physical Profile
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {[
-                  ['Goal',   physical.primary_goal],
-                  ['Level',  physical.fitness_level],
-                  ['Weight', physical.weight_kg  ? `${physical.weight_kg} kg`  : null],
-                  ['Height', physical.height_cm  ? `${physical.height_cm} cm`  : null],
-                ].filter((item): item is [string, string] => !!item[1]).map(([label, value]) => (
-                  <div key={label}>
-                    <div style={{ fontSize: 10, color: textMute(dark), marginBottom: 3 }}>{label}</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), textTransform: 'capitalize' }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Profile v2 */}
           {profileV2 && (
@@ -412,41 +370,51 @@ export function TrainerClientDetailScreen({
             </div>
           )}
 
-          {/* Recent check-ins */}
+          {/* Recent Check-ins (checkin_prontidao) */}
           <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
               Recent Check-ins
             </div>
-            {checkins.length === 0 ? (
+            {readiness.length === 0 ? (
               <div style={{ color: textMute(dark), fontSize: 12 }}>No check-ins yet.</div>
-            ) : checkins.map((c, i) => {
-              const sorenessArray = Array.isArray(c.soreness) ? c.soreness : [];
-              const sore = sorenessArray.filter(s => s !== 'None');
-              return (
-                <div key={c.date || i} style={{
-                  padding: '10px 0',
-                  borderBottom: i < checkins.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
-                  display: 'flex', gap: 12
-                }}>
-                  <div style={{ fontSize: 10, color: textMute(dark), minWidth: 72, paddingTop: 2 }}>{c.date}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            ) : readiness.map((r, i) => (
+              <div key={r.id} style={{
+                padding: '10px 0',
+                borderBottom: i < readiness.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
+                display: 'flex', gap: 12,
+              }}>
+                <div style={{ fontSize: 10, color: textMute(dark), minWidth: 72, paddingTop: 2 }}>
+                  {r.occurred_at ? new Date(r.occurred_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '—'}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    {r.energy_level != null && (
                       <span style={{ fontSize: 12, color: textSec(dark) }}>
-                        Energy <span style={{ fontWeight: 700, color: t.primary }}>{c.energy}/10</span>
+                        Energy <span style={{ fontWeight: 700, color: t.primary }}>{r.energy_level}/10</span>
                       </span>
-                      {sore.length > 0 && (
-                        <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>⚠ {sore.join(', ')}</span>
-                      )}
-                      {c.minutes && <span style={{ fontSize: 12, color: textSec(dark) }}>{c.minutes} min</span>}
-                      {c.goal && <span style={{ fontSize: 12, color: textSec(dark) }}>{c.goal}</span>}
-                    </div>
-                    {c.sleep_quality && (
-                      <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2 }}>Sleep: {c.sleep_quality}</div>
+                    )}
+                    {r.readiness_score != null && (
+                      <span style={{ fontSize: 12, color: textSec(dark) }}>
+                        Readiness <span style={{ fontWeight: 700, color: r.readiness_score >= 70 ? '#4ade80' : r.readiness_score >= 40 ? '#F5A623' : t.accent }}>{r.readiness_score}</span>
+                      </span>
+                    )}
+                    {r.pain_present && (
+                      <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>⚠ Pain reported</span>
+                    )}
+                    {r.available_minutes != null && (
+                      <span style={{ fontSize: 12, color: textSec(dark) }}>{r.available_minutes} min</span>
+                    )}
+                    {r.training_location && (
+                      <span style={{ fontSize: 12, color: textSec(dark) }}>{r.training_location}</span>
                     )}
                   </div>
+                  <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2, display: 'flex', gap: 8 }}>
+                    {r.sleep_quality && <span>Sleep: {r.sleep_quality}</span>}
+                    {r.input_source === 'voice' && <span style={{ color: t.primary, fontWeight: 700 }}>VOZ</span>}
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
           {/* Recent plans */}

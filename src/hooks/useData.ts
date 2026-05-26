@@ -1,70 +1,20 @@
 import { supabase } from '../supabase';
 import type {
-  PhysicalProfile,
-  CheckIn,
   CycleConfig,
   Preferences,
   ExerciseCatalogItem,
+  WorkoutSessionExercise,
+  SessionExerciseStatus,
 } from '../types';
 import type { UserProfileV2 } from '../types/profile-v2';
 import type { CheckInVariant, CheckInQuick, CheckInDetailed, CheckInVoice, CheckInPostWorkout, SafetyGateResult } from '../types/checkin-v2';
+import type { GeneratedWorkoutExercise } from '../lib/workoutGeneration';
 import type { Json } from '../types/supabase';
 
 interface DataResult<T>  { data: T | null;  error: unknown }
 interface MutateResult   { error: unknown }
 
 export function useData(userId: string | undefined) {
-
-  async function savePhysicalProfile(
-    data: Partial<Omit<PhysicalProfile, 'user_id'>>
-  ): Promise<MutateResult> {
-    if (!userId) return { error: null };
-    const { error } = await supabase
-      .from('physical_profiles')
-      .upsert(
-        { user_id: userId, ...data, updated_at: new Date().toISOString() },
-        { onConflict: 'user_id' }
-      );
-    if (error) console.error('[useData] savePhysicalProfile error:', error);
-    return { error };
-  }
-
-  async function saveCheckin(
-    data: Omit<CheckIn, never>
-  ): Promise<MutateResult> {
-    if (!userId) return { error: null };
-    const today = new Date().toISOString().slice(0, 10);
-    const { error } = await supabase
-      .from('checkins')
-      .upsert(
-        { user_id: userId, date: today, ...data },
-        { onConflict: 'user_id,date' }
-      );
-    if (error) console.error('[useData] saveCheckin error:', error);
-    return { error };
-  }
-
-  async function logWorkoutSession(
-    data: Record<string, unknown>
-  ): Promise<MutateResult> {
-    if (!userId) return { error: null };
-    const { error } = await supabase
-      .from('workout_sessions')
-      .insert({ user_id: userId, ...data });
-    if (error) console.error('[useData] logWorkoutSession error:', error);
-    return { error };
-  }
-
-  async function fetchPhysicalProfile(): Promise<DataResult<PhysicalProfile>> {
-    if (!userId) return { data: null, error: null };
-    const { data, error } = await supabase
-      .from('physical_profiles')
-      .select('weight_kg, height_cm, fitness_level, primary_goal, restrictions')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (error) console.error('[useData] fetchPhysicalProfile error:', error);
-    return { data: data as PhysicalProfile | null, error };
-  }
 
   // ── Cycle config ─────────────────────────────────────────────────────────
 
@@ -282,6 +232,134 @@ export function useData(userId: string | undefined) {
     return { data, error };
   }
 
+  // ── M4 — Execução Real da Sessão ─────────────────────────────────────────────
+
+  async function startWorkoutSession(input: {
+    planId: string | null;
+    exercises: GeneratedWorkoutExercise[];
+  }): Promise<DataResult<{ sessionId: string; sessionExercises: WorkoutSessionExercise[] }>> {
+    if (!userId) return { data: null, error: 'no user' };
+
+    const { data: session, error: sessionError } = await supabase
+      .from('workout_sessions')
+      .insert({
+        user_id:    userId,
+        plan_id:    input.planId,
+        status:     'active',
+        started_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+
+    if (sessionError || !session) {
+      console.error('[useData] startWorkoutSession error:', sessionError);
+      return { data: null, error: sessionError };
+    }
+
+    const sessionId = session.id as string;
+
+    const exerciseRows = input.exercises.map((ex, i) => ({
+      session_id:          sessionId,
+      exercise_name:       ex.exercise_name,
+      muscle_group:        ex.muscle_group ?? null,
+      order_index:         i,
+      sets_prescribed:     ex.sets ?? null,
+      reps_prescribed:     ex.reps ?? null,
+      load_kg_prescribed:  ex.load_kg ?? null,
+      rest_seconds:        ex.rest_seconds ?? null,
+      notes:               ex.notes ?? null,
+      status:              'pending',
+    }));
+
+    const { data: inserted, error: exError } = await supabase
+      .from('workout_session_exercises')
+      .insert(exerciseRows)
+      .select('*');
+
+    if (exError) {
+      console.error('[useData] startWorkoutSession exercises error:', exError);
+      return { data: null, error: exError };
+    }
+
+    return {
+      data: { sessionId, sessionExercises: (inserted ?? []) as WorkoutSessionExercise[] },
+      error: null,
+    };
+  }
+
+  async function logWorkoutSet(data: {
+    session_exercise_id: string;
+    session_id:          string;
+    set_number:          number;
+    reps_done:           number | null;
+    load_kg:             number | null;
+    rpe:                 number | null;
+  }): Promise<MutateResult> {
+    const { error } = await supabase
+      .from('workout_set_logs')
+      .insert({ ...data, completed_at: new Date().toISOString() });
+    if (error) console.error('[useData] logWorkoutSet error:', error);
+    return { error };
+  }
+
+  async function updateSessionExerciseStatus(
+    sessionExerciseId: string,
+    status: SessionExerciseStatus,
+  ): Promise<MutateResult> {
+    const { error } = await supabase
+      .from('workout_session_exercises')
+      .update({ status })
+      .eq('id', sessionExerciseId);
+    if (error) console.error('[useData] updateSessionExerciseStatus error:', error);
+    return { error };
+  }
+
+  async function reportWorkoutPain(data: {
+    session_id:          string;
+    session_exercise_id: string | null;
+    body_region:         string;
+    intensity:           number;
+  }): Promise<MutateResult> {
+    const { error } = await supabase
+      .from('workout_pain_events')
+      .insert({ ...data, reported_at: new Date().toISOString(), trainer_notified: false });
+    if (error) console.error('[useData] reportWorkoutPain error:', error);
+    return { error };
+  }
+
+  async function completeWorkoutSession(data: {
+    sessionId:          string;
+    completed_at:       string;
+    total_duration_min: number;
+    notes?:             string | null;
+  }): Promise<MutateResult> {
+    const { error } = await supabase
+      .from('workout_sessions')
+      .update({
+        status:             'completed',
+        completed_at:       data.completed_at,
+        total_duration_min: data.total_duration_min,
+        notes:              data.notes ?? null,
+      })
+      .eq('id', data.sessionId);
+    if (error) console.error('[useData] completeWorkoutSession error:', error);
+    return { error };
+  }
+
+  async function savePostWorkoutFeedback(data: {
+    session_id:      string;
+    overall_feeling: number;
+    energy_after:    number | null;
+    notes:           string | null;
+  }): Promise<MutateResult> {
+    if (!userId) return { error: null };
+    const { error } = await supabase
+      .from('post_workout_feedback')
+      .insert({ ...data, user_id: userId, submitted_at: new Date().toISOString() });
+    if (error) console.error('[useData] savePostWorkoutFeedback error:', error);
+    return { error };
+  }
+
   async function simulateVoiceAssistant(query: string, role: string) {
     const normalized = query.toLowerCase();
     let intent = 'unknown';
@@ -402,10 +480,6 @@ export function useData(userId: string | undefined) {
   }
 
   return {
-    savePhysicalProfile,
-    fetchPhysicalProfile,
-    saveCheckin,
-    logWorkoutSession,
     saveCycleConfig,
     fetchCycleConfig,
     savePreferences,
@@ -417,5 +491,12 @@ export function useData(userId: string | undefined) {
     saveExercise,
     fetchProtocolsList,
     simulateVoiceAssistant,
+    // M4
+    startWorkoutSession,
+    logWorkoutSet,
+    updateSessionExerciseStatus,
+    reportWorkoutPain,
+    completeWorkoutSession,
+    savePostWorkoutFeedback,
   };
 }

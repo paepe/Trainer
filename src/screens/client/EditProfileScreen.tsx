@@ -24,19 +24,12 @@ interface AppUser {
   avatar_url: string | null;
 }
 
-interface PhysicalProfile {
-  weight_kg?: number | null;
-  height_cm?: number | null;
-}
-
 interface EditProfileScreenProps {
-  nav:                   NavFn;
-  t:                     Theme;
-  dark:                  boolean;
-  user:                  AppUser;
-  setUser:               (updates: Partial<Profile> & { email?: string }) => Promise<{ error: unknown }>;
-  savePhysicalProfile?:  (data: PhysicalProfile) => Promise<{ error: unknown }>;
-  fetchPhysicalProfile?: () => Promise<{ data: PhysicalProfile | null }>;
+  nav:     NavFn;
+  t:       Theme;
+  dark:    boolean;
+  user:    AppUser;
+  setUser: (updates: Partial<Profile> & { email?: string }) => Promise<{ error: unknown }>;
 }
 
 const GENDER_OPTS = [
@@ -48,9 +41,7 @@ const GENDER_OPTS = [
 
 type Draft = { name: string; email: string; phone: string; dob: string; loc: string; gender: string };
 
-export function EditProfileScreen({
-  nav, t, dark, user, setUser, savePhysicalProfile, fetchPhysicalProfile,
-}: EditProfileScreenProps) {
+export function EditProfileScreen({ nav, t, dark, user, setUser }: EditProfileScreenProps) {
   const [draft, setDraft] = React.useState<Draft>({
     name:   user.name     || '',
     email:  user.email    || '',
@@ -59,24 +50,12 @@ export function EditProfileScreen({
     loc:    user.location || '',
     gender: user.gender   || '',
   });
-  const [physDraft, setPhysDraft] = React.useState({ weight_kg: '', height_cm: '' });
   const [avatarUrl,       setAvatarUrl]       = React.useState<string | null>(user.avatar_url ?? null);
   const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
   const [uploadErr,       setUploadErr]       = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [saving,  setSaving]  = React.useState(false);
   const [saveErr, setSaveErr] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (!fetchPhysicalProfile) return;
-    fetchPhysicalProfile().then(({ data }) => {
-      if (!data) return;
-      setPhysDraft({
-        weight_kg: data.weight_kg != null ? String(data.weight_kg) : '',
-        height_cm: data.height_cm != null ? String(data.height_cm) : '',
-      });
-    });
-  }, []);
 
   const formatPhone = (raw: string) => raw.replace(/[^\d+\s\-()]/g, '');
 
@@ -88,11 +67,6 @@ export function EditProfileScreen({
     location:   draft.loc.trim()    || '',
     gender:     (draft.gender as Profile['gender']) || '',
     avatar_url: avatarUrl,
-  };
-
-  const physicalPayload: PhysicalProfile = {
-    weight_kg: physDraft.weight_kg ? parseFloat(physDraft.weight_kg) : null,
-    height_cm: physDraft.height_cm ? parseInt(physDraft.height_cm, 10) : null,
   };
 
   const getErrorMessage = (value: unknown) => {
@@ -113,15 +87,6 @@ export function EditProfileScreen({
       if (profileError) {
         setSaveErr(profileError);
         return;
-      }
-
-      if (savePhysicalProfile) {
-        const physicalResult = await savePhysicalProfile(physicalPayload);
-        const physicalError = getErrorMessage((physicalResult as { error?: unknown })?.error);
-        if (physicalError) {
-          setSaveErr(physicalError);
-          return;
-        }
       }
 
       nav('profile');
@@ -204,43 +169,6 @@ export function EditProfileScreen({
             onChange={v => setDraft({ ...draft, [k]: type === 'tel' ? formatPhone(v) : v })}
             primary={t.primary} dark={dark}/>
         ))}
-      </div>
-
-      {/* Physical measurements */}
-      <div style={{ padding: '0 22px 14px' }}>
-        <div style={{
-          fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em',
-          textTransform: 'uppercase', color: textMute(dark), marginBottom: 10,
-        }}>Body measurements</div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          {(['weight_kg', 'height_cm'] as const).map(field => (
-            <div key={field} style={{ flex: 1 }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '14px 18px', borderRadius: 999,
-                background: dark ? '#142233' : '#F4F6FA',
-              }}>
-                <Icon name={field === 'weight_kg' ? 'activity' : 'pulse'} size={18} color={textMute(dark)} stroke={2}/>
-                <input
-                  type="number"
-                  min={field === 'weight_kg' ? 20 : 50}
-                  max={field === 'weight_kg' ? 300 : 250}
-                  step={field === 'weight_kg' ? 0.1 : 1}
-                  placeholder={field === 'weight_kg' ? 'Weight' : 'Height'}
-                  value={physDraft[field]}
-                  onChange={e => setPhysDraft({ ...physDraft, [field]: e.target.value })}
-                  style={{
-                    flex: 1, border: 'none', outline: 'none', background: 'transparent',
-                    fontSize: 14, color: textPri(dark), fontFamily: 'inherit', minWidth: 0,
-                  }}
-                />
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: textMute(dark), flexShrink: 0 }}>
-                  {field === 'weight_kg' ? 'kg' : 'cm'}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Gender picker */}

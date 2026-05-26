@@ -28,19 +28,21 @@ interface ClientProfile {
 }
 
 interface PhysicalProfile {
-  primary_goal?:  string | null;
-  fitness_level?: string | null;
-  weight_kg?:     number | null;
-  height_cm?:     number | null;
+  primary_goal?:     string | null;
+  fitness_level?:    string | null;
+  equipment?:        string[] | null;
+  session_min?:      number | null;
+  restrictions?:     string[] | null;
 }
 
 interface CheckIn {
-  energy?:        number | null;
-  soreness?:      string[] | null;
-  minutes?:       number | null;
-  goal?:          string | null;
-  sleep_quality?: string | null;
-  date?:          string | null;
+  energy?:           number | null;
+  pain_region?:      string | null;
+  pain_present?:     boolean | null;
+  minutes?:          number | null;
+  sleep_quality?:    string | null;
+  training_location?: string | null;
+  occurred_at?:      string | null;
 }
 
 interface WorkoutPlanEditorContext {
@@ -82,6 +84,7 @@ export function WorkoutPlanEditorScreen({
   const [context, setContext] = React.useState<WorkoutPlanEditorContext | null>(null);
   const [exercises, setExercises] = React.useState<WorkoutExercise[]>([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
+  const [nameError,   setNameError]   = React.useState(false);
   const [draft, setDraft] = React.useState<WorkoutExercise>({
     exercise_name: '',
     muscle_group:  '',
@@ -103,9 +106,25 @@ export function WorkoutPlanEditorScreen({
     setAiLoading(true);
     setAiError('');
     try {
+      const pp  = context?.physicalProfile;
+      const ci  = context?.latestCheckin;
       const generatedExercises = await requestWorkoutPlan({
-        checkin:         (context?.latestCheckin ?? null) as never,
-        physicalProfile: (context?.physicalProfile ?? null) as never,
+        checkin: ci ? {
+          energy:        ci.energy        ?? 7,
+          soreness:      ci.pain_present && ci.pain_region ? [ci.pain_region] : [],
+          minutes:       ci.minutes       ?? 45,
+          goal:          pp?.primary_goal ?? 'general',
+          location:      (ci.training_location ?? 'gym') as never,
+          sleep_quality: (ci.sleep_quality     ?? 'good') as never,
+          equipment:     (pp?.equipment ?? []) as never,
+        } : null,
+        physicalProfile: pp ? {
+          primary_goal:      pp.primary_goal      ?? undefined,
+          fitness_level:     pp.fitness_level     ?? undefined,
+          available_minutes: pp.session_min        ?? undefined,
+          equipment:         pp.equipment          ?? undefined,
+          restrictions:      pp.restrictions       ?? undefined,
+        } as never : null,
       });
 
       setExercises(generatedExercises.map(ex => ({
@@ -127,15 +146,53 @@ export function WorkoutPlanEditorScreen({
   React.useEffect(() => {
     if (!selectedClient?.id) return;
     Promise.all([
-      supabase.from('physical_profiles').select('*').eq('user_id', selectedClient.id).maybeSingle(),
-      supabase.from('checkins').select('*').eq('user_id', selectedClient.id).order('date', { ascending: false }).limit(1).maybeSingle(),
+      supabase
+        .from('profile_v2')
+        .select('objectives, movement_history, environment, availability')
+        .eq('user_id', selectedClient.id)
+        .maybeSingle(),
+      supabase
+        .from('checkin_prontidao')
+        .select('energy_level, sleep_quality, available_minutes, training_location, pain_present, quick_data, occurred_at')
+        .eq('user_id', selectedClient.id)
+        .order('occurred_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]).then(([profileRes, checkinRes]) => {
-      setContext({ physicalProfile: profileRes.data, latestCheckin: checkinRes.data });
+      const pv2 = profileRes.data as {
+        objectives?:       { primary_goal?: string } | null;
+        movement_history?: { fitness_level?: string } | null;
+        environment?:      { equipment?: string[] }   | null;
+        availability?:     { session_duration_min?: number } | null;
+      } | null;
+
+      const ci = checkinRes.data;
+      const qd = ci?.quick_data as { pain?: { region?: string } } | null | undefined;
+
+      setContext({
+        physicalProfile: pv2 ? {
+          primary_goal:  pv2.objectives?.primary_goal  ?? null,
+          fitness_level: pv2.movement_history?.fitness_level ?? null,
+          equipment:     (pv2.environment?.equipment   ?? null) as string[] | null,
+          session_min:   pv2.availability?.session_duration_min ?? null,
+          restrictions:  null,
+        } : null,
+        latestCheckin: ci ? {
+          energy:            ci.energy_level,
+          sleep_quality:     ci.sleep_quality,
+          minutes:           ci.available_minutes,
+          training_location: ci.training_location,
+          pain_present:      ci.pain_present,
+          pain_region:       qd?.pain?.region ?? null,
+          occurred_at:       ci.occurred_at,
+        } : null,
+      });
     });
   }, [selectedClient?.id]);
 
   function addExercise() {
-    if (!draft.exercise_name.trim()) return;
+    if (!draft.exercise_name.trim()) { setNameError(true); return; }
+    setNameError(false);
     setExercises([...exercises, { ...draft }]);
     setDraft({
       exercise_name: '',
@@ -206,8 +263,7 @@ export function WorkoutPlanEditorScreen({
     );
   }
 
-  const latestCheckinSoreness = Array.isArray(context?.latestCheckin?.soreness) ? context.latestCheckin.soreness : [];
-  const hasSoreness = latestCheckinSoreness.length > 0 && latestCheckinSoreness[0] !== 'None';
+  const hasPain = !!(context?.latestCheckin?.pain_present && context?.latestCheckin?.pain_region);
 
   return (
     <>
@@ -243,16 +299,21 @@ export function WorkoutPlanEditorScreen({
             {context.latestCheckin ? (
               <>
                 <span style={{ fontSize: 12, color: textSec(dark) }}>
-                  Energy <span style={{ fontWeight: 700, color: t.primary }}>{context.latestCheckin.energy}/10</span>
+                  Energy <span style={{ fontWeight: 700, color: t.primary }}>{context.latestCheckin.energy ?? '—'}/10</span>
                 </span>
-                {hasSoreness && (
+                {hasPain && (
                   <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>
-                    ⚠ {latestCheckinSoreness.join(', ')}
+                    ⚠ {context.latestCheckin.pain_region}
                   </span>
                 )}
-                <span style={{ fontSize: 12, color: textSec(dark) }}>
-                  <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.latestCheckin.minutes}min</span> available
-                </span>
+                {context.latestCheckin.minutes != null && (
+                  <span style={{ fontSize: 12, color: textSec(dark) }}>
+                    <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.latestCheckin.minutes}min</span> available
+                  </span>
+                )}
+                {context.latestCheckin.training_location && (
+                  <span style={{ fontSize: 12, color: textSec(dark) }}>{context.latestCheckin.training_location}</span>
+                )}
               </>
             ) : (
               <span style={{ fontSize: 12, color: textMute(dark) }}>No check-in today</span>
@@ -260,6 +321,11 @@ export function WorkoutPlanEditorScreen({
             {context.physicalProfile?.primary_goal && (
               <span style={{ fontSize: 12, color: textSec(dark) }}>
                 Goal <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.primary_goal}</span>
+              </span>
+            )}
+            {context.physicalProfile?.fitness_level && (
+              <span style={{ fontSize: 12, color: textSec(dark) }}>
+                Level <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.fitness_level}</span>
               </span>
             )}
           </div>
@@ -317,14 +383,21 @@ export function WorkoutPlanEditorScreen({
             display: 'flex', flexDirection: 'column', gap: 10
           }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>New exercise</div>
-            <PillInput
-              icon="dumbbell"
-              placeholder="Exercise name"
-              value={draft.exercise_name}
-              onChange={v => setDraft({ ...draft, exercise_name: v })}
-              primary={t.primary}
-              dark={dark}
-            />
+            <div>
+              <PillInput
+                icon="dumbbell"
+                placeholder="Exercise name"
+                value={draft.exercise_name}
+                onChange={v => { setDraft({ ...draft, exercise_name: v }); setNameError(false); }}
+                primary={nameError ? t.accent : t.primary}
+                dark={dark}
+              />
+              {nameError && (
+                <div style={{ fontSize: 11.5, color: t.accent, marginTop: 4, paddingLeft: 4, fontWeight: 600 }}>
+                  Exercise name is required.
+                </div>
+              )}
+            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {MUSCLE_GROUPS.map(mg => {
                 const on = draft.muscle_group === mg;

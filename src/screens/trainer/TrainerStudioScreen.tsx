@@ -87,11 +87,15 @@ export function TrainerStudioScreen({ nav, t, dark }: TrainerStudioScreenProps) 
             42 workouts · 18 progressions · 7 client archetypes.<br/>
             Last trained: 2 days ago. AI uses this to generate plans only for <b>your</b> clients.
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button style={{
               padding: '9px 14px', borderRadius: 999, border: 'none',
               background: '#0E1A2B', color: t.primary, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
             }}>+ Add workout</button>
+            <button onClick={() => nav('trainerLibraryExercises')} style={{
+              padding: '9px 14px', borderRadius: 999, border: '1.5px solid rgba(14,26,43,.4)',
+              background: 'transparent', color: '#0E1A2B', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
+            }}>Exercise Library</button>
             <button style={{
               padding: '9px 14px', borderRadius: 999, border: '1.5px solid rgba(14,26,43,.4)',
               background: 'transparent', color: '#0E1A2B', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',

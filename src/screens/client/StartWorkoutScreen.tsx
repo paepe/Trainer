@@ -128,41 +128,54 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
       if (user?.id) {
         const [profileRes, checkinRes] = await Promise.allSettled([
           supabase
-            .from('physical_profiles')
-            .select('*')
+            .from('profile_v2')
+            .select('objectives, movement_history, environment, availability')
             .eq('user_id', user.id)
             .maybeSingle(),
           supabase
-            .from('checkins')
-            .select('energy, soreness, minutes, goal, location, sleep_quality, equipment')
+            .from('checkin_prontidao')
+            .select('energy_level, sleep_quality, available_minutes, training_location, quick_data')
             .eq('user_id', user.id)
-            .order('date', { ascending: false })
+            .order('occurred_at', { ascending: false })
             .limit(1)
             .maybeSingle(),
         ]);
 
         if (profileRes.status === 'fulfilled') {
           if (profileRes.value.error) {
-            console.error('[start-workout] failed to load physical profile', profileRes.value.error);
-          } else {
-            physicalProfile = (profileRes.value.data as unknown as Json | null) ?? null;
+            console.error('[start-workout] failed to load profile_v2', profileRes.value.error);
+          } else if (profileRes.value.data) {
+            const pv2 = profileRes.value.data as {
+              objectives?:       { primary_goal?: string } | null;
+              movement_history?: { fitness_level?: string } | null;
+              environment?:      { equipment?: string[] }   | null;
+              availability?:     { session_duration_min?: number } | null;
+            };
+            physicalProfile = {
+              primary_goal:      pv2.objectives?.primary_goal      ?? null,
+              fitness_level:     pv2.movement_history?.fitness_level ?? null,
+              available_minutes: pv2.availability?.session_duration_min ?? null,
+              equipment:         pv2.environment?.equipment         ?? [],
+            } as unknown as Json;
           }
         } else {
-          console.error('[start-workout] physical profile request crashed', profileRes.reason);
+          console.error('[start-workout] profile_v2 request crashed', profileRes.reason);
         }
 
         if (checkinRes.status === 'fulfilled') {
           if (checkinRes.value.error) {
             console.error('[start-workout] failed to load latest check-in', checkinRes.value.error);
           } else if (checkinRes.value.data) {
+            const ci  = checkinRes.value.data;
+            const qd  = ci.quick_data as { pain?: { present?: boolean; region?: string }; fatigue?: number } | null;
             resolvedCheckin = {
-              energy:        checkinRes.value.data.energy ?? checkin.energy,
-              soreness:      checkinRes.value.data.soreness ?? checkin.soreness,
-              minutes:       checkinRes.value.data.minutes ?? checkin.minutes,
-              goal:          checkinRes.value.data.goal ?? checkin.goal,
-              location:      (checkinRes.value.data.location ?? checkin.location) as typeof checkin.location,
-              sleep_quality: (checkinRes.value.data.sleep_quality ?? checkin.sleep_quality) as typeof checkin.sleep_quality,
-              equipment:     checkinRes.value.data.equipment ?? checkin.equipment,
+              energy:        ci.energy_level        ?? checkin.energy,
+              soreness:      qd?.pain?.present && qd.pain.region ? [qd.pain.region] : checkin.soreness,
+              minutes:       ci.available_minutes   ?? checkin.minutes,
+              goal:          checkin.goal,
+              location:      (ci.training_location  ?? checkin.location) as typeof checkin.location,
+              sleep_quality: (ci.sleep_quality      ?? checkin.sleep_quality) as typeof checkin.sleep_quality,
+              equipment:     checkin.equipment,
             };
           }
         } else {
@@ -302,7 +315,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
 
       <div style={{ padding: '16px 22px 28px' }}>
         <button
-          onClick={() => nav('workoutInProgress', { planId, exercises: plan })}
+          onClick={() => nav('workoutMode', { planId, exercises: plan })}
           disabled={!plan || loading}
           style={{
             ...primaryBtn(t.primary),

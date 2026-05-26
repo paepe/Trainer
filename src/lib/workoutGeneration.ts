@@ -1,4 +1,4 @@
-import type { CheckIn, PhysicalProfile } from '../types';
+import type { CheckIn } from '../types';
 import type { Json } from '../types/supabase';
 
 export interface CycleContext {
@@ -24,7 +24,7 @@ interface WorkoutGenerationResponse {
 
 interface RequestWorkoutPlanInput {
   checkin?:         Partial<CheckIn> | null | undefined;
-  physicalProfile?: Partial<PhysicalProfile> | Json | null | undefined;
+  physicalProfile?: Json | null | undefined;
   cycleContext?:    CycleContext | null | undefined;
 }
 

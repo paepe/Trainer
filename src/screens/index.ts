@@ -6,15 +6,15 @@ export {
 } from './auth';
 
 export {
-  ProfileScreen,
   EditProfileScreen,
   StatsScreen,
   HistoryScreen,
   CycleScreen,
   SettingsScreen,
   StartWorkoutScreen,
-  WorkoutInProgressScreen,
   GoalAchievedScreen,
+  WorkoutModeScreen,
+  PostWorkoutSummaryScreen,
 } from './client';
 
 export {
@@ -22,6 +22,7 @@ export {
   TrainerDashboardScreen,
   TrainerClientDetailScreen,
   WorkoutPlanEditorScreen,
+  TrainerLibraryExercisesScreen,
 } from './trainer';
 
 export {

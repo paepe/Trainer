@@ -4,14 +4,15 @@ import { useAuth } from './hooks/useAuth';
 import { useData } from './hooks/useData';
 import {
   WelcomeScreen, LoginScreen, RegisterScreen, ProfileWizardScreen,
-  ProfileScreen, EditProfileScreen, CheckInProntidaoScreen,
-  StartWorkoutScreen, WorkoutInProgressScreen, GoalAchievedScreen,
+  EditProfileScreen, CheckInProntidaoScreen,
+  StartWorkoutScreen, GoalAchievedScreen,
+  WorkoutModeScreen, PostWorkoutSummaryScreen,
   StatsScreen, HistoryScreen,
   CycleScreen, TrainerStudioScreen, SettingsScreen,
   TrainerDashboardScreen, TrainerClientDetailScreen,
   WorkoutPlanEditorScreen, TrainerLibraryExercisesScreen,
 } from './screens';
-import { SideMenu, Icon, BottomTabs } from './components';
+import { SideMenu, BottomTabs } from './components';
 import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './types';
 import { TRAINER_ROLES } from './types/auth';
 
@@ -51,10 +52,11 @@ interface AppUser {
 export default function App() {
   const { session, profile, loading, signIn, signUp, signOut, updateProfile } = useAuth();
   const {
-    savePhysicalProfile, fetchPhysicalProfile, saveCheckin, logWorkoutSession,
     saveCycleConfig, fetchCycleConfig,
     savePreferences, fetchPreferences,
     saveProfileV2, saveCheckinV2, updatePainRecurrence,
+    startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
+    reportWorkoutPain, completeWorkoutSession, savePostWorkoutFeedback,
   } = useData(session?.user?.id);
 
   const [dark, setDark] = React.useState(true);
@@ -210,16 +212,12 @@ export default function App() {
     cycleConfig, setCycleConfig,
     saveCycleConfig,
     signIn, signUp,
-    savePhysicalProfile,
-    fetchPhysicalProfile,
-    saveCheckin,
-    logWorkoutSession,
     selectedClient,
     selectClient,
   };
 
   const showTabs = [
-    'profile','workout','workoutInProgress','goal','stats','history',
+    'profile','workout','workoutMode','goal','stats','history',
     'settings','editProfile','targets','checkin','cycle','studio',
     'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
   ].includes(screen);
@@ -247,12 +245,30 @@ export default function App() {
       case 'welcome':          return <WelcomeScreen           {...common}/>;
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
-      case 'profileWizard':    return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2}/>;
-      case 'profile':          return <ProfileScreen           {...common} prefs={prefs} cycleConfig={cycleConfig}/>;
+      case 'profile':          return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2}/>;
       case 'editProfile':      return <EditProfileScreen       {...common} setUser={handleSetUser}/>;
       case 'checkin':          return <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} userName={profile?.name ?? undefined} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>;
       case 'workout':            return <StartWorkoutScreen      {...common}/>;
-      case 'workoutInProgress':  return <WorkoutInProgressScreen {...common} planId={(screenPayload?.planId as string | null) ?? null} exercises={(screenPayload?.exercises as Exercise[] | null) ?? null}/>;
+      case 'workoutMode':        return <WorkoutModeScreen
+          nav={nav} t={t} dark={dark} user={user}
+          planId={(screenPayload?.planId as string | null) ?? null}
+          exercises={(screenPayload?.exercises as Exercise[] | null) ?? null}
+          startWorkoutSession={startWorkoutSession}
+          logWorkoutSet={logWorkoutSet}
+          updateSessionExerciseStatus={updateSessionExerciseStatus}
+          reportWorkoutPain={reportWorkoutPain}
+          completeWorkoutSession={completeWorkoutSession}
+          updatePainRecurrence={updatePainRecurrence}
+        />;
+      case 'workoutSummary':     return <PostWorkoutSummaryScreen
+          nav={nav} t={t} dark={dark} user={user}
+          sessionId={(screenPayload?.sessionId as string | null) ?? null}
+          durationMin={(screenPayload?.durationMin as number) ?? 0}
+          completedCount={(screenPayload?.completedCount as number) ?? 0}
+          total={(screenPayload?.total as number) ?? 0}
+          totalSets={(screenPayload?.totalSets as number) ?? 0}
+          savePostWorkoutFeedback={savePostWorkoutFeedback}
+        />;
       case 'goal':               return <GoalAchievedScreen      {...common} sessionData={screenPayload}/>;
       case 'stats':              return <StatsScreen             {...common}/>;
       case 'history':            return <HistoryScreen           {...common}/>;

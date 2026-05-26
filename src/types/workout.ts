@@ -51,17 +51,6 @@ export interface WorkoutPlan {
   created_at:  string;
 }
 
-export interface PhysicalProfile {
-  user_id:              string;
-  weight_kg:            number | null;
-  height_cm:            number | null;
-  fitness_level:        FitnessLevel | null;
-  primary_goal:         string | null;
-  restrictions:         string[] | null;
-  available_minutes?:   number | null;
-  location_preference?: LocationType | null;
-}
-
 export interface CycleConfig {
   user_id:         string;
   cycle_length:    number;
@@ -76,3 +65,90 @@ export interface Preferences {
   updated_at: string;
   [key: string]: unknown;
 }
+
+// ── M4 — Execução Real da Sessão ─────────────────────────────────────────────
+
+export type WorkoutSessionStatus  = 'active' | 'paused' | 'completed' | 'abandoned';
+export type SessionExerciseStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'substituted';
+
+export interface WorkoutSessionRecord {
+  id:                 string;
+  user_id:            string;
+  plan_id:            string | null;
+  status:             WorkoutSessionStatus;
+  started_at:         string;
+  completed_at:       string | null;
+  total_duration_min: number | null;
+  notes:              string | null;
+}
+
+export interface WorkoutSessionExercise {
+  id:                  string;
+  session_id:          string;
+  plan_exercise_id:    string | null;
+  exercise_id:         string | null;
+  exercise_name:       string;
+  muscle_group:        string;
+  order_index:         number;
+  sets_prescribed:     number | null;
+  reps_prescribed:     number | null;
+  load_kg_prescribed:  number | null;
+  rest_seconds:        number | null;
+  notes:               string | null;
+  status:              SessionExerciseStatus;
+  substituted_from_id: string | null;
+}
+
+export interface WorkoutSetLog {
+  id:                  string;
+  session_exercise_id: string;
+  session_id:          string;
+  set_number:          number;
+  reps_done:           number | null;
+  load_kg:             number | null;
+  rpe:                 number | null;
+  duration_seconds:    number | null;
+  completed_at:        string;
+}
+
+export interface WorkoutPainEvent {
+  id:                  string;
+  session_id:          string;
+  session_exercise_id: string | null;
+  exercise_id:         string | null;
+  body_region:         string;
+  intensity:           number;
+  reported_at:         string;
+  trainer_notified:    boolean;
+}
+
+export interface PostWorkoutFeedback {
+  id:              string;
+  session_id:      string;
+  user_id:         string;
+  overall_feeling: number;
+  energy_after:    number | null;
+  notes:           string | null;
+  submitted_at:    string;
+}
+
+export interface ExerciseCatalogItem {
+  id: string;
+  name: string;
+  muscle_group: string;
+  equipment: string[];
+  level: FitnessLevel;
+  short_instruction?: string | null;
+  status: 'draft' | 'pending_review' | 'active' | 'restricted' | 'studio_only' | 'ai_allowed' | 'ai_restricted' | 'blocked' | 'archived';
+  alternatives: string[];
+  restrictions: string[];
+  movement_pattern?: string | null;
+  relative_risk_regions: string[];
+  accessibility_tags: string[];
+  created_by?: string | null;
+  approved_by?: string | null;
+  video_url?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+

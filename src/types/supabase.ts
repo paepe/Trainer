@@ -1078,40 +1078,49 @@ export type Database = {
       }
       workout_sessions: {
         Row: {
-          completed_at: string | null
-          created_at: string | null
-          duration_minutes: number | null
-          feedback_energy: number | null
-          feedback_notes: string | null
-          id: string
-          performance_score: number | null
-          plan_id: string | null
-          started_at: string | null
-          user_id: string
+          completed_at:       string | null
+          created_at:         string | null
+          duration_minutes:   number | null
+          feedback_energy:    number | null
+          feedback_notes:     string | null
+          id:                 string
+          notes:              string | null
+          performance_score:  number | null
+          plan_id:            string | null
+          started_at:         string | null
+          status:             string | null
+          total_duration_min: number | null
+          user_id:            string
         }
         Insert: {
-          completed_at?: string | null
-          created_at?: string | null
-          duration_minutes?: number | null
-          feedback_energy?: number | null
-          feedback_notes?: string | null
-          id?: string
-          performance_score?: number | null
-          plan_id?: string | null
-          started_at?: string | null
-          user_id: string
+          completed_at?:       string | null
+          created_at?:         string | null
+          duration_minutes?:   number | null
+          feedback_energy?:    number | null
+          feedback_notes?:     string | null
+          id?:                 string
+          notes?:              string | null
+          performance_score?:  number | null
+          plan_id?:            string | null
+          started_at?:         string | null
+          status?:             string | null
+          total_duration_min?: number | null
+          user_id:             string
         }
         Update: {
-          completed_at?: string | null
-          created_at?: string | null
-          duration_minutes?: number | null
-          feedback_energy?: number | null
-          feedback_notes?: string | null
-          id?: string
-          performance_score?: number | null
-          plan_id?: string | null
-          started_at?: string | null
-          user_id?: string
+          completed_at?:       string | null
+          created_at?:         string | null
+          duration_minutes?:   number | null
+          feedback_energy?:    number | null
+          feedback_notes?:     string | null
+          id?:                 string
+          notes?:              string | null
+          performance_score?:  number | null
+          plan_id?:            string | null
+          started_at?:         string | null
+          status?:             string | null
+          total_duration_min?: number | null
+          user_id?:            string
         }
         Relationships: [
           {
@@ -1129,6 +1138,168 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workout_session_exercises: {
+        Row: {
+          created_at:          string | null
+          exercise_id:         string | null
+          exercise_name:       string
+          id:                  string
+          load_kg_prescribed:  number | null
+          muscle_group:        string | null
+          notes:               string | null
+          order_index:         number
+          plan_exercise_id:    string | null
+          reps_prescribed:     number | null
+          rest_seconds:        number | null
+          session_id:          string
+          sets_prescribed:     number | null
+          status:              string
+          substituted_from_id: string | null
+        }
+        Insert: {
+          created_at?:          string | null
+          exercise_id?:         string | null
+          exercise_name:        string
+          id?:                  string
+          load_kg_prescribed?:  number | null
+          muscle_group?:        string | null
+          notes?:               string | null
+          order_index?:         number
+          plan_exercise_id?:    string | null
+          reps_prescribed?:     number | null
+          rest_seconds?:        number | null
+          session_id:           string
+          sets_prescribed?:     number | null
+          status?:              string
+          substituted_from_id?: string | null
+        }
+        Update: {
+          created_at?:          string | null
+          exercise_id?:         string | null
+          exercise_name?:       string
+          id?:                  string
+          load_kg_prescribed?:  number | null
+          muscle_group?:        string | null
+          notes?:               string | null
+          order_index?:         number
+          plan_exercise_id?:    string | null
+          reps_prescribed?:     number | null
+          rest_seconds?:        number | null
+          session_id?:          string
+          sets_prescribed?:     number | null
+          status?:              string
+          substituted_from_id?: string | null
+        }
+        Relationships: []
+      }
+      workout_set_logs: {
+        Row: {
+          completed_at:        string | null
+          created_at:          string | null
+          duration_seconds:    number | null
+          id:                  string
+          load_kg:             number | null
+          rpe:                 number | null
+          reps_done:           number | null
+          session_exercise_id: string
+          session_id:          string
+          set_number:          number
+        }
+        Insert: {
+          completed_at?:        string | null
+          created_at?:          string | null
+          duration_seconds?:    number | null
+          id?:                  string
+          load_kg?:             number | null
+          rpe?:                 number | null
+          reps_done?:           number | null
+          session_exercise_id:  string
+          session_id:           string
+          set_number:           number
+        }
+        Update: {
+          completed_at?:        string | null
+          created_at?:          string | null
+          duration_seconds?:    number | null
+          id?:                  string
+          load_kg?:             number | null
+          rpe?:                 number | null
+          reps_done?:           number | null
+          session_exercise_id?: string
+          session_id?:          string
+          set_number?:          number
+        }
+        Relationships: []
+      }
+      workout_pain_events: {
+        Row: {
+          body_region:          string
+          created_at:           string | null
+          exercise_id:          string | null
+          id:                   string
+          intensity:            number
+          reported_at:          string | null
+          session_exercise_id:  string | null
+          session_id:           string
+          trainer_notified:     boolean | null
+        }
+        Insert: {
+          body_region:          string
+          created_at?:          string | null
+          exercise_id?:         string | null
+          id?:                  string
+          intensity:            number
+          reported_at?:         string | null
+          session_exercise_id?: string | null
+          session_id:           string
+          trainer_notified?:    boolean | null
+        }
+        Update: {
+          body_region?:         string
+          created_at?:          string | null
+          exercise_id?:         string | null
+          id?:                  string
+          intensity?:           number
+          reported_at?:         string | null
+          session_exercise_id?: string | null
+          session_id?:          string
+          trainer_notified?:    boolean | null
+        }
+        Relationships: []
+      }
+      post_workout_feedback: {
+        Row: {
+          created_at:      string | null
+          energy_after:    number | null
+          id:              string
+          notes:           string | null
+          overall_feeling: number
+          session_id:      string
+          submitted_at:    string | null
+          user_id:         string
+        }
+        Insert: {
+          created_at?:      string | null
+          energy_after?:    number | null
+          id?:              string
+          notes?:           string | null
+          overall_feeling:  number
+          session_id:       string
+          submitted_at?:    string | null
+          user_id:          string
+        }
+        Update: {
+          created_at?:      string | null
+          energy_after?:    number | null
+          id?:              string
+          notes?:           string | null
+          overall_feeling?: number
+          session_id?:      string
+          submitted_at?:    string | null
+          user_id?:         string
+        }
+        Relationships: []
       }
       active_context: {
         Row: {

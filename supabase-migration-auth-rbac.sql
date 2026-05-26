@@ -59,7 +59,7 @@ INSERT INTO permissions (code, description, privacy_tier) VALUES
   ('submit_checkin',             'Submit a check-in',                         'T1'),
   ('view_own_history',           'View own workout/checkin history',           'T1'),
   -- T2 — conditional
-  ('view_client_profile',        'Read a client\'s profile (trainer)',         'T2'),
+  ('view_client_profile',        'Read a client''s profile (trainer)',         'T2'),
   ('edit_workout_plan',          'Create/edit workout plans',                  'T2'),
   ('view_client_checkins',       'Read client check-in data',                 'T2'),
   ('view_client_safety_gate',    'Read client safety gate results',           'T2'),

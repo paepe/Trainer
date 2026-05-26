@@ -16,10 +16,10 @@ interface LoginScreenProps {
 }
 
 function OAuthButton({ provider, onClick, dark, primary }: {
-  provider: 'google' | 'apple'; onClick: () => void; dark: boolean; primary: string;
+  provider: 'google'; onClick: () => void; dark: boolean; primary: string;
 }) {
   const [hover, setHover] = React.useState(false);
-  const labels = { google: 'Continue with Google', apple: 'Continue with Apple' };
+  const labels = { google: 'Continue with Google' };
   const logos: Record<string, React.ReactNode> = {
     google: (
       <svg width="18" height="18" viewBox="0 0 18 18">
@@ -27,11 +27,6 @@ function OAuthButton({ provider, onClick, dark, primary }: {
         <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.83.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33C2.44 15.98 5.48 18 9 18z" fill="#34A853"/>
         <path d="M3.95 10.7A5.4 5.4 0 0 1 3.66 9c0-.59.1-1.16.29-1.7V4.97H.96A8.99 8.99 0 0 0 0 9c0 1.45.35 2.82.96 4.03l2.99-2.33z" fill="#FBBC05"/>
         <path d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z" fill="#EA4335"/>
-      </svg>
-    ),
-    apple: (
-      <svg width="16" height="18" viewBox="0 0 16 18" fill="#000">
-        <path d="M13.32 9.55c-.02-2.16 1.76-3.2 1.84-3.25-1.01-1.47-2.58-1.67-3.13-1.69-1.33-.14-2.6.78-3.27.78-.69 0-1.72-.76-2.83-.74-1.45.02-2.8.85-3.55 2.15-1.52 2.63-.39 6.53 1.09 8.67.73 1.05 1.59 2.22 2.7 2.18 1.09-.04 1.5-.7 2.81-.7 1.31 0 1.68.7 2.82.68 1.16-.02 1.9-1.06 2.61-2.12.82-1.22 1.16-2.4 1.18-2.46-.03-.01-2.26-.87-2.28-3.44zM11.16 3.18c.6-.73 1-1.74.89-2.74-.86.04-1.9.57-2.52 1.3-.56.64-1.05 1.67-.92 2.66.96.07 1.94-.49 2.55-1.22z"/>
       </svg>
     ),
   };
@@ -61,13 +56,12 @@ function OAuthButton({ provider, onClick, dark, primary }: {
 }
 
 function OAuthSection({ onProvider, dark, primary, dividerLabel = 'or continue with email' }: {
-  onProvider: (p: 'google' | 'apple') => void; dark: boolean; primary: string; dividerLabel?: string;
+  onProvider: (p: 'google') => void; dark: boolean; primary: string; dividerLabel?: string;
 }) {
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <OAuthButton provider="google" onClick={() => onProvider('google')} dark={dark} primary={primary}/>
-        <OAuthButton provider="apple"  onClick={() => onProvider('apple')}  dark={dark} primary={primary}/>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 0' }}>
         <div style={{ flex: 1, height: 1, background: borderSubtle(dark) }}/>
@@ -91,7 +85,7 @@ export function LoginScreen({ nav, t, dark, signIn }: LoginScreenProps) {
     if (error) { setErr(error.message); setLoading(false); }
   };
 
-  const oauth = async (provider: 'google' | 'apple') => {
+  const oauth = async (provider: 'google') => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: window.location.origin },

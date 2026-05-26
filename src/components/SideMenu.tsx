@@ -15,7 +15,7 @@ interface SideMenuProps {
 }
 
 const MENU_ITEMS: [string, string, string][] = [
-  ['Profile',         'profile',         'user'],
+  ['Intelligent Profile', 'profile',     'user'],
   ['Daily check-in',  'checkin',         'sparkle'],
   ['Workout',         'workout',         'play'],
   ['Targets',         'goal',            'target'],
@@ -23,6 +23,7 @@ const MENU_ITEMS: [string, string, string][] = [
   ['Statistics',      'stats',           'chart'],
   ['Cycle',           'cycle',           'moon'],
   ['Trainer Studio',  'studio',          'flask'],
+  ['Exercise Library', 'trainerLibraryExercises', 'dumbbell'],
   ['Settings',        'settings',        'settings'],
 ];
 
