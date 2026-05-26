@@ -313,57 +313,106 @@ export function BarChart({ data, labels, color = C.cyan, height = 100, suffix = 
 
 interface BodyDiagramProps {
   region?: string | null;
+  gender?: string | null;
 }
 
 const REGION_MAP: Record<string, { label: string; cy: number }> = {
-  lombar:        { label: 'LOMBAR',   cy: 72 },
-  costas:        { label: 'COSTAS',   cy: 50 },
-  joelho:        { label: 'JOELHO',   cy: 112 },
-  ombro:         { label: 'OMBRO',    cy: 34 },
-  pescoco:       { label: 'PESCOÇO',  cy: 26 },
-  quadril:       { label: 'QUADRIL',  cy: 92 },
-  tornozelo:     { label: 'TORNOZELO',cy: 136 },
+  lombar:    { label: 'LOMBAR',    cy: 72  },
+  costas:    { label: 'COSTAS',    cy: 50  },
+  joelho:    { label: 'JOELHO',    cy: 119 },
+  ombro:     { label: 'OMBRO',     cy: 34  },
+  pescoco:   { label: 'PESCOÇO',   cy: 26  },
+  quadril:   { label: 'QUADRIL',   cy: 92  },
+  tornozelo: { label: 'TORNOZELO', cy: 149 },
 };
 
-export function BodyDiagram({ region }: BodyDiagramProps) {
-  const reg = region ? REGION_MAP[region.toLowerCase()] : null;
-  const highlightCy = reg?.cy ?? 72;
+// Gender-specific SVG silhouette paths (viewBox 0 0 80 165)
+const SILHOUETTES = {
+  female: {
+    // Narrow shoulders, defined waist, wide hips
+    body: `M 27,29 L 53,29 Q 56,37 55,45 Q 55,53 50,60 Q 47,70 57,78 Q 57,89 53,96
+           L 54,155 Q 54,158 51,158 Q 48,158 47,153 L 46,98 L 34,98
+           L 33,153 Q 32,158 29,158 Q 26,158 26,155 L 27,96
+           Q 23,89 23,78 Q 33,70 30,60 Q 25,53 25,45 Q 24,37 27,29 Z`,
+    armL: `M 23,35 Q 16,50 14,67 Q 14,74 19,75 Q 24,74 24,62 Q 23,48 23,35 Z`,
+    armR: `M 57,35 Q 64,50 66,67 Q 66,74 61,75 Q 56,74 56,62 Q 57,48 57,35 Z`,
+  },
+  male: {
+    // Wide shoulders, straight torso, minimal hip flare
+    body: `M 21,29 L 59,29 Q 63,37 60,45 Q 59,53 57,60 Q 56,70 57,78 Q 57,89 53,96
+           L 54,155 Q 54,158 51,158 Q 48,158 47,153 L 46,98 L 34,98
+           L 33,153 Q 32,158 29,158 Q 26,158 26,155 L 27,96
+           Q 23,89 23,78 Q 24,70 23,60 Q 21,53 20,45 Q 17,37 21,29 Z`,
+    armL: `M 18,35 Q 10,50 8,67 Q 8,74 14,76 Q 20,75 20,62 Q 18,48 18,35 Z`,
+    armR: `M 62,35 Q 70,50 72,67 Q 72,74 66,76 Q 60,75 60,62 Q 62,48 62,35 Z`,
+  },
+  nb: {
+    // Balanced proportions — moderate shoulders and hip width
+    body: `M 24,29 L 56,29 Q 60,37 57,45 Q 57,53 53,60 Q 50,70 58,78 Q 58,89 53,96
+           L 54,155 Q 54,158 51,158 Q 48,158 47,153 L 46,98 L 34,98
+           L 33,153 Q 32,158 29,158 Q 26,158 26,155 L 27,96
+           Q 22,89 22,78 Q 30,70 27,60 Q 23,53 23,45 Q 20,37 24,29 Z`,
+    armL: `M 21,35 Q 14,50 12,67 Q 12,74 17,75 Q 22,74 22,62 Q 21,48 21,35 Z`,
+    armR: `M 59,35 Q 66,50 68,67 Q 68,74 63,75 Q 58,74 58,62 Q 59,48 59,35 Z`,
+  },
+};
+
+function resolveGender(gender?: string | null): keyof typeof SILHOUETTES {
+  if (gender === 'female')                                       return 'female';
+  if (gender === 'male')                                         return 'male';
+  if (gender === 'non-binary' || gender === 'prefer_not_to_say') return 'nb';
+  return 'male';
+}
+
+export function BodyDiagram({ region, gender }: BodyDiagramProps) {
+  const reg          = region ? REGION_MAP[region.toLowerCase()] : null;
+  const highlightCy  = reg?.cy ?? 72;
   const highlightLabel = reg?.label ?? (region?.toUpperCase() ?? '');
   const hasHighlight = !!region;
+  const sil          = SILHOUETTES[resolveGender(gender)];
+
+  const fill   = `${C.cyan}18`;
+  const stroke = `${C.cyan}66`;
+  const gradId = 'body-holo';
 
   return (
     <svg viewBox="0 0 80 165" width={80} height={165}>
+      <defs>
+        <linearGradient id={gradId} x1="0.5" y1="0" x2="0.5" y2="1">
+          <stop offset="0%"   stopColor={C.cyan} stopOpacity={0.30}/>
+          <stop offset="50%"  stopColor={C.cyan} stopOpacity={0.10}/>
+          <stop offset="100%" stopColor={C.cyan} stopOpacity={0.03}/>
+        </linearGradient>
+      </defs>
+
+      {/* Arms (behind body) */}
+      <path d={sil.armL} fill={`url(#${gradId})`} stroke={stroke} strokeWidth="1"/>
+      <path d={sil.armR} fill={`url(#${gradId})`} stroke={stroke} strokeWidth="1"/>
+
       {/* Head */}
-      <circle cx="40" cy="14" r="10" fill="none" stroke={T.borderSoft} strokeWidth="1.5"/>
+      <circle cx="40" cy="13" r="10"
+        fill={`url(#${gradId})`} stroke={stroke} strokeWidth="1.2"/>
+
       {/* Neck */}
-      <line x1="40" y1="24" x2="40" y2="30" stroke={T.borderSoft} strokeWidth="2"/>
-      {/* Torso */}
-      <path d="M 26 30 L 54 30 L 56 68 L 50 96 L 30 96 L 24 68 Z"
-        fill={T.surf} stroke={T.borderSoft} strokeWidth="1.5"/>
+      <rect x="37" y="23" width="6" height="8" rx="2"
+        fill={`url(#${gradId})`} stroke={stroke} strokeWidth="1"/>
+
+      {/* Body silhouette (torso + legs) */}
+      <path d={sil.body} fill={`url(#${gradId})`} stroke={stroke} strokeWidth="1.2"/>
+
       {/* Highlight zone */}
       {hasHighlight && (
         <>
-          <ellipse cx="40" cy={highlightCy} rx="12" ry="7"
-            fill={`${C.coral}55`} stroke={C.coral} strokeWidth="1"/>
-          <circle cx="40" cy={highlightCy} r="14"
-            fill="none" stroke={C.coral} strokeWidth="1" strokeDasharray="3 2"/>
+          <ellipse cx="40" cy={highlightCy} rx="13" ry="7"
+            fill={`${C.coral}44`} stroke={C.coral} strokeWidth="1.2"/>
+          <circle cx="40" cy={highlightCy} r="16"
+            fill="none" stroke={C.coral} strokeWidth="0.8" strokeDasharray="3 2"/>
         </>
       )}
-      {/* Arms */}
-      <line x1="26" y1="34" x2="14" y2="64" stroke={T.borderSoft} strokeWidth="3" strokeLinecap="round"/>
-      <line x1="54" y1="34" x2="66" y2="64" stroke={T.borderSoft} strokeWidth="3" strokeLinecap="round"/>
-      {/* Hands */}
-      <circle cx="14" cy="64" r="3" fill={T.borderSoft}/>
-      <circle cx="66" cy="64" r="3" fill={T.borderSoft}/>
-      {/* Legs */}
-      <line x1="34" y1="96" x2="30" y2="140" stroke={T.borderSoft} strokeWidth="4" strokeLinecap="round"/>
-      <line x1="46" y1="96" x2="50" y2="140" stroke={T.borderSoft} strokeWidth="4" strokeLinecap="round"/>
-      {/* Feet */}
-      <ellipse cx="30" cy="140" rx="6" ry="3" fill={T.borderSoft}/>
-      <ellipse cx="50" cy="140" rx="6" ry="3" fill={T.borderSoft}/>
-      {/* Label */}
+
+      {/* Region label */}
       {hasHighlight && (
-        <text x="40" y="158" textAnchor="middle"
+        <text x="40" y="163" textAnchor="middle"
           fontSize="7" fontFamily={FF_MONO} fontWeight="700"
           fill={C.coral} letterSpacing="0.06">
           {highlightLabel}
