@@ -4,7 +4,7 @@ import { useAuth } from './hooks/useAuth';
 import { useData } from './hooks/useData';
 import {
   WelcomeScreen, LoginScreen, RegisterScreen, ProfileWizardScreen,
-  EditProfileScreen, CheckInProntidaoScreen,
+  CheckInProntidaoScreen,
   StartWorkoutScreen, GoalAchievedScreen,
   WorkoutModeScreen, PostWorkoutSummaryScreen,
   PerformanceDashboardScreen, HistoryScreen,
@@ -223,7 +223,7 @@ export default function App() {
 
   const showTabs = [
     'profile','workout','workoutMode','goal','stats','history',
-    'settings','editProfile','targets','checkin','cycle','studio',
+    'settings','targets','checkin','cycle','studio',
     'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
     'postWorkoutSummary',
   ].includes(screen);
@@ -251,8 +251,7 @@ export default function App() {
       case 'welcome':          return <WelcomeScreen           {...common}/>;
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
-      case 'profile':          return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2}/>;
-      case 'editProfile':      return <EditProfileScreen       {...common} setUser={handleSetUser}/>;
+      case 'profile':          return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
       case 'checkin':          return <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} userName={profile?.name ?? undefined} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>;
       case 'workout':            return <StartWorkoutScreen      {...common}/>;
       case 'workoutMode':        return <WorkoutModeScreen

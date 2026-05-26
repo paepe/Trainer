@@ -6,7 +6,6 @@ export {
 } from './auth';
 
 export {
-  EditProfileScreen,
   StatsScreen,
   PerformanceDashboardScreen,
   HistoryScreen,
