@@ -51,19 +51,33 @@ const WIZARD_SECTIONS: { step: ProfileV2Step; label: string; icon: string; summa
   { step: 'comorbidities',       label: 'Comorbidades',             icon: 'shield',
     summary: d => d.comorbidities?.conditions?.length ? `${d.comorbidities.conditions.length} condição(ões)` : null },
   { step: 'functional_capacity', label: 'Capacidade funcional',     icon: 'activity',
-    summary: _ => null },
+    summary: d => d.functional_capacity?.mobility != null
+      ? `${d.functional_capacity.mobility} · ${d.functional_capacity.balance}`
+      : null },
   { step: 'habits',              label: 'Hábitos',                  icon: 'sun',
-    summary: _ => null },
+    summary: d => d.habits != null
+      ? (d.habits.lifestyle_barriers?.length
+          ? `${d.habits.lifestyle_barriers.length} barreira(s)`
+          : 'Sem barreiras')
+      : null },
   { step: 'sensitive_factors',   label: 'Fatores sensíveis',        icon: 'lock',
-    summary: _ => null },
+    summary: d => d.sensitive_factors != null ? '' : null },
   { step: 'body_rhythm',         label: 'Ritmo do corpo',           icon: 'moon',
-    summary: _ => null },
+    summary: d => d.body_rhythm != null
+      ? (d.body_rhythm.enabled ? 'Ciclo ativo' : 'Não monitorado')
+      : null },
   { step: 'environment',         label: 'Ambiente',                 icon: 'pin',
-    summary: _ => null },
+    summary: d => d.environment?.locations?.length
+      ? d.environment.locations.slice(0, 2).join(' · ')
+      : (d.environment != null ? 'Preenchido' : null) },
   { step: 'availability',        label: 'Disponibilidade',          icon: 'cal',
-    summary: _ => null },
+    summary: d => d.availability?.days_per_week != null
+      ? `${d.availability.days_per_week}x · ${d.availability.session_duration_min} min`
+      : null },
   { step: 'preferences',         label: 'Preferências',             icon: 'settings',
-    summary: _ => null },
+    summary: d => d.preferences?.preferred_intensity != null
+      ? `${d.preferences.preferred_intensity} · ${d.preferences.focus}`
+      : null },
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
