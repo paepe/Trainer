@@ -146,6 +146,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? `Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 exercises as a JSON array.`
     : 'Generate a balanced 45-minute intermediate full-body workout. Return 5 exercises as a JSON array.';
 
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 25_000);
+
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -161,6 +164,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           { role: 'user',   content: userContent   },
         ],
       }),
+      signal: ctrl.signal,
     });
 
     const data = await response.json();
@@ -189,8 +193,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     return;
   } catch (err: unknown) {
-    console.error('[generate-workout]', err);
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to generate workout' });
-    return;
+    if ((err as Error)?.name === 'AbortError') {
+      console.warn('[generate-workout] timed out');
+      res.status(504).json({ error: 'Workout generation timed out' });
+    } else {
+      console.error('[generate-workout]', err);
+      res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to generate workout' });
+    }
+  } finally {
+    clearTimeout(timeout);
   }
 }

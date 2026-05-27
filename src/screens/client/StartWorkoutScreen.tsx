@@ -202,7 +202,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
   };
 
   React.useEffect(() => {
-    void fetchPlan();
+    let cancelled = false;
+    const fetch = async () => {
+      try { await fetchPlan(); } catch { /* caught internally */ }
+      if (!cancelled) return;
+    };
+    void fetch();
+    return () => { cancelled = true; };
   }, []);
 
   const sore = (activeCheckin.soreness || []).filter(s => s !== 'None');

@@ -46,6 +46,8 @@ export async function requestWorkoutPlan({
   physicalProfile,
   cycleContext,
 }: RequestWorkoutPlanInput): Promise<GeneratedWorkoutExercise[]> {
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 20_000);
   let response: Response;
 
   try {
@@ -53,8 +55,13 @@ export async function requestWorkoutPlan({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ checkin, physicalProfile, cycleContext }),
+      signal: ctrl.signal,
     });
   } catch (err) {
+    clearTimeout(timeout);
+    if ((err as Error)?.name === 'AbortError') {
+      throw new Error('Workout generation timed out. Please try again.');
+    }
     console.error('[workout-generation] request failed before response', err);
     throw new Error('Unable to reach workout service.');
   }
@@ -64,8 +71,11 @@ export async function requestWorkoutPlan({
   try {
     data = await response.json() as WorkoutGenerationResponse;
   } catch {
+    clearTimeout(timeout);
     throw new Error('Workout service returned an unreadable response.');
   }
+
+  clearTimeout(timeout);
 
   if (!response.ok) {
     throw new Error(data.error || 'Failed to generate workout');
