@@ -6,7 +6,6 @@ import { AvatarImage } from '../../components/Avatar';
 import type { NavFn, Profile } from '../../types';
 import type { ProfileV2Step, RiskClassification } from '../../types/profile-v2';
 import type { WizardData } from './wizard/types';
-import { Step01Welcome }            from './wizard/Step01Welcome';
 import { Step02BasicData }          from './wizard/Step02BasicData';
 import { Step03Objectives }         from './wizard/Step03Objectives';
 import { Step04MovementHistory }    from './wizard/Step04MovementHistory';
@@ -25,14 +24,14 @@ import { Step15RiskClassification } from './wizard/Step15RiskClassification';
 const TOTAL_STEPS = 14;
 
 const STEP_SEQUENCE: ProfileV2Step[] = [
-  'welcome', 'basic_data', 'objectives', 'movement_history',
+  'basic_data', 'objectives', 'movement_history',
   'declared_health', 'comorbidities', 'functional_capacity', 'habits',
   'sensitive_factors', 'body_rhythm', 'environment', 'availability',
   'preferences', 'consent', 'risk_classification', 'completed',
 ];
 
 const STEP_NUM: Partial<Record<ProfileV2Step, number>> = {
-  welcome: 0, basic_data: 1, objectives: 2, movement_history: 3,
+  basic_data: 1, objectives: 2, movement_history: 3,
   declared_health: 4, comorbidities: 5, functional_capacity: 6, habits: 7,
   sensitive_factors: 8, body_rhythm: 9, environment: 10, availability: 11,
   preferences: 12, consent: 13, risk_classification: 14,
@@ -95,25 +94,26 @@ interface ProfileWizardScreenProps {
 type ScreenMode = 'wizard' | 'view' | 'edit_step';
 
 export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV2, saveUser, user }: ProfileWizardScreenProps) {
-  const [mode,        setMode]        = React.useState<ScreenMode>('wizard');
-  const [currentStep, setCurrentStep] = React.useState<ProfileV2Step>('welcome');
+  const [mode,        setMode]        = React.useState<ScreenMode>('view');
+  const [currentStep, setCurrentStep] = React.useState<ProfileV2Step>('basic_data');
   const [data,        setData]        = React.useState<WizardData>({});
+  const [loading,     setLoading]     = React.useState(true);
   const [generating,  setGenerating]  = React.useState(false);
   const [saveError,   setSaveError]   = React.useState<string | null>(null);
   const [saving,      setSaving]      = React.useState(false);
 
   React.useEffect(() => {
-    if (!fetchProfileV2) return;
+    if (!fetchProfileV2) { setLoading(false); return; }
     fetchProfileV2().then(({ data: existing }) => {
-      if (!existing || Object.keys(existing).length === 0) return;
-      const { current_step, completed_at, ...profileData } =
-        existing as WizardData & { current_step?: string; completed_at?: string | null };
-      setData(profileData);
-      if (completed_at) {
-        setMode('view');
-      } else if (current_step && STEP_SEQUENCE.includes(current_step as ProfileV2Step)) {
-        setCurrentStep(current_step as ProfileV2Step);
+      if (existing && Object.keys(existing).length > 0) {
+        const { current_step: _step, completed_at: _done, ...profileData } =
+          existing as WizardData & { current_step?: string; completed_at?: string | null };
+        setData(profileData);
+        setMode('view');          // always open the list view for existing profiles
+      } else {
+        setMode('wizard');        // new user: start wizard at basic_data
       }
+      setLoading(false);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -130,7 +130,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   };
 
   const goBack = () => {
-    if (stepIndex <= 0) { nav('welcome'); return; }
+    if (stepIndex <= 0) { setMode('view'); return; }
     setCurrentStep(STEP_SEQUENCE[stepIndex - 1] as ProfileV2Step);
   };
 
@@ -206,6 +206,8 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
 
   const common = mode === 'edit_step' ? editCommon : wizardCommon;
 
+  if (loading) return null;
+
   // ── VIEW mode ──────────────────────────────────────────────────────────────
 
   if (mode === 'view') {
@@ -257,7 +259,6 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
 
   const stepContent = (() => {
     switch (currentStep) {
-      case 'welcome':             return <Step01Welcome            {...common}/>;
       case 'basic_data':          return <Step02BasicData           {...common} {...(user ? { user } : {})} {...(saveUser ? { saveUser } : {})}/>;
       case 'objectives':          return <Step03Objectives          {...common}/>;
       case 'movement_history':    return <Step04MovementHistory     {...common}/>;
@@ -276,7 +277,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       case 'risk_classification': return (
         <Step15RiskClassification {...common} onGenerate={handleGenerate} generating={generating}/>
       );
-      default: return <Step01Welcome {...common}/>;
+      default: return <Step02BasicData {...common} {...(user ? { user } : {})} {...(saveUser ? { saveUser } : {})}/>;
     }
   })();
 
