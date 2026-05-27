@@ -109,10 +109,10 @@ export function Step02BasicData({
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Dados básicos
+        Informações Pessoais
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 22px', lineHeight: 1.55 }}>
-        Para ajustar intensidade, linguagem, segurança e evolução do seu plano.
+        Preencha seus dados para adaptar o plano à sua idade, sexo e histórico.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

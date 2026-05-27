@@ -41,8 +41,8 @@ const STEP_NUM: Partial<Record<ProfileV2Step, number>> = {
 // ── Wizard sections shown in the unified profile view ──────────────────────────
 
 const WIZARD_SECTIONS: { step: ProfileV2Step; label: string; icon: string; summary: (d: WizardData) => string | null }[] = [
-  { step: 'basic_data',          label: 'Dados de treino',          icon: 'dumbbell',
-    summary: d => d.basic_data ? `${d.basic_data.age ?? '?'}a · ${d.basic_data.height_cm ?? '?'}cm · ${d.basic_data.weight_kg ?? '?'}kg` : null },
+  { step: 'basic_data',          label: 'Informações Pessoais',     icon: 'user',
+    summary: d => d.basic_data ? `${d.basic_data.name ?? ''} · ${d.basic_data.age ?? '?'}a · ${d.basic_data.height_cm ?? '?'}cm · ${d.basic_data.weight_kg ?? '?'}kg`.replace(/^ · /, '') : null },
   { step: 'objectives',          label: 'Objetivos',                icon: 'target',
     summary: d => d.objectives?.primary_goal ?? null },
   { step: 'movement_history',    label: 'Histórico de movimento',   icon: 'history',
