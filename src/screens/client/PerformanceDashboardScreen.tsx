@@ -27,13 +27,13 @@ interface Props {
 type ScreenId = 'overview' | 'aderencia' | 'performance' | 'dor' | 'scores' | 'voz' | 'marcos';
 
 const NAV_TABS: { id: ScreenId; label: string }[] = [
-  { id: 'overview',     label: 'Visão geral' },
-  { id: 'aderencia',    label: 'Aderência'   },
+  { id: 'overview',     label: 'Overview'   },
+  { id: 'aderencia',    label: 'Adherence'  },
   { id: 'performance',  label: 'Performance' },
-  { id: 'dor',          label: 'Dor'         },
-  { id: 'scores',       label: 'IA Scores'   },
-  { id: 'voz',          label: 'Voz'         },
-  { id: 'marcos',       label: 'Marcos'      },
+  { id: 'dor',          label: 'Pain'       },
+  { id: 'scores',       label: 'AI Scores'   },
+  { id: 'voz',          label: 'Voice'      },
+  { id: 'marcos',       label: 'Milestones' },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -51,16 +51,36 @@ export function PerformanceDashboardScreen({ nav, t, dark, user }: Props) {
   }, [activeScreen]);
 
   const screenContent = (() => {
-    if (loading || !data) return <LoadingState />;
-    switch (activeScreen) {
-      case 'overview':    return <TelaOverview    data={data} nav={nav} setScreen={setActiveScreen} userName={user.name}/>;
-      case 'aderencia':   return <TelaAderencia   data={data}/>;
-      case 'performance': return <TelaPerformance data={data}/>;
-      case 'dor':         return <TelaDor         data={data} gender={user.gender}/>;
-      case 'scores':      return <TelaScores      data={data}/>;
-      case 'voz':         return <TelaVoz data={data}/>;
-      case 'marcos':      return <TelaMarcos      data={data}/>;
+    if (!data) {
+      if (loading) return <LoadingState />;
+      return <div style={{ padding: 60, textAlign: 'center', color: T.textMute, fontFamily: FF_MONO, fontSize: 13 }}>No data available</div>;
     }
+    return (
+      <div style={{ position: 'relative', flex: 1 }}>
+        {loading && <div style={{
+          position: 'absolute', top: 8, left: 0, right: 0, zIndex: 2, textAlign: 'center',
+        }}>
+          <span style={{
+            display: 'inline-block', padding: '4px 12px', borderRadius: 999,
+            background: C.cyan, color: T.navy, fontFamily: FF_MONO, fontSize: 9,
+            fontWeight: 700, letterSpacing: '.06em',
+          }}>
+            REFRESHING…
+          </span>
+        </div>}
+        {(() => {
+          switch (activeScreen) {
+            case 'overview':    return <TelaOverview    data={data} nav={nav} setScreen={setActiveScreen} userName={user.name}/>;
+            case 'aderencia':   return <TelaAderencia   data={data}/>;
+            case 'performance': return <TelaPerformance data={data}/>;
+            case 'dor':         return <TelaDor         data={data} gender={user.gender}/>;
+            case 'scores':      return <TelaScores      data={data}/>;
+            case 'voz':         return <TelaVoz data={data}/>;
+            case 'marcos':      return <TelaMarcos      data={data}/>;
+          }
+        })()}
+      </div>
+    );
   })();
 
   return (
@@ -118,7 +138,7 @@ function LoadingState() {
         animation: 'spin .7s linear infinite',
       }}/>
       <span style={{ fontFamily: FF_MONO, fontSize: 11, color: T.textMute }}>
-        Calculando indicadores…
+        Calculating indicators…
       </span>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
@@ -141,12 +161,12 @@ function TelaOverview({
   const mainInsight = data.insights[0];
 
   const navCards: { id: ScreenId; icon: string; title: string; sub: string; color: string }[] = [
-    { id: 'aderencia',   icon: '📅', title: 'Aderência',        sub: `${adh}% · ${data.workoutStreak} dias de sequência`,        color: C.cyan    },
-    { id: 'performance', icon: '📈', title: 'Performance',      sub: 'Carga, volume e esforço percebido',                         color: C.cyan    },
-    { id: 'dor',         icon: '⚠️', title: 'Dor & Segurança',  sub: `${data.painEvents14d.length} ocorrência(s) em 14 dias`,     color: data.painEvents14d.length ? C.coral : C.green },
-    { id: 'scores',      icon: '🤖', title: 'Análise da IA',    sub: '9 indicadores preditivos',                                  color: C.lavender },
-    { id: 'voz',         icon: '🎙️', title: 'Voz analítica',    sub: 'Pergunte sobre sua evolução',                               color: C.cyanDeep },
-    { id: 'marcos',      icon: '🏆', title: 'Marcos & Conquistas', sub: `${data.milestones.filter(m => m.unlocked).length}/${data.milestones.length} desbloqueados`, color: C.amber },
+    { id: 'aderencia',   icon: '📅', title: 'Adherence',         sub: `${adh}% · ${data.workoutStreak} days streak`,               color: C.cyan    },
+    { id: 'performance', icon: '📈', title: 'Performance',      sub: 'Load, volume and perceived effort',                         color: C.cyan    },
+    { id: 'dor',         icon: '⚠️', title: 'Pain & Safety',    sub: `${data.painEvents14d.length} occurrence(s) in 14 days`,    color: data.painEvents14d.length ? C.coral : C.green },
+    { id: 'scores',      icon: '🤖', title: 'AI Analysis',      sub: '9 predictive indicators',                                   color: C.lavender },
+    { id: 'voz',         icon: '🎙️', title: 'Voice Analytics',  sub: 'Ask about your progress',                                   color: C.cyanDeep },
+    { id: 'marcos',      icon: '🏆', title: 'Milestones & Achievements', sub: `${data.milestones.filter(m => m.unlocked).length}/${data.milestones.length} unlocked`, color: C.amber },
   ];
 
   const volumeData = data.weeklyStats.map(w => w.volume / 1000); // tonnes
@@ -155,9 +175,9 @@ function TelaOverview({
   return (
     <ScreenWrap>
       <ScreenTitle
-        kicker={`MEU PROGRESSO · ${data.weeksActive} SEMANAS`}
-        title={`Você está evoluindo${userName ? ', ' + userName : ''}.`}
-        sub="Resumo da sua evolução nas últimas semanas."
+        kicker={`MY PROGRESS · ${data.weeksActive} WEEKS`}
+        title={`You are progressing${userName ? ', ' + userName : ''}.`}
+        sub="Summary of your progress over the last few weeks."
       />
 
       {/* Hero: score ring + 2 stats */}
@@ -169,23 +189,23 @@ function TelaOverview({
           <ScoreRing
             score={Math.round(data.adherenceRate * 100)}
             color={C.cyan}
-            label="ADERÊNCIA"
-            sub={`${data.weeksActive} sem.`}
+            label="ADHERENCE"
+            sub={`${data.weeksActive} wks`}
             size={92}
           />
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <StatCard
-            kicker="Sessões"
+            kicker="Sessions"
             value={`${data.completedSessions}/${data.plannedSessions}`}
-            sub={`${data.partialSessions} parciais`}
+            sub={`${data.partialSessions} partial`}
             color={C.cyan}
             deltaTone={data.adherenceRate >= 0.8 ? 'good' : 'neutral'}
           />
           <StatCard
-            kicker="Sequência"
+            kicker="Streak"
             value={`${data.workoutStreak}d`}
-            sub="dias consecutivos"
+            sub="consecutive days"
             color={C.amber}
           />
         </div>
@@ -194,7 +214,7 @@ function TelaOverview({
       {/* AI main insight */}
       {mainInsight && (
         <AIMessage
-          title="Síntese da semana"
+          title="Week summary"
           tone={mainInsight.severity === 'positive' ? 'green' : mainInsight.severity === 'critical' ? 'coral' : 'cyan'}
           body={mainInsight.data}
           action={mainInsight.action}
@@ -203,10 +223,10 @@ function TelaOverview({
 
       {/* 2×2 stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <StatCard kicker="Frequência"  value={`${Math.round(data.completedSessions / Math.max(data.weeksActive, 1) * 10) / 10}×`} sub="por semana"/>
-        <StatCard kicker="Check-ins"   value={`${Math.round(data.checkinRate * 100)}%`} sub="de cobertura"/>
+        <StatCard kicker="Frequency"  value={`${Math.round(data.completedSessions / Math.max(data.weeksActive, 1) * 10) / 10}×`} sub="per week"/>
+        <StatCard kicker="Check-ins"   value={`${Math.round(data.checkinRate * 100)}%`} sub="coverage"/>
         <StatCard kicker="Dor 14d"     value={String(data.painEvents14d.length)}
-          sub={data.painRecurrenceCount >= 3 ? 'recorrente' : 'ocorrências'}
+          sub={data.painRecurrenceCount >= 3 ? 'recurrent' : 'occurrences'}
           color={data.painEvents14d.length >= 3 ? C.coral : T.text}
           deltaTone={data.painEvents14d.length >= 3 ? 'bad' : 'good'}
         />
@@ -217,7 +237,7 @@ function TelaOverview({
 
       {/* Volume sparkline */}
       {volumeMax > 0 && (
-        <Section title="Volume semanal (t·rep)">
+        <Section title="Weekly volume (t·rep)">
           <Sparkline data={volumeData} color={C.cyan} height={52} showDots/>
           <div style={{
             display: 'flex', justifyContent: 'space-between', marginTop: 4,
@@ -251,11 +271,11 @@ function TelaOverview({
 // Attach name to override TS "user" property warning (not a real prop)
 TelaOverview.defaultProps = {};
 
-// ── Tela 02 — Aderência ───────────────────────────────────────────────────────
+// ── Screen 02 — Adherence ───────────────────────────────────────────────────────
 
 function TelaAderencia({ data }: { data: M5Data }) {
   const adh = Math.round(data.adherenceRate * 100);
-  const label = adh >= 85 ? 'Excelente consistência' : adh >= 70 ? 'Boa consistência' : 'Em construção';
+  const label = adh >= 85 ? 'Excellent consistency' : adh >= 70 ? 'Good consistency' : 'Under construction';
 
   const cellColor = (status: number) => {
     if (status === 1)   return C.green;
@@ -266,26 +286,26 @@ function TelaAderencia({ data }: { data: M5Data }) {
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker="ADERÊNCIA · 6 SEMANAS" title="Sua consistência de treino."/>
+      <ScreenTitle kicker="ADHERENCE · 6 WEEKS" title="Your training consistency."/>
 
       {/* Hero ring */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 16, padding: 16,
         background: T.surf, borderRadius: 16, border: `1px solid ${T.border}`,
       }}>
-        <ScoreRing score={adh} color={C.cyan} label="ADERÊNCIA" size={80}/>
+        <ScoreRing score={adh} color={C.cyan} label="ADHERENCE" size={80}/>
         <div>
           <div style={{ fontFamily: FF_DISPLAY, fontSize: 16, fontWeight: 700, color: T.text }}>
             {label}
           </div>
           <div style={{ fontSize: 12, color: T.textSec, marginTop: 2 }}>
-            {data.completedSessions} sessões · {data.weeksActive} semanas
+            {data.completedSessions} sessions · {data.weeksActive} weeks
           </div>
         </div>
       </div>
 
       {/* Week grid */}
-      <Section title="Semana atual">
+      <Section title="Current week">
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
           {data.weekDays.map((day, i) => {
             const status = data.weekStatus[i] ?? 0;
@@ -308,7 +328,7 @@ function TelaAderencia({ data }: { data: M5Data }) {
         </div>
         {/* Legend */}
         <div style={{ display: 'flex', gap: 12, marginTop: 10, justifyContent: 'center' }}>
-          {[['Completa', C.green], ['Parcial', C.amber], ['Faltou', C.coral]].map(([lbl, c]) => (
+          {[['Complete', C.green], ['Partial', C.amber], ['Missed', C.coral]].map(([lbl, c]) => (
             <div key={String(lbl)} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <div style={{ width: 8, height: 8, borderRadius: 2, background: String(c) }}/>
               <span style={{ fontFamily: FF_MONO, fontSize: 9, color: T.textMute }}>{lbl}</span>
@@ -319,28 +339,28 @@ function TelaAderencia({ data }: { data: M5Data }) {
 
       {/* Stats 2×2 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <StatCard kicker="Concluídas"  value={String(data.completedSessions)} color={C.green}/>
-        <StatCard kicker="Parciais"    value={String(data.partialSessions)}   color={C.amber}/>
-        <StatCard kicker="Faltas"      value={String(data.missedSessions)}    color={data.missedSessions > 2 ? C.coral : T.text}/>
+        <StatCard kicker="Completed"  value={String(data.completedSessions)} color={C.green}/>
+        <StatCard kicker="Partials"   value={String(data.partialSessions)}   color={C.amber}/>
+        <StatCard kicker="Missed"     value={String(data.missedSessions)}    color={data.missedSessions > 2 ? C.coral : T.text}/>
         <StatCard kicker="Check-ins"   value={`${Math.round(data.checkinRate * 100)}%`} color={C.cyan}/>
       </div>
 
       <AIMessage
-        title="Análise de consistência"
+        title="Consistency analysis"
         tone={adh >= 85 ? 'green' : adh >= 70 ? 'cyan' : 'amber'}
         body={
           adh >= 85
-            ? `Aderência de ${adh}% é um indicador de consistência sustentada. Continue com a mesma cadência.`
+            ? `Adherence of ${adh}% is an indicator of sustained consistency. Continue with the same cadence.`
             : adh >= 70
-            ? `Aderência de ${adh}% é sólida. Pequenos ajustes de agenda podem elevar ainda mais sua consistência.`
-            : `Aderência de ${adh}% indica espaço para crescimento. Revise disponibilidade com seu personal.`
+            ? `Adherence of ${adh}% is solid. Small schedule adjustments can boost your consistency further.`
+            : `Adherence of ${adh}% indicates room for growth. Review availability with your trainer.`
         }
-        action={adh >= 85 ? 'Manter volume e frequência' : 'Discutir ajuste de plano com personal'}
+        action={adh >= 85 ? 'Maintain volume and frequency' : 'Discuss plan adjustment with trainer'}
       />
 
       {/* Recent sessions list */}
       {data.recentSessions.length > 0 && (
-        <Section title="Últimas sessões">
+        <Section title="Latest sessions">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {data.recentSessions.slice(0, 5).map(s => (
               <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -352,7 +372,7 @@ function TelaAderencia({ data }: { data: M5Data }) {
                   {s.date}
                 </span>
                 <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: T.text }}>
-                  {s.completed ? 'Concluída' : s.partial ? 'Parcial' : 'Abandonada'}
+                  {s.completed ? 'Completed' : s.partial ? 'Partial' : 'Abandoned'}
                 </span>
                 {s.rpe !== null && (
                   <span style={{ fontFamily: FF_MONO, fontSize: 10, color: C.amber }}>
@@ -360,7 +380,7 @@ function TelaAderencia({ data }: { data: M5Data }) {
                   </span>
                 )}
                 {s.hasPain && (
-                  <span style={{ fontFamily: FF_MONO, fontSize: 9, color: C.coral }}>⚠ dor</span>
+                  <span style={{ fontFamily: FF_MONO, fontSize: 9, color: C.coral }}>⚠ pain</span>
                 )}
               </div>
             ))}
@@ -386,24 +406,24 @@ function TelaPerformance({ data }: { data: M5Data }) {
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker="PERFORMANCE · carga, volume, esforço" title="Evolução técnica."/>
+      <ScreenTitle kicker="PERFORMANCE · load, volume, effort" title="Technical evolution."/>
 
       {/* Volume bar chart */}
-      <Section title="Volume semanal total" right={
+      <Section title="Total weekly volume" right={
         <span style={{ fontFamily: FF_MONO, fontSize: 9.5, color: Number(volDelta) >= 0 ? C.green : C.coral }}>
           {Number(volDelta) >= 0 ? '+' : ''}{volDelta}%
         </span>
       }>
         {volumeData.some(v => v > 0)
           ? <BarChart data={volumeData} labels={labels} color={C.cyan} suffix="t"/>
-          : <EmptyMetric label="Nenhum set registrado ainda"/>
+          : <EmptyMetric label="No sets recorded yet"/>
         }
       </Section>
 
       {/* RPE sparkline */}
-      <Section title="RPE médio" right={
+      <Section title="Avg RPE" right={
         <span style={{ fontFamily: FF_MONO, fontSize: 9.5, color: Number(rpeDelta) > 0 ? C.amber : C.green }}>
-          {Number(rpeDelta) > 0 ? '↗ subindo' : rpeData.length > 0 ? '↘ estável' : '—'}
+          {Number(rpeDelta) > 0 ? '↗ rising' : rpeData.length > 0 ? '↘ stable' : '—'}
         </span>
       }>
         {rpeData.length >= 2
@@ -411,19 +431,19 @@ function TelaPerformance({ data }: { data: M5Data }) {
               <Sparkline data={rpeData} color={C.amber} height={52} showDots/>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
                 <span style={{ fontFamily: FF_MONO, fontSize: 9, color: T.textMute }}>
-                  início: {(rpeData[0] ?? 0).toFixed(1)}
+                  start: {(rpeData[0] ?? 0).toFixed(1)}
                 </span>
                 <span style={{ fontFamily: FF_MONO, fontSize: 9, color: C.amber }}>
-                  atual: {(rpeData[rpeData.length - 1] ?? 0).toFixed(1)}
+                  current: {(rpeData[rpeData.length - 1] ?? 0).toFixed(1)}
                 </span>
               </div>
             </>
-          : <EmptyMetric label="Registre RPE nas sessões para ver a tendência"/>
+          : <EmptyMetric label="Log RPE in sessions to see the trend"/>
         }
       </Section>
 
       {/* Sessions per week */}
-      <Section title="Sessões por semana">
+      <Section title="Sessions per week">
         <BarChart
           data={data.weeklyStats.map(w => w.sessions)}
           labels={labels}
@@ -432,22 +452,22 @@ function TelaPerformance({ data }: { data: M5Data }) {
       </Section>
 
       <AIMessage
-        title="Análise de performance"
+        title="Performance analysis"
         tone={Number(rpeDelta) > 1 ? 'amber' : 'cyan'}
         body={
           rpeData.length < 2
-            ? 'Registre RPE nas sessões para ativar a análise preditiva de fadiga.'
+            ? 'Log RPE in sessions to activate predictive fatigue analysis.'
             : Number(rpeDelta) > 1
-            ? `RPE subiu ${rpeDelta} pontos nas últimas semanas. Monitorar sinais de fadiga acumulada.`
-            : `Volume e RPE em progressão compatível. Indicadores de performance saudáveis.`
+            ? `RPE has risen ${rpeDelta} points in recent weeks. Monitor signs of accumulated fatigue.`
+            : `Volume and RPE progressing in a compatible manner. Healthy performance indicators.`
         }
-        action={Number(rpeDelta) > 1.5 ? 'Considerar deload preventivo' : 'Manter progressão atual'}
+        action={Number(rpeDelta) > 1.5 ? 'Consider preventive deload' : 'Maintain current progression'}
       />
     </ScreenWrap>
   );
 }
 
-// ── Tela 04 — Dor & Segurança ─────────────────────────────────────────────────
+// ── Screen 04 — Pain & Safety ─────────────────────────────────────────────────
 
 function TelaDor({ data, gender }: { data: M5Data; gender?: string | undefined }) {
   const hasPain    = data.painEvents14d.length > 0;
@@ -455,7 +475,7 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | undefined }
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker="DOR & SEGURANÇA · 14 DIAS" title="Monitoramento de sinais de risco."/>
+      <ScreenTitle kicker="PAIN & SAFETY · 14 DAYS" title="Risk signal monitoring."/>
 
       {/* Hero */}
       <div style={{
@@ -467,7 +487,7 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | undefined }
         <div>
           {hasPain ? (
             <>
-              <Kicker color={C.coral}>{data.primaryPainRegion?.toUpperCase() ?? 'REGIÃO'}</Kicker>
+              <Kicker color={C.coral}>{data.primaryPainRegion?.toUpperCase() ?? 'REGION'}</Kicker>
               <div style={{
                 fontFamily: FF_DISPLAY, fontSize: 22, fontWeight: 800, color: C.coral,
               }}>
@@ -475,16 +495,16 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | undefined }
               </div>
               <div style={{ fontSize: 11, color: T.textSec, lineHeight: 1.4, marginTop: 2 }}>
                 {isRecurrent
-                  ? `ocorrências. Pain Recurrence Engine ativado.`
-                  : `ocorrência(s). Monitorando evolução.`
+                  ? `occurrences. Pain Recurrence Engine activated.`
+                  : `occurrence(s). Monitoring evolution.`
                 }
               </div>
             </>
           ) : (
             <>
-              <Kicker color={C.green}>SEM DOR</Kicker>
+              <Kicker color={C.green}>NO PAIN</Kicker>
               <div style={{ fontFamily: FF_DISPLAY, fontSize: 22, fontWeight: 800, color: C.green }}>0</div>
-              <div style={{ fontSize: 11, color: T.textSec, marginTop: 2 }}>ocorrências nos últimos 14 dias.</div>
+               <div style={{ fontSize: 11, color: T.textSec, marginTop: 2 }}>occurrences in the last 14 days.</div>
             </>
           )}
         </div>
@@ -492,27 +512,27 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | undefined }
 
       {/* AI message */}
       <AIMessage
-        title={isRecurrent ? 'Pain Recurrence Engine' : 'Monitoramento de dor'}
+        title={isRecurrent ? 'Pain Recurrence Engine' : 'Pain monitoring'}
         tone={isRecurrent ? 'coral' : hasPain ? 'amber' : 'green'}
         body={
           isRecurrent
-            ? `Dor recorrente em ${data.primaryPainRegion ?? 'região'} detectada (${data.painRecurrenceCount}× em 14d). Exercício de risco identificado — substituição recomendada.`
+            ? `Recurring pain in ${data.primaryPainRegion ?? 'region'} detected (${data.painRecurrenceCount}× in 14d). Risk exercise identified — substitution recommended.`
             : hasPain
-            ? `${data.painEvents14d.length} ocorrência(s) registrada(s). Intensidade monitorada. Mantenha o personal informado.`
-            : 'Nenhuma dor registrada nos últimos 14 dias. Continue executando com boa técnica.'
+            ? `${data.painEvents14d.length} registered occurrence(s). Intensity monitored. Keep your trainer informed.`
+            : 'No pain recorded in the last 14 days. Continue executing with good technique.'
         }
         action={
           isRecurrent
-            ? 'Substituir exercício e notificar personal'
+            ? 'Replace exercise and notify trainer'
             : hasPain
-            ? 'Informar personal e registrar intensidade em cada sessão'
-            : 'Manter atenção à técnica de execução'
+            ? 'Notify trainer and record intensity in each session'
+            : 'Maintain attention to execution technique'
         }
       />
 
       {/* Pain history */}
       {data.painEvents14d.length > 0 && (
-        <Section title="Histórico de dor">
+        <Section title="Pain history">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.painEvents14d.map((e, i) => (
               <div key={i} style={{
@@ -545,12 +565,12 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | undefined }
 
       {/* Actions */}
       {hasPain && (
-        <Section title="Ações disponíveis">
+        <Section title="Available actions">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              { label: 'Substituir exercício de risco', color: C.coral },
-              { label: 'Notificar personal trainer',    color: C.amber },
-              { label: 'Registrar dor detalhada',       color: C.cyan  },
+              { label: 'Replace risk exercise',   color: C.coral },
+              { label: 'Notify personal trainer', color: C.amber },
+              { label: 'Log detailed pain',       color: C.cyan  },
             ].map(({ label, color }) => (
               <div key={label} style={{
                 padding: '10px 14px', borderRadius: 10,
@@ -587,9 +607,9 @@ function TelaScores({ data }: { data: M5Data }) {
   return (
     <ScreenWrap>
       <ScreenTitle
-        kicker="ANÁLISE DA IA · CAMADA PREDITIVA"
-        title="9 indicadores preditivos."
-        sub="Predição não é diagnóstico. Indicadores probabilísticos para apoio à decisão."
+        kicker="AI ANALYSIS · PREDICTIVE LAYER"
+        title="9 predictive indicators."
+        sub="Prediction is not diagnosis. Probabilistic indicators for decision support."
       />
 
       {/* Score grid */}
@@ -598,7 +618,7 @@ function TelaScores({ data }: { data: M5Data }) {
           const c = s.isGoodScore ? goodScoreColor(s.score) : scoreColor(s.score);
           const b = band(s.score);
           const badgeLabel = s.isGoodScore
-            ? s.score >= 75 ? 'BOM' : s.score >= 50 ? 'ATENÇÃO' : 'BAIXO'
+            ? s.score >= 75 ? 'GOOD' : s.score >= 50 ? 'WARNING' : 'LOW'
             : b.toUpperCase();
           return (
             <div key={s.code} style={{
@@ -642,7 +662,7 @@ function TelaScores({ data }: { data: M5Data }) {
 
       {/* Insights */}
       {data.insights.length > 0 && (
-        <Section title={`Insights acionáveis · ${data.insights.length}`}>
+        <Section title={`Actionable insights · ${data.insights.length}`}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {data.insights.map(ins => (
               <InsightCard
@@ -665,9 +685,9 @@ function TelaScores({ data }: { data: M5Data }) {
         border: `1px solid ${C.lavender}44`,
         fontSize: 11, color: T.textSec, lineHeight: 1.5,
       }}>
-        <span style={{ color: C.lavender, fontWeight: 700 }}>ℹ Predição ≠ diagnóstico.</span>{' '}
-        Todos os scores são probabilísticos e têm como objetivo apoiar decisões do personal trainer,
-        não substituir avaliação profissional. Dados sensíveis são processados localmente.
+        <span style={{ color: C.lavender, fontWeight: 700 }}>ℹ Prediction ≠ diagnosis.</span>{' '}
+        All scores are probabilistic and are intended to support personal trainer decisions,
+        not replace professional evaluation. Sensitive data is processed locally.
       </div>
     </ScreenWrap>
   );
@@ -678,48 +698,48 @@ function TelaScores({ data }: { data: M5Data }) {
 function processVoiceQuery(q: string, data: M5Data): string {
   const n = q.toLowerCase();
 
-  if (n.includes('resumo') || n.includes('mensal')) {
-    return `Resumo: ${data.completedSessions} sessões completas de ${data.plannedSessions} planejadas — ${data.adherenceRate}% de aderência. Sequência atual: ${data.workoutStreak} dia(s). ${data.scores.fatigueRisk.desc}`;
+  if (n.includes('summary') || n.includes('monthly')) {
+    return `Summary: ${data.completedSessions} completed sessions of ${data.plannedSessions} planned — ${data.adherenceRate}% adherence. Current streak: ${data.workoutStreak} day(s). ${data.scores.fatigueRisk.desc}`;
   }
-  if (n.includes('fadiga') || n.includes('fadigado')) {
+  if (n.includes('fatigue') || n.includes('fatigued')) {
     const s = data.scores.fatigueRisk;
-    return `Risco de fadiga: ${s.score}/100. ${s.desc} ${s.action}`;
+    return `Fatigue risk: ${s.score}/100. ${s.desc} ${s.action}`;
   }
-  if (n.includes('abandono') || n.includes('churn') || n.includes('desistir')) {
+  if (n.includes('dropout') || n.includes('churn') || n.includes('quit')) {
     const s = data.scores.churnRisk;
-    return `Risco de abandono: ${s.score}/100. ${s.desc} ${s.action}`;
+    return `Churn risk: ${s.score}/100. ${s.desc} ${s.action}`;
   }
-  if (n.includes('carga') || n.includes('aumentar') || n.includes('progressão')) {
+  if (n.includes('load') || n.includes('increase') || n.includes('progression')) {
     const s = data.scores.progressionReadiness;
-    return `Prontidão para progressão: ${s.score}/100. ${s.action}`;
+    return `Progression readiness: ${s.score}/100. ${s.action}`;
   }
-  if (n.includes('sessões') || n.includes('completei') || n.includes('mês') || n.includes('mes')) {
-    return `Você completou ${data.completedSessions} sessões de ${data.plannedSessions} planejadas — ${data.adherenceRate}% de aderência. Streak atual: ${data.workoutStreak} dia(s).`;
+  if (n.includes('sessions') || n.includes('completed') || n.includes('month')) {
+    return `You completed ${data.completedSessions} sessions of ${data.plannedSessions} planned — ${data.adherenceRate}% adherence. Current streak: ${data.workoutStreak} day(s).`;
   }
-  if (n.includes('performance') || n.includes('semana')) {
+  if (n.includes('performance') || n.includes('week')) {
     const last = data.weeklyStats[data.weeklyStats.length - 1];
-    if (!last) return 'Ainda não há dados de performance registrados.';
-    return `Esta semana: ${last.sessions} sessão(ões), RPE médio ${last.rpe.toFixed(1)}, volume ${last.volume} séries.`;
+    if (!last) return 'No performance data recorded yet.';
+    return `This week: ${last.sessions} session(s), avg RPE ${last.rpe.toFixed(1)}, volume ${last.volume} sets.`;
   }
-  if (n.includes('dor') || n.includes('doendo') || n.includes('machucou')) {
-    if (data.painEvents14d.length === 0) return 'Nenhum episódio de dor nos últimos 14 dias.';
-    return `${data.painEvents14d.length} episódio(s) de dor nos últimos 14 dias. Principal região: ${data.primaryPainRegion ?? 'não identificada'}.`;
+  if (n.includes('pain') || n.includes('aching') || n.includes('hurt')) {
+    if (data.painEvents14d.length === 0) return 'No pain episodes in the last 14 days.';
+    return `${data.painEvents14d.length} pain episode(s) in the last 14 days. Primary region: ${data.primaryPainRegion ?? 'unidentified'}.`;
   }
-  if (n.includes('sono') || n.includes('energia')) {
-    return `Média de sono: ${data.sleepAvg.toFixed(1)}/10. Média de energia: ${data.energyAvg.toFixed(1)}/10.`;
+  if (n.includes('sleep') || n.includes('energy')) {
+    return `Average sleep: ${data.sleepAvg.toFixed(1)}/10. Average energy: ${data.energyAvg.toFixed(1)}/10.`;
   }
-  return 'Não entendi sua pergunta. Tente: "Estou em risco de fadiga?", "Quantas sessões completei este mês?", "Quando posso aumentar a carga?" ou "Gere meu resumo mensal."';
+  return 'I didn\'t understand your question. Try: "Am I at risk of fatigue?", "How many sessions did I complete this month?", "When can I increase the load?" or "Generate my monthly summary."';
 }
 
-// ── Tela 06 — Voz analítica ───────────────────────────────────────────────────
+// ── Screen 06 — Voice Analytics ───────────────────────────────────────────────────
 
 const SUGGESTED_QUESTIONS = [
-  'Como foi minha performance esta semana?',
-  'Estou em risco de fadiga?',
-  'Quando posso aumentar a carga?',
-  'Quantas sessões completei este mês?',
-  'Tenho risco de abandono?',
-  'Gere meu resumo mensal.',
+  'How was my performance this week?',
+  'Am I at risk of fatigue?',
+  'When can I increase the load?',
+  'How many sessions did I complete this month?',
+  'Am I at risk of churn?',
+  'Generate my monthly summary.',
 ];
 
 function TelaVoz({ data }: { data: M5Data }) {
@@ -757,9 +777,9 @@ function TelaVoz({ data }: { data: M5Data }) {
   return (
     <ScreenWrap>
       <ScreenTitle
-        kicker="VOZ · ANÁLISE CONVERSACIONAL"
-        title="Pergunte sobre sua evolução."
-        sub="Interface de consulta por voz aos seus dados de performance."
+        kicker="VOICE · CONVERSATIONAL ANALYSIS"
+        title="Ask about your progress."
+        sub="Voice query interface for your performance data."
       />
 
       {/* Mic button */}
@@ -786,11 +806,11 @@ function TelaVoz({ data }: { data: M5Data }) {
           <Icon name="mic" size={30} color="#0E1A2B" stroke={2}/>
         </button>
         <div style={{ fontFamily: FF_MONO, fontSize: 11, color: listening ? C.cyan : T.textMute, letterSpacing: '0.06em' }}>
-          {listening ? 'Ouvindo…' : 'Toque para falar'}
+          {listening ? 'Listening…' : 'Tap to speak'}
         </div>
         {noSupport && (
           <div style={{ fontSize: 11, color: C.coral, textAlign: 'center' }}>
-            Reconhecimento de voz não suportado neste browser. Use as perguntas abaixo.
+            Voice recognition not supported in this browser. Use the questions below.
           </div>
         )}
       </div>
@@ -808,13 +828,13 @@ function TelaVoz({ data }: { data: M5Data }) {
             </div>
           )}
           {response && (
-            <AIMessage title="Resposta" body={response} tone="cyan" />
+            <AIMessage title="Response" body={response} tone="cyan" />
           )}
         </div>
       )}
 
       {/* Suggested questions */}
-      <Section title="Perguntas sugeridas">
+      <Section title="Suggested questions">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {SUGGESTED_QUESTIONS.map(q => (
             <button
@@ -843,8 +863,8 @@ function TelaVoz({ data }: { data: M5Data }) {
       }}>
         <span style={{ color: C.coral, fontSize: 13 }}>🔒</span>
         <div style={{ fontSize: 11, color: T.textSec, lineHeight: 1.5 }}>
-          <b style={{ color: C.coral }}>Privacidade:</b> Consultas por voz não expõem dados sensíveis
-          (saúde, medicamentos, ciclo fisiológico). Dados mascarados por padrão. (RV-5.1)
+          <b style={{ color: C.coral }}>Privacy:</b> Voice queries do not expose sensitive data
+          (health, medication, physiological cycle). Data masked by default. (RV-5.1)
         </div>
       </div>
     </ScreenWrap>
@@ -859,7 +879,7 @@ function TelaMarcos({ data }: { data: M5Data }) {
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker="MARCOS · PROVA DE VALOR" title="Suas conquistas."/>
+      <ScreenTitle kicker="MILESTONES · PROOF OF VALUE" title="Your achievements."/>
 
       {/* Hero */}
       <div style={{
@@ -883,13 +903,13 @@ function TelaMarcos({ data }: { data: M5Data }) {
           }}>
             {unlockedCount}/{total}
           </div>
-          <div style={{ fontSize: 12, color: T.textSec }}>marcos desbloqueados nesta jornada</div>
+          <div style={{ fontSize: 12, color: T.textSec }}>milestones unlocked on this journey</div>
         </div>
       </div>
 
       {/* Unlocked milestones */}
       {data.milestones.filter(m => m.unlocked).length > 0 && (
-        <Section title="Desbloqueados">
+        <Section title="Unlocked">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {data.milestones.filter(m => m.unlocked).map(m => (
               <div key={m.id} style={{
@@ -917,7 +937,7 @@ function TelaMarcos({ data }: { data: M5Data }) {
 
       {/* In-progress milestones */}
       {data.milestones.filter(m => !m.unlocked).length > 0 && (
-        <Section title="Em progresso">
+        <Section title="In progress">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.milestones.filter(m => !m.unlocked).map(m => {
               const pct = Math.min(100, (m.current / m.target) * 100);
@@ -944,14 +964,14 @@ function TelaMarcos({ data }: { data: M5Data }) {
       )}
 
       <AIMessage
-        title="Prova de valor"
+        title="Proof of value"
         tone="lavender"
         body={
           unlockedCount === 0
-            ? 'Complete sua primeira sessão para desbloquear o primeiro marco. Cada treino conta.'
-            : `${unlockedCount} marco${unlockedCount > 1 ? 's' : ''} desbloqueado${unlockedCount > 1 ? 's' : ''}. Cada conquista é evidência do seu compromisso.`
+            ? 'Complete your first session to unlock the first milestone. Every workout counts.'
+            : `${unlockedCount} milestone${unlockedCount > 1 ? 's' : ''} unlocked. Each achievement is evidence of your commitment.`
         }
-        action={unlockedCount > 0 ? 'Gerar relatório mensal — compartilhar com personal' : 'Iniciar o primeiro treino'}
+        action={unlockedCount > 0 ? 'Generate monthly report — share with trainer' : 'Start your first workout'}
       />
     </ScreenWrap>
   );

@@ -71,8 +71,8 @@ function computeChurnRisk(
     score: Math.min(score, 100),
     name: 'Churn Risk',
     code: 'churn_risk_score',
-    desc: 'Risco de abandono com base em aderência e engajamento.',
-    action: adherenceRate < 0.60 ? 'Contatar aluno — revisar disponibilidade' : 'Monitorar tendência',
+    desc: 'Risk of dropout based on adherence and engagement.',
+    action: adherenceRate < 0.60 ? 'Contact student — review availability' : 'Monitor trend',
   };
 }
 
@@ -85,8 +85,8 @@ function computeFatigueRisk(rpeDelta: number, sleepAvg: number): PredictiveScore
     score: Math.min(score, 100),
     name: 'Fatigue Risk',
     code: 'fatigue_risk_score',
-    desc: 'Acúmulo de fadiga sistêmica com base em RPE e sono.',
-    action: score >= 70 ? 'Considerar deload na próxima semana' : 'Manter volume atual',
+    desc: 'Systemic fatigue buildup based on RPE and sleep.',
+    action: score >= 70 ? 'Consider deload next week' : 'Maintain current volume',
   };
 }
 
@@ -95,8 +95,8 @@ function computePainRecurrence(painCount14d: number): PredictiveScore {
     score: Math.min(10 + painCount14d * 22, 100),
     name: 'Pain Recurrence',
     code: 'pain_recurrence_score',
-    desc: 'Frequência de dor recorrente na mesma região em 14 dias.',
-    action: painCount14d >= 3 ? 'Ativar Pain Recurrence Engine — substituir exercício' : 'Monitorar região',
+    desc: 'Frequency of recurring pain in the same region over 14 days.',
+    action: painCount14d >= 3 ? 'Activate Pain Recurrence Engine — replace exercise' : 'Monitor region',
   };
 }
 
@@ -113,8 +113,8 @@ function computeProgressionReadiness(
     score: Math.min(score, 100),
     name: 'Progression Readiness',
     code: 'progression_readiness_score',
-    desc: 'Prontidão para aumentar carga ou volume com segurança.',
-    action: score >= 75 ? 'Progressão segura disponível' : 'Manter carga atual',
+    desc: 'Readiness to increase load or volume safely.',
+    action: score >= 75 ? 'Safe progression available' : 'Maintain current load',
     isGoodScore: true,
   };
 }
@@ -127,7 +127,7 @@ function computeSessionCompletion(
   if (planned === 0) {
     return {
       score: 80, name: 'Session Completion', code: 'session_completion_score',
-      desc: 'Taxa de conclusão das sessões planejadas.', action: 'Aguardar dados',
+      desc: 'Completion rate of planned sessions.', action: 'Await data',
       isGoodScore: true,
     };
   }
@@ -137,8 +137,8 @@ function computeSessionCompletion(
     score,
     name: 'Session Completion',
     code: 'session_completion_score',
-    desc: 'Taxa real de conclusão das sessões programadas.',
-    action: score < 60 ? 'Revisar volume do plano' : 'Manter consistência',
+    desc: 'Actual completion rate of scheduled sessions.',
+    action: score < 60 ? 'Review plan volume' : 'Maintain consistency',
     isGoodScore: true,
   };
 }
@@ -147,7 +147,7 @@ function computePlanFit(partial: number, planned: number): PredictiveScore {
   if (planned === 0) {
     return {
       score: 85, name: 'Plan Fit', code: 'plan_fit_score',
-      desc: 'Adequação do plano à realidade do aluno.', action: 'Aguardar dados',
+      desc: 'Plan suitability to student reality.', action: 'Await data',
       isGoodScore: true,
     };
   }
@@ -157,8 +157,8 @@ function computePlanFit(partial: number, planned: number): PredictiveScore {
     score,
     name: 'Plan Fit',
     code: 'plan_fit_score',
-    desc: 'Compatibilidade entre plano prescrito e execução real.',
-    action: partialRate > 0.30 ? 'Replanejar: volume incompatível com a rotina' : 'Plano bem ajustado',
+    desc: 'Compatibility between prescribed plan and actual execution.',
+    action: partialRate > 0.30 ? 'Replan: volume incompatible with routine' : 'Plan well adjusted',
     isGoodScore: true,
   };
 }
@@ -178,8 +178,8 @@ function computeRecoveryInstability(
     score: Math.min(score, 100),
     name: 'Recovery Instability',
     code: 'recovery_instability_score',
-    desc: 'Instabilidade nos sinais de recuperação (sono, RPE, dor leve).',
-    action: score >= 50 ? 'Investigar qualidade de sono e estresse' : 'Recuperação estável',
+    desc: 'Instability in recovery signals (sleep, RPE, mild pain).',
+    action: score >= 50 ? 'Investigate sleep quality and stress' : 'Recovery stable',
   };
 }
 
@@ -189,8 +189,8 @@ function computeResponseCompatibility(loadDeltaPct: number, volDeltaPct: number)
     score,
     name: 'Response Compatibility',
     code: 'response_compatibility_score',
-    desc: 'Compatibilidade entre estímulo e resposta do aluno.',
-    action: score < 50 ? 'Ajustar progressão — resposta abaixo do esperado' : 'Progressão compatível',
+    desc: 'Compatibility between stimulus and student response.',
+    action: score < 50 ? 'Adjust progression — response below expected' : 'Compatible progression',
     isGoodScore: true,
   };
 }
@@ -201,8 +201,8 @@ function computePlateauRisk(loadChange3w: number): PredictiveScore {
     score,
     name: 'Plateau Risk',
     code: 'plateau_risk_score',
-    desc: 'Risco de estagnação com base na variação de carga (3 semanas).',
-    action: score >= 60 ? 'Variar estímulo: técnica, volume ou frequência' : 'Progressão em curso',
+    desc: 'Risk of stagnation based on load variation (3 weeks).',
+    action: score >= 60 ? 'Vary stimulus: technique, volume or frequency' : 'Progression in progress',
   };
 }
 
@@ -220,20 +220,20 @@ function generateInsights(params: {
   if (params.progressionScore >= 75) {
     insights.push({
       id: 'pi-1', severity: 'positive',
-      title: 'Pronta para progredir',
-      data: `Aderência ${Math.round(params.adherenceRate * 100)}% · RPE estável · Sem dor recorrente`,
-      interpretation: 'Todos os indicadores apontam prontidão de carga.',
-      action: 'Aumentar carga 5–10% no próximo ciclo',
+      title: 'Ready to progress',
+      data: `Adherence ${Math.round(params.adherenceRate * 100)}% · Stable RPE · No recurring pain`,
+      interpretation: 'All indicators point to load readiness.',
+      action: 'Increase load 5–10% in next cycle',
     });
   }
 
   if (params.rpeDelta > 0.8) {
     insights.push({
       id: 'pi-2', severity: 'warning',
-      title: 'Fadiga em ascensão',
-      data: `RPE subiu ${params.rpeDelta.toFixed(1)} pts nas últimas semanas`,
-      interpretation: 'Esforço percebido crescente pode indicar acúmulo de fadiga.',
-      action: 'Monitorar por 2 sessões antes de aplicar deload',
+      title: 'Rising fatigue',
+      data: `RPE rose ${params.rpeDelta.toFixed(1)} pts in recent weeks`,
+      interpretation: 'Increasing perceived effort may indicate fatigue buildup.',
+      action: 'Monitor for 2 sessions before applying deload',
     });
   }
 
@@ -241,29 +241,29 @@ function generateInsights(params: {
     insights.push({
       id: 'pi-3', severity: 'critical',
       title: 'Pain Recurrence Engine ativado',
-      data: `${params.painCount14d} ocorrências de dor em 14 dias`,
-      interpretation: 'Dor recorrente na mesma região indica risco estrutural.',
-      action: 'Substituir exercício e notificar personal',
+      data: `${params.painCount14d} pain occurrences in 14 days`,
+      interpretation: 'Recurring pain in the same region indicates structural risk.',
+      action: 'Replace exercise and notify trainer',
     });
   }
 
   if (params.planFitScore < 50) {
     insights.push({
       id: 'pi-4', severity: 'warning',
-      title: 'Plano incompatível com a rotina',
+      title: 'Plan incompatible with routine',
       data: `Plan Fit: ${Math.round(params.planFitScore)}%`,
-      interpretation: 'Alto índice de sessões parciais aponta sobrecarga no plano.',
-      action: 'Solicitar revisão do plano ao personal',
+      interpretation: 'High rate of partial sessions indicates plan overload.',
+      action: 'Request plan review from trainer',
     });
   }
 
   if (insights.length === 0) {
     insights.push({
       id: 'pi-0', severity: 'info',
-      title: 'Dados em construção',
-      data: 'Histórico ainda insuficiente para análise preditiva',
-      interpretation: 'Complete mais sessões para ativar os indicadores.',
-      action: 'Continue treinando regularmente',
+      title: 'Data being built',
+      data: 'History still insufficient for predictive analysis',
+      interpretation: 'Complete more sessions to activate indicators.',
+      action: 'Continue training regularly',
     });
   }
 
@@ -274,11 +274,11 @@ function generateInsights(params: {
 
 function buildMilestones(totalCompleted: number, streak: number): Milestone[] {
   return [
-    { id: 'ms-1', label: '1ª sessão concluída',   icon: 'play',    target: 1,  current: totalCompleted, unlocked: totalCompleted >= 1  },
-    { id: 'ms-2', label: '10 sessões completas',   icon: 'trophy',  target: 10, current: totalCompleted, unlocked: totalCompleted >= 10 },
-    { id: 'ms-3', label: '1 mês de consistência',  icon: 'cal',     target: 12, current: totalCompleted, unlocked: totalCompleted >= 12 },
-    { id: 'ms-4', label: 'Sequência de 7 dias',    icon: 'flame',   target: 7,  current: streak,         unlocked: streak >= 7          },
-    { id: 'ms-5', label: '25 sessões completas',   icon: 'bolt',    target: 25, current: totalCompleted, unlocked: totalCompleted >= 25 },
+    { id: 'ms-1', label: '1st session completed',   icon: 'play',    target: 1,  current: totalCompleted, unlocked: totalCompleted >= 1  },
+    { id: 'ms-2', label: '10 complete sessions',   icon: 'trophy',  target: 10, current: totalCompleted, unlocked: totalCompleted >= 10 },
+    { id: 'ms-3', label: '1 month of consistency',  icon: 'cal',     target: 12, current: totalCompleted, unlocked: totalCompleted >= 12 },
+    { id: 'ms-4', label: '7-day streak',    icon: 'flame',   target: 7,  current: streak,         unlocked: streak >= 7          },
+    { id: 'ms-5', label: '25 complete sessions',   icon: 'bolt',    target: 25, current: totalCompleted, unlocked: totalCompleted >= 25 },
   ];
 }
 
@@ -288,15 +288,20 @@ export function useM5Data(userId: string | null) {
   const [data,    setData]    = React.useState<M5Data | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState<string | null>(null);
+  const staleRef = React.useRef<M5Data | null>(null);
+  const loadingRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (!userId) { setLoading(false); return; }
+    if (loadingRef.current === userId) return;
+    loadingRef.current = userId;
+    setLoading(true);
     fetchM5Data(userId)
-      .then(d  => { setData(d);         setLoading(false); })
-      .catch(e => { setError(String(e)); setLoading(false); });
+      .then(d  => { staleRef.current = d; setData(d); setLoading(false); loadingRef.current = null; })
+      .catch(e => { setError(String(e)); setLoading(false); loadingRef.current = null; });
   }, [userId]);
 
-  return { data, loading, error };
+  return { data: data ?? staleRef.current, loading, error };
 }
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
@@ -327,6 +332,7 @@ interface RawPainEvent {
 interface RawCheckin {
   energy_level:  number | null;
   sleep_quality: string | null;
+  detailed_data: { sleep_hours?: number } | null;
 }
 
 async function fetchM5Data(userId: string): Promise<M5Data> {
@@ -342,7 +348,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
       .order('started_at'),
     supabase
       .from('checkin_prontidao')
-      .select('energy_level, sleep_quality')
+      .select('energy_level, sleep_quality, detailed_data')
       .eq('user_id', userId)
       .gte('occurred_at', since14d),
   ]);
@@ -394,7 +400,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
   }
 
   // Week strip (last 7 Mon→Sun)
-  const weekDays = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
+  const weekDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
   const today    = new Date();
   const mondayOffset = (today.getDay() + 6) % 7;
   const weekStatus = weekDays.map((_, i) => {
@@ -456,8 +462,11 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
   const volDeltaPct = earlyVol > 0 ? (recentVol - earlyVol) / earlyVol : 0;
 
   // ── Sleep / energy ────────────────────────────────────────────────────────
-  const sleepMap: Record<string, number> = { poor: 5.5, fair: 6.5, good: 7.5 };
-  const sleepVals = checkins.map(c => sleepMap[c.sleep_quality ?? 'fair'] ?? 6.5);
+  const sleepMap: Record<string, number> = { poor: 5.5, fair: 6.5, good: 7.5, excellent: 8.5 };
+  const sleepVals = checkins.map(c => {
+    const actualHours = c.detailed_data?.sleep_hours;
+    return actualHours ?? sleepMap[c.sleep_quality ?? 'fair'] ?? 6.5;
+  });
   const sleepAvg  = sleepVals.length > 0 ? sleepVals.reduce((a, b) => a + b) / sleepVals.length : 7;
   const energyAvg = checkins.length > 0
     ? checkins.reduce((a, c) => a + (c.energy_level ?? 7), 0) / checkins.length
@@ -467,7 +476,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
   // ── Pain (14d) ────────────────────────────────────────────────────────────
   const pain14dRaw = painEvents.filter(e => daysSince(e.reported_at) <= 14);
   const painEvents14d: PainEventSummary[] = pain14dRaw.map(e => ({
-    date:      `${daysSince(e.reported_at)}d atrás`,
+      date:      `${daysSince(e.reported_at)}d ago`,
     region:    e.body_region,
     intensity: e.intensity,
     exercise:  null,
@@ -486,7 +495,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
     const avgRpe = rpeArr.length > 0 ? rpeArr.reduce((a, b) => a + b) / rpeArr.length : null;
     return {
       id:          s.id,
-      date:        new Date(s.started_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      date:        new Date(s.started_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }),
       completed:   s.status === 'completed',
       partial:     s.status !== 'completed' && s.status !== 'abandoned' && s.completed_at !== null,
       rpe:         avgRpe !== null ? Math.round(avgRpe * 10) / 10 : null,

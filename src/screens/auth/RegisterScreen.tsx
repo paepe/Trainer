@@ -16,9 +16,9 @@ interface RegisterScreenProps {
 }
 
 const ROLES = [
-  { key: 'client',       label: 'Aluno',   icon: 'user',     desc: 'Quero treinar' },
-  { key: 'trainer',      label: 'Trainer', icon: 'dumbbell', desc: 'Prescrevo treinos' },
-  { key: 'studio_admin', label: 'Studio',  icon: 'grad',     desc: 'Giro uma academia' },
+  { key: 'client',       label: 'Client',  icon: 'user',     desc: 'I want to train' },
+  { key: 'trainer',      label: 'Trainer', icon: 'dumbbell', desc: 'I prescribe workouts' },
+  { key: 'studio_admin', label: 'Studio',  icon: 'grad',     desc: 'I run a gym' },
 ] as const;
 
 function OAuthButton({ provider, onClick, dark, primary }: {

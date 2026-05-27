@@ -1,9 +1,9 @@
 // POST /api/parse-voice
 // Input:  { transcript: string }
 // Output: { extracted: Partial<CheckInDetailed> }
-// Uses DeepSeek to parse free-form Portuguese voice check-in into structured fields.
+// Uses DeepSeek to parse free-form voice check-in into structured fields.
 
-const SYSTEM_PROMPT = `You are a structured data extractor for a Brazilian Portuguese fitness app.
+const SYSTEM_PROMPT = `You are a structured data extractor for a fitness app.
 The user has spoken a free-form daily check-in. Extract the following fields if mentioned.
 Return ONLY valid JSON. No markdown, no explanation, no extra keys.
 
@@ -24,11 +24,11 @@ JSON schema (all fields optional):
 }
 
 Rules:
-- energia/energy 1-10: map "ótimo"→9, "bom"→7, "ok"→5, "ruim"→3
-- "dormiu mal" → sleep_quality: "poor"; "dormiu bem" → "good"
+- energy 1-10: map "excellent"→9, "good"→7, "ok"→5, "poor"→3
+- "slept poorly" → sleep_quality: "poor"; "slept well" → "good"
 - If no pain mentioned: pain.present = false, omit region/intensity
-- If only minutes given (e.g. "30 minutos"): available_minutes = 30
-- "em casa" → location_today: "home"; "academia" → "gym"`;
+- If only minutes given (e.g. "30 minutes"): available_minutes = 30
+- "at home" → location_today: "home"; "the gym" → "gym"`;
 
 interface VercelRequest  { method?: string; body?: { transcript?: string } }
 interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
@@ -53,6 +53,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 15_000);
+
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -69,6 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           { role: 'user',   content: `User said: "${transcript}"` },
         ],
       }),
+      signal: ctrl.signal,
     });
 
     const data = await response.json() as {
@@ -86,7 +90,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.status(200).json({ extracted });
   } catch (err: unknown) {
-    console.error('[parse-voice]', err);
-    res.status(500).json({ error: err instanceof Error ? err.message : 'parse failed' });
+    if ((err as Error)?.name === 'AbortError') {
+      console.warn('[parse-voice] timed out');
+      res.status(504).json({ error: 'Parsing timed out' });
+    } else {
+      console.error('[parse-voice]', err);
+      res.status(500).json({ error: err instanceof Error ? err.message : 'parse failed' });
+    }
+  } finally {
+    clearTimeout(timeout);
   }
 }

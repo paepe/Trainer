@@ -9,7 +9,8 @@
       "Bash(pod --version)",
       "Bash(brew --version)",
       "Bash(brew install *)",
-      "Bash(npx vercel *)"
+      "Bash(npx vercel *)",
+      "Bash(vercel env *)"
     ]
   }
 }

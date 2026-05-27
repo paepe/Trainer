@@ -15,7 +15,7 @@ interface UseAlertsResult {
 export function useAlerts(trainerId: string | undefined): UseAlertsResult {
   const [alerts,  setAlerts]  = useState<TrainerAlert[]>([]);
   const [tasks,   setTasks]   = useState<OperationalTask[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!trainerId) return;

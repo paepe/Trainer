@@ -17,7 +17,7 @@ interface CheckInHubProps {
 
 function greeting() {
   const h = new Date().getHours();
-  return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 }
 
 const OPTIONS: {
@@ -31,23 +31,23 @@ const OPTIONS: {
   {
     key:   'voice',
     icon:  'mic',
-    label: 'Falar com o app',
-    desc:  'O jeito mais rápido. A IA estrutura sua fala em campos.',
-    time:  '~30 seg',
-    badge: 'RECOMENDADO',
+    label: 'Speak to the app',
+    desc:  'The fastest way. The AI structures your speech into fields.',
+    time:  '~30 sec',
+    badge: 'RECOMMENDED',
   },
   {
     key:   'quick',
     icon:  'clock',
-    label: 'Check-in rápido',
-    desc:  'Cinco perguntas essenciais: sono, energia, dor, fadiga, tempo.',
-    time:  '~40 seg',
+    label: 'Quick check-in',
+    desc:  'Five essential questions: sleep, energy, pain, fatigue, time.',
+    time:  '~40 sec',
   },
   {
     key:   'detailed',
     icon:  'list',
-    label: 'Check-in detalhado',
-    desc:  'Doze blocos para o plano que maior precisão para o seu plano.',
+    label: 'Detailed check-in',
+    desc:  'Twelve blocks for greater plan precision.',
     time:  '~5 min',
   },
 ];
@@ -70,9 +70,9 @@ export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, 
         </button>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 1 }}>
-            TRAINER · MÓDULO 02
+            TRAINER · MODULE 02
           </div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>Check-in de Prontidão</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>Readiness Check-in</div>
         </div>
         {streak != null && (
           <div style={{
@@ -95,7 +95,7 @@ export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, 
           {greeting()}{userName ? `, ${userName.split(' ')[0]}` : ''}.
         </div>
         <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
-          Antes de começar, conte rapidamente como você está hoje.
+          Before starting, quickly tell us how you're feeling today.
         </p>
 
         {/* Variant options */}
@@ -150,7 +150,7 @@ export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, 
           <div>
             <div style={{ fontSize: 11.5, fontWeight: 700, color: accent, marginBottom: 2 }}>Safety Gate ativo</div>
             <div style={{ fontSize: 11, color: textSec(dark), lineHeight: 1.45 }}>
-              Dor, tontura ou sinal de alerta pausam AI-led automaticamente.
+              Pain, dizziness, or warning signs automatically pause AI-led.
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, 
               fontSize: 12.5, color: primary, fontFamily: 'inherit', fontWeight: 600,
             }}
           >
-            Já treinou hoje? Check-in pós-treino →
+            Already trained today? Post-workout check-in →
           </button>
         </div>
       </div>
@@ -176,8 +176,8 @@ export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, 
           marginTop: 24, display: 'flex', justifyContent: 'space-between',
           fontSize: 10.5, color: textMute(dark),
         }}>
-          <span>Último check-in · {lastCheckin}</span>
-          {streak != null && <span>streak · {streak} dias</span>}
+          <span>Last check-in · {lastCheckin}</span>
+          {streak != null && <span>streak · {streak} days</span>}
         </div>
       )}
     </div>

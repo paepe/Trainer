@@ -1,4 +1,4 @@
--- M4 — Execução Real da Sessão
+-- M4 — Real Session Execution
 -- Run after: supabase-migration-v2.sql, supabase-migration-auth-rbac.sql
 -- Adds 4 new tables + extends workout_sessions with M4 columns.
 

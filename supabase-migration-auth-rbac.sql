@@ -1,6 +1,6 @@
 -- =============================================================================
 -- TrAIner · Migration — Auth Foundation: RBAC, active_context, audit, LGPD
--- Implements: Fundação Técnica, Auth, Contexto e Permissões (spec)
+-- Implements: Technical Foundation, Auth, Context & Permissions (spec)
 -- Run once in Supabase SQL Editor.
 -- =============================================================================
 
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS roles (
 );
 
 INSERT INTO roles (code, label, description, is_system) VALUES
-  ('client',               'Aluno',                  'End-user / athlete',                         false),
+  ('client',               'Client',                  'End-user / athlete',                         false),
   ('trainer',              'Trainer',                 'Independent personal trainer',               false),
   ('studio_admin',         'Studio Admin',            'Studio owner / administrator',               false),
   ('studio_trainer',       'Studio Trainer',          'Trainer employed by a studio',               false),

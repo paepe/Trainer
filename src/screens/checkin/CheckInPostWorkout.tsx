@@ -11,17 +11,17 @@ interface CheckInPostWorkoutProps {
 }
 
 const SENSATIONS: { value: SensationRating; label: string; emoji: string }[] = [
-  { value: 'excellent', label: 'ótimo',        emoji: '😄' },
-  { value: 'good',      label: 'bom',          emoji: '😊' },
+  { value: 'excellent', label: 'excellent',        emoji: '😄' },
+  { value: 'good',      label: 'good',          emoji: '😊' },
   { value: 'ok',        label: 'ok',           emoji: '😐' },
-  { value: 'hard',      label: 'difícil',      emoji: '😓' },
-  { value: 'very_hard', label: 'muito difícil',emoji: '😖' },
+  { value: 'hard',      label: 'hard',      emoji: '😓' },
+  { value: 'very_hard', label: 'very hard',emoji: '😖' },
 ];
 
 const COMPLETION: { value: WorkoutCompletionStatus; label: string }[] = [
-  { value: 'yes',        label: 'Sim'          },
-  { value: 'partially',  label: 'Parcialmente' },
-  { value: 'no',         label: 'Não'          },
+  { value: 'yes',        label: 'Yes'          },
+  { value: 'partially',  label: 'Partially' },
+  { value: 'no',         label: 'No'          },
 ];
 
 export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: CheckInPostWorkoutProps) {
@@ -78,10 +78,10 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
           margin: '0 0 8px', fontFamily: '"Plus Jakarta Sans",sans-serif',
           fontSize: 22, fontWeight: 700, color: textPri(dark), textAlign: 'center',
         }}>
-          Feedback salvo
+          Feedback saved
         </h2>
         <p style={{ fontSize: 13, color: textSec(dark), textAlign: 'center', lineHeight: 1.55, margin: 0 }}>
-          A IA usará isso para refinar sua progressão.
+          The AI will use this to refine your progression.
         </p>
       </div>
     );
@@ -91,22 +91,22 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
-        CHECK-IN · PÓS-TREINO
+        CHECK-IN · POST-WORKOUT
       </div>
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Como foi o treino?
+        How was the workout?
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
-        Alimenta sua progressão e a IA aprende com o que funcionou no seu corpo.
+        Feeds your progression and the AI learns from what worked in your body.
       </p>
 
       {/* Sensation */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 14 }}>
-          Sensação geral
+          Overall feeling
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {SENSATIONS.map(s => (
@@ -133,7 +133,7 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
       {/* Concluiu tudo? */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-          Concluiu tudo?
+          Completed everything?
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {COMPLETION.map(c => (
@@ -147,7 +147,7 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
       {/* RPE */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-          Esforço percebido (RPE)
+          Perceived effort (RPE)
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <input type="range" min={1} max={10} value={rpe}
@@ -165,11 +165,11 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark), marginBottom: 3 }}>
-              Sentiu dor durante ou depois?
+              Did you feel pain during or after?
               {painAfter && <span style={{ fontSize: 12, marginLeft: 6 }}>⚠️</span>}
             </div>
             <div style={{ fontSize: 11, color: textSec(dark), lineHeight: 1.45 }}>
-              Alimenta o Pain Recurrence Engine — três ocorrências em 14 dias geram alerta.
+              Feeds the Pain Recurrence Engine — three occurrences in 14 days trigger an alert.
             </div>
           </div>
           <button
@@ -191,12 +191,12 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
       {/* Notes */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 24, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
-          Observação para a IA ou treinador
+          Note for the AI or trainer
         </div>
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          placeholder="ex.: O agachamento doeu na descida, mas o leg press foi ok."
+          placeholder="e.g.: The squat hurt on the descent, but leg press was okay."
           rows={3}
           style={{
             width: '100%', background: 'none', border: 'none', outline: 'none', resize: 'none',
@@ -212,7 +212,7 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
           background: 'none', border: 'none', cursor: 'pointer',
           fontSize: 13, color: primary, fontFamily: 'inherit', fontWeight: 600, padding: 0,
         }}>
-          ← voltar
+          ← back
         </button>
         <button
           onClick={handleSubmit}
@@ -226,7 +226,7 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
         >
-          {saving ? 'Salvando…' : 'Salvar feedback ✓'}
+          {saving ? 'Saving…' : 'Save feedback ✓'}
         </button>
       </div>
     </div>

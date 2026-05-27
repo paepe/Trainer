@@ -9,7 +9,7 @@ interface CheckInVoiceProps {
   onBack:   () => void;
 }
 
-const EXAMPLE = '"Dormi mal umas 5 horas, energia 4 de 10, leve dor no lombar, tenho 30 minutos e vou treinar em casa."';
+const EXAMPLE = '"Slept poorly about 5 hours, energy 4 out of 10, mild lower back pain, I have 30 minutes and I\'ll train at home."';
 
 // Web Speech API — defined locally to avoid lib.dom variance across tsconfigs
 interface RecognitionLike {
@@ -46,7 +46,7 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
     if (!SR) return;
 
     const rec = new SR();
-    rec.lang = 'pt-BR';
+    rec.lang = 'en-US';
     rec.continuous = true;
     rec.interimResults = true;
 
@@ -89,21 +89,28 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
     setParseState('parsing');
     setParseError('');
 
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 20_000);
+
     try {
       const res = await fetch('/api/parse-voice', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ transcript: text }),
+        signal:  ctrl.signal,
       });
 
       if (!res.ok) throw new Error('parse failed');
 
       const { extracted } = await res.json() as { extracted: Record<string, unknown> };
+      clearTimeout(timeout);
       setParseState('done');
       onSubmit({ transcript: text, ai_extracted: extracted });
     } catch {
       setParseState('error');
-      setParseError('Não foi possível analisar. Tente digitar manualmente.');
+      setParseError('Unable to analyze. Try typing manually.');
+    } finally {
+      clearTimeout(timeout);
     }
   };
 
@@ -114,17 +121,17 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 16 }}>
-        TELA 02 · ENTRADA POR VOZ
+        SCREEN 02 · VOICE INPUT
       </div>
 
       <h2 style={{
         margin: '0 0 6px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 28, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Fale livremente.
+        Speak freely.
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
-        A IA vai transformar sua resposta em informações para adaptar o treino. Você confirma antes de salvar.
+        The AI will transform your response into information to adapt the workout. You confirm before saving.
       </p>
 
       {/* Transcription box */}
@@ -137,20 +144,20 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color: textMute(dark) }}>
-            // TRANSCRIÇÃO AO VIVO
+            // LIVE TRANSCRIPTION
           </span>
           <span style={{
             fontSize: 9, fontWeight: 700, letterSpacing: '.08em',
             color: listening ? '#ef4444' : textMute(dark),
           }}>
-            {listening ? '⏺ GRAVANDO' : 'AGUARDANDO'}
+            {listening ? '⏺ RECORDING' : 'WAITING'}
           </span>
         </div>
 
         <textarea
           value={fullText}
           onChange={e => { setTranscript(e.target.value); setInterim(''); }}
-          placeholder="Toque no microfone e descreva como você está hoje. Você pode falar sobre sono, energia, dor, fadiga, tempo disponível, onde vai treinar…"
+          placeholder="Tap the microphone and describe how you're feeling today. You can talk about sleep, energy, pain, fatigue, available time, where you'll train…"
           style={{
             flex: 1, background: 'none', border: 'none', outline: 'none',
             fontSize: 14, color: textPri(dark), fontFamily: 'inherit',
@@ -169,7 +176,7 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16, gap: 10 }}>
         {!supported && (
           <p style={{ fontSize: 11.5, color: textMute(dark), textAlign: 'center', margin: '0 0 8px' }}>
-            Reconhecimento de voz não disponível neste navegador. Digite abaixo.
+            Voice recognition not available in this browser. Type below.
           </p>
         )}
         {supported && (
@@ -192,7 +199,7 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
         )}
         {supported && (
           <span style={{ fontSize: 11.5, color: textMute(dark) }}>
-            {listening ? 'Toque para parar' : 'Toque para começar'}
+            {listening ? 'Tap to stop' : 'Tap to start'}
           </span>
         )}
       </div>
@@ -218,7 +225,7 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
           background: 'none', border: 'none', cursor: 'pointer',
           fontSize: 13, color: primary, fontFamily: 'inherit', fontWeight: 600, padding: 0,
         }}>
-          ← voltar
+          ← back
         </button>
         <button
           onClick={handleSubmit}
@@ -235,10 +242,10 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
           {parseState === 'parsing' ? (
             <>
               <Spinner color="#0E1A2B"/>
-              Analisando…
+              Analyzing…
             </>
           ) : (
-            'Confirmar e calcular →'
+            'Confirm and calculate →'
           )}
         </button>
       </div>

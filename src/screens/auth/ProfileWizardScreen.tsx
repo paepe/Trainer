@@ -199,13 +199,18 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     update({ risk });
 
     const saveP = saveProfileV2 ? saveProfileV2(finalData, 'completed') : Promise.resolve();
-    const aiP   = fetch('/api/generate-amplified', {
+
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 25_000);
+    const aiP = fetch('/api/generate-amplified', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(finalData),
-    }).catch(() => null);
+      signal:  ctrl.signal,
+    }).catch(() => null)
+      .finally(() => clearTimeout(timeout));
 
-    await Promise.all([saveP, aiP]);
+    await Promise.all([saveP, aiP]).finally(() => clearTimeout(timeout));
     setGenerating(false);
     setMode('view');
   };

@@ -29,7 +29,7 @@ INSERT INTO auth.users (
 (gen_random_uuid(),inst,'authenticated','authenticated','rita.carvalho@trainer.test',     pw,now(),'{"name":"Rita Carvalho","role":"trainer"}'::jsonb,    now(),now(),'','',''),
 (gen_random_uuid(),inst,'authenticated','authenticated','rui.martins@trainer.test',       pw,now(),'{"name":"Rui Martins","role":"trainer"}'::jsonb,      now(),now(),'','',''),
 (gen_random_uuid(),inst,'authenticated','authenticated','catarina.lopes@trainer.test',    pw,now(),'{"name":"Catarina Lopes","role":"trainer"}'::jsonb,   now(),now(),'','',''),
--- ── CLIENTS MASCULINOS (25) ─────────────────────────────────────────
+-- ── MALE CLIENTS (25) ─────────────────────────────────────────
 (gen_random_uuid(),inst,'authenticated','authenticated','tiago.moreira@client.test',      pw,now(),'{"name":"Tiago Moreira","role":"client"}'::jsonb,     now(),now(),'','',''),
 (gen_random_uuid(),inst,'authenticated','authenticated','diogo.barros@client.test',        pw,now(),'{"name":"Diogo Barros","role":"client"}'::jsonb,      now(),now(),'','',''),
 (gen_random_uuid(),inst,'authenticated','authenticated','andre.lima@client.test',           pw,now(),'{"name":"André Lima","role":"client"}'::jsonb,        now(),now(),'','',''),
@@ -55,7 +55,7 @@ INSERT INTO auth.users (
 (gen_random_uuid(),inst,'authenticated','authenticated','cristiano.lopes@client.test',     pw,now(),'{"name":"Cristiano Lopes","role":"client"}'::jsonb,   now(),now(),'','',''),
 (gen_random_uuid(),inst,'authenticated','authenticated','marcio.santos@client.test',       pw,now(),'{"name":"Márcio Santos","role":"client"}'::jsonb,     now(),now(),'','',''),
 (gen_random_uuid(),inst,'authenticated','authenticated','eduardo.freitas@client.test',     pw,now(),'{"name":"Eduardo Freitas","role":"client"}'::jsonb,   now(),now(),'','',''),
--- ── CLIENTS FEMININAS (25) ──────────────────────────────────────────
+-- ── FEMALE CLIENTS (25) ──────────────────────────────────────────
 (gen_random_uuid(),inst,'authenticated','authenticated','beatriz.nunes@client.test',       pw,now(),'{"name":"Beatriz Nunes","role":"client"}'::jsonb,     now(),now(),'','',''),
 (gen_random_uuid(),inst,'authenticated','authenticated','ines.rodrigues@client.test',      pw,now(),'{"name":"Inês Rodrigues","role":"client"}'::jsonb,    now(),now(),'','',''),
 (gen_random_uuid(),inst,'authenticated','authenticated','mariana.santos@client.test',      pw,now(),'{"name":"Mariana Santos","role":"client"}'::jsonb,    now(),now(),'','',''),
@@ -100,8 +100,8 @@ SELECT p.id,
        d.equipment, d.restrictions, now()
 FROM profiles p
 JOIN (VALUES
--- ── MASCULINOS ─────────────────────────────────────────────────────
---  email                              kg   cm  ano   nivel          objetivo      min  local      equipamentos                               limitações
+-- ── MALES ─────────────────────────────────────────────────────
+--  email                              kg   cm  year  level         goal        min  location   equipment                                 limitations
 ('tiago.moreira@client.test',         78, 178, 1999,'intermediate','Strength',     45,'gym',      ARRAY['Barbell','Dumbbells'],               ARRAY['Lower back']),
 ('diogo.barros@client.test',          72, 175, 2001,'beginner',    'Weight loss',  30,'gym',      ARRAY['Dumbbells'],                        ARRAY['Knees']),
 ('andre.lima@client.test',            85, 182, 1998,'advanced',    'Hypertrophy',  60,'gym',      ARRAY['Barbell','Dumbbells','Cables'],      ARRAY[]::text[]),
@@ -127,7 +127,7 @@ JOIN (VALUES
 ('cristiano.lopes@client.test',       91, 187, 1995,'advanced',    'Hypertrophy',  90,'gym',      ARRAY['Barbell','Dumbbells','Cables','Kettlebell'], ARRAY['Wrist']),
 ('marcio.santos@client.test',         68, 169, 2004,'beginner',    'Mobility',     30,'home',     ARRAY['Bands','Mat'],                      ARRAY[]::text[]),
 ('eduardo.freitas@client.test',       87, 183, 1997,'intermediate','Strength',     60,'gym',      ARRAY['Barbell','Dumbbells'],               ARRAY[]::text[]),
--- ── FEMININAS ──────────────────────────────────────────────────────
+-- ── FEMALES ──────────────────────────────────────────────────────
 ('beatriz.nunes@client.test',         58, 162, 2001,'intermediate','Weight loss',  45,'gym',      ARRAY['Dumbbells','Cables'],               ARRAY[]::text[]),
 ('ines.rodrigues@client.test',        62, 165, 1999,'beginner',    'Mobility',     30,'home',     ARRAY['Bands','Mat'],                      ARRAY['Lower back']),
 ('mariana.santos@client.test',        55, 160, 2003,'beginner',    'Weight loss',  30,'gym',      ARRAY['Dumbbells'],                        ARRAY[]::text[]),
@@ -166,7 +166,7 @@ SELECT p.id, d.cycle_length, d.period_length,
        now()
 FROM profiles p
 JOIN (VALUES
--- email                               ciclo  período  dias_desde_início
+-- email                               cycle  period  days_since_start
 ('beatriz.nunes@client.test',           28,    5,       8),
 ('ines.rodrigues@client.test',          30,    6,       3),
 ('mariana.santos@client.test',          27,    4,      15),
@@ -277,7 +277,7 @@ WHERE (t.email, c.email) IN (VALUES
 ('ana.ferreira@trainer.test',    'ines.rodrigues@client.test'),
 ('ana.ferreira@trainer.test',    'mariana.santos@client.test'),
 ('ana.ferreira@trainer.test',    'francisca.oliveira@client.test'),
--- João Santos → 5 clientes
+-- João Santos → 5 clients
 ('joao.santos@trainer.test',     'nuno.barbosa@client.test'),
 ('joao.santos@trainer.test',     'luis.fernandes@client.test'),
 ('joao.santos@trainer.test',     'constanca.pereira@client.test'),

@@ -153,7 +153,7 @@ export function AIMessage({ title, body, tone = 'cyan', action }: AIMessageProps
             background: T.navy, border: `1px dashed ${c}55`,
             fontSize: 12, color: T.textSec,
           }}>
-            <span style={{ color: c }}>→</span> <b style={{ color: T.text }}>Ação:</b> {action}
+            <span style={{ color: c }}>→</span> <b style={{ color: T.text }}>Action:</b> {action}
           </div>
         )}
       </div>
@@ -317,13 +317,13 @@ interface BodyDiagramProps {
 }
 
 const REGION_MAP: Record<string, { label: string; cy: number }> = {
-  lombar:    { label: 'LOMBAR',    cy: 72  },
-  costas:    { label: 'COSTAS',    cy: 50  },
-  joelho:    { label: 'JOELHO',    cy: 119 },
-  ombro:     { label: 'OMBRO',     cy: 34  },
-  pescoco:   { label: 'PESCOÇO',   cy: 26  },
-  quadril:   { label: 'QUADRIL',   cy: 92  },
-  tornozelo: { label: 'TORNOZELO', cy: 149 },
+  lombar:    { label: 'LUMBAR',    cy: 72  },
+  costas:    { label: 'BACK',      cy: 50  },
+  joelho:    { label: 'KNEE',      cy: 119 },
+  ombro:     { label: 'SHOULDER',  cy: 34  },
+  pescoco:   { label: 'NECK',      cy: 26  },
+  quadril:   { label: 'HIP',       cy: 92  },
+  tornozelo: { label: 'ANKLE',     cy: 149 },
 };
 
 const GENDER_IMG: Record<string, string> = {

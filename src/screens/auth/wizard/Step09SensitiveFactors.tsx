@@ -24,15 +24,15 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Fatores sensíveis protegidos
+        Protected Sensitive Factors
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 16px', lineHeight: 1.55 }}>
-        O dado íntimo é protegido. Aparece à consciência operacional. Você pode rever e pedir validação humana.
+        Intimate data is protected. Appears to operational awareness. You can review and request human validation.
       </p>
 
       <AINote
         dark={dark} primary={accent} variant="warning"
-        text="Medicamentos, substâncias declaradas voluntariamente, histórico psicológico — ficam dentro apenas para você e são marcados como 'fator de segurança declarado' — progressão conservadora."
+        text="Medications, voluntarily declared substances, psychological history — stay private to you and are marked as 'declared safety factor' — conservative progression."
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
@@ -52,9 +52,9 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
             }}
           >
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Medicações regulares</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Regular Medications</div>
               <div style={{ fontSize: 11.5, color: textSec(dark), marginTop: 3, lineHeight: 1.45 }}>
-                Opcional — apenas se afetar energia, sono ou desempenho.
+                Optional — only if it affects energy, sleep, or performance.
               </div>
             </div>
             <div style={{
@@ -68,17 +68,17 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
           {medOpen && (
             <div style={{ marginTop: 14 }}>
               <FieldInput
-                label="Nome do medicamento (opcional)"
+                label="Medication name (optional)"
                 value={sf.regular_medications ?? ''}
                 onChange={v => {
                   if (v) set({ regular_medications: v });
                   else { const { regular_medications: _, ...rest } = sf; onUpdate({ sensitive_factors: rest }); }
                 }}
                 dark={dark} primary={primary}
-                placeholder="ex.: Losartana, Metformina, Fluoxetina"
+                placeholder="e.g.: Losartan, Metformin, Fluoxetine"
               />
               <p style={{ fontSize: 11, color: textMute(dark), margin: '8px 0 0', lineHeight: 1.45 }}>
-                Dado privado. Nunca exibido ao treinador sem autorização explícita.
+                Private data. Never displayed to the trainer without explicit authorization.
               </p>
             </div>
           )}
@@ -86,8 +86,8 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
 
         {/* Emotional history */}
         <DisclosureCard
-          title="Quero declarar histórico emocional / psiquiátrico"
-          description="Ajuda apenas para que a IA tome decisões mais seguras e a progressão lenta é planejada para toda a jornada."
+          title="I want to declare emotional / psychiatric history"
+          description="Helps only so the AI can make safer decisions and slow progression is planned for the entire journey."
           enabled={sf.declares_emotional_history}
           onToggle={() => set({ declares_emotional_history: !sf.declares_emotional_history })}
           dark={dark} primary={primary}
@@ -95,8 +95,8 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
 
         {/* Recreational substance */}
         <DisclosureCard
-          title="Quero declarar uso de substância recreativa"
-          description="Anônimo. Influencia recomendação de intensidade e monitoramento."
+          title="I want to declare recreational substance use"
+          description="Anonymous. Influences intensity and monitoring recommendations."
           enabled={sf.declares_recreational_substance}
           onToggle={() => set({ declares_recreational_substance: !sf.declares_recreational_substance })}
           dark={dark} primary={primary}
@@ -107,15 +107,15 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
           padding: '12px 14px', borderRadius: 12,
           background: `${accent}10`, border: `1px solid ${accent}33`,
         }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: accent, marginBottom: 4 }}>Regra central</div>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: accent, marginBottom: 4 }}>Core rule</div>
           <p style={{ margin: 0, fontSize: 12, color: textSec(dark), lineHeight: 1.5 }}>
-            Dado íntimo = privado. Consequência operacional = compartilhado de forma mascarada. Você pode revogar o acesso em qualquer momento no Bloco 13.
+            Intimate data = private. Operational consequence = shared in masked form. You can revoke access at any time in Block 13.
           </p>
         </div>
 
         <VoiceOption
           dark={dark} primary={primary}
-          note="Fale livremente — a IA estrutura antes do salvar."
+          note="Speak freely — the AI structures it before saving."
           onClick={() => setVoiceOpen(true)}
         />
       </div>
@@ -126,7 +126,7 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
       {voiceOpen && (
         <WizardVoiceOverlay
           dark={dark} primary={primary}
-          context="Conte sobre fatores sensíveis"
+          context="Tell us about sensitive factors"
           onConfirm={(text) => {
             onUpdate({ sensitive_factors: { ...sf, voice_note: text } });
             setVoiceOpen(false);

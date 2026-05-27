@@ -5,23 +5,23 @@ import type { WizardStepProps } from './types';
 import type { PreferredTime, AdherenceBarrier } from '../../../types/profile-v2';
 
 const TIME_OPTIONS: { value: PreferredTime; label: string }[] = [
-  { value: 'morning',   label: 'Manhã'    },
-  { value: 'afternoon', label: 'Tarde'    },
-  { value: 'evening',   label: 'Noite'    },
-  { value: 'variable',  label: 'Variável' },
+  { value: 'morning',   label: 'Morning'  },
+  { value: 'afternoon', label: 'Afternoon'},
+  { value: 'evening',   label: 'Evening'  },
+  { value: 'variable',  label: 'Variable' },
 ];
 
-const WEEK_DAYS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'] as const;
+const WEEK_DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
 
 const BARRIERS: { value: AdherenceBarrier; label: string }[] = [
-  { value: 'night_shift',          label: 'Turno noturno'       },
-  { value: 'family_care',          label: 'Cuidado familiar'    },
-  { value: 'frequent_travel',      label: 'Viagens frequentes'  },
-  { value: 'treatment_radiation',  label: 'Tratamento/Raio'     },
-  { value: 'transport',            label: 'Transporte'          },
-  { value: 'cost',                 label: 'Custo'               },
-  { value: 'emotional',            label: 'Emocional'           },
-  { value: 'time_constraint',      label: 'Falta de tempo'      },
+  { value: 'night_shift',          label: 'Night shift'         },
+  { value: 'family_care',          label: 'Family care'        },
+  { value: 'frequent_travel',      label: 'Frequent travel'    },
+  { value: 'treatment_radiation',  label: 'Treatment/Radiation'},
+  { value: 'transport',            label: 'Transport'          },
+  { value: 'cost',                 label: 'Cost'               },
+  { value: 'emotional',            label: 'Emotional'          },
+  { value: 'time_constraint',      label: 'Lack of time'       },
 ];
 
 const SESSION_PRESETS = [30, 45, 60, 90];
@@ -55,17 +55,17 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Disponibilidade e barreiras
+        Availability and barriers
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Para calibrar o plano dentro do que você pode cumprir de verdade.
+        To calibrate the plan within what you can actually fulfill.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
         <SliderField
-          label="Dias por semana"
+          label="Days per week"
           value={av.days_per_week ?? 3}
-          min={1} max={7} unit=" dias/semana"
+          min={1} max={7} unit=" days/week"
           onChange={v => set({ days_per_week: v })}
           dark={dark} primary={primary}
         />
@@ -73,7 +73,7 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
         {/* Session duration */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'baseline' }}>
-            <span style={{ fontSize: 13, color: textSec(dark) }}>Duração por sessão</span>
+            <span style={{ fontSize: 13, color: textSec(dark) }}>Duration per session</span>
             <span style={{ fontSize: 18, fontWeight: 700, color: primary, letterSpacing: '-0.02em' }}>
               {av.session_duration_min ?? 45}
               <span style={{ fontSize: 12, color: '#888', marginLeft: 3, fontWeight: 500 }}>min</span>
@@ -99,7 +99,7 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
 
         {/* Preferred time */}
         <div>
-          <SectionLabel label="Melhor horário" dark={dark}/>
+          <SectionLabel label="Best time" dark={dark}/>
           <SegmentedRow
             options={TIME_OPTIONS}
             value={av.preferred_time ?? 'afternoon'}
@@ -110,7 +110,7 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
 
         {/* Preferred days */}
         <div>
-          <SectionLabel label="Dias preferidos" dark={dark}/>
+          <SectionLabel label="Preferred days" dark={dark}/>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
             {WEEK_DAYS.map((d, i) => {
               const on = (av.preferred_days ?? []).includes(i);
@@ -131,7 +131,7 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
 
         {/* Adherence barriers */}
         <div>
-          <SectionLabel label="Barreiras de aderência" dark={dark}/>
+          <SectionLabel label="Adherence barriers" dark={dark}/>
           <ChipGroup>
             {BARRIERS.map(b => (
               <Chip

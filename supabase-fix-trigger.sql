@@ -1,10 +1,10 @@
--- Fix 1: política de INSERT em falta na tabela profiles
+-- Fix 1: missing INSERT policy on profiles table
 create policy "Users can insert own profile"
   on profiles for insert
   with check (auth.uid() = id);
 
--- Fix 2: recriar a trigger function com search_path correto
--- (sem isto, o PostgreSQL não encontra a tabela profiles no contexto da função)
+-- Fix 2: recreate the trigger function with correct search_path
+-- (without this, PostgreSQL can't find the profiles table in the function context)
 create or replace function handle_new_user()
 returns trigger as $$
 begin

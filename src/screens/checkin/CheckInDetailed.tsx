@@ -17,64 +17,64 @@ interface CheckInDetailedProps {
 // ── Local config ──────────────────────────────────────────────────────────────
 
 const SLEEP_OPTIONS: { value: SleepQualityV2; label: string }[] = [
-  { value: 'poor', label: 'Ruim' }, { value: 'regular', label: 'Regular' },
-  { value: 'good', label: 'Bom'  }, { value: 'excellent', label: 'Ótimo'  },
+  { value: 'poor', label: 'Poor' }, { value: 'regular', label: 'Regular' },
+  { value: 'good', label: 'Good'  }, { value: 'excellent', label: 'Excellent'  },
 ];
 
 const PAIN_REGIONS: { value: PainRegion; label: string }[] = [
-  { value: 'cervical', label: 'Cervical' }, { value: 'shoulder', label: 'Ombro'    },
-  { value: 'lumbar',   label: 'Lombar'   }, { value: 'hip',      label: 'Quadril'  },
-  { value: 'knee',     label: 'Joelho'   }, { value: 'ankle',    label: 'Tornozelo'},
-  { value: 'wrist',    label: 'Punho'    }, { value: 'elbow',    label: 'Cotovelo' },
-  { value: 'other',    label: 'Outro'    },
+  { value: 'cervical', label: 'Cervical' }, { value: 'shoulder', label: 'Shoulder'    },
+  { value: 'lumbar',   label: 'Lumbar'   }, { value: 'hip',      label: 'Hip'  },
+  { value: 'knee',     label: 'Knee'   }, { value: 'ankle',    label: 'Ankle'},
+  { value: 'wrist',    label: 'Wrist'    }, { value: 'elbow',    label: 'Elbow' },
+  { value: 'other',    label: 'Other'    },
 ];
 
 const FATIGUE_TYPES: { value: FatigueType; label: string }[] = [
-  { value: 'physical', label: 'Físico' },
+  { value: 'physical', label: 'Physical' },
   { value: 'mental',   label: 'Mental' },
-  { value: 'both',     label: 'Os dois'},
+  { value: 'both',     label: 'Both'},
 ];
 
 const EMOTIONS: { value: EmotionalState; label: string }[] = [
-  { value: 'calm',        label: 'tranquila'  }, { value: 'neutral',     label: 'neutra'     },
-  { value: 'motivated',   label: 'motivada'   }, { value: 'stressed',    label: 'estressada' },
-  { value: 'anxious',     label: 'ansiosa'    }, { value: 'discouraged', label: 'desanimada' },
+  { value: 'calm',        label: 'calm'  }, { value: 'neutral',     label: 'neutral'     },
+  { value: 'motivated',   label: 'motivated'   }, { value: 'stressed',    label: 'stressed' },
+  { value: 'anxious',     label: 'anxious'    }, { value: 'discouraged', label: 'discouraged' },
 ];
 
 const TIME_PRESETS = [15, 30, 45, 60, 90];
 
 const LOCATIONS: { value: string; label: string }[] = [
-  { value: 'home',   label: 'Casa'     }, { value: 'gym',    label: 'Academia' },
-  { value: 'studio', label: 'Studio'   }, { value: 'park',   label: 'Parque'   },
+  { value: 'home',   label: 'Home'     }, { value: 'gym',    label: 'Gym' },
+  { value: 'studio', label: 'Studio'   }, { value: 'park',   label: 'Park'   },
   { value: 'online', label: 'Online'   },
 ];
 
 const EQUIPMENT: { value: string; label: string }[] = [
-  { value: 'dumbbells',       label: 'Halteres'  }, { value: 'resistance_bands', label: 'Elásticos'  },
-  { value: 'barbell',         label: 'Barra'     }, { value: 'bench',            label: 'Banco'      },
-  { value: 'machines',        label: 'Máquinas'  }, { value: 'treadmill',        label: 'Esteira'    },
-  { value: 'kettlebell',      label: 'Kettlebell'}, { value: 'none',             label: 'Nenhum'     },
+  { value: 'dumbbells',       label: 'Dumbbells'  }, { value: 'resistance_bands', label: 'Bands'  },
+  { value: 'barbell',         label: 'Barbell'     }, { value: 'bench',            label: 'Bench'      },
+  { value: 'machines',        label: 'Machines'  }, { value: 'treadmill',        label: 'Treadmill'    },
+  { value: 'kettlebell',      label: 'Kettlebell'}, { value: 'none',             label: 'None'     },
 ];
 
 const SAFETY_SIGNALS: { value: SafetySignal; label: string }[] = [
-  { value: 'severe_pain',         label: 'Dor forte'          },
-  { value: 'dizziness',           label: 'Tontura'            },
-  { value: 'shortness_of_breath', label: 'Falta de ar'        },
-  { value: 'chest_pain',          label: 'Dor no peito'       },
-  { value: 'malaise',             label: 'Mal-estar'          },
-  { value: 'loss_of_balance',     label: 'Perda de equilíbrio'},
-  { value: 'fainting_sensation',  label: 'Sensação de desmaio'},
+  { value: 'severe_pain',         label: 'Severe pain'          },
+  { value: 'dizziness',           label: 'Dizziness'            },
+  { value: 'shortness_of_breath', label: 'Shortness of breath'        },
+  { value: 'chest_pain',          label: 'Chest pain'       },
+  { value: 'malaise',             label: 'Malaise'          },
+  { value: 'loss_of_balance',     label: 'Loss of balance'},
+  { value: 'fainting_sensation',  label: 'Fainting sensation'},
 ];
 
 const ADAPTATIONS: { value: AdaptationPreference; label: string }[] = [
-  { value: 'maintain_normal',    label: 'Manter normal'       },
-  { value: 'reduce_intensity',   label: 'Reduzir intensidade' },
-  { value: 'reduce_impact',      label: 'Reduzir impacto'     },
-  { value: 'increase_rest',      label: 'Aumentar descanso'   },
-  { value: 'shorten_session',    label: 'Encurtar sessão'      },
-  { value: 'prioritize_mobility',label: 'Mobilidade'          },
-  { value: 'postpone_training',  label: 'Adiar treino'        },
-  { value: 'regenerative',       label: 'Regenerativo'        },
+  { value: 'maintain_normal',    label: 'Maintain normal'       },
+  { value: 'reduce_intensity',   label: 'Reduce intensity' },
+  { value: 'reduce_impact',      label: 'Reduce impact'     },
+  { value: 'increase_rest',      label: 'Increase rest'   },
+  { value: 'shorten_session',    label: 'Shorten session'      },
+  { value: 'prioritize_mobility',label: 'Mobility'          },
+  { value: 'postpone_training',  label: 'Postpone training'        },
+  { value: 'regenerative',       label: 'Regenerative'        },
 ];
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -239,22 +239,22 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
-        CHECK-IN DETALHADO · 12 BLOCOS
+        DETAILED CHECK-IN · 12 BLOCKS
       </div>
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 24, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Contexto completo do dia
+        Full day context
       </h2>
       <p style={{ fontSize: 12, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.5 }}>
-        Para maior precisão. Pula campos que não se aplicam.
+        For greater precision. Skips fields that don't apply.
       </p>
 
       {/* 1 Energia */}
       <div style={block()}>
         <BlockHeader num={1} icon="⚡" label="Energia" dark={dark}/>
-        <SliderRow label="como você está se sentindo?" value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
+        <SliderRow label="how are you feeling?" value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
       {/* 2 Sono */}
@@ -267,15 +267,15 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
             </button>
           ))}
         </div>
-        <SliderRow label="horas dormidas" value={sleepHours} min={2} max={12} unit="h" onChange={setSleepHours} dark={dark} primary={primary}/>
+        <SliderRow label="hours slept" value={sleepHours} min={2} max={12} unit="h" onChange={setSleepHours} dark={dark} primary={primary}/>
       </div>
 
       {/* 3 Dor */}
       <div style={block()}>
         <BlockHeader num={3} icon="🔴" label="Dor" dark={dark}/>
         <ToggleRow
-          label="Estou com dor hoje"
-          sub={painOn ? 'Toque para detalhar região e intensidade' : undefined}
+          label="I'm in pain today"
+          sub={painOn ? 'Tap to detail region and intensity' : undefined}
           on={painOn}
           onChange={v => { setPainOn(v); if (!v) { setPainRegion(undefined); } }}
           dark={dark} primary={primary}
@@ -288,7 +288,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
                   onClick={() => setPainRegion(r.value)} dark={dark} primary={primary}/>
               ))}
             </div>
-            <SliderRow label="Intensidade" value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
+            <SliderRow label="Intensity" value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
             <div style={{ marginTop: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
                 MOVIMENTO GATILHO
@@ -297,7 +297,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
                 type="text"
                 value={movementTrigger}
                 onChange={e => setMovementTrigger(e.target.value)}
-                placeholder="ex.: agachar, levantar peso"
+                placeholder="e.g.: squat, lift weight"
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 8, boxSizing: 'border-box',
                   background: dark ? '#0E1A2B' : '#F4F6FA',
@@ -313,7 +313,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
       {/* 4 Fadiga */}
       <div style={block()}>
         <BlockHeader num={4} icon="🔋" label="Fadiga" dark={dark}/>
-        <SliderRow label="cansaço percebido" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
+        <SliderRow label="perceived fatigue" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           {FATIGUE_TYPES.map(o => (
             <button key={o.value} onClick={() => setFatigueType(o.value)} style={btnBase(fatigueType === o.value)}>
@@ -325,7 +325,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
 
       {/* 5 Estado emocional */}
       <div style={block()}>
-        <BlockHeader num={5} icon="🧠" label="Estado emocional" dark={dark}/>
+        <BlockHeader num={5} icon="🧠" label="Emotional state" dark={dark}/>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {EMOTIONS.map(o => (
             <ChipBtn key={o.value} label={o.label} selected={emotion === o.value}
@@ -336,7 +336,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
 
       {/* 6 Tempo */}
       <div style={block()}>
-        <BlockHeader num={6} icon="⏱️" label="Tempo" dark={dark}/>
+        <BlockHeader num={6} icon="⏱️" label="Time" dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {TIME_PRESETS.map(t => (
             <button key={t} onClick={() => setMinutes(t)} style={btnBase(minutes === t)}>
@@ -348,7 +348,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
 
       {/* 7 Local de hoje */}
       <div style={block()}>
-        <BlockHeader num={7} icon="📍" label="Local de hoje" dark={dark}/>
+        <BlockHeader num={7} icon="📍" label="Today's location" dark={dark}/>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {LOCATIONS.map(o => (
             <button key={o.value} onClick={() => setLocation(o.value)} style={btnBase(location === o.value)}>
@@ -360,7 +360,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
 
       {/* 8 Equipamentos */}
       <div style={block()}>
-        <BlockHeader num={8} icon="🏋️" label="Equipamentos disponíveis hoje" dark={dark}/>
+        <BlockHeader num={8} icon="🏋️" label="Equipment available today" dark={dark}/>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {EQUIPMENT.map(o => (
             <ChipBtn key={o.value} label={o.label} selected={equipment.includes(o.value)}
@@ -371,10 +371,10 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
 
       {/* 9 Capacidade funcional */}
       <div style={block()}>
-        <BlockHeader num={9} icon="✅" label="Capacidade funcional do dia" dark={dark}/>
+        <BlockHeader num={9} icon="✅" label="Today's functional capacity" dark={dark}/>
         <ToggleRow
-          label="Posso fazer exercícios de solo hoje"
-          sub="Esta informação ajuda a filtrar exercícios adequados."
+          label="I can do floor exercises today"
+          sub="This information helps filter suitable exercises."
           on={floorOk}
           onChange={setFloorOk}
           dark={dark} primary={primary}
@@ -383,7 +383,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
 
       {/* 10 Sinais de alerta */}
       <div style={block({ border: `1px solid ${signals.length > 0 ? `${accent}55` : borderSubtle(dark)}` })}>
-        <BlockHeader num={10} icon="⚠️" label="Sinais de alerta" dark={dark}/>
+        <BlockHeader num={10} icon="⚠️" label="Warning signs" dark={dark}/>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: signals.length > 0 ? 12 : 0 }}>
           {SAFETY_SIGNALS.map(s => (
             <button key={s.value} onClick={() => toggleSignal(s.value)} style={{
@@ -403,7 +403,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
             background: `${accent}14`, border: `1px solid ${accent}44`,
             fontSize: 11.5, color: accent, lineHeight: 1.45,
           }}>
-            Sinais relatados acionam o Safety Gate: <strong>AI-led será bloqueado</strong> e revisão humana será exigida.
+            Reported signs trigger the Safety Gate: <strong>AI-led will be blocked</strong> and human review will be required.
           </div>
         )}
       </div>
@@ -411,7 +411,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
       {/* 11 Ritmo do Corpo */}
       <div style={block({ background: `${primary}08`, border: `1px solid ${primary}22` })}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-          <BlockHeader num={11} icon="🌊" label="Ritmo do Corpo" dark={dark}/>
+          <BlockHeader num={11} icon="🌊" label="Body Rhythm" dark={dark}/>
           <span style={{
             fontSize: 9, fontWeight: 700, letterSpacing: '.06em',
             background: `${primary}22`, color: primary,
@@ -421,17 +421,17 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
           </span>
         </div>
         <ToggleRow
-          label="Quero versão mais confortável hoje"
-          sub="Adaptação privada. Nunca exibimos fase do ciclo ou sintomas."
+          label="I want a more comfortable version today"
+          sub="Private adaptation. We never display cycle phase or symptoms."
           on={bodyRhythm}
           onChange={setBodyRhythm}
           dark={dark} primary={primary}
         />
       </div>
 
-      {/* 12 Preferência de adaptação */}
+      {/* 12 Adaptation preference */}
       <div style={block()}>
-        <BlockHeader num={12} icon="🎯" label="Preferência de adaptação" dark={dark}/>
+        <BlockHeader num={12} icon="🎯" label="Adaptation preference" dark={dark}/>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {ADAPTATIONS.map(a => (
             <ChipBtn key={a.value} label={a.label} selected={adaptation === a.value}
@@ -447,7 +447,7 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
           background: 'none', border: 'none', cursor: 'pointer',
           fontSize: 13, color: primary, fontFamily: 'inherit', fontWeight: 600, padding: 0,
         }}>
-          ← voltar
+          ← back
         </button>
         <button onClick={handleSubmit} style={{
           flex: 1, padding: '16px', borderRadius: 999,

@@ -66,7 +66,7 @@ export interface Preferences {
   [key: string]: unknown;
 }
 
-// ── M4 — Execução Real da Sessão ─────────────────────────────────────────────
+// ── M4 — Real Session Execution ─────────────────────────────────────────────
 
 export type WorkoutSessionStatus  = 'active' | 'paused' | 'completed' | 'abandoned';
 export type SessionExerciseStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'substituted';
@@ -97,6 +97,7 @@ export interface WorkoutSessionExercise {
   notes:               string | null;
   status:              SessionExerciseStatus;
   substituted_from_id: string | null;
+  skipped_reason?:     string | null;
 }
 
 export interface WorkoutSetLog {

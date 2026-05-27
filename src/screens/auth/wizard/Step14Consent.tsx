@@ -7,21 +7,21 @@ import type { ConsentCategory, ConsentValue } from '../../../types/profile-v2';
 type ConsentKey = keyof ConsentCategory;
 
 const ROWS: { key: ConsentKey; label: string; sensitive?: boolean }[] = [
-  { key: 'training_objective',           label: 'Objetivo de treino'           },
-  { key: 'training_history',             label: 'Histórico de treino'          },
-  { key: 'pain_operational_restriction', label: 'Dor / restrição operacional'  },
-  { key: 'relevant_comorbidity',         label: 'Comorbidade relevante',        sensitive: true },
-  { key: 'sensitive_medication',         label: 'Medicamento sensível',         sensitive: true },
-  { key: 'emotional_psychiatric_health', label: 'Saúde emocional/psiquiátrica', sensitive: true },
-  { key: 'body_rhythm',                  label: 'Ritmo do Corpo',               sensitive: true },
+  { key: 'training_objective',           label: 'Training goal'                     },
+  { key: 'training_history',             label: 'Training history'                },
+  { key: 'pain_operational_restriction', label: 'Pain / operational restriction'  },
+  { key: 'relevant_comorbidity',         label: 'Relevant comorbidity',    sensitive: true },
+  { key: 'sensitive_medication',         label: 'Sensitive medication',    sensitive: true },
+  { key: 'emotional_psychiatric_health', label: 'Emotional/psychiatric health', sensitive: true },
+  { key: 'body_rhythm',                  label: 'Body Rhythm',              sensitive: true },
 ];
 
 const VALUES: ConsentValue[] = ['share', 'summary', 'authorized_only', 'hidden'];
 const VALUE_LABELS: Record<ConsentValue, string> = {
-  share:          'COMPARTILHAR',
-  summary:        'RESUMO',
-  authorized_only:'SOMENTE AUTORIZAR',
-  hidden:         'OCULTO',
+  share:          'SHARE',
+  summary:        'SUMMARY',
+  authorized_only:'AUTHORIZE ONLY',
+  hidden:         'HIDDEN',
 };
 const VALUE_COLOR: Record<ConsentValue, string> = {
   share:          '#2DD4E0',
@@ -71,10 +71,10 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Consentimento e visibilidade
+        Consent and visibility
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 16px', lineHeight: 1.55 }}>
-        Você decide quem vê o quê, a qualquer momento pode revogar.
+        You decide who sees what, and can revoke at any time.
       </p>
 
       {/* Column headers */}
@@ -101,7 +101,7 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
               {row.label}
               {row.sensitive && (
                 <span style={{ display: 'block', fontSize: 10, color: accent, fontWeight: 700, letterSpacing: '.04em', marginTop: 2 }}>
-                  SENSÍVEL
+                  SENSITIVE
                 </span>
               )}
             </div>
@@ -122,15 +122,15 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
       {/* Global toggles */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
         <GlobalToggle
-          label="Permite uso pela IA para adaptação do plano"
-          description="A IA usa os dados autorizados — não tem acesso ao que você ocultou."
+          label="Allows AI use for plan adaptation"
+          description="The AI uses authorized data — it does not have access to what you have hidden."
           on={consent.allow_ai_adaptation}
           onChange={v => onUpdate({ consent: { ...consent, allow_ai_adaptation: v } })}
           dark={dark} primary={primary}
         />
         <GlobalToggle
-          label="Manter histórico de acesso"
-          description="Você poderá auditar quem acessou o quê e quando."
+          label="Maintain access history"
+          description="You will be able to audit who accessed what and when."
           on={consent.maintain_access_log}
           onChange={v => onUpdate({ consent: { ...consent, maintain_access_log: v } })}
           dark={dark} primary={primary}
@@ -138,7 +138,7 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
       </div>
 
       <p style={{ fontSize: 11, color: textMute(dark), lineHeight: 1.5, margin: 0 }}>
-        Revogar o consentimento impede uso futuro não autorizado e mantém um registro auditável de decisão.
+        Revoking consent prevents unauthorized future use and maintains an auditable decision record.
       </p>
 
       <div style={{ flex: 1 }}/>

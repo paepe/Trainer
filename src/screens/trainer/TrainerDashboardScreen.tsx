@@ -77,23 +77,18 @@ export function TrainerDashboardScreen({
     fetchClients();
   }, [user?.id]);
 
-  // Fetch safety gate queue whenever clients list changes
-  React.useEffect(() => {
-    const ids: string[] = [];
-    for (const c of clients) {
-      if (c.status === 'active' && c.client?.id) ids.push(c.client.id);
-    }
-    if (ids.length === 0) { setPendingReviews([]); return; }
-
+  // Fetch safety gate queue whenever clients list changes — merged into fetchClients below
+  const fetchSafetyGate = React.useCallback((clientIds: string[]) => {
+    if (clientIds.length === 0) { setPendingReviews([]); return; }
     supabase
       .from('safety_gate_events')
       .select('id,user_id,status,readiness_score,triggered_signals,created_at')
-      .in('user_id', ids)
+      .in('user_id', clientIds)
       .eq('human_review_required', true)
       .is('human_reviewed_at', null)
       .order('created_at', { ascending: false })
       .then(({ data }) => setPendingReviews((data || []) as SafetyGateEvent[]));
-  }, [clients]);
+  }, []);
 
   async function fetchClients() {
     if (!user?.id) return;
@@ -105,7 +100,15 @@ export function TrainerDashboardScreen({
       .in('status', ['active', 'pending'])
       .order('created_at', { ascending: false });
 
-    setClients((data || []) as unknown as TrainerClient[]);
+    const clientsList = (data || []) as unknown as TrainerClient[];
+    setClients(clientsList);
+
+    const ids: string[] = [];
+    for (const c of clientsList) {
+      if (c.status === 'active' && c.client?.id) ids.push(c.client.id);
+    }
+    fetchSafetyGate(ids);
+
     setLoading(false);
   }
 
@@ -186,7 +189,7 @@ export function TrainerDashboardScreen({
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#EF5B3C' }}>
-                Safety Gate · Revisão Pendente
+                Safety Gate · Pending Review
               </div>
               <div style={{
                 fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,

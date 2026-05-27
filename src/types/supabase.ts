@@ -1156,6 +1156,7 @@ export type Database = {
           sets_prescribed:     number | null
           status:              string
           substituted_from_id: string | null
+          skipped_reason:      string | null
         }
         Insert: {
           created_at?:          string | null
@@ -1173,6 +1174,7 @@ export type Database = {
           sets_prescribed?:     number | null
           status?:              string
           substituted_from_id?: string | null
+          skipped_reason?:      string | null
         }
         Update: {
           created_at?:          string | null
@@ -1190,6 +1192,7 @@ export type Database = {
           sets_prescribed?:     number | null
           status?:              string
           substituted_from_id?: string | null
+          skipped_reason?:      string | null
         }
         Relationships: []
       }

@@ -6,30 +6,30 @@ import type { WizardStepProps } from './types';
 import type { PrimaryGoal, SecondaryGoal } from '../../../types/profile-v2';
 
 const PRIMARY_GOALS: { value: PrimaryGoal; label: string; icon: string }[] = [
-  { value: 'hypertrophy',       label: 'Hipertrofia',       icon: 'dumbbell' },
-  { value: 'weight_loss',       label: 'Emagrecimento',     icon: 'flame'    },
-  { value: 'strength_gain',     label: 'Ganho de força',    icon: 'bolt'     },
-  { value: 'conditioning',      label: 'Condicionamento',   icon: 'pulse'    },
-  { value: 'mobility',          label: 'Mobilidade',        icon: 'heart'    },
-  { value: 'longevity',         label: 'Longevidade',       icon: 'moon'     },
-  { value: 'return_to_training',label: 'Retorno ao treino', icon: 'rocket'   },
-  { value: 'emotional_wellbeing',label:'Bem-estar emocional',icon: 'sparkle' },
+  { value: 'hypertrophy',       label: 'Hypertrophy',       icon: 'dumbbell' },
+  { value: 'weight_loss',       label: 'Weight Loss',     icon: 'flame'    },
+  { value: 'strength_gain',     label: 'Strength Gain',    icon: 'bolt'     },
+  { value: 'conditioning',      label: 'Conditioning',   icon: 'pulse'    },
+  { value: 'mobility',          label: 'Mobility',        icon: 'heart'    },
+  { value: 'longevity',         label: 'Longevity',       icon: 'moon'     },
+  { value: 'return_to_training',label: 'Return to Training', icon: 'rocket'   },
+  { value: 'emotional_wellbeing',label:'Emotional Wellbeing',icon: 'sparkle' },
 ];
 
 const SECONDARY_GOALS: { value: SecondaryGoal; label: string }[] = [
-  { value: 'hypertrophy',        label: 'Hipertrofia'         },
-  { value: 'weight_loss',        label: 'Emagrecimento'       },
-  { value: 'strength_gain',      label: 'Ganho de força'      },
-  { value: 'conditioning',       label: 'Condicionamento'     },
-  { value: 'mobility',           label: 'Mobilidade'          },
-  { value: 'longevity',          label: 'Longevidade'         },
-  { value: 'return_to_training', label: 'Retorno ao treino'   },
-  { value: 'emotional_wellbeing',label: 'Bem-estar emocional' },
-  { value: 'daily_autonomy',     label: 'Autonomia diária'    },
-  { value: 'body_composition',   label: 'Composição corporal' },
-  { value: 'sports_performance', label: 'Performance esportiva' },
-  { value: 'balance',            label: 'Equilíbrio'          },
-  { value: 'consistency',        label: 'Consistência'        },
+  { value: 'hypertrophy',        label: 'Hypertrophy'         },
+  { value: 'weight_loss',        label: 'Weight Loss'       },
+  { value: 'strength_gain',      label: 'Strength Gain'      },
+  { value: 'conditioning',       label: 'Conditioning'     },
+  { value: 'mobility',           label: 'Mobility'          },
+  { value: 'longevity',          label: 'Longevity'         },
+  { value: 'return_to_training', label: 'Return to Training'   },
+  { value: 'emotional_wellbeing',label: 'Emotional Wellbeing' },
+  { value: 'daily_autonomy',     label: 'Daily Autonomy'    },
+  { value: 'body_composition',   label: 'Body Composition' },
+  { value: 'sports_performance', label: 'Sports Performance' },
+  { value: 'balance',            label: 'Balance'          },
+  { value: 'consistency',        label: 'Consistency'        },
 ];
 
 export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
@@ -56,13 +56,13 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        O que o movimento pode<br/>melhorar na sua vida?
+        What can movement<br/>improve in your life?
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        "O que você gostaria que o movimento melhorasse na sua vida?"
+        "What would you like movement to improve in your life?"
       </p>
 
-      <SectionLabel label="Objetivo principal" dark={dark}/>
+      <SectionLabel label="Primary goal" dark={dark}/>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
         {PRIMARY_GOALS.map(g => (
           <GoalCard
@@ -79,7 +79,7 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
 
       {obj.primary_goal && (
         <>
-          <SectionLabel label={`Objetivos secundários (opcional)`} dark={dark}/>
+          <SectionLabel label="Secondary goals (optional)" dark={dark}/>
           <ChipGroup style={{ marginBottom: 20 }}>
             {availableSecondary.map(g => (
               <Chip
@@ -96,7 +96,7 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
 
       <VoiceOption
         dark={dark} primary={primary}
-        note="Nos conte sobre seus objetivos com suas próprias palavras."
+        note="Tell us about your goals in your own words."
         onClick={() => setVoiceOpen(true)}
       />
 
@@ -110,7 +110,7 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
       {voiceOpen && (
         <WizardVoiceOverlay
           dark={dark} primary={primary}
-          context="Conte sobre seus objetivos"
+          context="Tell us about your goals"
           onConfirm={(text) => {
             onUpdate({ objectives: { ...obj, voice_note: text } });
             setVoiceOpen(false);

@@ -62,6 +62,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const userContent = `Client profile:\n${JSON.stringify(safeProfile, null, 2)}\n\nGenerate the Perfil Ampliado.`;
 
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 22_000);
+
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -78,6 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           { role: 'user',   content: userContent   },
         ],
       }),
+      signal: ctrl.signal,
     });
 
     const data = await response.json() as {
@@ -96,7 +100,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const result = JSON.parse(match[0]);
     res.status(200).json(result);
   } catch (err: unknown) {
-    console.error('[generate-amplified]', err);
-    res.status(500).json({ error: err instanceof Error ? err.message : 'generation failed' });
+    if ((err as Error)?.name === 'AbortError') {
+      console.warn('[generate-amplified] timed out');
+      res.status(504).json({ error: 'Generation timed out' });
+    } else {
+      console.error('[generate-amplified]', err);
+      res.status(500).json({ error: err instanceof Error ? err.message : 'generation failed' });
+    }
+  } finally {
+    clearTimeout(timeout);
   }
 }

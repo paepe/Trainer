@@ -8,34 +8,34 @@ import type {
 } from '../../../types/profile-v2';
 
 const INTENSITY_OPTS: { value: PreferredIntensity; label: string }[] = [
-  { value: 'gradual',  label: 'Leve'     },
-  { value: 'moderate', label: 'Moderada' },
-  { value: 'intense',  label: 'Intensa'  },
+  { value: 'gradual',  label: 'Light'    },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'intense',  label: 'Intense'  },
 ];
 const COMPANY_OPTS: { value: TrainingCompany; label: string }[] = [
-  { value: 'solo',        label: 'Sozinho'      },
-  { value: 'accompanied', label: 'Acompanhado'  },
-  { value: 'indifferent', label: 'Indiferente'  },
+  { value: 'solo',        label: 'Solo'         },
+  { value: 'accompanied', label: 'Accompanied'  },
+  { value: 'indifferent', label: 'Indifferent'  },
 ];
 const LANGUAGE_OPTS: { value: PreferredLanguage; label: string }[] = [
-  { value: 'direct',       label: 'Direta'        },
-  { value: 'explanatory',  label: 'Esclarecedora' },
-  { value: 'technical',    label: 'Técnica'       },
+  { value: 'direct',       label: 'Direct'       },
+  { value: 'explanatory',  label: 'Explanatory'  },
+  { value: 'technical',    label: 'Technical'    },
 ];
 const EXPLANATION_OPTS: { value: ExplanationLevel; label: string }[] = [
-  { value: 'simple',   label: 'Simples'   },
-  { value: 'detailed', label: 'Detalhada' },
-  { value: 'technical',label: 'Técnica'   },
+  { value: 'simple',   label: 'Simple'   },
+  { value: 'detailed', label: 'Detailed' },
+  { value: 'technical',label: 'Technical'},
 ];
 const FOCUS_OPTS: { value: TrainingFocus; label: string }[] = [
   { value: 'performance', label: 'Performance' },
-  { value: 'health',      label: 'Saúde'       },
-  { value: 'aesthetics',  label: 'Estética'    },
-  { value: 'consistency', label: 'Consistência'},
+  { value: 'health',      label: 'Health'      },
+  { value: 'aesthetics',  label: 'Aesthetics'  },
+  { value: 'consistency', label: 'Consistency' },
 ];
 const SUPPORT_OPTS: { value: SupportLevel; label: string }[] = [
-  { value: 'autonomous', label: 'Autonomia'          },
-  { value: 'guided',     label: 'Orientação próxima' },
+  { value: 'autonomous', label: 'Autonomy'       },
+  { value: 'guided',     label: 'Close guidance' },
 ];
 
 export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
@@ -62,15 +62,15 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Preferências de treino<br/>e suporte
+        Training and support<br/>preferences
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Define a voz da comunicação e ajusta o plano ao seu perfil comportamental.
+        Defines the communication tone and adjusts the plan to your behavioral profile.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
         <div>
-          <SectionLabel label="Intensidade preferida" dark={dark}/>
+          <SectionLabel label="Preferred intensity" dark={dark}/>
           <SegmentedRow
             options={INTENSITY_OPTS}
             value={pref.preferred_intensity ?? 'moderate'}
@@ -80,7 +80,7 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
         </div>
 
         <div>
-          <SectionLabel label="Treinar sozinho ou acompanhado?" dark={dark}/>
+          <SectionLabel label="Train alone or accompanied?" dark={dark}/>
           <SegmentedRow
             options={COMPANY_OPTS}
             value={pref.training_company ?? 'solo'}
@@ -90,7 +90,7 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
         </div>
 
         <div>
-          <SectionLabel label="Linguagem preferida" dark={dark}/>
+          <SectionLabel label="Preferred language" dark={dark}/>
           <SegmentedRow
             options={LANGUAGE_OPTS}
             value={pref.preferred_language ?? 'explanatory'}
@@ -100,7 +100,7 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
         </div>
 
         <div>
-          <SectionLabel label="Nível de explicação" dark={dark}/>
+          <SectionLabel label="Explanation level" dark={dark}/>
           <SegmentedRow
             options={EXPLANATION_OPTS}
             value={pref.explanation_level ?? 'simple'}
@@ -110,7 +110,7 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
         </div>
 
         <div>
-          <SectionLabel label="Foco da meta" dark={dark}/>
+          <SectionLabel label="Goal focus" dark={dark}/>
           <ChipGroup>
             {FOCUS_OPTS.map(f => (
               <Chip
@@ -125,7 +125,7 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
         </div>
 
         <div>
-          <SectionLabel label="Grau de suporte" dark={dark}/>
+          <SectionLabel label="Support level" dark={dark}/>
           <SegmentedRow
             options={SUPPORT_OPTS}
             value={pref.support_level ?? 'guided'}

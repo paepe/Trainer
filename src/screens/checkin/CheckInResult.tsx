@@ -47,9 +47,9 @@ function ReadinessGauge({ score, color }: { score: number; color: string }) {
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const STATUS_META = {
-  clear:   { color: '#4ade80', heading: 'Vamos nessa!',         bg: '#4ade8012' },
-  caution: { color: '#F5A623', heading: 'Hoje vamos com cautela.', bg: '#F5A62312' },
-  blocked: { color: '#EF5B3C', heading: 'Hoje vamos com cautela.', bg: '#EF5B3C12' },
+  clear:   { color: '#4ade80', heading: 'Let\'s go!',         bg: '#4ade8012' },
+  caution: { color: '#F5A623', heading: 'Today we\'ll go with caution.', bg: '#F5A62312' },
+  blocked: { color: '#EF5B3C', heading: 'Today we\'ll go with caution.', bg: '#EF5B3C12' },
 };
 
 const PAIN_LABEL = { low: 'low',    moderate: 'moderate', high: 'high'   };
@@ -81,7 +81,7 @@ export function CheckInResult({ dark, primary, accent, result, onDone, onAlert }
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
-        TELA 04 · RELATÓRIO DE PRONTIDÃO · CONTEXTUAL
+        SCREEN 04 · READINESS REPORT · CONTEXTUAL
       </div>
 
       <h2 style={{
@@ -110,10 +110,10 @@ export function CheckInResult({ dark, primary, accent, result, onDone, onAlert }
           background: `${accent}14`, border: `1.5px solid ${accent}55`,
         }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: accent, marginBottom: 4 }}>
-            SAFETY_GATE = AI-led bloqueado
+            SAFETY_GATE = AI-led blocked
           </div>
           <p style={{ margin: 0, fontSize: 12.5, color: textSec(dark), lineHeight: 1.5 }}>
-            Você relatou um sinal que pode afetar sua segurança. Considere orientação profissional.
+            You reported a sign that may affect your safety. Consider professional guidance.
           </p>
         </div>
       )}
@@ -165,7 +165,7 @@ export function CheckInResult({ dark, primary, accent, result, onDone, onAlert }
           fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
         }}
       >
-        {isBlocked ? 'Ver opções de cautela' : 'Iniciar treino →'}
+        {isBlocked ? 'View caution options' : 'Start workout →'}
       </button>
       <button
         onClick={onAlert}
@@ -176,7 +176,7 @@ export function CheckInResult({ dark, primary, accent, result, onDone, onAlert }
           fontFamily: 'inherit', cursor: 'pointer',
         }}
       >
-        Avisar treinador
+        Notify trainer
       </button>
     </div>
   );

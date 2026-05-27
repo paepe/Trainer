@@ -1,6 +1,6 @@
 -- =============================================================================
 -- TrAIner v2 — Schema Migration
--- Modules: Perfil Inteligente do Aluno + Avaliação Inicial / Check-in de Prontidão
+-- Modules: Smart Student Profile + Initial Assessment / Readiness Check-in
 -- Privacy tiers: T1 shareable · T2 conditional · T3 blinded · T4 private opt-in
 -- =============================================================================
 

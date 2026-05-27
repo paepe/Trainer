@@ -8,50 +8,50 @@ import type {
 } from '../../../types/profile-v2';
 
 const MOBILITY_OPTS: { value: MobilityLevel; label: string }[] = [
-  { value: 'low',      label: 'Baixa'    },
-  { value: 'moderate', label: 'Moderada' },
-  { value: 'good',     label: 'Boa'      },
+  { value: 'low',      label: 'Low'    },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'good',     label: 'Good'      },
 ];
 const BALANCE_OPTS: { value: BalanceLevel; label: string }[] = [
-  { value: 'unstable', label: 'Instável'  },
-  { value: 'assisted', label: 'Assistido' },
-  { value: 'stable',   label: 'Estável'   },
+  { value: 'unstable', label: 'Unstable'  },
+  { value: 'assisted', label: 'Assisted' },
+  { value: 'stable',   label: 'Stable'   },
 ];
 const AUTONOMY_OPTS: { value: AutonomyLevel; label: string }[] = [
-  { value: 'assisted',     label: 'Assistida'     },
-  { value: 'partial',      label: 'Parcial'        },
-  { value: 'independent',  label: 'Independente'   },
+  { value: 'assisted',     label: 'Assisted'     },
+  { value: 'partial',      label: 'Partial'        },
+  { value: 'independent',  label: 'Independent'   },
 ];
 const EFFORT_OPTS: { value: EffortTolerance; label: string }[] = [
-  { value: 'low',      label: 'Baixa'    },
-  { value: 'moderate', label: 'Moderada' },
-  { value: 'good',     label: 'Boa'      },
+  { value: 'low',      label: 'Low'    },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'good',     label: 'Good'      },
 ];
 const SUPPORT_RESOURCES: { value: SupportResource; label: string }[] = [
-  { value: 'wheelchair',    label: 'Cadeira de rodas' },
-  { value: 'cane',          label: 'Bengala'          },
-  { value: 'walker',        label: 'Andador'          },
-  { value: 'prosthesis',    label: 'Prótese'          },
-  { value: 'nearby_support',label: 'Apoio próximo'    },
-  { value: 'none',          label: 'Nenhum'           },
+  { value: 'wheelchair',    label: 'Wheelchair' },
+  { value: 'cane',          label: 'Cane'          },
+  { value: 'walker',        label: 'Walker'          },
+  { value: 'prosthesis',    label: 'Prosthesis'          },
+  { value: 'nearby_support',label: 'Nearby support'    },
+  { value: 'none',          label: 'None'           },
 ];
 const PAIN_OPTS: { value: PainLevel; label: string }[] = [
-  { value: 'none',     label: 'Nenhuma'   },
-  { value: 'mild',     label: 'Leve'      },
-  { value: 'moderate', label: 'Moderada'  },
-  { value: 'severe',   label: 'Intensa'   },
+  { value: 'none',     label: 'None'   },
+  { value: 'mild',     label: 'Mild'      },
+  { value: 'moderate', label: 'Moderate'  },
+  { value: 'severe',   label: 'Severe'   },
 ];
 const ACCESS_OPTS: { value: AccessLevel; label: string }[] = [
-  { value: 'full',    label: 'Pleno'     },
-  { value: 'partial', label: 'Parcial'   },
-  { value: 'limited', label: 'Limitado'  },
+  { value: 'full',    label: 'Full'     },
+  { value: 'partial', label: 'Partial'   },
+  { value: 'limited', label: 'Limited'  },
 ];
 const INSTRUCTION_FORMATS: { value: InstructionFormat; label: string }[] = [
   { value: 'visual',          label: 'Visual'             },
-  { value: 'auditory',        label: 'Auditivo'           },
-  { value: 'simplified_text', label: 'Texto simplificado' },
-  { value: 'vibration',       label: 'Vibração'           },
-  { value: 'standard',        label: 'Padrão'             },
+  { value: 'auditory',        label: 'Auditory'           },
+  { value: 'simplified_text', label: 'Simplified text' },
+  { value: 'vibration',       label: 'Vibration'           },
+  { value: 'standard',        label: 'Standard'             },
 ];
 
 export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
@@ -92,45 +92,45 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Capacidade funcional<br/>e acessibilidade
+        Functional capacity<br/>and accessibility
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Movimento possível antes de treino. Vamos garantir que o plano seja realista.
+        Movement capability before training. Let's ensure the plan is realistic.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
-          <SectionLabel label="Mobilidade" dark={dark}/>
+          <SectionLabel label="Mobility" dark={dark}/>
           <SegmentedRow options={MOBILITY_OPTS} value={fc.mobility ?? ''} onChange={v => set({ mobility: v as MobilityLevel })} dark={dark} primary={primary}/>
         </div>
 
         <div>
-          <SectionLabel label="Equilíbrio" dark={dark}/>
+          <SectionLabel label="Balance" dark={dark}/>
           <SegmentedRow options={BALANCE_OPTS} value={fc.balance ?? ''} onChange={v => set({ balance: v as BalanceLevel })} dark={dark} primary={primary}/>
         </div>
 
         <div>
-          <SectionLabel label="Autonomia" dark={dark}/>
+          <SectionLabel label="Autonomy" dark={dark}/>
           <SegmentedRow options={AUTONOMY_OPTS} value={fc.autonomy ?? ''} onChange={v => set({ autonomy: v as AutonomyLevel })} dark={dark} primary={primary}/>
         </div>
 
         <div>
-          <SectionLabel label="Tolerância ao esforço" dark={dark}/>
+          <SectionLabel label="Effort tolerance" dark={dark}/>
           <SegmentedRow options={EFFORT_OPTS} value={fc.effort_tolerance ?? ''} onChange={v => set({ effort_tolerance: v as EffortTolerance })} dark={dark} primary={primary}/>
         </div>
 
         <div>
-          <SectionLabel label="Nível de dor habitual" dark={dark}/>
+          <SectionLabel label="Usual pain level" dark={dark}/>
           <SegmentedRow options={PAIN_OPTS} value={fc.pain_level ?? ''} onChange={v => set({ pain_level: v as PainLevel })} dark={dark} primary={primary}/>
         </div>
 
         <div>
-          <SectionLabel label="Acesso ao ambiente de treino" dark={dark}/>
+          <SectionLabel label="Access to training environment" dark={dark}/>
           <SegmentedRow options={ACCESS_OPTS} value={fc.access_level ?? ''} onChange={v => set({ access_level: v as AccessLevel })} dark={dark} primary={primary}/>
         </div>
 
         <div>
-          <SectionLabel label="Recursos de apoio que você utiliza" dark={dark}/>
+          <SectionLabel label="Support resources you use" dark={dark}/>
           <ChipGroup>
             {SUPPORT_RESOURCES.map(r => (
               <Chip
@@ -146,7 +146,7 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
         </div>
 
         <div>
-          <SectionLabel label="Como prefere receber instruções?" dark={dark}/>
+          <SectionLabel label="How do you prefer to receive instructions?" dark={dark}/>
           <ChipGroup>
             {INSTRUCTION_FORMATS.map(f => (
               <Chip
@@ -162,7 +162,7 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
 
         <AINote
           dark={dark} primary={primary}
-          text="Esses dados geram o Perfil de Capacidade Funcional e filtram os exercícios — por exemplo, se você não consegue dobrar os joelhos, menos de solo na prescrição."
+          text="This data generates the Functional Capacity Profile and filters exercises — for example, if you cannot bend your knees, fewer floor exercises will be prescribed."
         />
       </div>
 

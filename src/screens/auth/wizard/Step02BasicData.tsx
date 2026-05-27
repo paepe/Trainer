@@ -6,10 +6,10 @@ import type { BiologicalSex, ProfileBasicData } from '../../../types/profile-v2'
 import type { Profile } from '../../../types';
 
 const SEX_OPTIONS: { value: BiologicalSex; label: string }[] = [
-  { value: 'female',            label: 'Feminino'            },
-  { value: 'male',              label: 'Masculino'           },
-  { value: 'intersex',          label: 'Intersexo'           },
-  { value: 'prefer_not_to_say', label: 'Prefiro não informar' },
+  { value: 'female',            label: 'Female'            },
+  { value: 'male',              label: 'Male'           },
+  { value: 'intersex',          label: 'Intersex'           },
+  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
 ];
 
 const bioSexToGender = (sex: BiologicalSex | undefined): Profile['gender'] => {
@@ -109,17 +109,17 @@ export function Step02BasicData({
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Informações Pessoais
+        Personal Information
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 22px', lineHeight: 1.55 }}>
-        Preencha seus dados para adaptar o plano à sua idade, sexo e histórico.
+        Fill in your data to adapt the plan to your age, sex, and history.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* ── Identity ── */}
         <FieldInput
-          label="Nome"
+          label="Name"
           value={d.name ?? ''}
           onChange={v => setBasic({ name: v })}
           dark={dark} primary={primary}
@@ -128,14 +128,14 @@ export function Step02BasicData({
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <FieldInput
-            label="E-mail"
+            label="Email"
             value={email}
             onChange={setEmail}
             dark={dark} primary={primary}
-            type="email" placeholder="seu@email.com"
+            type="email" placeholder="you@email.com"
           />
           <FieldInput
-            label="Telefone"
+            label="Phone"
             value={phone}
             onChange={v => setPhone(v.replace(/[^\d+\s\-()]/g, ''))}
             dark={dark} primary={primary}
@@ -146,7 +146,7 @@ export function Step02BasicData({
         {/* DOB + age (read-only) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <FieldInput
-            label="Data de nascimento"
+            label="Date of birth"
             value={dob}
             onChange={setDob}
             dark={dark} primary={primary}
@@ -158,7 +158,7 @@ export function Step02BasicData({
               fontSize: 10.5, fontWeight: 700, letterSpacing: '.08em',
               textTransform: 'uppercase', color: textMute(dark), marginBottom: 6,
             }}>
-              Idade
+              Age
             </div>
             <div style={{
               padding: '11px 14px', borderRadius: 12,
@@ -167,30 +167,30 @@ export function Step02BasicData({
               fontSize: 15, color: age !== null ? textPri(dark) : textMute(dark),
               fontFamily: 'inherit',
             }}>
-              {age !== null ? `${age} anos` : '—'}
+              {age !== null ? `${age} years` : '—'}
             </div>
           </div>
         </div>
 
         <FieldInput
-          label="Cidade / Endereço"
+          label="City / Address"
           value={address}
           onChange={setAddress}
           dark={dark} primary={primary}
-          placeholder="São Paulo, SP"
+          placeholder="New York, NY"
         />
 
         {/* ── Training data ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <FieldInput
-            label="Altura (cm)"
+            label="Height (cm)"
             value={d.height_cm ? String(d.height_cm) : ''}
             onChange={v => setBasic({ height_cm: v ? +v : undefined as unknown as number })}
             dark={dark} primary={primary}
             type="number" inputMode="decimal" placeholder="165"
           />
           <FieldInput
-            label="Peso atual (kg)"
+            label="Current weight (kg)"
             value={d.weight_kg ? String(d.weight_kg) : ''}
             onChange={v => setBasic({ weight_kg: v ? +v : undefined as unknown as number })}
             dark={dark} primary={primary}
@@ -199,16 +199,16 @@ export function Step02BasicData({
         </div>
 
         <FieldInput
-          label="Idioma"
-          value={d.language ?? 'Português'}
+          label="Language"
+          value={d.language ?? 'English'}
           onChange={v => setBasic({ language: v })}
           dark={dark} primary={primary}
-          placeholder="Português"
+          placeholder="English"
         />
 
         {/* Biological sex */}
         <div>
-          <SectionLabel label="Sexo biológico" dark={dark}/>
+          <SectionLabel label="Biological sex" dark={dark}/>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {SEX_OPTIONS.map(o => {
               const on = d.biological_sex === o.value;
@@ -226,7 +226,7 @@ export function Step02BasicData({
             })}
           </div>
           <p style={{ fontSize: 11, color: textSec(dark), margin: '8px 0 0' }}>
-            Usado para personalização — nunca para diagnóstico.
+            Used for personalization — never for diagnosis.
           </p>
         </div>
 
@@ -244,18 +244,18 @@ export function Step02BasicData({
               cursor: 'pointer', padding: 0, fontFamily: 'inherit',
             }}
           >
-            <span style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Contato de emergência</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Emergency contact</span>
             <span style={{ fontSize: 12, color: textSec(dark) }}>{emergencyOpen ? '▲' : '▼'}</span>
           </button>
           {emergencyOpen && (
             <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <FieldInput
-                label="Nome" value={d.emergency_contact?.name ?? ''}
+                label="Name" value={d.emergency_contact?.name ?? ''}
                 onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { phone: '' }), name: v } })}
-                dark={dark} primary={primary} placeholder="Nome e sobrenome"
+                dark={dark} primary={primary} placeholder="First and last name"
               />
               <FieldInput
-                label="Telefone" value={d.emergency_contact?.phone ?? ''}
+                label="Phone" value={d.emergency_contact?.phone ?? ''}
                 onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { name: '' }), phone: v } })}
                 dark={dark} primary={primary} type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
               />

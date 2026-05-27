@@ -5,14 +5,14 @@ import type { WizardStepProps } from './types';
 import type { BodyRhythmAdaptation } from '../../../types/profile-v2';
 
 const ADAPTATIONS: { value: BodyRhythmAdaptation; label: string }[] = [
-  { value: 'maintain_normal',    label: 'Manter normal'       },
-  { value: 'reduce_intensity',   label: 'Reduzir intensidade' },
-  { value: 'reduce_impact',      label: 'Reduzir impacto'     },
-  { value: 'increase_rest',      label: 'Aumentar descanso'   },
-  { value: 'shorten_session',    label: 'Encurtar sessão'      },
-  { value: 'prioritize_mobility',label: 'Priorizar mobilidade' },
-  { value: 'postpone_training',  label: 'Adiar treino'        },
-  { value: 'regenerative',       label: 'Regenerativo'        },
+  { value: 'maintain_normal',    label: 'Maintain normal'       },
+  { value: 'reduce_intensity',   label: 'Reduce intensity' },
+  { value: 'reduce_impact',      label: 'Reduce impact'     },
+  { value: 'increase_rest',      label: 'Increase rest'   },
+  { value: 'shorten_session',    label: 'Shorten session'      },
+  { value: 'prioritize_mobility',label: 'Prioritize mobility' },
+  { value: 'postpone_training',  label: 'Postpone training'        },
+  { value: 'regenerative',       label: 'Regenerative'        },
 ];
 
 interface Step10Props extends WizardStepProps {
@@ -47,10 +47,10 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Ritmo do Corpo
+        Body Rhythm
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Adaptação privada ao ciclo fisiológico, quando você quiser ativar. Nunca é examinado.
+        Private adaptation to physiological cycle, whenever you want to activate it. Never inspected.
       </p>
 
       {/* Main toggle */}
@@ -61,9 +61,9 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
         marginBottom: 20,
       }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Ativar Ritmo do Corpo</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Activate Body Rhythm</div>
           <div style={{ fontSize: 11.5, color: textSec(dark), marginTop: 3, lineHeight: 1.4 }}>
-            O recurso é opt-in. Você pode desativar e apagar os dados a qualquer momento.
+            This feature is opt-in. You can deactivate and delete data at any time.
           </div>
         </div>
         <Toggle on={br.enabled} onChange={v => set({ enabled: v })} primary={primary} dark={dark}/>
@@ -72,17 +72,17 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
       {br.enabled && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <SliderField
-            label="Dia atual do ciclo"
+            label="Current cycle day"
             value={br.cycle_current_day ?? 14}
-            min={1} max={35} unit=" dia"
+            min={1} max={35} unit=" day"
             onChange={v => set({ cycle_current_day: v })}
             dark={dark} primary={primary}
           />
 
           <SliderField
-            label="Duração média do ciclo"
+            label="Average cycle duration"
             value={br.cycle_duration_days ?? 28}
-            min={21} max={35} unit=" dias"
+            min={21} max={35} unit=" days"
             onChange={v => set({ cycle_duration_days: v })}
             dark={dark} primary={primary}
           />
@@ -101,16 +101,16 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
             <span style={{ fontSize: 16 }}>🌙</span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: isDay1 ? '#8B5CF6' : textPri(dark) }}>
-                Menstruação começa hoje
+                Period starts today
               </div>
               <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2 }}>
-                {isDay1 ? 'Dia 1 marcado — adaptação conservadora ativada' : 'Toque para marcar o dia 1 do ciclo'}
+                {isDay1 ? 'Day 1 marked — conservative adaptation activated' : 'Tap to mark cycle day 1'}
               </div>
             </div>
           </button>
 
           <div>
-            <SectionLabel label="Preferência de adaptação" dark={dark}/>
+            <SectionLabel label="Adaptation preference" dark={dark}/>
             <ChipGroup>
               {ADAPTATIONS.map(a => (
                 <Chip
@@ -125,7 +125,7 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
           </div>
 
           <p style={{ fontSize: 11.5, color: textMute(dark), lineHeight: 1.5, margin: 0 }}>
-            Nunca adotamos coisas como "a aluna está menstruada". Sua adaptação operacional será: "Fator biológico temporário — recomenda-se abordagem moderada e menor impacto".
+            We never adopt things like "the student is on her period". Your operational adaptation will be: "Temporary biological factor — moderate approach and lower impact recommended".
           </p>
         </div>
       )}

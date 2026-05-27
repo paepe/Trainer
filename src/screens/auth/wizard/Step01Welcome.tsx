@@ -4,11 +4,11 @@ import { textPri, textSec, textMute, primaryBtn } from '../../../theme';
 import type { WizardStepProps } from './types';
 
 const FEATURES: { icon: string; text: string }[] = [
-  { icon: 'chart',    text: 'Dados básicos, objetivos e histórico'          },
-  { icon: 'heart',    text: 'Saúde declarada — sem diagnóstico'             },
-  { icon: 'activity', text: 'Capacidade funcional e acessibilidade'         },
-  { icon: 'lock',     text: 'Fatores sensíveis ficam protegidos'            },
-  { icon: 'moon',     text: 'Ritmo do Corpo — opt-in, sempre privado'       },
+  { icon: 'chart',    text: 'Basic data, goals and history'          },
+  { icon: 'heart',    text: 'Declared health — no diagnosis'             },
+  { icon: 'activity', text: 'Functional capacity and accessibility'         },
+  { icon: 'lock',     text: 'Sensitive factors stay protected'            },
+  { icon: 'moon',     text: 'Body Rhythm — opt-in, always private'       },
 ];
 
 export function Step01Welcome({ dark, primary, onNext }: WizardStepProps) {
@@ -16,7 +16,7 @@ export function Step01Welcome({ dark, primary, onNext }: WizardStepProps) {
     <div style={{ padding: '28px 24px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       {/* Module label */}
       <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: primary, marginBottom: 12 }}>
-        TRAINER · MÓDULO 01
+        TRAINER · MODULE 01
       </div>
 
       {/* Icon */}
@@ -36,12 +36,12 @@ export function Step01Welcome({ dark, primary, onNext }: WizardStepProps) {
         fontSize: 30, fontWeight: 700, color: textPri(dark),
         letterSpacing: '-0.02em', lineHeight: 1.1,
       }}>
-        Perfil Inteligente<br/>do Aluno
+        Smart Profile
       </h1>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.6 }}>
-        Vamos construir juntos o seu{' '}
-        <strong style={{ color: textPri(dark) }}>Perfil de Treinabilidade Ampliado</strong> — dados que o AI vai
-        usar para adaptar intensidade, segurança e progressão do seu plano.
+        Let's build your{' '}
+        <strong style={{ color: textPri(dark) }}>Amplified Trainability Profile</strong> — data that the AI will
+        use to adapt intensity, safety, and progression for your plan.
       </p>
 
       {/* Feature list */}
@@ -63,12 +63,11 @@ export function Step01Welcome({ dark, primary, onNext }: WizardStepProps) {
 
       {/* Privacy note */}
       <p style={{ fontSize: 11.5, color: textMute(dark), textAlign: 'center', margin: '0 0 18px', lineHeight: 1.5 }}>
-        Você pode sair e retornar a qualquer momento. Nenhum dado é perdido. Toda
-        informação sensível é marcada antes de chegar ao recomendador.
+        You can leave and return at any time. No data is lost. All sensitive information is flagged before reaching the recommender.
       </p>
 
       <button onClick={onNext} style={primaryBtn(primary)}>
-        Começar
+        Start
       </button>
     </div>
   );

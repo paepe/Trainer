@@ -12,47 +12,47 @@ import type {
 } from '../../../types/profile-v2';
 
 const FREQUENCY_OPTIONS: { value: TrainingFrequency; label: string }[] = [
-  { value: 'irregular',    label: 'Sem regularidade' },
-  { value: 'sometimes',    label: 'Às vezes'         },
-  { value: 'not_training', label: 'Não treino'       },
+  { value: 'irregular',    label: 'No regularity' },
+  { value: 'sometimes',    label: 'Sometimes'     },
+  { value: 'not_training', label: 'Not training'  },
 ];
 
 const LEVEL_OPTIONS: { value: FitnessLevelV2; label: string }[] = [
-  { value: 'beginner',     label: 'Iniciante'     },
-  { value: 'intermediate', label: 'Intermediário' },
-  { value: 'advanced',     label: 'Avançado'      },
+  { value: 'beginner',     label: 'Beginner'     },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced',     label: 'Advanced'     },
 ];
 
 const MODALITIES: { value: TrainingModality; label: string }[] = [
-  { value: 'weight_training', label: 'Musculação'  },
-  { value: 'running',         label: 'Corrida'     },
-  { value: 'walking',         label: 'Caminhada'   },
+  { value: 'weight_training', label: 'Weight Training' },
+  { value: 'running',         label: 'Running'     },
+  { value: 'walking',         label: 'Walking'   },
   { value: 'yoga',            label: 'Yoga'        },
   { value: 'pilates',         label: 'Pilates'     },
-  { value: 'cycling',         label: 'Ciclismo'    },
-  { value: 'swimming',        label: 'Natação'     },
-  { value: 'functional',      label: 'Funcional'   },
-  { value: 'martial_arts',    label: 'Lutas'       },
-  { value: 'dance',           label: 'Dança'       },
+  { value: 'cycling',         label: 'Cycling'    },
+  { value: 'swimming',        label: 'Swimming'     },
+  { value: 'functional',      label: 'Functional'   },
+  { value: 'martial_arts',    label: 'Martial Arts'       },
+  { value: 'dance',           label: 'Dance'       },
   { value: 'crossfit',        label: 'CrossFit'    },
-  { value: 'other',           label: 'Outro'       },
+  { value: 'other',           label: 'Other'       },
 ];
 
 const ABANDON_REASONS: { value: AbandonReason; label: string }[] = [
-  { value: 'lack_of_time',    label: 'Falta de tempo'    },
-  { value: 'injury',          label: 'Lesão'             },
-  { value: 'lack_of_results', label: 'Falta de resultado'},
-  { value: 'demotivation',    label: 'Desmotivação'      },
-  { value: 'cost',            label: 'Custo'             },
-  { value: 'routine_change',  label: 'Mudança de rotina' },
-  { value: 'discomfort',      label: 'Constrangimento'   },
-  { value: 'other',           label: 'Outro'             },
+  { value: 'lack_of_time',    label: 'Lack of time'    },
+  { value: 'injury',          label: 'Injury'             },
+  { value: 'lack_of_results', label: 'Lack of results'},
+  { value: 'demotivation',    label: 'Demotivation'      },
+  { value: 'cost',            label: 'Cost'             },
+  { value: 'routine_change',  label: 'Routine change' },
+  { value: 'discomfort',      label: 'Embarrassment'   },
+  { value: 'other',           label: 'Other'             },
 ];
 
 const INTENSITY_OPTIONS: { value: PreferredIntensity; label: string }[] = [
   { value: 'gradual',   label: 'Gradual'   },
-  { value: 'moderate',  label: 'Moderada'  },
-  { value: 'intense',   label: 'Intensa'   },
+  { value: 'moderate',  label: 'Moderate'  },
+  { value: 'intense',   label: 'Intense'   },
 ];
 
 export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
@@ -112,10 +112,10 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
           margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
           fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
         }}>
-          O que levou ao abandono?
+          What led to dropping out?
         </h2>
         <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-          Sem julgamentos. Isso ajuda o plano a contornar os mesmos obstáculos.
+          No judgment. This helps the plan work around the same obstacles.
         </p>
 
         <ChipGroup style={{ marginBottom: 20 }}>
@@ -132,11 +132,11 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
 
         <AINote
           dark={dark} primary={primary}
-          text="Esse dado alimenta o Churn Risk Engine — busca e expostos internamente como 'motivos de foco'."
+          text="This data feeds the Churn Risk Engine — queried and exposed internally as 'focus reasons'."
         />
 
         <div style={{ marginTop: 20 }}>
-          <SectionLabel label="Como prefere evoluir?" dark={dark}/>
+          <SectionLabel label="How do you prefer to progress?" dark={dark}/>
           <SegmentedRow
             options={INTENSITY_OPTIONS}
             value={ah.preferred_intensity ?? 'moderate'}
@@ -148,9 +148,9 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         {/* Churn risk signals */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
           {([
-            { key: 'had_negative_experience', label: 'Tive experiências negativas no treino' },
-            { key: 'fear_of_injury',           label: 'Tenho medo de me machucar'            },
-            { key: 'felt_gym_constraint',      label: 'Me sinto constrangido na academia'    },
+            { key: 'had_negative_experience', label: 'I had negative workout experiences' },
+            { key: 'fear_of_injury',           label: "I'm afraid of getting injured"            },
+            { key: 'felt_gym_constraint',      label: 'I feel embarrassed at the gym'    },
           ] as { key: keyof ProfileAbandonHistory; label: string }[]).map(({ key, label }) => (
             <button key={key} onClick={() => setAH({ ...ah, [key]: !ah[key] })} style={{
               width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 12,
@@ -166,25 +166,25 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         </div>
 
         <TextArea
-          label="O que ajuda na consistência?"
+          label="What helps with consistency?"
           value={ah.what_helped_consistency ?? ''}
           onChange={v => setAH({ ...ah, what_helped_consistency: v })}
           dark={dark} primary={primary}
-          placeholder="ex.: Treinar de manhã, parceiro de treino, ver progresso..."
+          placeholder="e.g.: Morning training, training partner, seeing progress..."
           rows={2}
         />
         <TextArea
-          label="O que interrompeu a rotina antes?"
+          label="What disrupted your routine before?"
           value={ah.what_disrupted_routine ?? ''}
           onChange={v => setAH({ ...ah, what_disrupted_routine: v })}
           dark={dark} primary={primary}
-          placeholder="ex.: Viagem de trabalho, lesão, falta de tempo..."
+          placeholder="e.g.: Work trip, injury, lack of time..."
           rows={2}
         />
 
         <VoiceOption
           dark={dark} primary={primary}
-          note="Pode nos contar com suas próprias palavras."
+          note="You can tell us in your own words."
           onClick={() => setVoiceOpen(true)}
         />
 
@@ -194,7 +194,7 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         {voiceOpen && (
           <WizardVoiceOverlay
             dark={dark} primary={primary}
-            context="Conte sobre seu histórico"
+            context="Tell us about your history"
             onConfirm={(text) => {
               setAH({ ...ah, voice_note: text });
               setVoiceOpen(false);
@@ -215,15 +215,15 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Histórico e relação<br/>com movimento
+        History and relationship<br/>with movement
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Para entender experiência, padrão de aderência e o que te atrapalhou.
+        To understand experience, adherence patterns, and what got in your way.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
-          <SectionLabel label="Frequência atual" dark={dark}/>
+          <SectionLabel label="Current frequency" dark={dark}/>
           <SegmentedRow
             options={FREQUENCY_OPTIONS}
             value={mh.frequency ?? ''}
@@ -233,7 +233,7 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         </div>
 
         <div>
-          <SectionLabel label="Nível atual" dark={dark}/>
+          <SectionLabel label="Current level" dark={dark}/>
           <SegmentedRow
             options={LEVEL_OPTIONS}
             value={mh.fitness_level ?? ''}
@@ -243,15 +243,15 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         </div>
 
         <SliderField
-          label="Frequência típica"
+          label="Typical frequency"
           value={mh.weekly_frequency ?? 3}
-          min={1} max={7} unit="×/semana"
+          min={1} max={7} unit="×/week"
           onChange={v => setMH({ ...mh, weekly_frequency: v })}
           dark={dark} primary={primary}
         />
 
         <div>
-          <SectionLabel label="Modalidades praticadas" dark={dark}/>
+          <SectionLabel label="Practiced modalities" dark={dark}/>
           <ChipGroup>
             {MODALITIES.map(m => (
               <Chip
@@ -269,11 +269,11 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
-              Já abandonou um treino antes?
+              Have you abandoned a workout before?
             </div>
             {mh.abandoned_before && (
               <div style={{ fontSize: 12, color: textSec(dark), marginTop: 2 }}>
-                Você poderá detalhar na próxima etapa.
+                You can detail this in the next step.
               </div>
             )}
           </div>

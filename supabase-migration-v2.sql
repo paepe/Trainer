@@ -142,7 +142,7 @@ CREATE TABLE plan_exercises (
   video_url            text,
   alternative_exercise text,
   order_index          int NOT NULL DEFAULT 0,
-  -- execução real
+  -- actual execution
   completed            bool DEFAULT false,
   actual_sets          int,
   actual_reps          int,

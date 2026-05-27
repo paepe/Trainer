@@ -6,21 +6,21 @@ import type { WizardStepProps } from './types';
 import type { Comorbidity } from '../../../types/profile-v2';
 
 const CONDITIONS: { value: Comorbidity; label: string }[] = [
-  { value: 'hypertension',      label: 'Hipertensão'              },
-  { value: 'type1_diabetes',    label: 'Diabetes tipo 1'          },
-  { value: 'asthma',            label: 'Asma'                     },
-  { value: 'obesity',           label: 'Obesidade'                },
-  { value: 'osteoporosis',      label: 'Osteoporose'              },
+  { value: 'hypertension',      label: 'Hypertension'              },
+  { value: 'type1_diabetes',    label: 'Type 1 Diabetes'          },
+  { value: 'asthma',            label: 'Asthma'                     },
+  { value: 'obesity',           label: 'Obesity'                },
+  { value: 'osteoporosis',      label: 'Osteoporosis'              },
   { value: 'osteopenia',        label: 'Osteopenia'               },
-  { value: 'fibromyalgia',      label: 'Fibromialgia'             },
-  { value: 'chronic_pain',      label: 'Dor crônica'              },
-  { value: 'cardiovascular',    label: 'Condição cardiovascular'  },
-  { value: 'renal_condition',   label: 'Condição renal'           },
-  { value: 'post_operative',    label: 'Pós-operatório'           },
-  { value: 'pregnancy',         label: 'Gestação'                 },
-  { value: 'postpartum',        label: 'Pós-parto'                },
-  { value: 'other',             label: 'Outra condição'           },
-  { value: 'prefer_not_to_say', label: 'Prefiro não informar'     },
+  { value: 'fibromyalgia',      label: 'Fibromyalgia'             },
+  { value: 'chronic_pain',      label: 'Chronic Pain'              },
+  { value: 'cardiovascular',    label: 'Cardiovascular condition'  },
+  { value: 'renal_condition',   label: 'Renal condition'           },
+  { value: 'post_operative',    label: 'Post-operative'           },
+  { value: 'pregnancy',         label: 'Pregnancy'                 },
+  { value: 'postpartum',        label: 'Postpartum'                },
+  { value: 'other',             label: 'Other condition'           },
+  { value: 'prefer_not_to_say', label: 'Prefer not to say'     },
 ];
 
 export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
@@ -46,10 +46,10 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Comorbidades e cuidados
+        Comorbidities and care
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Apenas o que você se sente confortável informando. Influencia automação e validação humana.
+        Only what you feel comfortable sharing. Influences automation and human validation.
       </p>
 
       <ChipGroup style={{ marginBottom: 20 }}>
@@ -70,7 +70,7 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
 
       <VoiceOption
         dark={dark} primary={primary}
-        note="Você pode descrever sua situação de saúde com suas palavras."
+        note="You can describe your health situation in your own words."
         onClick={() => setVoiceOpen(true)}
       />
 
@@ -80,7 +80,7 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
       {voiceOpen && (
         <WizardVoiceOverlay
           dark={dark} primary={primary}
-          context="Conte sobre suas condições"
+          context="Tell us about your conditions"
           onConfirm={(text) => {
             onUpdate({ comorbidities: { ...co, voice_note: text } });
             setVoiceOpen(false);

@@ -1,13 +1,13 @@
 import type { CheckInQuick, CheckInDetailed, SafetyGateResult, SafetyGateStatus, SafetySignal } from '../../types/checkin-v2';
 
 const SIGNAL_LABELS: Record<SafetySignal, string> = {
-  severe_pain:          'dor forte',
-  dizziness:            'tontura',
-  shortness_of_breath:  'falta de ar',
-  chest_pain:           'dor no peito',
-  malaise:              'mal-estar',
-  loss_of_balance:      'perda de equilíbrio',
-  fainting_sensation:   'sensação de desmaio',
+  severe_pain:          'severe pain',
+  dizziness:            'dizziness',
+  shortness_of_breath:  'shortness of breath',
+  chest_pain:           'chest pain',
+  malaise:              'malaise',
+  loss_of_balance:      'loss of balance',
+  fainting_sensation:   'fainting sensation',
 };
 
 export function computeSafetyGate(data: CheckInQuick | CheckInDetailed): SafetyGateResult {
@@ -33,9 +33,9 @@ export function computeSafetyGate(data: CheckInQuick | CheckInDetailed): SafetyG
   const firstSignal   = signals[0];
 
   const rec = hasSignals && firstSignal
-    ? `Buscar orientação se sintoma persistir${data.pain.region ? ` · dor ${data.pain.region}` : ''} · sinal: ${SIGNAL_LABELS[firstSignal]}.`
+    ? `Seek guidance if symptom persists${data.pain.region ? ` · pain ${data.pain.region}` : ''} · signal: ${SIGNAL_LABELS[firstSignal]}.`
     : score < 55
-    ? 'Sessão adaptada recomendada — intensidade reduzida.'
+    ? 'Adapted session recommended — reduced intensity.'
     : undefined;
 
   return {

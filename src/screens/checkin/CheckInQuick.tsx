@@ -11,18 +11,18 @@ interface CheckInQuickProps {
 }
 
 const SLEEP_OPTIONS: { value: SleepQualityV2; label: string }[] = [
-  { value: 'poor',      label: 'Ruim'    },
+  { value: 'poor',      label: 'Poor'    },
   { value: 'regular',   label: 'Regular' },
-  { value: 'good',      label: 'Bom'     },
-  { value: 'excellent', label: 'Ótimo'   },
+  { value: 'good',      label: 'Good'     },
+  { value: 'excellent', label: 'Excellent'   },
 ];
 
 const PAIN_REGIONS: { value: PainRegion; label: string }[] = [
-  { value: 'cervical', label: 'Cervical' }, { value: 'shoulder', label: 'Ombro'    },
-  { value: 'lumbar',   label: 'Lombar'   }, { value: 'hip',      label: 'Quadril'  },
-  { value: 'knee',     label: 'Joelho'   }, { value: 'ankle',    label: 'Tornozelo'},
-  { value: 'wrist',    label: 'Punho'    }, { value: 'elbow',    label: 'Cotovelo' },
-  { value: 'other',    label: 'Outro'    },
+  { value: 'cervical', label: 'Cervical' }, { value: 'shoulder', label: 'Shoulder'    },
+  { value: 'lumbar',   label: 'Lumbar'   }, { value: 'hip',      label: 'Hip'  },
+  { value: 'knee',     label: 'Knee'   }, { value: 'ankle',    label: 'Ankle'},
+  { value: 'wrist',    label: 'Wrist'    }, { value: 'elbow',    label: 'Elbow' },
+  { value: 'other',    label: 'Other'    },
 ];
 
 const TIME_PRESETS = [15, 30, 45, 60, 90];
@@ -109,19 +109,19 @@ export function CheckInQuick({ dark, primary, accent, onSubmit, onBack }: CheckI
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
-        CHECK-IN RÁPIDO · 40 SEG
+        QUICK CHECK-IN · 40 SEC
       </div>
       <h2 style={{
         margin: '0 0 20px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Cinco perguntas
+        Five questions
       </h2>
 
       {/* 1 Energia */}
       <div style={BLOCK_STYLE(dark)}>
         <BlockHeader num={1} icon="⚡" label="Energia" dark={dark}/>
-        <div style={{ fontSize: 11.5, color: textSec(dark), marginBottom: 8 }}>como você está se sentindo?</div>
+        <div style={{ fontSize: 11.5, color: textSec(dark), marginBottom: 8 }}>how are you feeling?</div>
         <SliderRow value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
@@ -142,8 +142,8 @@ export function CheckInQuick({ dark, primary, accent, onSubmit, onBack }: CheckI
         <BlockHeader num={3} icon="🔴" label="Dor" dark={dark}/>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: painOn ? 14 : 0 }}>
           <div>
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark) }}>Estou com dor hoje</div>
-            {painOn && <div style={{ fontSize: 11, color: textSec(dark), marginTop: 2 }}>Toque para detalhar região e intensidade</div>}
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark) }}>I'm in pain today</div>
+            {painOn && <div style={{ fontSize: 11, color: textSec(dark), marginTop: 2 }}>Tap to detail region and intensity</div>}
           </div>
           <button
             onClick={() => { setPainOn(v => !v); if (painOn) setPainRegion(undefined); }}
@@ -176,7 +176,7 @@ export function CheckInQuick({ dark, primary, accent, onSubmit, onBack }: CheckI
                 </button>
               ))}
             </div>
-            <SliderRow label="Intensidade" value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
+            <SliderRow label="Intensity" value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
           </>
         )}
       </div>
@@ -184,12 +184,12 @@ export function CheckInQuick({ dark, primary, accent, onSubmit, onBack }: CheckI
       {/* 4 Fadiga */}
       <div style={BLOCK_STYLE(dark)}>
         <BlockHeader num={4} icon="🔋" label="Fadiga" dark={dark}/>
-        <SliderRow label="cansaço percebido" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
+        <SliderRow label="perceived fatigue" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
       </div>
 
-      {/* 5 Tempo Disponível */}
+      {/* 5 Available Time */}
       <div style={BLOCK_STYLE(dark)}>
-        <BlockHeader num={5} icon="⏱️" label="Tempo Disponível" dark={dark}/>
+        <BlockHeader num={5} icon="⏱️" label="Available Time" dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {TIME_PRESETS.map(t => (
             <button key={t} onClick={() => setMinutes(t)} style={btnBase(minutes === t)}>
@@ -205,7 +205,7 @@ export function CheckInQuick({ dark, primary, accent, onSubmit, onBack }: CheckI
           background: 'none', border: 'none', cursor: 'pointer',
           fontSize: 13, color: primary, fontFamily: 'inherit', fontWeight: 600, padding: 0,
         }}>
-          ← voltar
+          ← back
         </button>
         <button onClick={handleSubmit} style={{
           flex: 1, padding: '16px', borderRadius: 999,
@@ -213,7 +213,7 @@ export function CheckInQuick({ dark, primary, accent, onSubmit, onBack }: CheckI
           fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
           boxShadow: `0 6px 20px ${primary}44`,
         }}>
-          Calcular prontidão →
+          Calculate readiness →
         </button>
       </div>
     </div>

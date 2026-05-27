@@ -269,12 +269,12 @@ export function SectionLabel({ label, dark }: { label: string; dark: boolean }) 
 type BadgeVariant = 'sensitive' | 'selective' | 'blinded' | 'opt-in' | 'lgpd' | 'technical';
 
 const BADGE_CFG: Record<BadgeVariant, { bg: string; fg: string; label: string }> = {
-  sensitive:  { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'SÓ SENSITIVO' },
-  selective:  { bg: '#F5A62322', fg: '#F5A623', label: 'SELETIVO'      },
-  blinded:    { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'SIGILOSO'      },
+  sensitive:  { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'SENSITIVE'     },
+  selective:  { bg: '#F5A62322', fg: '#F5A623', label: 'SELECTIVE'     },
+  blinded:    { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'CONFIDENTIAL'  },
   'opt-in':   { bg: '#8B5CF622', fg: '#8B5CF6', label: 'OPT-IN'        },
   lgpd:       { bg: '#2DD4E022', fg: '#2DD4E0', label: 'LGPD'          },
-  technical:  { bg: '#F5A62322', fg: '#F5A623', label: 'AÇÃO TÉCNICA'  },
+  technical:  { bg: '#F5A62322', fg: '#F5A623', label: 'TECHNICAL'     },
 };
 
 export function Badge({ variant }: { variant: BadgeVariant }) {
@@ -358,10 +358,10 @@ export function VoiceOption({ dark, primary, note, onClick }: VoiceOptionProps) 
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: primary, marginBottom: 2 }}>
-          🎙 Falar com o app
+          🎙 Speak to the app
         </div>
         <div style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.45 }}>
-          {note ?? 'Diga com suas próprias palavras — a IA organiza antes de salvar.'}
+          {note ?? 'Say it in your own words — the AI organizes it before saving.'}
         </div>
       </div>
       {/* Arrow caret */}
@@ -383,7 +383,7 @@ interface WizardHeaderProps {
   moduleTitle?:string;
 }
 
-export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge, moduleNum = 1, moduleTitle = 'Configuração inicial' }: WizardHeaderProps) {
+export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge, moduleNum = 1, moduleTitle = 'Initial setup' }: WizardHeaderProps) {
   return (
     <div style={{ marginBottom: 20 }}>
       {/* Nav row: back + module tag + check badge */}
@@ -397,7 +397,7 @@ export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge
           background: dark ? '#0B1624' : '#EDF1F7',
         }}>
           <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.09em', textTransform: 'uppercase', color: textMute(dark) }}>
-            TRAINER · MÓDULO #{String(moduleNum).padStart(2, '0')} · {moduleTitle}
+            TRAINER · MODULE #{String(moduleNum).padStart(2, '0')} · {moduleTitle}
           </span>
         </div>
         <div style={{

@@ -230,17 +230,17 @@ export default function App() {
 
   const tabs: [string, string, string][] = isTrainer
     ? [
-        ['trainerDashboard', 'user',    'Clientes'],
+        ['trainerDashboard', 'user',    'Clients'],
         ['checkin',          'sparkle', 'Coach'],
-        ['workout',          'play',    'Treino'],
-        ['history',          'history', 'Histórico'],
+        ['workout',          'play',    'Workout'],
+        ['history',          'history', 'History'],
         ['menu',             'menu',    'Menu'],
       ]
     : [
         ['checkin',  'sparkle', 'Coach'],
-        ['workout',  'play',    'Treino'],
-        ['stats',    'chart',   'Evolução'],
-        ['history',  'history', 'Histórico'],
+        ['workout',  'play',    'Workout'],
+        ['stats',    'chart',   'Progress'],
+        ['history',  'history', 'History'],
         ['menu',     'menu',    'Menu'],
       ];
 

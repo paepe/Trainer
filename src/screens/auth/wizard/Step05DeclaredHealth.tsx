@@ -7,17 +7,17 @@ import type { HealthCategory } from '../../../types/profile-v2';
 
 const CATEGORIES: { value: HealthCategory; label: string }[] = [
   { value: 'cardiovascular',       label: 'Cardiovascular'         },
-  { value: 'metabolic',            label: 'Metabólica'             },
+  { value: 'metabolic',            label: 'Metabolic'              },
   { value: 'renal',                label: 'Renal'                  },
-  { value: 'respiratory',          label: 'Respiratória'           },
-  { value: 'musculoskeletal',      label: 'Musculoesquelética'     },
-  { value: 'neurological',         label: 'Neurológica'            },
-  { value: 'chronic_pain',         label: 'Dor crônica'            },
-  { value: 'emotional_health',     label: 'Saúde emocional'        },
-  { value: 'pregnancy_postpartum', label: 'Gestação ou pós-parto'  },
-  { value: 'post_operative',       label: 'Pós-operatório'         },
-  { value: 'physical_disability',  label: 'Deficiência física'     },
-  { value: 'other',                label: 'Outra condição'         },
+  { value: 'respiratory',          label: 'Respiratory'           },
+  { value: 'musculoskeletal',      label: 'Musculoskeletal'     },
+  { value: 'neurological',         label: 'Neurological'            },
+  { value: 'chronic_pain',         label: 'Chronic pain'            },
+  { value: 'emotional_health',     label: 'Emotional health'        },
+  { value: 'pregnancy_postpartum', label: 'Pregnancy or postpartum'  },
+  { value: 'post_operative',       label: 'Post-operative'         },
+  { value: 'physical_disability',  label: 'Physical disability'     },
+  { value: 'other',                label: 'Other condition'         },
 ];
 
 const HIGH_RISK: HealthCategory[] = [
@@ -56,20 +56,20 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Saúde declarada
+        Declared Health
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        O sistema <strong style={{ color: textPri(dark) }}>não diagnostica</strong>. Apenas usa o que você declara
-        para adaptar o plano com segurança.
+        The system <strong style={{ color: textPri(dark) }}>does not diagnose</strong>. It only uses what you declare
+        to adapt the plan safely.
       </p>
 
       {/* Disclosure choice */}
-      <SectionLabel label="Existe alguma condição a considerar?" dark={dark}/>
+      <SectionLabel label="Is there any condition to consider?" dark={dark}/>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
         {([
-          { v: 'yes',        label: 'Sim, quais'       },
-          { v: 'no',         label: 'Não se aplica'    },
-          { v: 'prefer_not', label: 'Prefiro não informar' },
+          { v: 'yes',        label: 'Yes, what are they'       },
+          { v: 'no',         label: 'Not applicable'    },
+          { v: 'prefer_not', label: 'Prefer not to say' },
         ] as { v: Disclosure; label: string }[]).map(o => {
           const on = disclosure === o.v;
           return (
@@ -89,7 +89,7 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
       {/* Category multi-select — shown only when "yes" */}
       {disclosure === 'yes' && (
         <>
-          <SectionLabel label="Categorias" dark={dark}/>
+          <SectionLabel label="Categories" dark={dark}/>
           <ChipGroup style={{ marginBottom: 16 }}>
             {CATEGORIES.map(c => (
               <Chip
@@ -103,11 +103,11 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
           </ChipGroup>
 
           <TextArea
-            label="Observação livre"
+            label="Free note"
             value={dh.free_text ?? ''}
             onChange={v => onUpdate({ declared_health: { ...dh, free_text: v } })}
             dark={dark} primary={primary}
-            placeholder="ex.: Cirurgia no joelho em 2023, liberada para musculação"
+            placeholder="e.g.: Knee surgery in 2023, cleared for weight training"
             rows={3}
           />
 
@@ -115,7 +115,7 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
             <div style={{ marginTop: 14 }}>
               <AINote
                 dark={dark} primary={primary} variant="warning"
-                text="Dado sensível. Verifique estes pontos para validar restrições operacionais — recomendo usar progressão conservadora."
+                text="Sensitive data. Check these points to validate operational restrictions — recommend conservative progression."
               />
             </div>
           )}
@@ -123,7 +123,7 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
           <div style={{ marginTop: 14 }}>
             <VoiceOption
               dark={dark} primary={primary}
-              note="Nos conte sobre sua condição com suas palavras."
+              note="Tell us about your condition in your own words."
               onClick={() => setVoiceOpen(true)}
             />
           </div>
@@ -136,7 +136,7 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
       {voiceOpen && (
         <WizardVoiceOverlay
           dark={dark} primary={primary}
-          context="Conte sobre sua saúde"
+          context="Tell us about your health"
           onConfirm={(text) => {
             onUpdate({ declared_health: { ...dh, voice_note: text } });
             setVoiceOpen(false);

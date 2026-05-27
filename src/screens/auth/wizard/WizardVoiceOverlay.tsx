@@ -43,7 +43,7 @@ export function WizardVoiceOverlay({
     setError(null);
 
     const rec = new SpeechRecognitionAPI();
-    rec.lang           = 'pt-BR';
+    rec.lang           = 'en-US';
     rec.continuous     = true;
     rec.interimResults = true;
 
@@ -55,10 +55,10 @@ export function WizardVoiceOverlay({
     };
     rec.onerror = (e: any) => {
       if (e.error === 'not-allowed') {
-        setError('Permissão de microfone negada. Use o campo de texto abaixo.');
+        setError('Microphone permission denied. Use the text field below.');
         setSupported(false);
       } else {
-        setError('Erro ao capturar áudio. Tente novamente ou use o campo de texto.');
+        setError('Error capturing audio. Try again or use the text field.');
       }
       setListening(false);
     };
@@ -102,7 +102,7 @@ export function WizardVoiceOverlay({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: primary, marginBottom: 2 }}>
-              🎙 Entrada por voz
+              🎙 Voice Input
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, color: textPri(dark) }}>
               {context}
@@ -111,7 +111,7 @@ export function WizardVoiceOverlay({
           <button
             onClick={onClose}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
-            aria-label="Fechar"
+            aria-label="Close"
           >
             <Icon name="more" size={20} color={textMute(dark)} stroke={2}/>
           </button>
@@ -119,7 +119,7 @@ export function WizardVoiceOverlay({
 
         {/* Instruction */}
         <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-          Fale ou escreva com suas próprias palavras. A IA organiza as informações antes de salvar — você confirma tudo antes.
+          Speak or write in your own words. The AI organizes the information before saving — you confirm everything first.
         </p>
 
         {/* ── Mic button (if supported) ── */}
@@ -127,7 +127,7 @@ export function WizardVoiceOverlay({
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <button
               onClick={listening ? stopListening : startListening}
-              aria-label={listening ? 'Parar gravação' : 'Iniciar gravação de voz'}
+              aria-label={listening ? 'Stop recording' : 'Start voice recording'}
               style={{
                 width: 76, height: 76, borderRadius: '50%',
                 background: listening ? '#EF5B3C22' : `${primary}22`,
@@ -155,7 +155,7 @@ export function WizardVoiceOverlay({
               )}
             </button>
             <div style={{ fontSize: 12, color: listening ? '#EF5B3C' : textMute(dark), marginTop: 8, fontWeight: 600 }}>
-              {listening ? '● A gravar… toque para parar' : 'Toque para falar'}
+              {listening ? '● Recording… tap to stop' : 'Tap to speak'}
             </div>
           </div>
         )}
@@ -177,15 +177,15 @@ export function WizardVoiceOverlay({
             fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em',
             textTransform: 'uppercase', color: textMute(dark), marginBottom: 6,
           }}>
-            {supported ? 'Texto transcrito (pode editar)' : 'Escreva aqui'}
+            {supported ? 'Transcribed text (can edit)' : 'Type here'}
           </div>
           <textarea
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder={
               supported
-                ? 'O texto aparece aqui enquanto fala, ou escreva directamente…'
-                : 'Descreva com suas próprias palavras…'
+                ? 'Text appears here while you speak, or type directly…'
+                : 'Describe in your own words…'
             }
             rows={4}
             style={{
@@ -198,7 +198,7 @@ export function WizardVoiceOverlay({
             }}
           />
           <div style={{ fontSize: 11, color: textMute(dark), marginTop: 4, textAlign: 'right' }}>
-            {text.trim().length} caracteres
+            {text.trim().length} characters
           </div>
         </div>
 
@@ -208,7 +208,7 @@ export function WizardVoiceOverlay({
           disabled={!canConfirm}
           style={{ ...primaryBtn(primary), marginBottom: 10, opacity: canConfirm ? 1 : 0.45 }}
         >
-          Confirmar e continuar →
+          Confirm and continue →
         </button>
         <button
           onClick={onClose}
@@ -218,7 +218,7 @@ export function WizardVoiceOverlay({
             color: textMute(dark), fontSize: 13, fontFamily: 'inherit', cursor: 'pointer',
           }}
         >
-          Cancelar
+          Cancel
         </button>
       </div>
 

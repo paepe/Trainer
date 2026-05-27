@@ -79,22 +79,22 @@ export function useExerciseData() {
         }
         filteredExercises = candidates.slice(0, 3);
         reply = filteredExercises.length > 0
-          ? `Você pode usar: ${filteredExercises.map((c: { name: string }) => c.name).join(', ')}.`
+          ? `You can use: ${filteredExercises.map((c: { name: string }) => c.name).join(', ')}.`
           : originalExercise.includes('burpee') && constraint === 'low_impact'
-            ? 'Você pode usar step jack, marcha acelerada no lugar ou agachamento parcial com elevação de braços.'
-            : `Não encontramos alternativas cadastradas com essa restrição específica para ${originalExercise}.`;
+            ? 'You can use step jacks, brisk marching in place, or partial squats with arm raises.'
+          : `We found no registered alternatives with that specific restriction for ${originalExercise}.`;
       } else {
         reply = originalExercise.includes('burpee') && constraint === 'low_impact'
-          ? 'Você pode usar step jack, marcha acelerada no lugar ou agachamento parcial com elevação de braços.'
-          : `Exercício "${originalExercise}" não encontrado na biblioteca.`;
+        ? 'You can use step jacks, brisk marching in place, or partial squats with arm raises.'
+        : `Exercise "${originalExercise}" not found in the library.`;
       }
 
-    } else if (normalized.includes('buscar') || normalized.includes('procure') || normalized.includes('encontre')) {
+    } else if (normalized.includes('buscar') || normalized.includes('procure') || normalized.includes('search') || normalized.includes('find')) {
       intent = 'exercise_search_query';
-      let muscle = normalized.includes('posterior') || normalized.includes('isquio') ? 'Legs'
-        : normalized.includes('ombro') || normalized.includes('desenvolvimento') ? 'shoulders'
+      let muscle = normalized.includes('posterior') || normalized.includes('isquio') || normalized.includes('hamstring') ? 'Legs'
+        : normalized.includes('ombro') || normalized.includes('desenvolvimento') || normalized.includes('shoulder') ? 'shoulders'
         : 'legs';
-      const equip = normalized.includes('halter') ? 'halteres' : normalized.includes('barra') ? 'barbell' : '';
+      const equip = normalized.includes('halter') || normalized.includes('dumbbell') ? 'halteres' : normalized.includes('barra') || normalized.includes('barbell') ? 'barbell' : '';
 
       parsedData = { query_intent: intent, target_muscle: muscle, equipment: equip };
       const { data: exercises } = await supabase.from('exercises').select('*');
@@ -112,10 +112,10 @@ export function useExerciseData() {
       }
       filteredExercises = filteredExercises.slice(0, 5);
       reply = filteredExercises.length > 0
-        ? `Encontrei os seguintes exercícios de ${muscle} recomendados: ${filteredExercises.map((e: { name: string }) => e.name).join(', ')}.`
-        : 'Não encontrei exercícios com os critérios de busca informados.';
+        ? `I found the following ${muscle} exercises: ${filteredExercises.map((e: { name: string }) => e.name).join(', ')}.`
+        : 'No exercises found with the given search criteria.';
     } else {
-      reply = 'Comando de voz não compreendido. Experimente pedir alternativas de exercícios ou fazer uma busca por grupo muscular e equipamentos.';
+      reply = 'Voice command not understood. Try asking for exercise alternatives or searching by muscle group and equipment.';
     }
 
     return { intent, reply, parsedData, exercises: filteredExercises };

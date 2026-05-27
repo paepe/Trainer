@@ -142,7 +142,7 @@ export function TrainerClientDetailScreen({
 
   const fmtVal = (v: unknown): string | null => {
     if (v == null || v === '') return null;
-    if (typeof v === 'boolean') return v ? 'Sim' : 'Não';
+    if (typeof v === 'boolean') return v ? 'Yes' : 'No';
     if (Array.isArray(v)) {
       const items = v.filter(x => x != null && x !== '');
       return items.length > 0 ? items.join(', ') : null;
@@ -170,19 +170,19 @@ export function TrainerClientDetailScreen({
   };
 
   const T1_SECTIONS: [string, Record<string, unknown> | null][] = [
-    ['Dados Básicos',         profileV2?.basic_data          ?? null],
-    ['Objetivos',             profileV2?.objectives          ?? null],
-    ['Histórico de Movimento',profileV2?.movement_history    ?? null],
-    ['Capacidade Funcional',  profileV2?.functional_capacity ?? null],
-    ['Ambiente',              profileV2?.environment         ?? null],
-    ['Disponibilidade',       profileV2?.availability        ?? null],
+    ['Basic Data',         profileV2?.basic_data          ?? null],
+    ['Objectives',             profileV2?.objectives          ?? null],
+    ['Movement History',profileV2?.movement_history    ?? null],
+    ['Functional Capacity',  profileV2?.functional_capacity ?? null],
+    ['Environment',              profileV2?.environment         ?? null],
+    ['Availability',       profileV2?.availability        ?? null],
   ];
 
   const T2_SECTIONS: [string, Record<string, unknown> | null][] = [
-    ['Preferências',   profileV2?.preferences    ?? null],
-    ['Hábitos',        profileV2?.habits         ?? null],
-    ['Comorbilidades', profileV2?.comorbidities  ?? null],
-    ['Saúde Declarada',profileV2?.declared_health ?? null],
+    ['Preferences',   profileV2?.preferences    ?? null],
+    ['Habits',        profileV2?.habits         ?? null],
+    ['Comorbidities', profileV2?.comorbidities  ?? null],
+    ['Declared Health',profileV2?.declared_health ?? null],
   ];
 
   const t3Count = [profileV2?.sensitive_factors, profileV2?.body_rhythm]
@@ -237,14 +237,14 @@ export function TrainerClientDetailScreen({
             <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
-                  Perfil Inteligente v2
+                  Smart Profile v2
                 </div>
                 {profileV2.completed_at && (
                   <span style={{
                     fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
                     background: `${t.primary}20`, color: t.primary, letterSpacing: '.04em',
                   }}>
-                    COMPLETO
+                    COMPLETE
                   </span>
                 )}
               </div>
@@ -267,7 +267,7 @@ export function TrainerClientDetailScreen({
               {T2_SECTIONS.some(([, d]) => d != null) && (
                 <div style={{ padding: '10px 12px', borderRadius: 10, background: `${t.accent}08`, border: `1px solid ${t.accent}22` }}>
                   <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', color: t.accent, marginBottom: 10 }}>
-                    T2 · CONDICIONAL
+                    T2 · CONDITIONAL
                   </div>
                   {T2_SECTIONS.map(([label, data]) => {
                     const rendered = renderFields(data);
@@ -293,7 +293,7 @@ export function TrainerClientDetailScreen({
                 }}>
                   <span style={{ fontSize: 13 }}>🔒</span>
                   <span style={{ fontSize: 11, color: textMute(dark) }}>
-                    {t3Count} secção{t3Count > 1 ? 'ões' : ''} confidencial{t3Count > 1 ? 'is' : ''} (T3 — não partilhado)
+                    {t3Count} confidential section{t3Count > 1 ? 's' : ''} (T3 — not shared)
                   </span>
                 </div>
               )}
@@ -304,7 +304,7 @@ export function TrainerClientDetailScreen({
           {readiness.length > 0 && (
             <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-                Readiness · Últimas {readiness.length}
+                Readiness · Last {readiness.length}
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                 {[...readiness].reverse().map((r) => {

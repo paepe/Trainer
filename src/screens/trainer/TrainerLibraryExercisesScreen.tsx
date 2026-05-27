@@ -144,7 +144,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
   const handleConfirmGovernance = (actionName: string) => {
     const time = new Date().toLocaleTimeString();
     setAuditLogs(prev => [`[${time}] Human confirmed voice action: "${actionName}"`, ...prev]);
-    alert(`Ação de governança confirmada e registrada no log de auditoria: "${actionName}"`);
+    alert(`Governance action confirmed and logged in audit trail: "${actionName}"`);
     setVoiceResponse(null);
   };
 
@@ -206,7 +206,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Icon name="sparkle" size={18} color="#6e44ff" />
-                <span style={{ fontWeight: 700, fontSize: 14, color: '#9b51e0' }}>AI Voice Assistant (Módulo 8)</span>
+                <span style={{ fontWeight: 700, fontSize: 14, color: '#9b51e0' }}>AI Voice Assistant (Module 8)</span>
               </div>
               <button 
                 onClick={() => setShowVoicePanel(false)}
@@ -219,7 +219,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <input
                 type="text"
-                placeholder='E.g., "Tem alternativa sem impacto para burpee?"'
+                placeholder='E.g., "Low-impact alternative for burpees?"'
                 value={voiceQuery}
                 onChange={(e) => setVoiceQuery(e.target.value)}
                 style={{
@@ -244,22 +244,22 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
             {/* Quick Templates */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
               <button 
-                onClick={() => { setVoiceQuery('Tem alternativa sem impacto para burpee?'); handleVoiceSimulate('Tem alternativa sem impacto para burpee?'); }}
+                onClick={() => { setVoiceQuery('Low-impact alternative for burpees?'); handleVoiceSimulate('Low-impact alternative for burpees?'); }}
                 style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: dark ? '#1C293E' : '#eef2f6', color: textSec(dark), fontSize: 11, cursor: 'pointer' }}
               >
-                "Alternative sem impacto para burpee"
+                "Low-impact alternative for burpees"
               </button>
               <button 
-                onClick={() => { setVoiceQuery('Buscar posterior de coxa com halteres'); handleVoiceSimulate('Buscar posterior de coxa com halteres'); }}
+                onClick={() => { setVoiceQuery('Search hamstring with dumbbells'); handleVoiceSimulate('Search hamstring with dumbbells'); }}
                 style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: dark ? '#1C293E' : '#eef2f6', color: textSec(dark), fontSize: 11, cursor: 'pointer' }}
               >
-                "Posterior de coxa com halteres"
+                "Hamstring with dumbbells"
               </button>
               <button 
-                onClick={() => { setVoiceQuery('Marcar burpee como restrito para iniciantes'); handleVoiceSimulate('Marcar burpee como restrito para iniciantes'); }}
+                onClick={() => { setVoiceQuery('Mark burpee as restricted for beginners'); handleVoiceSimulate('Mark burpee as restricted for beginners'); }}
                 style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: dark ? '#1C293E' : '#eef2f6', color: textSec(dark), fontSize: 11, cursor: 'pointer' }}
               >
-                "Restringir burpee para iniciantes"
+                "Restrict burpee for beginners"
               </button>
             </div>
 

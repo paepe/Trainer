@@ -13,7 +13,7 @@ interface Theme {
 
 interface AppUser { id: string | null }
 
-type Phase = 'init' | 'active' | 'set_form' | 'rest' | 'pain_form';
+type Phase = 'init' | 'active' | 'set_form' | 'rest' | 'pain_form' | 'skip_form';
 
 interface ExState {
   id:             string;
@@ -37,13 +37,14 @@ interface WorkoutModeScreenProps {
   exercises:                   GeneratedWorkoutExercise[] | null;
   startWorkoutSession:         (input: { planId: string | null; exercises: GeneratedWorkoutExercise[] }) => Promise<{ data: { sessionId: string; sessionExercises: WorkoutSessionExercise[] } | null; error: unknown }>;
   logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null }) => Promise<{ error: unknown }>;
-  updateSessionExerciseStatus: (sessionExerciseId: string, status: SessionExerciseStatus) => Promise<{ error: unknown }>;
+  updateSessionExerciseStatus: (sessionExerciseId: string, status: SessionExerciseStatus, skippedReason?: string) => Promise<{ error: unknown }>;
   reportWorkoutPain:           (data: { session_id: string; session_exercise_id: string | null; body_region: string; intensity: number }) => Promise<{ error: unknown }>;
   completeWorkoutSession:      (data: { sessionId: string; completed_at: string; total_duration_min: number; notes?: string | null }) => Promise<{ error: unknown }>;
   updatePainRecurrence:        (region: string) => Promise<{ error: unknown }>;
 }
 
 const PAIN_REGIONS = ['Neck', 'Shoulder', 'Elbow', 'Wrist', 'Upper back', 'Lower back', 'Hip', 'Knee', 'Ankle', 'Other'];
+const SKIP_OPTIONS = ['Pain / Injury', 'Lack of Equipment', 'Fatigue / Energy', 'Time Constraint', 'Other'];
 
 export function WorkoutModeScreen({
   nav, t, dark, user, planId, exercises,
@@ -70,6 +71,10 @@ export function WorkoutModeScreen({
   // Pain form
   const [painRegion,    setPainRegion]    = React.useState('');
   const [painIntensity, setPainIntensity] = React.useState(5);
+
+  // Skip form
+  const [skipReasonOption, setSkipReasonOption] = React.useState('');
+  const [skipCustomReason, setSkipCustomReason] = React.useState('');
 
   // ── Init ─────────────────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -178,9 +183,24 @@ export function WorkoutModeScreen({
   // ── Skip exercise ────────────────────────────────────────────────────────────
   const skipExercise = () => {
     if (!activeEx) return;
+    setSkipReasonOption('');
+    setSkipCustomReason('');
+    setPhase('skip_form');
+  };
+
+  const confirmSkip = async () => {
+    if (!activeEx) return;
+    const finalReason = skipReasonOption === 'Other'
+      ? skipCustomReason.trim()
+      : (skipCustomReason.trim()
+          ? `${skipReasonOption}: ${skipCustomReason.trim()}`
+          : skipReasonOption);
+
     updateEx(activeIdx, { status: 'skipped' });
-    if (sessionId && !isOffline(activeEx.id))
-      void updateSessionExerciseStatus(activeEx.id, 'skipped');
+    if (sessionId && !isOffline(activeEx.id)) {
+      void updateSessionExerciseStatus(activeEx.id, 'skipped', finalReason);
+    }
+    setPhase('active');
     advanceToNext(activeIdx);
   };
 
@@ -389,6 +409,63 @@ export function WorkoutModeScreen({
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               opacity: painRegion ? 1 : 0.45,
             }}>Report</button>
+          </div>
+        </BottomPanel>
+      )}
+
+      {/* ── Overlay: Skip form ── */}
+      {phase === 'skip_form' && activeEx && (
+        <BottomPanel title={`Skip Exercise — ${activeEx.name}`} dark={dark} t={t}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
+              Reason for skipping
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {SKIP_OPTIONS.map(opt => (
+                <button key={opt} onClick={() => setSkipReasonOption(opt)} style={{
+                  padding: '7px 12px', borderRadius: 999,
+                  background: skipReasonOption === opt ? `${t.primary}22` : surfRaised(dark),
+                  color: skipReasonOption === opt ? t.primary : textSec(dark),
+                  border: `1.5px solid ${skipReasonOption === opt ? t.primary : borderSubtle(dark)}`,
+                  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+                }}>{opt}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
+              {skipReasonOption === 'Other' ? 'Please specify (required)' : 'Additional comments (optional)'}
+            </div>
+            <input
+              type="text"
+              value={skipCustomReason}
+              onChange={e => setSkipCustomReason(e.target.value)}
+              placeholder={skipReasonOption === 'Other' ? 'Type reason...' : 'Type comments...'}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '10px 14px', borderRadius: 10,
+                border: `1.5px solid ${borderSubtle(dark)}`,
+                background: surfRaised(dark), color: textPri(dark),
+                fontFamily: 'inherit', fontSize: 14, fontWeight: 600, outline: 'none',
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            <button onClick={() => setPhase('active')} style={{
+              flex: 1, padding: '12px 0', borderRadius: 999, border: `1.5px solid ${borderSubtle(dark)}`,
+              background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            }}>Cancel</button>
+            <button
+              onClick={() => void confirmSkip()}
+              disabled={!skipReasonOption || (skipReasonOption === 'Other' && !skipCustomReason.trim())}
+              style={{
+                flex: 2, ...primaryBtn(t.primary),
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                opacity: (!skipReasonOption || (skipReasonOption === 'Other' && !skipCustomReason.trim())) ? 0.45 : 1,
+              }}
+            >
+              Confirm Skip
+            </button>
           </div>
         </BottomPanel>
       )}

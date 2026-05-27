@@ -6,34 +6,34 @@ import type { WizardStepProps } from './types';
 import type { TrainingLocation, Equipment, AccessibilityCondition } from '../../../types/profile-v2';
 
 const LOCATIONS: { value: TrainingLocation; label: string; icon: string }[] = [
-  { value: 'home',   label: 'Casa',       icon: 'pin'    },
-  { value: 'gym',    label: 'Academia',   icon: 'dumbbell'},
+  { value: 'home',   label: 'Home',       icon: 'pin'    },
+  { value: 'gym',    label: 'Gym',        icon: 'dumbbell'},
   { value: 'studio', label: 'Studio',     icon: 'grad'   },
-  { value: 'park',   label: 'Parque',     icon: 'map'    },
-  { value: 'condo',  label: 'Condomínio', icon: 'pin'    },
+  { value: 'park',   label: 'Park',       icon: 'map'    },
+  { value: 'condo',  label: 'Condo',      icon: 'pin'    },
   { value: 'online', label: 'Online',     icon: 'activity'},
 ];
 
 const EQUIPMENT_OPTS: { value: Equipment; label: string }[] = [
-  { value: 'dumbbells',       label: 'Halteres'       },
-  { value: 'resistance_bands',label: 'Elásticos'      },
-  { value: 'barbell',         label: 'Barra'          },
-  { value: 'bench',           label: 'Banco'          },
-  { value: 'treadmill',       label: 'Esteira'        },
-  { value: 'bike',            label: 'Bicicleta'      },
-  { value: 'machines',        label: 'Máquinas'       },
-  { value: 'kettlebell',      label: 'Kettlebell'     },
-  { value: 'cable_pulley',    label: 'Cabo/polia'     },
-  { value: 'none',            label: 'Nenhum'         },
+  { value: 'dumbbells',       label: 'Dumbbells'        },
+  { value: 'resistance_bands',label: 'Resistance bands' },
+  { value: 'barbell',         label: 'Barbell'          },
+  { value: 'bench',           label: 'Bench'            },
+  { value: 'treadmill',       label: 'Treadmill'        },
+  { value: 'bike',            label: 'Bike'             },
+  { value: 'machines',        label: 'Machines'         },
+  { value: 'kettlebell',      label: 'Kettlebell'       },
+  { value: 'cable_pulley',    label: 'Cable/pulley'     },
+  { value: 'none',            label: 'None'             },
 ];
 
 const ACCESSIBILITY_OPTS: { value: AccessibilityCondition; label: string }[] = [
-  { value: 'wheelchair_accessible', label: 'Acessível para cadeira de rodas' },
-  { value: 'support_bars',          label: 'Barras de apoio'                 },
-  { value: 'safe_floor',            label: 'Piso seguro'                     },
-  { value: 'private_space',         label: 'Privacidade para treinar'        },
-  { value: 'companion_available',   label: 'Acompanhante disponível'         },
-  { value: 'adapted_equipment',     label: 'Equipamento adaptado'           },
+  { value: 'wheelchair_accessible', label: 'Wheelchair accessible' },
+  { value: 'support_bars',          label: 'Support bars'          },
+  { value: 'safe_floor',            label: 'Safe floor'            },
+  { value: 'private_space',         label: 'Training privacy'     },
+  { value: 'companion_available',   label: 'Companion available'   },
+  { value: 'adapted_equipment',     label: 'Adapted equipment'     },
 ];
 
 export function Step11Environment({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
@@ -70,14 +70,14 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Onde você treina,<br/>na vida real
+        Where you train,<br/>in real life
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Para prescrever exercícios que dependem do equipamento, espaço e apoio que você tem.
+        To prescribe exercises that depend on the equipment, space, and support you have.
       </p>
 
       {/* Locations — card grid */}
-      <SectionLabel label="Locais possíveis" dark={dark}/>
+      <SectionLabel label="Possible locations" dark={dark}/>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
         {LOCATIONS.map(loc => {
           const on = (env.locations ?? []).includes(loc.value);
@@ -105,7 +105,7 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
         })}
       </div>
 
-      <SectionLabel label="Equipamentos disponíveis" dark={dark}/>
+      <SectionLabel label="Available equipment" dark={dark}/>
       <ChipGroup style={{ marginBottom: 22 }}>
         {EQUIPMENT_OPTS.map(e => (
           <Chip
@@ -119,7 +119,7 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
         ))}
       </ChipGroup>
 
-      <SectionLabel label="Condições de acessibilidade" dark={dark}/>
+      <SectionLabel label="Accessibility conditions" dark={dark}/>
       <ChipGroup>
         {ACCESSIBILITY_OPTS.map(a => (
           <Chip

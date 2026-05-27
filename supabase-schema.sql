@@ -94,7 +94,7 @@ create policy "own preferences" on preferences for all using (auth.uid() = user_
 -- checkins
 create policy "own checkins" on checkins for all using (auth.uid() = user_id);
 
--- workouts: dono lê/escreve; trainer lê os dos seus clientes
+-- workouts: owner reads/writes; trainer reads their clients'
 create policy "own workouts" on workouts for all using (auth.uid() = user_id);
 create policy "trainer reads client workouts" on workouts for select using (
   exists (

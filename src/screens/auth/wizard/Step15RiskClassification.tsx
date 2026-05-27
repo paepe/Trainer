@@ -58,11 +58,11 @@ function computeRisk(data: WizardStepProps['data']): RiskClassification {
 }
 
 const RISK_META: Record<RiskLevel, { label: string; color: string; description: string }> = {
-  R0: { label: 'Sem restrições',      color: '#2DD4E0', description: 'Perfil sem condições identificadas. AI-led sem restrições.' },
-  R1: { label: 'Baixo',               color: '#4ade80', description: 'Condições leves. Progressão normal com atenção pontual.' },
-  R2: { label: 'Moderado',            color: '#F5A623', description: 'Condições moderadas. Privacy masking ativo. Safety Gate ativado.' },
-  R3: { label: 'Elevado',             color: '#f97316', description: 'Requer validação humana. AI opera em modo conservador.' },
-  R4: { label: 'Crítico',             color: '#EF5B3C', description: 'AI-led bloqueado. Revisão profissional obrigatória antes de prosseguir.' },
+  R0: { label: 'No restrictions',  color: '#2DD4E0', description: 'Profile with no identified conditions. AI-led with no restrictions.' },
+  R1: { label: 'Low',               color: '#4ade80', description: 'Mild conditions. Normal progression with occasional attention.' },
+  R2: { label: 'Moderate',          color: '#F5A623', description: 'Moderate conditions. Privacy masking active. Safety Gate activated.' },
+  R3: { label: 'High',              color: '#f97316', description: 'Requires human validation. AI operates in conservative mode.' },
+  R4: { label: 'Critical',          color: '#EF5B3C', description: 'AI-led blocked. Professional review required before proceeding.' },
 };
 
 const RISK_LEVELS: RiskLevel[] = ['R0', 'R1', 'R2', 'R3', 'R4'];
@@ -84,10 +84,10 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Classificação de risco operacional
+        Operational risk classification
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
-        Calculada a partir dos blocos anteriores. Você pode rever e pedir validação humana.
+        Calculated from the previous blocks. You can review and request human validation.
       </p>
 
       {/* Risk badge */}
@@ -154,7 +154,7 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
       </div>
 
       <p style={{ fontSize: 11.5, color: textMute(dark), lineHeight: 1.5, margin: '0 0 24px' }}>
-        A classificação é <strong style={{ color: textPri(dark) }}>explicável</strong>: você pode solicitar o detalhamento dos fatores que pesaram em cada decisão.
+        The classification is <strong style={{ color: textPri(dark) }}>explainable</strong>: you can request details of the factors that weighed into each decision.
       </p>
 
       <div style={{ flex: 1 }}/>
@@ -177,10 +177,10 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
         {generating ? (
           <>
             <Spinner color="#0E1A2B"/>
-            Gerando Perfil Ampliado…
+            Generating Amplified Profile…
           </>
         ) : (
-          'Gerar Perfil Ampliado →'
+          'Generate Amplified Profile →'
         )}
       </button>
     </div>

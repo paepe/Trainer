@@ -76,10 +76,16 @@ export function useWorkoutData(userId: string | undefined) {
   async function updateSessionExerciseStatus(
     sessionExerciseId: string,
     status: SessionExerciseStatus,
+    skippedReason?: string,
   ): Promise<MutateResult> {
+    const payload: { status: SessionExerciseStatus; skipped_reason?: string | null } = { status };
+    if (status === 'skipped' && skippedReason !== undefined) {
+      payload.skipped_reason = skippedReason || null;
+    }
+
     const { error } = await supabase
       .from('workout_session_exercises')
-      .update({ status })
+      .update(payload)
       .eq('id', sessionExerciseId);
     if (error) console.error('[useWorkoutData] updateSessionExerciseStatus:', error);
     return { error };

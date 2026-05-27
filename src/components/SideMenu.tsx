@@ -15,7 +15,7 @@ interface SideMenuProps {
 }
 
 const MENU_ITEMS: [string, string, string][] = [
-  ['Perfil',              'profile',     'user'],
+  ['Profile',              'profile',     'user'],
   ['Daily check-in',  'checkin',         'sparkle'],
   ['Workout',         'workout',         'play'],
   ['Targets',         'goal',            'target'],
