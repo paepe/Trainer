@@ -91,7 +91,7 @@ interface ProfileWizardScreenProps {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-type ScreenMode = 'wizard' | 'view' | 'edit_step';
+type ScreenMode = 'wizard' | 'view';
 
 export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV2, saveUser, user }: ProfileWizardScreenProps) {
   const [mode,        setMode]        = React.useState<ScreenMode>('view');
@@ -102,16 +102,21 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   const [saveError,   setSaveError]   = React.useState<string | null>(null);
   const [saving,      setSaving]      = React.useState(false);
 
+  // Ref mirrors data state so saves always use the current value,
+  // regardless of React batching between onUpdate and onSaveLater calls.
+  const dataRef = React.useRef<WizardData>({});
+
   React.useEffect(() => {
     if (!fetchProfileV2) { setLoading(false); return; }
     fetchProfileV2().then(({ data: existing }) => {
       if (existing && Object.keys(existing).length > 0) {
         const { current_step: _step, completed_at: _done, ...profileData } =
           existing as WizardData & { current_step?: string; completed_at?: string | null };
+        dataRef.current = profileData;
         setData(profileData);
-        setMode('view');          // always open the list view for existing profiles
+        setMode('view');
       } else {
-        setMode('wizard');        // new user: start wizard at basic_data
+        setMode('wizard');   // new user: start wizard at basic_data
       }
       setLoading(false);
     });
@@ -119,9 +124,17 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   }, []);
 
   const stepIndex = STEP_SEQUENCE.indexOf(currentStep);
-  const update    = (patch: WizardData) => setData(prev => ({ ...prev, ...patch }));
+
+  // update keeps ref and state in sync so saves are always consistent
+  const update = (patch: WizardData) => setData(prev => {
+    const next = { ...prev, ...patch };
+    dataRef.current = next;
+    return next;
+  });
 
   // ── Wizard navigation ──────────────────────────────────────────────────────
+  // onNext ALWAYS advances to the next valid step — never returns to list.
+  // Returning to list is only via "Voltar ao Perfil" banner or saveLater.
 
   const goNext = () => {
     const next = STEP_SEQUENCE[stepIndex + 1] as ProfileV2Step | undefined;
@@ -134,11 +147,12 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     setCurrentStep(STEP_SEQUENCE[stepIndex - 1] as ProfileV2Step);
   };
 
+  // saveLater: persist ALL accumulated data up to currentStep, then return to list.
   const saveLater = async () => {
     setSaving(true);
     setSaveError(null);
     if (saveProfileV2) {
-      const { error } = await saveProfileV2(data, currentStep);
+      const { error } = await saveProfileV2(dataRef.current, currentStep);
       if (error) {
         setSaveError('Erro ao salvar. Verifique sua conexão.');
         setSaving(false);
@@ -146,28 +160,20 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       }
     }
     setSaving(false);
-    nav('checkin');
-  };
-
-  // ── Edit-step navigation (from view mode) ──────────────────────────────────
-
-  const enterEditStep = (step: ProfileV2Step) => {
-    setCurrentStep(step);
-    setMode('edit_step');
-  };
-
-  const saveStepAndReturn = async () => {
-    if (saveProfileV2) await saveProfileV2(data, currentStep);
     setMode('view');
   };
 
-  const cancelStepEdit = () => setMode('view');
+  // enterEditStep: open wizard at the selected step (no mode bifurcation)
+  const enterEditStep = (step: ProfileV2Step) => {
+    setCurrentStep(step);
+    setMode('wizard');
+  };
 
   // ── Wizard completion ──────────────────────────────────────────────────────
 
   const handleGenerate = async (risk: RiskClassification) => {
     setGenerating(true);
-    const finalData = { ...data, risk };
+    const finalData = { ...dataRef.current, risk };
     update({ risk });
 
     const saveP = saveProfileV2 ? saveProfileV2(finalData, 'completed') : Promise.resolve();
@@ -182,29 +188,20 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     setMode('view');
   };
 
-  // ── Shared step props ──────────────────────────────────────────────────────
+  // ── Shared step props (single common object — no mode bifurcation) ─────────
 
-  const wizardCommon = {
+  const common = {
     dark,
     primary:     t.primary,
     accent:      t.accent,
     data,
     onUpdate:    update,
-    onNext:      goNext,
+    onNext:      goNext,       // always advances — never returns to list
     onBack:      goBack,
-    onSaveLater: saveLater,
+    onSaveLater: saveLater,    // saves all accumulated data + returns to list
     stepNum:     STEP_NUM[currentStep] ?? 0,
     totalSteps:  TOTAL_STEPS,
   };
-
-  const editCommon = {
-    ...wizardCommon,
-    onNext:      saveStepAndReturn,
-    onBack:      cancelStepEdit,
-    onSaveLater: saveStepAndReturn,
-  };
-
-  const common = mode === 'edit_step' ? editCommon : wizardCommon;
 
   if (loading) return null;
 
@@ -223,7 +220,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     );
   }
 
-  // ── WIZARD / EDIT_STEP mode ────────────────────────────────────────────────
+  // ── WIZARD mode ────────────────────────────────────────────────────────────
 
   const statusBanner = saveError ? (
     <div style={{
@@ -243,8 +240,9 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     </div>
   ) : null;
 
-  const editBanner = mode === 'edit_step' ? (
-    <button onClick={cancelStepEdit} style={{
+  // Always shown in wizard mode — the only explicit exit back to the list
+  const wizardBanner = (
+    <button onClick={() => setMode('view')} style={{
       display: 'flex', alignItems: 'center', gap: 8,
       padding: '12px 20px', width: '100%', border: 'none',
       background: dark ? 'rgba(45,212,224,.08)' : '#f0fafb',
@@ -255,7 +253,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       <Icon name="back" size={16} color={t.primary} stroke={2.2}/>
       Voltar ao Perfil
     </button>
-  ) : null;
+  );
 
   const stepContent = (() => {
     switch (currentStep) {
@@ -281,7 +279,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     }
   })();
 
-  return <>{editBanner}{statusBanner}{stepContent}</>;
+  return <>{wizardBanner}{statusBanner}{stepContent}</>;
 }
 
 // ── Unified profile view (shown when wizard is completed) ─────────────────────
