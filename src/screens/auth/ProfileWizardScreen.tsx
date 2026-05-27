@@ -40,44 +40,48 @@ const STEP_NUM: Partial<Record<ProfileV2Step, number>> = {
 // ── Wizard sections shown in the unified profile view ──────────────────────────
 
 const WIZARD_SECTIONS: { step: ProfileV2Step; label: string; icon: string; summary: (d: WizardData) => string | null }[] = [
-  { step: 'basic_data',          label: 'Informações Pessoais',     icon: 'user',
+  { step: 'basic_data',          label: 'Personal Information',     icon: 'user',
     summary: d => d.basic_data ? `${d.basic_data.name ?? ''} · ${d.basic_data.age ?? '?'}a · ${d.basic_data.height_cm ?? '?'}cm · ${d.basic_data.weight_kg ?? '?'}kg`.replace(/^ · /, '') : null },
-  { step: 'objectives',          label: 'Objetivos',                icon: 'target',
+  { step: 'objectives',          label: 'Objectives',                icon: 'target',
     summary: d => d.objectives?.primary_goal ?? null },
-  { step: 'movement_history',    label: 'Histórico de movimento',   icon: 'history',
+  { step: 'movement_history',    label: 'Movement History',   icon: 'history',
     summary: d => d.movement_history?.fitness_level ?? null },
-  { step: 'declared_health',     label: 'Saúde declarada',          icon: 'heart',
-    summary: d => d.declared_health != null ? (d.declared_health.has_condition ? 'Condições relatadas' : 'Sem condições') : null },
-  { step: 'comorbidities',       label: 'Comorbidades',             icon: 'shield',
-    summary: d => d.comorbidities?.conditions?.length ? `${d.comorbidities.conditions.length} condição(ões)` : null },
-  { step: 'functional_capacity', label: 'Capacidade funcional',     icon: 'activity',
+  { step: 'declared_health',     label: 'Declared Health',          icon: 'heart',
+    summary: d => d.declared_health != null ? (d.declared_health.has_condition ? 'Reported conditions' : 'No conditions') : null },
+  { step: 'comorbidities',       label: 'Comorbidities',             icon: 'shield',
+    summary: d => d.comorbidities?.conditions?.length ? `${d.comorbidities.conditions.length} condition(s)` : null },
+  { step: 'functional_capacity', label: 'Functional Capacity',     icon: 'activity',
     summary: d => d.functional_capacity?.mobility != null
       ? `${d.functional_capacity.mobility} · ${d.functional_capacity.balance}`
       : null },
-  { step: 'habits',              label: 'Hábitos',                  icon: 'sun',
+  { step: 'habits',              label: 'Habits',                  icon: 'sun',
     summary: d => d.habits != null
       ? (d.habits.lifestyle_barriers?.length
-          ? `${d.habits.lifestyle_barriers.length} barreira(s)`
-          : 'Sem barreiras')
+          ? `${d.habits.lifestyle_barriers.length} barrier(s)`
+          : 'No barriers')
       : null },
-  { step: 'sensitive_factors',   label: 'Fatores sensíveis',        icon: 'lock',
+  { step: 'sensitive_factors',   label: 'Sensitive Factors',        icon: 'lock',
     summary: d => d.sensitive_factors != null ? '' : null },
-  { step: 'body_rhythm',         label: 'Ritmo do corpo',           icon: 'moon',
+  { step: 'body_rhythm',         label: 'Body Rhythm',           icon: 'moon',
     summary: d => d.body_rhythm != null
-      ? (d.body_rhythm.enabled ? 'Ciclo ativo' : 'Não monitorado')
+      ? (d.body_rhythm.enabled ? 'Active cycle' : 'Not monitored')
       : null },
-  { step: 'environment',         label: 'Ambiente',                 icon: 'pin',
+  { step: 'environment',         label: 'Environment',                 icon: 'pin',
     summary: d => d.environment?.locations?.length
       ? d.environment.locations.slice(0, 2).join(' · ')
-      : (d.environment != null ? 'Preenchido' : null) },
-  { step: 'availability',        label: 'Disponibilidade',          icon: 'cal',
+      : (d.environment != null ? 'Filled' : null) },
+  { step: 'availability',        label: 'Availability',          icon: 'cal',
     summary: d => d.availability?.days_per_week != null
       ? `${d.availability.days_per_week}x · ${d.availability.session_duration_min} min`
       : null },
-  { step: 'preferences',         label: 'Preferências',             icon: 'settings',
+  { step: 'preferences',         label: 'Preferences',             icon: 'settings',
     summary: d => d.preferences?.preferred_intensity != null
       ? `${d.preferences.preferred_intensity} · ${d.preferences.focus}`
       : null },
+  { step: 'consent',             label: 'Consent & Visibility',    icon: 'list',
+    summary: d => d.consent != null ? 'Consent recorded' : null },
+  { step: 'risk_classification', label: 'Risk Classification',     icon: 'shield',
+    summary: d => d.risk?.level != null ? `Level ${d.risk.level}` : null },
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -150,7 +154,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
 
   // ── Wizard navigation ──────────────────────────────────────────────────────
   // onNext ALWAYS advances to the next valid step — never returns to list.
-  // Returning to list is only via "Voltar ao Perfil" banner or saveLater.
+  // Returning to list is only via "Back to Profile" banner or saveLater.
 
   const goNext = () => {
     const next = STEP_SEQUENCE[stepIndex + 1] as ProfileV2Step | undefined;
@@ -171,7 +175,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     if (saveProfileV2) {
       const { error } = await saveProfileV2(snapshot, currentStep);
       if (error) {
-        setSaveError('Erro ao salvar. Verifique sua conexão.');
+        setSaveError('Error saving. Check your connection.');
         setSaving(false);
         return;
       }
@@ -254,7 +258,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       background: '#2DD4E022', border: '1px solid #2DD4E044',
       fontSize: 12, color: '#2DD4E0', fontFamily: 'inherit',
     }}>
-      Salvando…
+      Saving…
     </div>
   ) : null;
 
@@ -269,7 +273,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       borderBottom: `1px solid ${borderSubtle(dark)}`,
     }}>
       <Icon name="back" size={16} color={t.primary} stroke={2.2}/>
-      Voltar ao Perfil
+      Back to Profile
     </button>
   );
 
@@ -359,7 +363,7 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
             fontSize: 20, fontWeight: 700, color: textPri(dark),
             fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em',
           }}>
-            {user?.name || 'Seu nome'}
+            {user?.name || 'Your name'}
           </div>
           {user?.email && (
             <div style={{ fontSize: 12.5, color: textMute(dark), marginTop: 2 }}>{user.email}</div>
@@ -367,13 +371,13 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
         </div>
       </div>
 
-      {/* ── Perfil inteligente ── */}
+      {/* ── Smart Profile ── */}
       <div>
         <div style={{
           fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em',
           textTransform: 'uppercase', color: textMute(dark), marginBottom: 12,
         }}>
-          Perfil inteligente
+          Smart Profile
         </div>
 
         <div style={{
@@ -419,7 +423,7 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
 
       {/* ── CTA ── */}
       <button onClick={onStart} style={primaryBtn(primary)}>
-        Ir para check-in
+        Go to check-in
       </button>
     </div>
   );
