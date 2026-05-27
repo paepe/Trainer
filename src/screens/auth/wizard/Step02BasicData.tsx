@@ -1,27 +1,105 @@
 import React from 'react';
-import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, FieldInput, SectionLabel, SegmentedRow } from './atoms';
+import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
+import { WizardHeader, WizardFooter, FieldInput, SectionLabel } from './atoms';
 import type { WizardStepProps } from './types';
 import type { BiologicalSex, ProfileBasicData } from '../../../types/profile-v2';
+import type { Profile } from '../../../types';
 
 const SEX_OPTIONS: { value: BiologicalSex; label: string }[] = [
-  { value: 'female',           label: 'Feminino'         },
-  { value: 'male',             label: 'Masculino'        },
-  { value: 'intersex',         label: 'Intersexo'        },
-  { value: 'prefer_not_to_say',label: 'Prefiro não informar' },
+  { value: 'female',            label: 'Feminino'            },
+  { value: 'male',              label: 'Masculino'           },
+  { value: 'intersex',          label: 'Intersexo'           },
+  { value: 'prefer_not_to_say', label: 'Prefiro não informar' },
 ];
 
-export function Step02BasicData({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+const bioSexToGender = (sex: BiologicalSex | undefined): Profile['gender'] => {
+  if (sex === 'female')           return 'female';
+  if (sex === 'male')             return 'male';
+  if (sex === 'intersex')         return 'non-binary';
+  return 'prefer_not_to_say';
+};
+
+function computeAge(dob: string): number | null {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  if (isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age > 0 ? age : null;
+}
+
+interface PersonalUser {
+  email?:    string;
+  phone?:    string;
+  dob?:      string;
+  location?: string;
+}
+
+interface Step02Props extends WizardStepProps {
+  user?:     PersonalUser;
+  saveUser?: (d: Partial<Profile> & { email?: string }) => Promise<{ error: unknown }>;
+}
+
+export function Step02BasicData({
+  dark, primary, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps,
+  user, saveUser,
+}: Step02Props) {
   const d = data.basic_data ?? {} as Partial<ProfileBasicData>;
 
-  const set = (patch: Partial<ProfileBasicData>) =>
+  const setBasic = (patch: Partial<ProfileBasicData>) =>
     onUpdate({ basic_data: { ...d, ...patch } as ProfileBasicData });
+
+  // Personal fields (profiles table)
+  const [email,   setEmail]   = React.useState(user?.email    ?? '');
+  const [phone,   setPhone]   = React.useState(user?.phone    ?? '');
+  const [dob,     setDob]     = React.useState(user?.dob      ?? '');
+  const [address, setAddress] = React.useState(user?.location ?? '');
+
+  const age = computeAge(dob);
 
   const [emergencyOpen, setEmergencyOpen] = React.useState(
     !!(d.emergency_contact?.name || d.emergency_contact?.phone),
   );
 
-  const canAdvance = !!(d.name?.trim() && d.age && d.height_cm && d.weight_kg);
+  const canAdvance = !!(d.name?.trim() && dob && age !== null && d.height_cm && d.weight_kg);
+
+  const handleNext = async () => {
+    // Sync computed age into profile_v2.basic_data before advancing
+    if (age !== null) {
+      onUpdate({ basic_data: { ...d, age } as ProfileBasicData });
+    }
+    // Persist personal fields to profiles table
+    if (saveUser) {
+      await saveUser({
+        name:     (d.name ?? '').trim(),
+        email:    (email ?? '').trim(),
+        phone:    (phone ?? '').trim(),
+        dob:      dob,
+        location: (address ?? '').trim(),
+        gender:   bioSexToGender(d.biological_sex),
+      });
+    }
+    onNext();
+  };
+
+  const handleSaveLater = async () => {
+    if (age !== null) {
+      onUpdate({ basic_data: { ...d, age } as ProfileBasicData });
+    }
+    if (saveUser) {
+      await saveUser({
+        name:     (d.name ?? '').trim(),
+        email:    (email ?? '').trim(),
+        phone:    (phone ?? '').trim(),
+        dob:      dob,
+        location: (address ?? '').trim(),
+        gender:   bioSexToGender(d.biological_sex),
+      });
+    }
+    onSaveLater();
+  };
 
   return (
     <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -38,47 +116,95 @@ export function Step02BasicData({ dark, primary, accent, data, onUpdate, onNext,
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* ── Identity ── */}
         <FieldInput
           label="Nome"
           value={d.name ?? ''}
-          onChange={v => set({ name: v })}
+          onChange={v => setBasic({ name: v })}
           dark={dark} primary={primary}
           placeholder="Mariana Costa"
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <FieldInput
-            label="Idade"
-            value={d.age ? String(d.age) : ''}
-            onChange={v => set({ age: v ? parseInt(v) : undefined as unknown as number })}
+            label="E-mail"
+            value={email}
+            onChange={setEmail}
             dark={dark} primary={primary}
-            type="number" inputMode="numeric" placeholder="28"
+            type="email" placeholder="seu@email.com"
           />
           <FieldInput
-            label="Idioma"
-            value={d.language ?? 'Português'}
-            onChange={v => set({ language: v })}
+            label="Telefone"
+            value={phone}
+            onChange={v => setPhone(v.replace(/[^\d+\s\-()]/g, ''))}
             dark={dark} primary={primary}
-            placeholder="Português"
+            type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
           />
         </div>
 
+        {/* DOB + age (read-only) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <FieldInput
+            label="Data de nascimento"
+            value={dob}
+            onChange={setDob}
+            dark={dark} primary={primary}
+            type="date" placeholder="AAAA-MM-DD"
+          />
+          {/* Age: computed, read-only */}
+          <div>
+            <div style={{
+              fontSize: 10.5, fontWeight: 700, letterSpacing: '.08em',
+              textTransform: 'uppercase', color: textMute(dark), marginBottom: 6,
+            }}>
+              Idade
+            </div>
+            <div style={{
+              padding: '11px 14px', borderRadius: 12,
+              background: surfRaised(dark),
+              border: `1.5px solid ${borderSubtle(dark)}`,
+              fontSize: 15, color: age !== null ? textPri(dark) : textMute(dark),
+              fontFamily: 'inherit',
+            }}>
+              {age !== null ? `${age} anos` : '—'}
+            </div>
+          </div>
+        </div>
+
+        <FieldInput
+          label="Cidade / Endereço"
+          value={address}
+          onChange={setAddress}
+          dark={dark} primary={primary}
+          placeholder="São Paulo, SP"
+        />
+
+        {/* ── Training data ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <FieldInput
             label="Altura (cm)"
             value={d.height_cm ? String(d.height_cm) : ''}
-            onChange={v => set({ height_cm: v ? +v : undefined as unknown as number })}
+            onChange={v => setBasic({ height_cm: v ? +v : undefined as unknown as number })}
             dark={dark} primary={primary}
             type="number" inputMode="decimal" placeholder="165"
           />
           <FieldInput
             label="Peso atual (kg)"
             value={d.weight_kg ? String(d.weight_kg) : ''}
-            onChange={v => set({ weight_kg: v ? +v : undefined as unknown as number })}
+            onChange={v => setBasic({ weight_kg: v ? +v : undefined as unknown as number })}
             dark={dark} primary={primary}
             type="number" inputMode="decimal" placeholder="64"
           />
         </div>
+
+        <FieldInput
+          label="Idioma"
+          value={d.language ?? 'Português'}
+          onChange={v => setBasic({ language: v })}
+          dark={dark} primary={primary}
+          placeholder="Português"
+        />
 
         {/* Biological sex */}
         <div>
@@ -87,7 +213,7 @@ export function Step02BasicData({ dark, primary, accent, data, onUpdate, onNext,
             {SEX_OPTIONS.map(o => {
               const on = d.biological_sex === o.value;
               return (
-                <button key={o.value} onClick={() => set({ biological_sex: o.value })} style={{
+                <button key={o.value} onClick={() => setBasic({ biological_sex: o.value })} style={{
                   padding: '9px 14px', borderRadius: 999,
                   background: on ? `${primary}22` : surfRaised(dark),
                   color: on ? primary : textPri(dark),
@@ -125,12 +251,12 @@ export function Step02BasicData({ dark, primary, accent, data, onUpdate, onNext,
             <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <FieldInput
                 label="Nome" value={d.emergency_contact?.name ?? ''}
-                onChange={v => set({ emergency_contact: { ...(d.emergency_contact ?? { phone: '' }), name: v } })}
+                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { phone: '' }), name: v } })}
                 dark={dark} primary={primary} placeholder="Nome e sobrenome"
               />
               <FieldInput
                 label="Telefone" value={d.emergency_contact?.phone ?? ''}
-                onChange={v => set({ emergency_contact: { ...(d.emergency_contact ?? { name: '' }), phone: v } })}
+                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { name: '' }), phone: v } })}
                 dark={dark} primary={primary} type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
               />
             </div>
@@ -140,7 +266,8 @@ export function Step02BasicData({ dark, primary, accent, data, onUpdate, onNext,
 
       <div style={{ flex: 1 }}/>
       <WizardFooter
-        onNext={onNext} onSaveLater={onSaveLater}
+        onNext={handleNext}
+        onSaveLater={handleSaveLater}
         nextDisabled={!canAdvance}
         dark={dark} primary={primary}
       />

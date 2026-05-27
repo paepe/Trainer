@@ -1,9 +1,8 @@
 import React from 'react';
 import { supabase } from '../../supabase';
-import { textSec, textMute, textPri, surfRaised, borderSubtle, primaryBtn } from '../../theme';
+import { textMute, textPri, surfRaised, borderSubtle, primaryBtn } from '../../theme';
 import { Icon } from '../../components/Icon';
 import { AvatarImage } from '../../components/Avatar';
-import { PillInput } from '../../components/PillInput';
 import type { NavFn, Profile } from '../../types';
 import type { ProfileV2Step, RiskClassification } from '../../types/profile-v2';
 import type { WizardData } from './wizard/types';
@@ -215,9 +214,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
         user={user}
         dark={dark}
         primary={t.primary}
-        accent={t.accent}
         data={data}
-        saveUser={saveUser}
         onEditStep={enterEditStep}
         onStart={() => nav('checkin')}
       />
@@ -261,7 +258,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   const stepContent = (() => {
     switch (currentStep) {
       case 'welcome':             return <Step01Welcome            {...common}/>;
-      case 'basic_data':          return <Step02BasicData           {...common}/>;
+      case 'basic_data':          return <Step02BasicData           {...common} {...(user ? { user } : {})} {...(saveUser ? { saveUser } : {})}/>;
       case 'objectives':          return <Step03Objectives          {...common}/>;
       case 'movement_history':    return <Step04MovementHistory     {...common}/>;
       case 'declared_health':     return <Step05DeclaredHealth      {...common}/>;
@@ -288,53 +285,24 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
 
 // ── Unified profile view (shown when wizard is completed) ─────────────────────
 
-const GENDER_LABELS: Record<string, string> = {
-  male:              'Masculino',
-  female:            'Feminino',
-  'non-binary':      'Não-binário',
-  prefer_not_to_say: 'Prefiro não informar',
-};
-
-const GENDER_OPTS = [
-  { key: 'male',              label: 'Masculino' },
-  { key: 'female',            label: 'Feminino' },
-  { key: 'non-binary',        label: 'Não-binário' },
-  { key: 'prefer_not_to_say', label: 'Prefiro não informar' },
-] as const;
-
 interface UnifiedProfileViewProps {
-  user?:        ProfileUser | undefined;
-  dark:         boolean;
-  primary:      string;
-  accent:       string;
-  data:         WizardData;
-  saveUser?:    ((d: Partial<Profile> & { email?: string }) => Promise<{ error: unknown }>) | undefined;
-  onEditStep:   (step: ProfileV2Step) => void;
-  onStart:      () => void;
+  user?:      ProfileUser | undefined;
+  dark:       boolean;
+  primary:    string;
+  data:       WizardData;
+  onEditStep: (step: ProfileV2Step) => void;
+  onStart:    () => void;
 }
 
-function UnifiedProfileView({ user, dark, primary, accent, data, saveUser, onEditStep, onStart }: UnifiedProfileViewProps) {
-  type Draft = { name: string; email: string; phone: string; dob: string; location: string; gender: string };
-
-  const [draft, setDraft]               = React.useState<Draft>({
-    name:     user?.name     ?? '',
-    email:    user?.email    ?? '',
-    phone:    user?.phone    ?? '',
-    dob:      user?.dob      ?? '',
-    location: user?.location ?? '',
-    gender:   user?.gender   ?? '',
-  });
-  const [avatarUrl,       setAvatarUrl]       = React.useState<string | null>(user?.avatar_url ?? null);
-  const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
-  const [savingPersonal,  setSavingPersonal]  = React.useState(false);
-  const [personalSaved,   setPersonalSaved]   = React.useState(false);
-  const [personalErr,     setPersonalErr]     = React.useState<string | null>(null);
+function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: UnifiedProfileViewProps) {
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(user?.avatar_url ?? null);
+  const [uploading, setUploading] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
-    setUploadingAvatar(true);
+    setUploading(true);
     const ext  = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
     const path = `${user.id}/avatar.${ext}`;
     const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
@@ -342,49 +310,18 @@ function UnifiedProfileView({ user, dark, primary, accent, data, saveUser, onEdi
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
       setAvatarUrl(`${urlData.publicUrl}?t=${Date.now()}`);
     }
-    setUploadingAvatar(false);
+    setUploading(false);
   };
-
-  const savePersonal = async () => {
-    if (!saveUser) return;
-    setSavingPersonal(true);
-    setPersonalErr(null);
-    setPersonalSaved(false);
-    const { error } = await saveUser({
-      name:       draft.name.trim(),
-      email:      draft.email.trim(),
-      phone:      draft.phone.trim(),
-      dob:        draft.dob,
-      location:   draft.location.trim(),
-      gender:     draft.gender as Profile['gender'],
-      avatar_url: avatarUrl,
-    });
-    setSavingPersonal(false);
-    if (error) {
-      setPersonalErr('Erro ao salvar. Tente novamente.');
-    } else {
-      setPersonalSaved(true);
-      setTimeout(() => setPersonalSaved(false), 2500);
-    }
-  };
-
-  const personalFields: [keyof Draft, string, string, string][] = [
-    ['name',     'user',  'Nome completo',    'text'],
-    ['email',    'mail',  'E-mail',           'email'],
-    ['phone',    'phone', 'Telefone',         'tel'],
-    ['dob',      'cal',   'Data de nascimento','date'],
-    ['location', 'pin',   'Cidade / Endereço','text'],
-  ];
 
   return (
-    <div style={{ padding: '20px 22px 100px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ padding: '20px 22px 100px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <AvatarImage url={avatarUrl} label="me" w={72} h={72} radius={16} dark={dark}/>
           <button
-            onClick={() => !uploadingAvatar && fileRef.current?.click()}
+            onClick={() => !uploading && fileRef.current?.click()}
             style={{
               position: 'absolute', bottom: 0, right: 0,
               width: 26, height: 26, borderRadius: '50%',
@@ -401,74 +338,16 @@ function UnifiedProfileView({ user, dark, primary, accent, data, saveUser, onEdi
             style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}/>
         </div>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: textPri(dark),
-            fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em' }}>
-            {draft.name || 'Seu nome'}
+          <div style={{
+            fontSize: 20, fontWeight: 700, color: textPri(dark),
+            fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em',
+          }}>
+            {user?.name || 'Seu nome'}
           </div>
-          <div style={{ fontSize: 12.5, color: textMute(dark), marginTop: 2 }}>{draft.email}</div>
-          {draft.gender && (
-            <div style={{ fontSize: 11.5, color: textSec(dark), marginTop: 2 }}>
-              {GENDER_LABELS[draft.gender] ?? draft.gender}
-            </div>
+          {user?.email && (
+            <div style={{ fontSize: 12.5, color: textMute(dark), marginTop: 2 }}>{user.email}</div>
           )}
         </div>
-      </div>
-
-      {/* ── Dados pessoais ── */}
-      <div>
-        <div style={{
-          fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em',
-          textTransform: 'uppercase', color: textMute(dark), marginBottom: 12,
-        }}>
-          Dados pessoais
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {personalFields.map(([k, ic, label, type]) => (
-            <PillInput
-              key={k} icon={ic} placeholder={label}
-              type={type as 'text' | 'email' | 'password'}
-              value={draft[k]}
-              onChange={v => setDraft({ ...draft, [k]: v })}
-              primary={primary} dark={dark}
-            />
-          ))}
-        </div>
-
-        {/* Gender */}
-        <div style={{ marginTop: 14 }}>
-          <div style={{
-            fontSize: 10.5, fontWeight: 700, letterSpacing: '.08em',
-            textTransform: 'uppercase', color: textMute(dark), marginBottom: 10,
-          }}>
-            Gênero
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {GENDER_OPTS.map(({ key, label }) => {
-              const on = draft.gender === key;
-              return (
-                <button key={key} onClick={() => setDraft({ ...draft, gender: key })} style={{
-                  padding: '8px 14px', borderRadius: 999,
-                  background: on ? `${primary}22` : surfRaised(dark),
-                  color: on ? primary : textPri(dark),
-                  border: `1.5px solid ${on ? primary : borderSubtle(dark)}`,
-                  fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                }}>{label}</button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Save personal */}
-        {personalErr && (
-          <div style={{ fontSize: 13, color: accent, marginTop: 10 }}>{personalErr}</div>
-        )}
-        <button onClick={savePersonal} disabled={savingPersonal} style={{
-          ...primaryBtn(primary), marginTop: 14,
-          opacity: savingPersonal ? 0.7 : 1,
-        }}>
-          {savingPersonal ? 'Salvando…' : personalSaved ? 'Salvo!' : 'Salvar dados pessoais'}
-        </button>
       </div>
 
       {/* ── Perfil inteligente ── */}
@@ -492,11 +371,8 @@ function UnifiedProfileView({ user, dark, primary, accent, data, saveUser, onEdi
               <button key={section.step} onClick={() => onEditStep(section.step)} style={{
                 display: 'flex', alignItems: 'center', gap: 14,
                 width: '100%', padding: '13px 16px',
-                borderBottom: isLast ? 'none' : `1px solid ${borderSubtle(dark)}`,
                 background: 'transparent', border: 'none', cursor: 'pointer',
-                borderBottomWidth: isLast ? 0 : 1,
-                borderBottomStyle: 'solid',
-                borderBottomColor: isLast ? 'transparent' : borderSubtle(dark),
+                borderBottom: isLast ? 'none' : `1px solid ${borderSubtle(dark)}`,
                 textAlign: 'left',
               }}>
                 <div style={{
