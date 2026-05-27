@@ -125,12 +125,14 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
 
   const stepIndex = STEP_SEQUENCE.indexOf(currentStep);
 
-  // update keeps ref and state in sync so saves are always consistent
-  const update = (patch: WizardData) => setData(prev => {
-    const next = { ...prev, ...patch };
+  // Ref is updated synchronously so any save triggered in the same
+  // event cycle (e.g. handleSaveLater calls onUpdate then onSaveLater)
+  // always reads the latest data — not a stale React-batch snapshot.
+  const update = (patch: WizardData) => {
+    const next = { ...dataRef.current, ...patch };
     dataRef.current = next;
-    return next;
-  });
+    setData(next);
+  };
 
   // ── Wizard navigation ──────────────────────────────────────────────────────
   // onNext ALWAYS advances to the next valid step — never returns to list.
@@ -151,14 +153,16 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   const saveLater = async () => {
     setSaving(true);
     setSaveError(null);
+    const snapshot = dataRef.current;        // capture after all onUpdate calls settle
     if (saveProfileV2) {
-      const { error } = await saveProfileV2(dataRef.current, currentStep);
+      const { error } = await saveProfileV2(snapshot, currentStep);
       if (error) {
         setSaveError('Erro ao salvar. Verifique sua conexão.');
         setSaving(false);
         return;
       }
     }
+    setData(snapshot);                       // force React state to match ref before view renders
     setSaving(false);
     setMode('view');
   };
