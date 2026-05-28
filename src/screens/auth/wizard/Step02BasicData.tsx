@@ -269,7 +269,6 @@ export function Step02BasicData({
       <div style={{ flex: 1 }}/>
       <WizardFooter
         onNext={handleNext}
-        onSaveLater={handleSaveLater}
         nextDisabled={!canAdvance}
         dark={dark} primary={primary}
       />

@@ -444,14 +444,13 @@ export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge
 
 interface WizardFooterProps {
   onNext:       () => void;
-  onSaveLater:  () => void;
   nextLabel?:   string;
   nextDisabled?:boolean;
   dark:         boolean;
   primary:      string;
 }
 
-export function WizardFooter({ onNext, onSaveLater, nextLabel = 'Continue', nextDisabled, dark, primary }: WizardFooterProps) {
+export function WizardFooter({ onNext, nextLabel = 'Continue', nextDisabled, dark, primary }: WizardFooterProps) {
   return (
     <div style={{ paddingTop: 20 }}>
       <button
@@ -461,22 +460,6 @@ export function WizardFooter({ onNext, onSaveLater, nextLabel = 'Continue', next
         style={{ ...primaryBtn(primary), marginBottom: 10, opacity: nextDisabled ? 0.5 : 1 }}
       >
         {nextLabel} →
-      </button>
-      <button
-        type="button"
-        onClick={onSaveLater}
-        style={{
-          width: '100%', padding: '12px 16px', borderRadius: 999,
-          background: 'transparent',
-          border: `1.5px solid ${borderSubtle(dark)}`,
-          color: textSec(dark), fontSize: 13, fontWeight: 600,
-          fontFamily: 'inherit', cursor: 'pointer',
-          transition: 'border-color .15s, color .15s',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}
-      >
-        <Icon name="bookmark" size={14} color={textSec(dark)} stroke={2}/>
-        Save for later
       </button>
     </div>
   );

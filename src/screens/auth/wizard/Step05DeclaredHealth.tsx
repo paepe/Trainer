@@ -131,7 +131,7 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
       )}
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
 
       {voiceOpen && (
         <WizardVoiceOverlay

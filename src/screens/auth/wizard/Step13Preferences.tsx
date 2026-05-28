@@ -136,7 +136,7 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
       </div>
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
     </div>
   );
 }

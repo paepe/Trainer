@@ -142,7 +142,7 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
       </p>
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
     </div>
   );
 }

@@ -75,7 +75,7 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
       />
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
 
       {voiceOpen && (
         <WizardVoiceOverlay

@@ -147,7 +147,7 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
       </div>
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
     </div>
   );
 }

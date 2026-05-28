@@ -189,7 +189,7 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         />
 
         <div style={{ flex: 1 }}/>
-        <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+        <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
 
         {voiceOpen && (
           <WizardVoiceOverlay
@@ -287,7 +287,7 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
 
       <div style={{ flex: 1 }}/>
       <WizardFooter
-        onNext={handleNext} onSaveLater={onSaveLater}
+        onNext={handleNext}
         nextDisabled={!mh.frequency || !mh.fitness_level}
         dark={dark} primary={primary}
       />

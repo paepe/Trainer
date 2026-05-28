@@ -153,13 +153,36 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   };
 
   // ── Wizard navigation ──────────────────────────────────────────────────────
-  // onNext ALWAYS advances to the next valid step — never returns to list.
-  // Returning to list is only via "Back to Profile" banner or saveLater.
 
-  const goNext = () => {
+  const userFacingError = (err: unknown): string => {
+    const s = (typeof err === 'string' ? err : (err as { message?: string })?.message ?? '').toLowerCase();
+    if (s.includes('jwt') || s.includes('expired') || s.includes('token'))
+      return 'Connection expired. Please try again.';
+    if (s.includes('network') || s.includes('fetch') || s.includes('timeout') || s.includes('abort'))
+      return 'Connection lost. Check your internet.';
+    if (s.includes('duplicate') || s.includes('unique'))
+      return 'Profile already saved.';
+    if (s.includes('foreign') || s.includes('violates') || s.includes('rls'))
+      return 'Connection expired. Please try again.';
+    return 'Error saving. Check your connection.';
+  };
+
+  const saveAndGoNext = async () => {
+    setSaving(true);
+    setSaveError(null);
+    const snapshot = dataRef.current;
+    if (saveProfileV2) {
+      const { error } = await saveProfileV2(snapshot, currentStep);
+      if (error) {
+        setSaveError(userFacingError(error));
+        setSaving(false);
+        return;
+      }
+    }
+    setData(snapshot);
+    setSaving(false);
     const next = STEP_SEQUENCE[stepIndex + 1] as ProfileV2Step | undefined;
-    if (!next || next === 'completed') return;
-    setCurrentStep(next);
+    if (next && next !== 'completed') setCurrentStep(next);
   };
 
   const goBack = () => {
@@ -171,17 +194,16 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   const saveLater = async () => {
     setSaving(true);
     setSaveError(null);
-    const snapshot = dataRef.current;        // capture after all onUpdate calls settle
+    const snapshot = dataRef.current;
     if (saveProfileV2) {
       const { error } = await saveProfileV2(snapshot, currentStep);
       if (error) {
-        const msg = typeof error === 'string' ? error : (error as { message?: string })?.message;
-        setSaveError(msg ?? 'Error saving. Check your connection.');
+        setSaveError(userFacingError(error));
         setSaving(false);
         return;
       }
     }
-    setData(snapshot);                       // force React state to match ref before view renders
+    setData(snapshot);
     setSaving(false);
     setMode('view');
   };
@@ -215,8 +237,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     const [saveResult] = await Promise.all([saveP, aiP]).finally(() => clearTimeout(timeout));
 
     if (saveResult?.error) {
-      const msg = typeof saveResult.error === 'string' ? saveResult.error : (saveResult.error as { message?: string })?.message;
-      setSaveError(msg ?? 'Error saving. Check your connection.');
+      setSaveError(userFacingError(saveResult.error));
       setGenerating(false);
       return;
     }
@@ -233,9 +254,9 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     accent:      t.accent,
     data,
     onUpdate:    update,
-    onNext:      goNext,       // always advances — never returns to list
+    onNext:      saveAndGoNext,   // saves current step + advances to next
     onBack:      goBack,
-    onSaveLater: saveLater,    // saves all accumulated data + returns to list
+    onSaveLater: saveLater,       // saves all accumulated data + returns to list
     stepNum:     STEP_NUM[currentStep] ?? 0,
     totalSteps:  TOTAL_STEPS,
   };

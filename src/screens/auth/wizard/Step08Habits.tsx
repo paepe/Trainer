@@ -66,7 +66,7 @@ export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, on
       )}
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSaveLater={onSaveLater} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
     </div>
   );
 }

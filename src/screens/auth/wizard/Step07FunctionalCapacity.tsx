@@ -168,7 +168,7 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
 
       <div style={{ flex: 1 }}/>
       <WizardFooter
-        onNext={onNext} onSaveLater={onSaveLater}
+        onNext={onNext}
         nextDisabled={!canAdvance}
         dark={dark} primary={primary}
       />

@@ -102,7 +102,7 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
 
       <div style={{ flex: 1 }}/>
       <WizardFooter
-        onNext={onNext} onSaveLater={onSaveLater}
+        onNext={onNext}
         nextDisabled={!canAdvance}
         dark={dark} primary={primary}
       />
