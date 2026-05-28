@@ -66,21 +66,21 @@ export function Step02BasicData({
   const canAdvance = !!(d.name?.trim() && dob && age !== null && d.height_cm && d.weight_kg);
 
   const handleNext = async () => {
-    // Sync computed age into profile_v2.basic_data before advancing
     if (age !== null) {
       onUpdate({ basic_data: { ...d, age } as ProfileBasicData });
     }
-    // Persist personal fields to profiles table
-    if (saveUser) {
-      await saveUser({
-        name:     (d.name ?? '').trim(),
-        email:    (email ?? '').trim(),
-        phone:    (phone ?? '').trim(),
-        dob:      dob,
-        location: (address ?? '').trim(),
-        gender:   bioSexToGender(d.biological_sex),
-      });
-    }
+    try {
+      if (saveUser) {
+        await saveUser({
+          name:     (d.name ?? '').trim(),
+          email:    (email ?? '').trim(),
+          phone:    (phone ?? '').trim(),
+          dob:      dob,
+          location: (address ?? '').trim(),
+          gender:   bioSexToGender(d.biological_sex),
+        });
+      }
+    } catch { /* non-blocking — proceed regardless */ }
     onNext();
   };
 
@@ -88,16 +88,18 @@ export function Step02BasicData({
     if (age !== null) {
       onUpdate({ basic_data: { ...d, age } as ProfileBasicData });
     }
-    if (saveUser) {
-      await saveUser({
-        name:     (d.name ?? '').trim(),
-        email:    (email ?? '').trim(),
-        phone:    (phone ?? '').trim(),
-        dob:      dob,
-        location: (address ?? '').trim(),
-        gender:   bioSexToGender(d.biological_sex),
-      });
-    }
+    try {
+      if (saveUser) {
+        await saveUser({
+          name:     (d.name ?? '').trim(),
+          email:    (email ?? '').trim(),
+          phone:    (phone ?? '').trim(),
+          dob:      dob,
+          location: (address ?? '').trim(),
+          gender:   bioSexToGender(d.biological_sex),
+        });
+      }
+    } catch { /* non-blocking — proceed regardless */ }
     onSaveLater();
   };
 

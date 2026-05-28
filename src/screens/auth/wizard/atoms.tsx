@@ -451,10 +451,11 @@ interface WizardFooterProps {
   primary:      string;
 }
 
-export function WizardFooter({ onNext, onSaveLater, nextLabel = 'Continuar', nextDisabled, dark, primary }: WizardFooterProps) {
+export function WizardFooter({ onNext, onSaveLater, nextLabel = 'Continue', nextDisabled, dark, primary }: WizardFooterProps) {
   return (
     <div style={{ paddingTop: 20 }}>
       <button
+        type="button"
         onClick={onNext}
         disabled={nextDisabled}
         style={{ ...primaryBtn(primary), marginBottom: 10, opacity: nextDisabled ? 0.5 : 1 }}
@@ -462,6 +463,7 @@ export function WizardFooter({ onNext, onSaveLater, nextLabel = 'Continuar', nex
         {nextLabel} →
       </button>
       <button
+        type="button"
         onClick={onSaveLater}
         style={{
           width: '100%', padding: '12px 16px', borderRadius: 999,
@@ -474,7 +476,7 @@ export function WizardFooter({ onNext, onSaveLater, nextLabel = 'Continuar', nex
         }}
       >
         <Icon name="bookmark" size={14} color={textSec(dark)} stroke={2}/>
-        Salvar para depois
+        Save for later
       </button>
     </div>
   );
