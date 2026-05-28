@@ -178,7 +178,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
           }}
         >
           <Icon name="dumbbell" size={16} color={activeTab === 'exercises' ? '#0E1A2B' : textPri(dark)} />
-          Exercises Catalog
+          Catalog
         </button>
         <button
           onClick={() => setActiveTab('protocols')}
@@ -191,7 +191,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
           }}
         >
           <Icon name="history" size={16} color={activeTab === 'protocols' ? '#0E1A2B' : textPri(dark)} />
-          Workout Protocols
+          Protocols
         </button>
       </div>
 
