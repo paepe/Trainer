@@ -310,10 +310,10 @@ export function BarChart({ data, labels, color = C.cyan, height = 100, suffix = 
 }
 
 // ── BodyDiagram (§4.11) ───────────────────────────────────────────────────────
+// Inline SVG body outline — avoids 700KB PNG downloads on mobile
 
 interface BodyDiagramProps {
   region?: string | null;
-  gender?: string | null;
 }
 
 const REGION_MAP: Record<string, { label: string; cy: number }> = {
@@ -326,19 +326,6 @@ const REGION_MAP: Record<string, { label: string; cy: number }> = {
   tornozelo: { label: 'ANKLE',     cy: 149 },
 };
 
-const GENDER_IMG: Record<string, string> = {
-  female:            '/body-female.png',
-  male:              '/body-male.png',
-  'non-binary':      '/body-borderline.png',
-  prefer_not_to_say: '/body-borderline.png',
-};
-
-function resolveBodyImg(gender?: string | null): string {
-  return (gender && GENDER_IMG[gender]) ?? (GENDER_IMG['male'] as string);
-}
-
-// Pain region highlight positions expressed as % of the rendered image height
-// so the overlay scales with whatever container size is used.
 const REGION_PCT: Record<string, number> = {
   pescoco:   0.155,
   ombro:     0.205,
@@ -349,7 +336,31 @@ const REGION_PCT: Record<string, number> = {
   tornozelo: 0.900,
 };
 
-export function BodyDiagram({ region, gender }: BodyDiagramProps) {
+function SvgBody() {
+  const stroke = T.border;
+  const fill   = T.surf;
+  return (
+    <svg viewBox="0 0 100 200" style={{ width: '100%', height: '100%', display: 'block' }}>
+      {/* Head */}
+      <ellipse cx="50" cy="14" rx="11" ry="15" fill={fill} stroke={stroke} strokeWidth="1.2"/>
+      {/* Neck */}
+      <rect x="44" y="28" width="12" height="6" rx="3" fill={fill} stroke={stroke} strokeWidth="1"/>
+      {/* Torso */}
+      <path d="M35 34 L30 34 C24 34 22 40 22 48 L22 100 C22 106 26 110 32 110 L68 110 C74 110 78 106 78 100 L78 48 C78 40 76 34 70 34 L65 34 Z"
+        fill={fill} stroke={stroke} strokeWidth="1.2"/>
+      {/* Left arm */}
+      <path d="M35 36 C28 36 18 46 16 60 C14 78 14 90 16 100" fill="none" stroke={stroke} strokeWidth="2.5" strokeLinecap="round"/>
+      {/* Right arm */}
+      <path d="M65 36 C72 36 82 46 84 60 C86 78 86 90 84 100" fill="none" stroke={stroke} strokeWidth="2.5" strokeLinecap="round"/>
+      {/* Left leg */}
+      <path d="M35 108 L35 145 L32 180" fill="none" stroke={stroke} strokeWidth="2.8" strokeLinecap="round"/>
+      {/* Right leg */}
+      <path d="M65 108 L65 145 L68 180" fill="none" stroke={stroke} strokeWidth="2.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+export function BodyDiagram({ region }: BodyDiagramProps) {
   const IMG_H     = 200;
   const IMG_W     = 100;
   const pct       = region ? (REGION_PCT[region.toLowerCase()] ?? 0.435) : null;
@@ -361,11 +372,9 @@ export function BodyDiagram({ region, gender }: BodyDiagramProps) {
 
   return (
     <div style={{ position: 'relative', width: IMG_W, height: IMG_H + 16, flexShrink: 0 }}>
-      <img
-        src={resolveBodyImg(gender)}
-        alt="body diagram"
-        style={{ width: IMG_W, height: IMG_H, objectFit: 'contain', display: 'block' }}
-      />
+      <div style={{ width: IMG_W, height: IMG_H }}>
+        <SvgBody/>
+      </div>
 
       {/* Pain region highlight overlay */}
       {hasHighlight && (

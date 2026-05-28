@@ -13,7 +13,7 @@ import type { M5Data } from './performance/perf-types';
 // ── Prop types ────────────────────────────────────────────────────────────────
 
 interface Theme { primary: string; accent: string }
-interface AppUser { id: string | null; name?: string; gender?: string }
+interface AppUser { id: string | null; name?: string }
 
 interface Props {
   nav:  NavFn;
@@ -23,7 +23,7 @@ interface Props {
   selectedClient?: ClientProfile | null;
 }
 
-interface ClientProfile { id: string; name?: string; gender?: string }
+interface ClientProfile { id: string; name?: string }
 
 // ── Internal navigation tabs ──────────────────────────────────────────────────
 
@@ -78,7 +78,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
             case 'overview':    return <TelaOverview    data={data} nav={nav} setScreen={setActiveScreen} userName={targetName}/>;
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
-            case 'dor':         return <TelaDor         data={data} gender={user.gender}/>;
+            case 'dor':         return <TelaDor         data={data}/>;
             case 'scores':      return <TelaScores      data={data}/>;
             case 'voz':         return <TelaVoz data={data}/>;
             case 'marcos':      return <TelaMarcos      data={data}/>;
@@ -490,7 +490,7 @@ function TelaPerformance({ data }: { data: M5Data }) {
 
 // ── Screen 04 — Pain & Safety ─────────────────────────────────────────────────
 
-function TelaDor({ data, gender }: { data: M5Data; gender?: string | undefined }) {
+function TelaDor({ data }: { data: M5Data }) {
   const hasPain    = data.painEvents14d.length > 0;
   const isRecurrent = data.painRecurrenceCount >= 3;
 
@@ -504,7 +504,7 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | undefined }
         border: `1px solid ${isRecurrent ? C.coral + '55' : T.border}`,
         display: 'flex', alignItems: 'center', gap: 16,
       }}>
-        <BodyDiagram region={data.primaryPainRegion} gender={gender ?? null}/>
+        <BodyDiagram region={data.primaryPainRegion}/>
         <div>
           {hasPain ? (
             <>
