@@ -73,33 +73,41 @@ export function useProfileData(userId: string | undefined) {
     step: string = 'completed'
   ): Promise<MutateResult> {
     if (!userId) return { error: null };
-    const { error } = await supabase
-      .from('profile_v2')
-      .upsert(
-        {
-          user_id:             userId,
-          current_step:        step,
-          completed_at:        step === 'completed' ? new Date().toISOString() : null,
-          basic_data:          toJson(data.basic_data),
-          objectives:          toJson(data.objectives),
-          movement_history:    toJson(data.movement_history),
-          functional_capacity: toJson(data.functional_capacity),
-          environment:         toJson(data.environment),
-          availability:        toJson(data.availability),
-          preferences:         toJson(data.preferences),
-          habits:              toJson(data.habits),
-          comorbidities:       toJson(data.comorbidities),
-          declared_health:     toJson(data.declared_health),
-          sensitive_factors:   toJson(data.sensitive_factors),
-          body_rhythm:         toJson(data.body_rhythm),
-          consent:             toJson(data.consent),
-          risk:                toJson(data.risk),
-          updated_at:          new Date().toISOString(),
-        },
-        { onConflict: 'user_id' }
-      );
-    if (error) console.error('[useProfileData] saveProfileV2:', error);
-    return { error };
+    try {
+      const { error } = await supabase
+        .from('profile_v2')
+        .upsert(
+          {
+            user_id:             userId,
+            current_step:        step,
+            completed_at:        step === 'completed' ? new Date().toISOString() : null,
+            basic_data:          toJson(data.basic_data),
+            objectives:          toJson(data.objectives),
+            movement_history:    toJson(data.movement_history),
+            functional_capacity: toJson(data.functional_capacity),
+            environment:         toJson(data.environment),
+            availability:        toJson(data.availability),
+            preferences:         toJson(data.preferences),
+            habits:              toJson(data.habits),
+            comorbidities:       toJson(data.comorbidities),
+            declared_health:     toJson(data.declared_health),
+            sensitive_factors:   toJson(data.sensitive_factors),
+            body_rhythm:         toJson(data.body_rhythm),
+            consent:             toJson(data.consent),
+            risk:                toJson(data.risk),
+            updated_at:          new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        );
+      if (error) {
+        console.error('[useProfileData] saveProfileV2:', error);
+        return { error: error.message || error };
+      }
+      return { error: null };
+    } catch (err) {
+      console.error('[useProfileData] saveProfileV2 exception:', err);
+      return { error: err instanceof Error ? err.message : String(err) };
+    }
   }
 
   async function fetchProfileV2(): Promise<DataResult<Partial<UserProfileV2> & { current_step?: string; completed_at?: string | null }>> {

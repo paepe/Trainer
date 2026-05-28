@@ -175,7 +175,8 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     if (saveProfileV2) {
       const { error } = await saveProfileV2(snapshot, currentStep);
       if (error) {
-        setSaveError('Error saving. Check your connection.');
+        const msg = typeof error === 'string' ? error : (error as { message?: string })?.message;
+        setSaveError(msg ?? 'Error saving. Check your connection.');
         setSaving(false);
         return;
       }
@@ -195,10 +196,11 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
 
   const handleGenerate = async (risk: RiskClassification) => {
     setGenerating(true);
+    setSaveError(null);
     const finalData = { ...dataRef.current, risk };
     update({ risk });
 
-    const saveP = saveProfileV2 ? saveProfileV2(finalData, 'completed') : Promise.resolve();
+    const saveP = saveProfileV2 ? saveProfileV2(finalData, 'completed') : Promise.resolve({ error: null });
 
     const ctrl = new AbortController();
     const timeout = setTimeout(() => ctrl.abort(), 25_000);
@@ -210,7 +212,15 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     }).catch(() => null)
       .finally(() => clearTimeout(timeout));
 
-    await Promise.all([saveP, aiP]).finally(() => clearTimeout(timeout));
+    const [saveResult] = await Promise.all([saveP, aiP]).finally(() => clearTimeout(timeout));
+
+    if (saveResult?.error) {
+      const msg = typeof saveResult.error === 'string' ? saveResult.error : (saveResult.error as { message?: string })?.message;
+      setSaveError(msg ?? 'Error saving. Check your connection.');
+      setGenerating(false);
+      return;
+    }
+
     setGenerating(false);
     setMode('view');
   };
