@@ -143,7 +143,7 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient }: HistoryScr
                   : ''}
               </div>
             </div>
-            <button onClick={() => nav('goal', {
+            <button onClick={() => nav('stats', {
               durationMinutes: s.total_duration_min,
               startedAt:       s.started_at,
               planId:          s.plan_id,
@@ -152,7 +152,7 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient }: HistoryScr
               padding: '7px 14px', borderRadius: 999, border: 'none',
               background: t.primary, color: '#0E1A2B', fontSize: 12, fontWeight: 700,
               fontFamily: 'inherit', cursor: 'pointer',
-            }}>View</button>
+            }}>View Progress</button>
           </div>
         ))}
       </div>
