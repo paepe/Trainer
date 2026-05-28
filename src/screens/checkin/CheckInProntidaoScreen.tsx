@@ -137,8 +137,9 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
         <CheckInResult
           dark={dark} primary={primary} accent={accent}
           result={result}
-          onDone={() => nav(clientUserId ? 'trainerClientDetail' : 'profile')}
-          onAlert={() => nav(clientUserId ? 'trainerClientDetail' : 'profile')}
+          isTrainer={!!clientUserId}
+          onDone={() => nav(clientUserId ? 'workoutPlanEditor' : 'profile')}
+          onAlert={() => nav('profile')}
         />
       ) : null;
 

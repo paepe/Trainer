@@ -9,6 +9,7 @@ interface CheckInResultProps {
   result:     SafetyGateResult;
   onDone:     () => void;
   onAlert:    () => void;
+  isTrainer?: boolean;
 }
 
 // ── Readiness gauge (SVG arc) ─────────────────────────────────────────────────
@@ -73,7 +74,7 @@ function StatCell({ label, value, color }: { label: string; value: string; color
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export function CheckInResult({ dark, primary, accent, result, onDone, onAlert }: CheckInResultProps) {
+export function CheckInResult({ dark, primary, accent, result, onDone, onAlert, isTrainer }: CheckInResultProps) {
   const meta      = STATUS_META[result.status];
   const isBlocked = result.ai_led_blocked;
 
@@ -165,19 +166,21 @@ export function CheckInResult({ dark, primary, accent, result, onDone, onAlert }
           fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
         }}
       >
-        {isBlocked ? 'View caution options' : 'Start workout →'}
+        {isBlocked ? 'View caution options' : isTrainer ? 'Build plan →' : 'Start workout →'}
       </button>
-      <button
-        onClick={onAlert}
-        style={{
-          width: '100%', padding: '14px', borderRadius: 999,
-          background: 'transparent', border: `1.5px solid ${borderSubtle(dark)}`,
-          color: textSec(dark), fontSize: 14, fontWeight: 600,
-          fontFamily: 'inherit', cursor: 'pointer',
-        }}
-      >
-        Notify trainer
-      </button>
+      {!isTrainer && (
+        <button
+          onClick={onAlert}
+          style={{
+            width: '100%', padding: '14px', borderRadius: 999,
+            background: 'transparent', border: `1.5px solid ${borderSubtle(dark)}`,
+            color: textSec(dark), fontSize: 14, fontWeight: 600,
+            fontFamily: 'inherit', cursor: 'pointer',
+          }}
+        >
+          Notify trainer
+        </button>
+      )}
     </div>
   );
 }
