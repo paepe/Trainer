@@ -12,6 +12,7 @@ interface SideMenuProps {
   user:     SideMenuUser;
   current:  string;
   setUser:  (data: Partial<Profile>) => void;
+  role?:    string | undefined;
 }
 
 const MENU_ITEMS: [string, string, string][] = [
@@ -27,9 +28,15 @@ const MENU_ITEMS: [string, string, string][] = [
   ['Settings',        'settings',        'settings'],
 ];
 
-export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser }) => (
-  <div style={{
-    position: 'absolute', inset: 0, pointerEvents: open ? 'auto' : 'none',
+export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
+  const isTrainerRole = role === 'trainer' || role === 'studio_trainer' || role === 'internal_trainer' || role === 'technical_coordinator' || role === 'studio_admin' || role === 'studio_manager';
+  const items = isTrainerRole
+    ? MENU_ITEMS.filter(([, screen]) => screen !== 'profile')
+    : MENU_ITEMS;
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, pointerEvents: open ? 'auto' : 'none',
     zIndex: 10,
   }}>
     <div onClick={() => nav(current)} style={{
@@ -65,7 +72,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
       <div style={{ height: 1, background: 'rgba(14,26,43,.18)', margin: '0 22px 10px' }}/>
 
       <div style={{ flex: 1, padding: '0 8px', overflow: 'auto' }}>
-        {MENU_ITEMS.map(([lbl, screen, ic]) => (
+        {items.map(([lbl, screen, ic]) => (
           <button key={lbl} onClick={() => nav(screen)} style={{
             display: 'flex', alignItems: 'center', gap: 14, width: '100%',
             padding: '12px 18px', border: 'none',
@@ -93,4 +100,5 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
       </button>
     </div>
   </div>
-);
+  );
+};

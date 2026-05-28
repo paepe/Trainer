@@ -221,12 +221,15 @@ export default function App() {
     selectClient,
   };
 
-  const showTabs = [
-    'profile','workout','workoutMode','goal','stats','history',
-    'settings','targets','checkin','cycle','studio',
-    'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
-    'postWorkoutSummary',
-  ].includes(screen);
+  const showTabs = (isTrainer
+    ? ['workout','workoutMode','goal','stats','history',
+       'settings','targets','checkin','cycle','studio',
+       'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
+       'postWorkoutSummary']
+    : ['profile','workout','workoutMode','goal','stats','history',
+       'settings','targets','checkin','cycle','studio',
+       'postWorkoutSummary']
+  ).includes(screen);
 
   const tabs: [string, string, string][] = isTrainer
     ? [
@@ -323,7 +326,7 @@ export default function App() {
       <SideMenu
         open={menuOpen}
         nav={(s) => { setMenuOpen(false); if (s && s !== 'menu') setScreen(s); }}
-        t={t} user={user} current={screen} setUser={handleSetUser}
+        t={t} user={user} current={screen} setUser={handleSetUser} role={profile?.role}
       />
     </div>
   );
