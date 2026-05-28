@@ -31,7 +31,7 @@ const MENU_ITEMS: [string, string, string][] = [
 export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
   const isTrainerRole = role === 'trainer' || role === 'studio_trainer' || role === 'internal_trainer' || role === 'technical_coordinator' || role === 'studio_admin' || role === 'studio_manager';
   const items = isTrainerRole
-    ? MENU_ITEMS.filter(([, screen]) => screen !== 'profile')
+    ? MENU_ITEMS.filter(([, screen]) => screen !== 'profile' && screen !== 'workout')
     : MENU_ITEMS;
 
   return (
