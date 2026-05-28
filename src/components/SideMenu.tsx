@@ -21,17 +21,19 @@ const MENU_ITEMS: [string, string, string][] = [
   ['Workout',         'workout',         'play'],
   ['Targets',         'goal',            'target'],
   ['History',         'history',         'history'],
-  ['Statistics',      'stats',           'chart'],
+  ['Progress',        'stats',           'chart'],
   ['Cycle',           'cycle',           'moon'],
   ['Trainer Studio',  'studio',          'flask'],
   ['Exercise Library', 'trainerLibraryExercises', 'dumbbell'],
   ['Settings',        'settings',        'settings'],
 ];
 
+const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'goal', 'cycle', 'studio']);
+
 export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
   const isTrainerRole = role === 'trainer' || role === 'studio_trainer' || role === 'internal_trainer' || role === 'technical_coordinator' || role === 'studio_admin' || role === 'studio_manager';
   const items = isTrainerRole
-    ? MENU_ITEMS.filter(([, screen]) => screen !== 'profile' && screen !== 'workout')
+    ? MENU_ITEMS.filter(([, screen]) => !TRAINER_EXCLUDE.has(screen)).sort(([a], [b]) => a.localeCompare(b))
     : MENU_ITEMS;
 
   return (
