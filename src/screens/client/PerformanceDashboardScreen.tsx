@@ -20,7 +20,10 @@ interface Props {
   t:    Theme;
   dark: boolean;
   user: AppUser;
+  selectedClient?: ClientProfile | null;
 }
+
+interface ClientProfile { id: string; name?: string; gender?: string }
 
 // ── Internal navigation tabs ──────────────────────────────────────────────────
 
@@ -38,9 +41,11 @@ const NAV_TABS: { id: ScreenId; label: string }[] = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function PerformanceDashboardScreen({ nav, t, dark, user }: Props) {
+export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient }: Props) {
+  const targetUserId = selectedClient?.id ?? user.id;
+  const targetName  = selectedClient?.name ?? user.name;
   const [activeScreen, setActiveScreen] = React.useState<ScreenId>('overview');
-  const { data, loading } = useM5Data(user.id);
+  const { data, loading } = useM5Data(targetUserId);
 
   const tabBarRef = React.useRef<HTMLDivElement>(null);
 
@@ -70,7 +75,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user }: Props) {
         </div>}
         {(() => {
           switch (activeScreen) {
-            case 'overview':    return <TelaOverview    data={data} nav={nav} setScreen={setActiveScreen} userName={user.name}/>;
+            case 'overview':    return <TelaOverview    data={data} nav={nav} setScreen={setActiveScreen} userName={targetName}/>;
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
             case 'dor':         return <TelaDor         data={data} gender={user.gender}/>;
@@ -85,6 +90,22 @@ export function PerformanceDashboardScreen({ nav, t, dark, user }: Props) {
 
   return (
     <>
+
+      {/* Client badge (trainer viewing client) */}
+      {selectedClient?.name && (
+        <div style={{
+          margin: '8px 18px 0', padding: '6px 14px', borderRadius: 999,
+          background: '#10B98122', border: '1px solid #10B98155',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>
+            Viewing
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>
+            {selectedClient.name.split(' ')[0]}
+          </span>
+        </div>
+      )}
 
       {/* Internal tab bar */}
       <div

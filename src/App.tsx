@@ -280,7 +280,7 @@ export default function App() {
           savePostWorkoutFeedback={savePostWorkoutFeedback}
         />;
       case 'goal':               return <GoalAchievedScreen      {...common} sessionData={screenPayload}/>;
-      case 'stats':              return <PerformanceDashboardScreen nav={nav} t={t} dark={dark} user={user}/>;
+      case 'stats':              return <PerformanceDashboardScreen nav={nav} t={t} dark={dark} user={user} selectedClient={selectedClient}/>;
       case 'history':            return <HistoryScreen           {...common}/>;
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;

@@ -5,6 +5,7 @@ import type { CheckInVoice as CheckInVoiceData } from '../../types/checkin-v2';
 interface CheckInVoiceProps {
   dark:     boolean;
   primary:  string;
+  userName?: string | undefined;
   onSubmit: (data: CheckInVoiceData) => void;
   onBack:   () => void;
 }
@@ -32,7 +33,7 @@ function getSpeechRecognition(): RecognitionCtor | null {
 
 type ParseState = 'idle' | 'parsing' | 'done' | 'error';
 
-export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoiceProps) {
+export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: CheckInVoiceProps) {
   const [transcript, setTranscript] = React.useState('');
   const [interim, setInterim]       = React.useState('');
   const [listening, setListening]   = React.useState(false);
@@ -119,6 +120,13 @@ export function CheckInVoice({ dark, primary, onSubmit, onBack }: CheckInVoicePr
 
   return (
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+
+      {userName && (
+        <div style={{ marginBottom: 12, padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>For</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
+        </div>
+      )}
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 16 }}>
         SCREEN 02 · VOICE INPUT

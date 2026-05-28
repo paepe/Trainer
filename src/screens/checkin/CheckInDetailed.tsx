@@ -10,6 +10,7 @@ interface CheckInDetailedProps {
   dark:     boolean;
   primary:  string;
   accent:   string;
+  userName?: string | undefined;
   onSubmit: (data: CheckInDetailedData) => void;
   onBack:   () => void;
 }
@@ -162,7 +163,7 @@ function ChipBtn({ label, selected, onClick, dark, primary }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: CheckInDetailedProps) {
+export function CheckInDetailed({ dark, primary, accent, userName, onSubmit, onBack }: CheckInDetailedProps) {
   const [energy, setEnergy]                     = React.useState(5);
   const [sleep, setSleep]                       = React.useState<SleepQualityV2>('regular');
   const [sleepHours, setSleepHours]             = React.useState(7);
@@ -237,6 +238,13 @@ export function CheckInDetailed({ dark, primary, accent, onSubmit, onBack }: Che
 
   return (
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+
+      {userName && (
+        <div style={{ marginBottom: 12, padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>For</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
+        </div>
+      )}
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
         DETAILED CHECK-IN · 12 BLOCKS

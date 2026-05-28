@@ -100,6 +100,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
       return (
         <VoiceScreen
           dark={dark} primary={primary}
+          userName={clientName}
           onSubmit={handleVoiceSubmit}
           onBack={goHub}
         />
@@ -109,6 +110,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
       return (
         <QuickScreen
           dark={dark} primary={primary} accent={accent}
+          userName={clientName}
           onSubmit={handleQuickSubmit}
           onBack={goHub}
         />
@@ -118,6 +120,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
       return (
         <DetailedScreen
           dark={dark} primary={primary} accent={accent}
+          userName={clientName}
           onSubmit={handleDetailedSubmit}
           onBack={goHub}
         />

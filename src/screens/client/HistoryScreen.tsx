@@ -15,10 +15,11 @@ interface AppUser {
 }
 
 interface HistoryScreenProps {
-  nav:  NavFn;
-  t:    Theme;
-  dark: boolean;
-  user: AppUser;
+  nav:            NavFn;
+  t:              Theme;
+  dark:           boolean;
+  user:           AppUser;
+  selectedClient?: { id: string; name?: string } | null;
 }
 
 interface Session {
@@ -29,7 +30,9 @@ interface Session {
   plan_id:            string | null;
 }
 
-export function HistoryScreen({ nav, t, dark, user }: HistoryScreenProps) {
+export function HistoryScreen({ nav, t, dark, user, selectedClient }: HistoryScreenProps) {
+  const targetUserId = selectedClient?.id ?? user.id;
+  const targetName  = selectedClient?.name;
   const days      = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const todayDow  = new Date().getDay();
@@ -38,18 +41,18 @@ export function HistoryScreen({ nav, t, dark, user }: HistoryScreenProps) {
   const [loading,  setLoading]        = React.useState(true);
 
   React.useEffect(() => {
-    if (!user?.id) { setLoading(false); return; }
+    if (!targetUserId) { setLoading(false); return; }
     supabase
       .from('workout_sessions')
       .select('id, started_at, completed_at, total_duration_min, plan_id')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .order('started_at', { ascending: false })
       .limit(50)
       .then(({ data }) => {
         setSessions((data as Session[]) || []);
         setLoading(false);
       });
-  }, [user?.id]);
+  }, [targetUserId]);
 
   const filtered = sessions.filter(s => {
     if (!s.started_at) return false;
@@ -69,6 +72,22 @@ export function HistoryScreen({ nav, t, dark, user }: HistoryScreenProps) {
   return (
     <>
       <ScreenTitle dark={dark}>Workout History</ScreenTitle>
+
+      {/* Client badge */}
+      {targetName && (
+        <div style={{
+          margin: '0 22px 8px', padding: '6px 14px', borderRadius: 999,
+          background: '#10B98122', border: '1px solid #10B98155',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>
+            Viewing
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>
+            {targetName.split(' ')[0]}
+          </span>
+        </div>
+      )}
 
       {/* Day-of-week filter */}
       <div style={{
