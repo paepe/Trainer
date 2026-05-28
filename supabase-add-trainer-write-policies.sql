@@ -69,3 +69,17 @@ CREATE POLICY "trainer manages client feedback" ON post_workout_feedback
         AND tc.status = 'active'
     )
   );
+
+-- 6) checkin_prontidao — trainer can INSERT for their clients
+--    (required for trainer doing readiness check-in for client in person)
+DROP POLICY IF EXISTS checkin_prontidao_trainer_insert ON checkin_prontidao;
+
+CREATE POLICY checkin_prontidao_trainer_insert ON checkin_prontidao
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM trainer_clients tc
+      WHERE tc.client_id = checkin_prontidao.user_id
+        AND tc.trainer_id = auth.uid()
+        AND tc.status = 'active'
+    )
+  );

@@ -20,6 +20,7 @@ type SaveCheckinV2Fn = (data: {
   voice_data?:        CheckInVoice;
   post_workout_data?: CheckInPostWorkout;
   safety_gate?:       SafetyGateResult;
+  clientUserId?:      string;
 }) => Promise<{ error: unknown }>;
 
 interface CheckInProntidaoScreenProps {
@@ -27,18 +28,20 @@ interface CheckInProntidaoScreenProps {
   t:                    Theme;
   dark:                 boolean;
   userName?:            string | undefined;
+  clientUserId?:        string;
+  clientName?:          string;
   saveCheckinV2?:       SaveCheckinV2Fn;
   updatePainRecurrence?: (region: string) => Promise<{ error: unknown }>;
 }
 
-export function CheckInProntidaoScreen({ nav, t, dark, userName, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
+export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, clientName, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
 
   const goHub = () => { setStage('hub'); setResult(null); };
 
   const persist = (payload: Parameters<SaveCheckinV2Fn>[0]) => {
-    if (saveCheckinV2) saveCheckinV2(payload).catch(console.error);
+    if (saveCheckinV2) saveCheckinV2(clientUserId ? { ...payload, clientUserId } : payload).catch(console.error);
   };
 
   const handleQuickSubmit = (data: CheckInQuick) => {
@@ -85,7 +88,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, saveCheckinV2, 
       return (
         <CheckInHub
           dark={dark} primary={primary} accent={accent}
-          userName={userName}
+          userName={clientName ?? userName}
           onSelect={v => setStage(v)}
           onBack={() => nav('profile')}
           streak={32}

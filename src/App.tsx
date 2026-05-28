@@ -252,7 +252,7 @@ export default function App() {
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
       case 'profile':          return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
-      case 'checkin':          return <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} userName={profile?.name ?? undefined} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>;
+      case 'checkin':          return <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} userName={profile?.name ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? undefined} clientName={(screenPayload?.clientName as string) ?? undefined} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>;
       case 'workout':            return <StartWorkoutScreen      {...common}/>;
       case 'workoutMode':        return <WorkoutModeScreen
           nav={nav} t={t} dark={dark} user={user}

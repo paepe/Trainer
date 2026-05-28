@@ -16,14 +16,16 @@ export function useCheckinData(userId: string | undefined) {
     voice_data?:        CheckInVoice;
     post_workout_data?: CheckInPostWorkout;
     safety_gate?:       SafetyGateResult;
+    clientUserId?:      string;
   }): Promise<MutateResult> {
-    if (!userId) return { error: null };
+    const effectiveUserId = data.clientUserId ?? userId;
+    if (!effectiveUserId) return { error: null };
     const qd = data.quick_data;
     const dd = data.detailed_data;
     const { error } = await supabase
       .from('checkin_prontidao')
       .insert({
-        user_id:           userId,
+        user_id:           effectiveUserId,
         variant:           data.variant,
         occurred_at:       new Date().toISOString(),
         input_source:      data.variant === 'voice' ? 'voice' : 'form',
@@ -43,7 +45,7 @@ export function useCheckinData(userId: string | undefined) {
         ai_led_blocked:    data.safety_gate?.ai_led_blocked  ?? false,
       });
     if (error) { console.error('[useCheckinData] saveCheckinV2:', error); return { error }; }
-    void emitEvent(userId, 'checkin_submitted', 'checkin_prontidao', undefined, { variant: data.variant });
+    void emitEvent(effectiveUserId, 'checkin_submitted', 'checkin_prontidao', undefined, { variant: data.variant });
     return { error };
   }
 

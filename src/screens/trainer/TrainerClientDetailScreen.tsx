@@ -492,13 +492,24 @@ export function TrainerClientDetailScreen({
         backdropFilter: 'blur(12px)',
         borderTop: `1px solid ${borderSubtle(dark)}`,
       }}>
-        <button onClick={() => nav('workoutPlanEditor')} style={{
+        {/* Check-in CTA */}
+      {selectedClient && (
+        <button onClick={() => nav('checkin', { clientUserId: selectedClient.id, clientName: selectedClient.name })} style={{
+          width: '100%', padding: '12px 0', borderRadius: 14, marginBottom: 8,
+          background: 'transparent', border: `1.5px solid ${t.primary}55`, color: t.primary,
+          fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          <Icon name="sparkle" size={14} color={t.primary}/> Readiness Check-in for {selectedClient.name?.split(' ')[0] || 'client'}
+        </button>
+      )}
+      <button onClick={() => nav('workoutPlanEditor')} style={{
           width: '100%', padding: '14px 0', borderRadius: 14,
           background: t.primary, color: '#0E1A2B',
           border: 'none', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
         }}>
-          + Create Plan for {selectedClient.name?.split(' ')[0] || 'Client'}
-        </button>
+        + Create Plan for {selectedClient.name?.split(' ')[0] || 'Client'}
+      </button>
       </div>
     </>
   );
