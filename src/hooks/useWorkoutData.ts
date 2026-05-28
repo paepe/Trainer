@@ -11,13 +11,15 @@ export function useWorkoutData(userId: string | undefined) {
   async function startWorkoutSession(input: {
     planId:    string | null;
     exercises: GeneratedWorkoutExercise[];
+    forUserId?: string;   // trainer acting on behalf of client
   }): Promise<DataResult<{ sessionId: string; sessionExercises: WorkoutSessionExercise[] }>> {
-    if (!userId) return { data: null, error: 'no user' };
+    const effectiveUserId = input.forUserId ?? userId;
+    if (!effectiveUserId) return { data: null, error: 'no user' };
 
     const { data: session, error: sessionError } = await supabase
       .from('workout_sessions')
       .insert({
-        user_id:    userId,
+        user_id:    effectiveUserId,
         plan_id:    input.planId,
         status:     'active',
         started_at: new Date().toISOString(),
@@ -54,7 +56,7 @@ export function useWorkoutData(userId: string | undefined) {
       return { data: null, error: exError };
     }
 
-    void emitEvent(userId, 'workout_started', 'workout_session', sessionId);
+    void emitEvent(effectiveUserId, 'workout_started', 'workout_session', sessionId);
     return { data: { sessionId, sessionExercises: (inserted ?? []) as WorkoutSessionExercise[] }, error: null };
   }
 

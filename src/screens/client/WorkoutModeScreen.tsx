@@ -35,7 +35,9 @@ interface WorkoutModeScreenProps {
   user:                        AppUser;
   planId:                      string | null;
   exercises:                   GeneratedWorkoutExercise[] | null;
-  startWorkoutSession:         (input: { planId: string | null; exercises: GeneratedWorkoutExercise[] }) => Promise<{ data: { sessionId: string; sessionExercises: WorkoutSessionExercise[] } | null; error: unknown }>;
+  clientUserId?:               string;   // trainer acting on behalf of client
+  clientName?:                 string;   // for the workout header
+  startWorkoutSession:         (input: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string }) => Promise<{ data: { sessionId: string; sessionExercises: WorkoutSessionExercise[] } | null; error: unknown }>;
   logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null }) => Promise<{ error: unknown }>;
   updateSessionExerciseStatus: (sessionExerciseId: string, status: SessionExerciseStatus, skippedReason?: string) => Promise<{ error: unknown }>;
   reportWorkoutPain:           (data: { session_id: string; session_exercise_id: string | null; body_region: string; intensity: number }) => Promise<{ error: unknown }>;
@@ -47,7 +49,7 @@ const PAIN_REGIONS = ['Neck', 'Shoulder', 'Elbow', 'Wrist', 'Upper back', 'Lower
 const SKIP_OPTIONS = ['Pain / Injury', 'Lack of Equipment', 'Fatigue / Energy', 'Time Constraint', 'Other'];
 
 export function WorkoutModeScreen({
-  nav, t, dark, user, planId, exercises,
+  nav, t, dark, user, planId, exercises, clientUserId, clientName,
   startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
   reportWorkoutPain, completeWorkoutSession, updatePainRecurrence,
 }: WorkoutModeScreenProps) {
@@ -80,7 +82,9 @@ export function WorkoutModeScreen({
   React.useEffect(() => {
     if (!exercises?.length) { setPhase('active'); return; }
 
-    startWorkoutSession({ planId, exercises }).then(({ data, error }) => {
+    const sessionInput: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string } = { planId, exercises };
+    if (clientUserId) sessionInput.forUserId = clientUserId;
+    startWorkoutSession(sessionInput).then(({ data, error }) => {
       if (error || !data) {
         setInitErr('Session saved locally — online sync failed.');
         const fallback: ExState[] = exercises.map((ex, i) => makeExState(`offline-${i}`, ex, i));
@@ -242,6 +246,22 @@ export function WorkoutModeScreen({
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+
+      {/* Trainer client badge */}
+      {clientName && (
+        <div style={{
+          margin: '8px 22px 0', padding: '6px 14px', borderRadius: 999,
+          background: '#10B98122', border: '1px solid #10B98155',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>
+            Training
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>
+            {clientName}
+          </span>
+        </div>
+      )}
 
       {/* Timer hero */}
       <div style={{ padding: '4px 22px 14px', textAlign: 'center' }}>

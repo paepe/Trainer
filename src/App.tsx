@@ -258,6 +258,8 @@ export default function App() {
           nav={nav} t={t} dark={dark} user={user}
           planId={(screenPayload?.planId as string | null) ?? null}
           exercises={(screenPayload?.exercises as Exercise[] | null) ?? null}
+          clientUserId={(screenPayload?.clientUserId as string) ?? undefined}
+          clientName={(screenPayload?.clientName as string) ?? undefined}
           startWorkoutSession={startWorkoutSession}
           logWorkoutSet={logWorkoutSet}
           updateSessionExerciseStatus={updateSessionExerciseStatus}

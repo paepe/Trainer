@@ -3,6 +3,7 @@ import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { PillInput } from '../../components/PillInput';
 import { requestWorkoutPlan } from '../../lib/workoutGeneration';
+import type { GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import {
   surfRaised,
   borderSubtle,
@@ -249,6 +250,25 @@ export function WorkoutPlanEditorScreen({
     }, 1200);
   }
 
+  const startSessionNow = () => {
+    if (!selectedClient?.id || exercises.length === 0) return;
+    const converted: GeneratedWorkoutExercise[] = exercises.map(ex => ({
+      exercise_name: ex.exercise_name,
+      muscle_group:  ex.muscle_group,
+      sets:          ex.sets,
+      reps:          ex.reps,
+      load_kg:       ex.load_kg !== '' ? Number(ex.load_kg) : null,
+      rest_seconds:  ex.rest_seconds,
+      notes:         ex.notes || null,
+    }));
+    nav('workoutMode', {
+      planId:       null,
+      exercises:    converted,
+      clientUserId: selectedClient.id,
+      clientName:   selectedClient.name ?? 'Client',
+    });
+  };
+
   if (!selectedClient) {
     return (
       <div style={{ padding: '60px 32px', textAlign: 'center', color: textSec(dark), fontSize: 13 }}>
@@ -488,7 +508,7 @@ export function WorkoutPlanEditorScreen({
       )}
 
       {/* Actions */}
-      <div style={{ padding: '14px 22px 32px', display: 'flex', gap: 10 }}>
+      <div style={{ padding: '14px 22px 0', display: 'flex', gap: 10 }}>
         <button onClick={askAI} disabled={aiLoading} style={{
           flex: 1, padding: '13px 0', borderRadius: 14,
           border: `1.5px solid ${aiLoading ? borderSubtle(dark) : t.primary}`,
@@ -519,6 +539,23 @@ export function WorkoutPlanEditorScreen({
           border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
           opacity: saving ? 0.7 : 1,
         }}>{saving ? 'Sending…' : 'Send to client →'}</button>
+      </div>
+
+      {/* In-Person Trainer CTA */}
+      <div style={{ padding: '12px 22px 32px' }}>
+        <button onClick={startSessionNow} disabled={saving || exercises.length === 0} style={{
+          width: '100%', padding: '15px 0', borderRadius: 999,
+          background: exercises.length === 0 ? (dark ? '#1F2E45' : '#D0D8E4') : '#10B981',
+          color: '#fff', border: 'none',
+          fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          opacity: saving ? 0.7 : 1,
+        }}>
+          <Icon name="play" size={16} color="#fff"/> Start Live Session
+        </button>
+        <div style={{ marginTop: 8, textAlign: 'center', fontSize: 11, color: textSec(dark) }}>
+          Train {selectedClient?.name?.split(' ')[0] || 'client'} now — opens workout mode directly
+        </div>
       </div>
     </>
   );
