@@ -32,6 +32,7 @@ interface WorkoutSession {
   completed_at?:      string | null;
   duration_minutes?:  number | null;
   performance_score?: number | null;
+  status?:            string | null;
 }
 
 interface WorkoutPlan {
@@ -103,7 +104,7 @@ export function TrainerClientDetailScreen({
     if (!selectedClient?.id) return;
     setLoading(true);
     Promise.all([
-      supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(5),
+      supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score,status').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(5),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id)').eq('assigned_to', selectedClient.id).order('created_at', { ascending: false }).limit(5),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', selectedClient.id).maybeSingle(),
       supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', selectedClient.id).order('occurred_at', { ascending: false }).limit(7),
@@ -474,8 +475,19 @@ export function TrainerClientDetailScreen({
                       </div>
                     )}
                   </div>
-                  {s.completed_at && (
+                  {(s.status === 'completed' || s.completed_at) ? (
                     <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>Done ✓</span>
+                  ) : s.status === 'active' ? (
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color: t.primary,
+                      background: `${t.primary}18`, borderRadius: 999, padding: '2px 8px',
+                    }}>Active</span>
+                  ) : s.status === 'paused' ? (
+                    <span style={{ fontSize: 11, color: '#F5A623', fontWeight: 600 }}>Paused</span>
+                  ) : s.status === 'abandoned' ? (
+                    <span style={{ fontSize: 11, color: t.accent, fontWeight: 600 }}>Abandoned</span>
+                  ) : (
+                    <span style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>—</span>
                   )}
                 </div>
               ))}

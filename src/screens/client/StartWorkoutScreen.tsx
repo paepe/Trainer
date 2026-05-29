@@ -43,6 +43,7 @@ interface StartWorkoutScreenProps {
 export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }: StartWorkoutScreenProps) {
   const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);
   const [planId,     setPlanId]     = React.useState<string | null>(null);
+  const [planSource, setPlanSource] = React.useState<string | null>(null);
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [loading,    setLoading]    = React.useState<boolean>(false);
@@ -125,6 +126,43 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
     try {
       let physicalProfile: Json | null = null;
       let resolvedCheckin = checkin;
+      if (user?.id) {
+        // First check for a trainer-sent plan
+        const { data: sentPlan } = await supabase
+          .from('workout_plans')
+          .select('id, plan_exercises(id, exercise_name, muscle_group, sets, reps, load_kg, rest_seconds, notes, order_index)')
+          .eq('assigned_to', user.id)
+          .eq('source', 'manual')
+          .eq('status', 'sent')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (sentPlan?.plan_exercises?.length) {
+          // Use the trainer's plan — mark it as active
+          const planExercises = sentPlan.plan_exercises as Array<{
+            id: string; exercise_name: string; muscle_group?: string;
+            sets?: number; reps?: number; load_kg?: number;
+            rest_seconds?: number; notes?: string; order_index?: number;
+          }>;
+          const sorted = [...planExercises].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+          const exercises = sorted.map(ex => ({
+            exercise_name: ex.exercise_name,
+            muscle_group:  ex.muscle_group ?? '',
+            sets:          ex.sets as number | null ?? null,
+            reps:          ex.reps as number | null ?? null,
+            load_kg:       ex.load_kg as number | null ?? null,
+            rest_seconds:  ex.rest_seconds as number | null ?? null,
+            notes:         ex.notes ?? null,
+          }));
+          setPlan(exercises);
+          setPlanId(sentPlan.id);
+          setPlanSource('trainer');
+          void supabase.from('workout_plans').update({ status: 'active' }).eq('id', sentPlan.id);
+          setLoading(false);
+          return;
+        }
+      }
       if (user?.id) {
         const [profileRes, checkinRes] = await Promise.allSettled([
           supabase
@@ -230,7 +268,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
               background: t.accent, color: '#fff', fontSize: 9.5, fontWeight: 700, letterSpacing: '.05em',
               marginBottom: 6,
             }}>YOUR TRAINER</div>
-            <div style={{ fontSize: 19, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>AI-Powered Plan</div>
+            <div style={{ fontSize: 19, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>{planSource === 'trainer' ? 'Trainer\'s Plan' : 'AI-Powered Plan'}</div>
             <div style={{ fontSize: 12, opacity: .82, marginTop: 2 }}>
               {activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || 'gym'}
             </div>
@@ -240,7 +278,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
 
       {/* Today's AI plan */}
       <div style={{ padding: '4px 22px 0' }}>
-        <SectionLabel dark={dark}>Today&rsquo;s AI plan</SectionLabel>
+        <SectionLabel dark={dark}>{planSource === 'trainer' ? 'From your trainer' : 'Today\'s AI plan'}</SectionLabel>
 
         {loading && (
           <div style={{
