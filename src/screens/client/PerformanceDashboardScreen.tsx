@@ -19,7 +19,7 @@ function fmtRegion(r: string | null | undefined): string {
 // ── Prop types ────────────────────────────────────────────────────────────────
 
 interface Theme { primary: string; accent: string }
-interface AppUser { id: string | null; name?: string }
+interface AppUser { id: string | null; name?: string; gender?: string }
 
 interface Props {
   nav:  NavFn;
@@ -49,7 +49,8 @@ const NAV_TABS: { id: ScreenId; label: string }[] = [
 
 export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient }: Props) {
   const targetUserId = selectedClient?.id ?? user.id;
-  const targetName  = selectedClient?.name ?? user.name;
+  const targetName   = selectedClient?.name ?? user.name;
+  const targetGender = user.gender;
   const [activeScreen, setActiveScreen] = React.useState<ScreenId>('overview');
   const { data, loading } = useM5Data(targetUserId);
 
@@ -84,7 +85,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
             case 'overview':    return <TelaOverview    data={data} nav={nav} setScreen={setActiveScreen} userName={targetName} viewingClient={!!selectedClient} />;
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
-            case 'dor':         return <TelaDor         data={data}/>;
+            case 'dor':         return <TelaDor         data={data} gender={targetGender ?? null}/>;
             case 'scores':      return <TelaScores      data={data}/>;
             case 'voz':         return <TelaVoz data={data}/>;
             case 'marcos':      return <TelaMarcos      data={data}/>;
@@ -498,7 +499,7 @@ function TelaPerformance({ data }: { data: M5Data }) {
 
 // ── Screen 04 — Pain & Safety ─────────────────────────────────────────────────
 
-function TelaDor({ data }: { data: M5Data }) {
+function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
   const hasPain    = data.painEvents14d.length > 0;
   const isRecurrent = data.painRecurrenceCount >= 3;
 
@@ -512,7 +513,7 @@ function TelaDor({ data }: { data: M5Data }) {
         border: `1px solid ${isRecurrent ? C.coral + '55' : T.border}`,
         display: 'flex', alignItems: 'center', gap: 16,
       }}>
-        <BodyDiagram region={data.primaryPainRegion}/>
+        <BodyDiagram region={data.primaryPainRegion} gender={gender ?? null}/>
         <div>
           {hasPain ? (
             <>
