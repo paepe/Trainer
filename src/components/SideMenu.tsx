@@ -29,12 +29,13 @@ const MENU_ITEMS: [string, string, string][] = [
 ];
 
 const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'goal', 'cycle', 'studio']);
+const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio']);
 
 export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
   const isTrainerRole = role === 'trainer' || role === 'studio_trainer' || role === 'internal_trainer' || role === 'technical_coordinator' || role === 'studio_admin' || role === 'studio_manager';
   const items = isTrainerRole
     ? MENU_ITEMS.filter(([, screen]) => !TRAINER_EXCLUDE.has(screen)).sort(([a], [b]) => a.localeCompare(b))
-    : MENU_ITEMS;
+    : MENU_ITEMS.filter(([, screen]) => !CLIENT_EXCLUDE.has(screen));
 
   return (
     <div style={{
