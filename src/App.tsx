@@ -92,17 +92,47 @@ export default function App() {
 
     const cycleDefault = profile.gender === 'female';
 
-    fetchCycleConfig().then(({ data }) => {
-      if (!data) return;
-      const today = new Date();
-      const lastStart = data.last_start_date ? new Date(data.last_start_date) : null;
-      const offset = lastStart
-        ? Math.max(0, Math.floor((today.getTime() - lastStart.getTime()) / 86_400_000))
-        : 11;
-      setCycleConfig({
-        length: data.cycle_length || 28,
-        periodLength: data.period_length || 5,
-        lastStartOffset: Math.min(offset, (data.cycle_length || 28) - 1),
+    // Read cycle data from profile_v2.body_rhythm (unified source) with legacy fallback
+    fetchProfileV2().then(({ data: pv2 }) => {
+      const br = pv2 && (pv2 as Record<string, unknown>).body_rhythm as Record<string, unknown> | null;
+      if (br && br.enabled && typeof br.cycle_duration_days === 'number') {
+        // Use profile_v2.body_rhythm as source of truth
+        const today = new Date();
+        const day = (typeof br.cycle_current_day === 'number' ? br.cycle_current_day : 14);
+        setCycleConfig({
+          length: br.cycle_duration_days as number,
+          periodLength: 5,
+          lastStartOffset: Math.max(0, day - 1),
+        });
+        return; // done — no need for legacy
+      }
+
+      // Fallback: read from legacy cycle_config table
+      fetchCycleConfig().then(({ data: legacy }) => {
+        if (!legacy) return;
+        const today = new Date();
+        const lastStart = legacy.last_start_date ? new Date(legacy.last_start_date) : null;
+        const offset = lastStart
+          ? Math.max(0, Math.floor((today.getTime() - lastStart.getTime()) / 86_400_000))
+          : 11;
+        const len = legacy.cycle_length || 28;
+        setCycleConfig({
+          length: len,
+          periodLength: legacy.period_length || 5,
+          lastStartOffset: Math.min(offset, len - 1),
+        });
+
+        // Migrate legacy → profile_v2.body_rhythm (one-time sync)
+        const currentDay = Math.min(len, Math.max(1, offset + 1));
+        const bodyRhythm = {
+          enabled: true,
+          cycle_current_day: currentDay,
+          cycle_duration_days: len,
+          adaptation_preference: [],
+        };
+        // Save as top-level: saveProfileV2 wraps the full payload, so we
+        // need to avoid overwriting other fields. Use a targeted upsert approach.
+        saveProfileV2({ body_rhythm: bodyRhythm } as Parameters<typeof saveProfileV2>[0], 'completed');
       });
     });
 
@@ -210,12 +240,38 @@ export default function App() {
   };
 
   const surfaceBg = dark ? '#0E1A2B' : '#FFFFFF';
+  // Unified cycle save: writes to profile_v2.body_rhythm (primary) + cycle_config (legacy)
+  const saveCycleUnified = React.useCallback(async (params: { cycleLength: number; periodLength: number; lastStartDate: string }) => {
+    // Update local state immediately
+    const today = new Date();
+    const offset = Math.max(0, Math.floor((today.getTime() - new Date(params.lastStartDate).getTime()) / 86_400_000));
+    setCycleConfig({ length: params.cycleLength, periodLength: params.periodLength, lastStartOffset: Math.min(offset, params.cycleLength - 1) });
+
+    // Save to profile_v2.body_rhythm (primary source) — preserve existing data
+    if (saveProfileV2 && fetchProfileV2) {
+      const { data: existing } = await fetchProfileV2();
+      const prev = (existing as Record<string, unknown> | null)?.body_rhythm as Record<string, unknown> | null;
+      saveProfileV2({
+        body_rhythm: {
+          enabled: true,
+          cycle_current_day: Math.min(params.cycleLength, Math.max(1, offset + 1)),
+          cycle_duration_days: params.cycleLength,
+          adaptation_preference: (prev?.adaptation_preference as unknown[]) ?? [],
+        },
+      } as Parameters<typeof saveProfileV2>[0], 'completed');
+    }
+
+    // Also save to legacy cycle_config for backward compat
+    void saveCycleConfig(params);
+    return { error: null } as { error: unknown };
+  }, [saveProfileV2, fetchProfileV2, saveCycleConfig, setCycleConfig]);
+
   const common = {
     nav, t, dark, user,
     setUser: handleSetUser,
     checkin, setCheckin,
     cycleConfig, setCycleConfig,
-    saveCycleConfig,
+    saveCycleConfig: saveCycleUnified,
     signIn, signUp,
     selectedClient,
     selectClient,
