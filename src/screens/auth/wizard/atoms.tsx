@@ -329,7 +329,7 @@ export function VoiceOption({ dark, primary, note, onClick }: VoiceOptionProps) 
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      aria-label="Falar com o app — entrada por voz"
+      aria-label="Speak with the app — voice input"
       style={{
         width: '100%', textAlign: 'left', padding: '14px 16px', borderRadius: 14,
         background: hover ? `${primary}12` : surfRaised(dark),
