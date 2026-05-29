@@ -1,5 +1,5 @@
 import React from 'react';
-import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../theme';
+import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type { SafetyGateResult } from '../../types/checkin-v2';
 
 interface CheckInResultProps {
@@ -159,25 +159,12 @@ export function CheckInResult({ dark, primary, accent, result, onDone, onAlert, 
       {/* CTAs */}
       <button
         onClick={onDone}
-        style={{
-          width: '100%', padding: '16px', borderRadius: 999, marginBottom: 10,
-          background: isBlocked ? accent : primary,
-          border: 'none', color: '#0E1A2B',
-          fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
-        }}
+        style={{ ...primaryBtn(isBlocked ? accent : primary), marginBottom: !isTrainer ? 0 : undefined }}
       >
         {isBlocked ? 'View caution options' : isTrainer ? 'Build plan →' : 'Start workout →'}
       </button>
       {!isTrainer && (
-        <button
-          onClick={onAlert}
-          style={{
-            width: '100%', padding: '14px', borderRadius: 999,
-            background: 'transparent', border: `1.5px solid ${borderSubtle(dark)}`,
-            color: textSec(dark), fontSize: 14, fontWeight: 600,
-            fontFamily: 'inherit', cursor: 'pointer',
-          }}
-        >
+        <button onClick={onAlert} style={{ ...outlineBtn(primary), marginTop: 10 }}>
           Notify trainer
         </button>
       )}

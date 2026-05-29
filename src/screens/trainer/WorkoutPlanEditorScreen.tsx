@@ -12,6 +12,8 @@ import {
   textMute,
   ghostBtn,
   iconBtn,
+  primaryBtn,
+  outlineBtn,
 } from '../../theme';
 import type { NavFn } from '../../types';
 
@@ -508,14 +510,11 @@ export function WorkoutPlanEditorScreen({
       )}
 
       {/* Actions */}
-      <div style={{ padding: '14px 22px 0', display: 'flex', gap: 10 }}>
+      <div style={{ padding: '14px 22px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <button onClick={askAI} disabled={aiLoading} style={{
-          flex: 1, padding: '13px 0', borderRadius: 14,
-          border: `1.5px solid ${aiLoading ? borderSubtle(dark) : t.primary}`,
-          background: aiLoading ? (dark ? '#142233' : '#F4F6FA') : `${t.primary}18`,
-          color: aiLoading ? textMute(dark) : t.primary,
-          fontFamily: 'inherit', fontSize: 11, fontWeight: 700, cursor: aiLoading ? 'default' : 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          ...outlineBtn(aiLoading ? borderSubtle(dark) : t.primary),
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          opacity: aiLoading ? 0.6 : 1,
           transition: 'all .15s',
         }}>
           {aiLoading ? (
@@ -525,20 +524,20 @@ export function WorkoutPlanEditorScreen({
             </>
           ) : '✦ Ask AI'}
         </button>
-        <button onClick={() => sendPlan('draft')} disabled={saving || exercises.length === 0} style={{
-          flex: 1, padding: '13px 0', borderRadius: 14,
-          border: `1.5px solid ${dark ? '#1F2E45' : '#D0D8E4'}`,
-          background: 'transparent', color: textPri(dark),
-          fontFamily: 'inherit', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-          opacity: exercises.length === 0 ? 0.4 : 1,
-        }}>Save draft</button>
-        <button onClick={() => sendPlan('sent')} disabled={saving || exercises.length === 0} style={{
-          flex: 2, padding: '13px 0', borderRadius: 999,
-          background: exercises.length === 0 ? (dark ? '#1F2E45' : '#D0D8E4') : t.primary,
-          color: exercises.length === 0 ? textMute(dark) : '#0E1A2B',
-          border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-          opacity: saving ? 0.7 : 1,
-        }}>{saving ? 'Sending…' : 'Send to client →'}</button>
+        <button
+          onClick={() => sendPlan('draft')}
+          disabled={saving || exercises.length === 0}
+          style={{ ...ghostBtn(dark), width: '100%', fontSize: 13, fontWeight: 600, textAlign: 'center', padding: '15px 20px', opacity: exercises.length === 0 ? 0.4 : 1 }}
+        >
+          Save draft
+        </button>
+        <button
+          onClick={() => sendPlan('sent')}
+          disabled={saving || exercises.length === 0}
+          style={{ ...primaryBtn(t.primary, saving), marginBottom: 0, opacity: exercises.length === 0 ? 0.4 : saving ? 0.7 : 1 }}
+        >
+          {saving ? 'Sending…' : 'Send to client →'}
+        </button>
       </div>
 
       {/* In-Person Trainer CTA */}

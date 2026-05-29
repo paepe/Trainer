@@ -1,5 +1,5 @@
 import React from 'react';
-import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../theme';
+import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type {
   CheckInDetailed as CheckInDetailedData,
   SleepQualityV2, PainRegion, FatigueType,
@@ -450,20 +450,12 @@ export function CheckInDetailed({ dark, primary, accent, userName, onSubmit, onB
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 8 }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: 13, color: primary, fontFamily: 'inherit', fontWeight: 600, padding: 0,
-        }}>
-          ← back
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+        <button onClick={handleSubmit} style={{ ...primaryBtn(primary), marginBottom: 0 }}>
+          Calculate Safety Gate →
         </button>
-        <button onClick={handleSubmit} style={{
-          flex: 1, padding: '16px', borderRadius: 999,
-          background: primary, border: 'none', color: '#0E1A2B',
-          fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
-          boxShadow: `0 6px 20px ${primary}44`,
-        }}>
-          Calcular Safety Gate →
+        <button onClick={onBack} style={{ ...outlineBtn(primary), padding: '15px 20px' }}>
+          ← Back
         </button>
       </div>
     </div>
