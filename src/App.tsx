@@ -234,13 +234,13 @@ export default function App() {
   const tabs: [string, string, string][] = isTrainer
     ? [
         ['trainerDashboard', 'user',    'Clients'],
-        ['checkin',          'sparkle', 'Coach'],
+        ['checkin',          'sparkle', 'Check-in'],
         ['stats',            'chart',   'Progress'],
         ['history',          'history', 'History'],
         ['menu',             'menu',    'Menu'],
       ]
     : [
-        ['checkin',  'sparkle', 'Coach'],
+        ['checkin',  'sparkle', 'Check-in'],
         ['workout',  'play',    'Workout'],
         ['stats',    'chart',   'Progress'],
         ['history',  'history', 'History'],
