@@ -44,6 +44,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
   const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);
   const [planId,     setPlanId]     = React.useState<string | null>(null);
   const [planSource, setPlanSource] = React.useState<string | null>(null);
+  const [trainerName, setTrainerName] = React.useState<string | null>(null);
+  const [planSentAt, setPlanSentAt] = React.useState<string | null>(null);
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [loading,    setLoading]    = React.useState<boolean>(false);
@@ -130,7 +132,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
         // First check for a trainer-sent plan
         const { data: sentPlan } = await supabase
           .from('workout_plans')
-          .select('id, plan_exercises(id, exercise_name, muscle_group, sets, reps, load_kg, rest_seconds, notes, order_index)')
+          .select('id, created_at, created_by, plan_exercises(id, exercise_name, muscle_group, sets, reps, load_kg, rest_seconds, notes, order_index)')
           .eq('assigned_to', user.id)
           .eq('source', 'manual')
           .eq('status', 'sent')
@@ -158,6 +160,15 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
           setPlan(exercises);
           setPlanId(sentPlan.id);
           setPlanSource('trainer');
+          setPlanSentAt(sentPlan.created_at ?? null);
+
+          // Look up trainer name
+          if (sentPlan.created_by) {
+            supabase.from('profiles').select('name').eq('id', sentPlan.created_by).maybeSingle()
+              .then(({ data: trainerProfile }) => {
+                if (trainerProfile?.name) setTrainerName(trainerProfile.name.split(' ')[0] ?? null);
+              });
+          }
           void supabase.from('workout_plans').update({ status: 'active' }).eq('id', sentPlan.id);
           setLoading(false);
           return;
@@ -270,7 +281,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
             }}>YOUR TRAINER</div>
             <div style={{ fontSize: 19, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>{planSource === 'trainer' ? 'Trainer\'s Plan' : 'AI-Powered Plan'}</div>
             <div style={{ fontSize: 12, opacity: .82, marginTop: 2 }}>
-              {activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || 'gym'}
+              {planSource === 'trainer' && trainerName ? (
+                <>by {trainerName}{planSentAt ? ` · ${new Date(planSentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</>
+              ) : (
+                <>{activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || 'gym'}</>
+              )}
             </div>
           </div>
         </div>
