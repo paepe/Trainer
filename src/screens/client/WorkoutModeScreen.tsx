@@ -45,7 +45,13 @@ interface WorkoutModeScreenProps {
   updatePainRecurrence:        (region: string) => Promise<{ error: unknown }>;
 }
 
-const PAIN_REGIONS = ['Neck', 'Shoulder', 'Elbow', 'Wrist', 'Upper back', 'Lower back', 'Hip', 'Knee', 'Ankle', 'Other'];
+const PAIN_REGIONS: { value: string; label: string }[] = [
+  { value: 'neck',       label: 'Neck'       }, { value: 'shoulder',   label: 'Shoulder'  },
+  { value: 'elbow',      label: 'Elbow'      }, { value: 'wrist',      label: 'Wrist'     },
+  { value: 'upper_back', label: 'Upper Back' }, { value: 'lower_back', label: 'Lower Back'},
+  { value: 'hip',        label: 'Hip'        }, { value: 'knee',       label: 'Knee'      },
+  { value: 'ankle',      label: 'Ankle'      }, { value: 'other',      label: 'Other'     },
+];
 const SKIP_OPTIONS = ['Pain / Injury', 'Lack of Equipment', 'Fatigue / Energy', 'Time Constraint', 'Other'];
 
 export function WorkoutModeScreen({
@@ -394,13 +400,13 @@ export function WorkoutModeScreen({
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {PAIN_REGIONS.map(r => (
-                <button key={r} onClick={() => setPainRegion(r)} style={{
+                <button key={r.value} onClick={() => setPainRegion(r.value)} style={{
                   padding: '7px 12px', borderRadius: 999,
-                  background: painRegion === r ? `${t.accent}22` : surfRaised(dark),
-                  color: painRegion === r ? t.accent : textSec(dark),
-                  border: `1.5px solid ${painRegion === r ? t.accent : borderSubtle(dark)}`,
+                  background: painRegion === r.value ? `${t.accent}22` : surfRaised(dark),
+                  color: painRegion === r.value ? t.accent : textSec(dark),
+                  border: `1.5px solid ${painRegion === r.value ? t.accent : borderSubtle(dark)}`,
                   fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
-                }}>{r}</button>
+                }}>{r.label}</button>
               ))}
             </div>
           </div>

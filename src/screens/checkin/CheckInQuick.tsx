@@ -21,11 +21,11 @@ const SLEEP_OPTIONS: { value: SleepQualityV2; label: string }[] = [
 ];
 
 const PAIN_REGIONS: { value: PainRegion; label: string }[] = [
-  { value: 'cervical', label: 'Cervical' }, { value: 'shoulder', label: 'Shoulder'    },
-  { value: 'lumbar',   label: 'Lumbar'   }, { value: 'hip',      label: 'Hip'  },
-  { value: 'knee',     label: 'Knee'   }, { value: 'ankle',    label: 'Ankle'},
-  { value: 'wrist',    label: 'Wrist'    }, { value: 'elbow',    label: 'Elbow' },
-  { value: 'other',    label: 'Other'    },
+  { value: 'neck',       label: 'Neck'       }, { value: 'shoulder',   label: 'Shoulder'  },
+  { value: 'elbow',      label: 'Elbow'      }, { value: 'wrist',      label: 'Wrist'     },
+  { value: 'upper_back', label: 'Upper Back' }, { value: 'lower_back', label: 'Lower Back'},
+  { value: 'hip',        label: 'Hip'        }, { value: 'knee',       label: 'Knee'      },
+  { value: 'ankle',      label: 'Ankle'      }, { value: 'other',      label: 'Other'     },
 ];
 
 const TIME_PRESETS = [15, 30, 45, 60, 90];

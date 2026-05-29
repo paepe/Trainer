@@ -5,6 +5,21 @@ import type {
   WeeklyStats, SessionSummary, PainEventSummary, Milestone,
 } from './perf-types';
 
+// ── Region normalization — maps legacy / display-string DB values to canonical keys ──
+const REGION_NORMALIZE: Record<string, string> = {
+  // legacy display strings (WorkoutModeScreen pre-standardization)
+  'lower back': 'lower_back', 'upper back': 'upper_back',
+  'neck':       'neck',       'shoulder':   'shoulder',
+  'elbow':      'elbow',      'wrist':      'wrist',
+  'hip':        'hip',        'knee':       'knee',
+  'ankle':      'ankle',      'other':      'other',
+  // legacy PainRegion values pre-standardization
+  'cervical':   'neck',       'lumbar':     'lower_back',
+};
+function normalizeRegion(r: string): string {
+  return REGION_NORMALIZE[r.toLowerCase()] ?? r.toLowerCase();
+}
+
 // ── Colour helpers ────────────────────────────────────────────────────────────
 
 export const C = {
@@ -484,7 +499,10 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
   }));
 
   const regionCounts: Record<string, number> = {};
-  for (const e of pain14dRaw) regionCounts[e.body_region] = (regionCounts[e.body_region] || 0) + 1;
+  for (const e of pain14dRaw) {
+    const key = normalizeRegion(e.body_region);
+    regionCounts[key] = (regionCounts[key] || 0) + 1;
+  }
   const primaryPainRegion = Object.entries(regionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
   const painRecurrenceCount = primaryPainRegion ? (regionCounts[primaryPainRegion] ?? 0) : 0;
 

@@ -5,8 +5,9 @@ export type CheckInVariant = 'voice' | 'quick' | 'detailed' | 'post_workout';
 export type SleepQualityV2 = 'poor' | 'regular' | 'good' | 'excellent';
 
 export type PainRegion =
-  | 'cervical' | 'shoulder' | 'lumbar'  | 'hip'
-  | 'knee'     | 'ankle'    | 'wrist'   | 'elbow' | 'other';
+  | 'neck'       | 'shoulder'  | 'elbow'  | 'wrist'
+  | 'upper_back' | 'lower_back'| 'hip'    | 'knee'
+  | 'ankle'      | 'other';
 
 export type FatigueType = 'physical' | 'mental' | 'both';
 

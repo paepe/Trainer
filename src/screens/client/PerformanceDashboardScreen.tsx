@@ -10,6 +10,12 @@ import {
 } from './performance/perf-atoms';
 import type { M5Data } from './performance/perf-types';
 
+// Converts snake_case / raw DB keys to "Title Case" for display
+function fmtRegion(r: string | null | undefined): string {
+  if (!r) return 'Region';
+  return r.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 // ── Prop types ────────────────────────────────────────────────────────────────
 
 interface Theme { primary: string; accent: string }
@@ -510,7 +516,7 @@ function TelaDor({ data }: { data: M5Data }) {
         <div>
           {hasPain ? (
             <>
-              <Kicker color={C.coral}>{data.primaryPainRegion?.toUpperCase() ?? 'REGION'}</Kicker>
+              <Kicker color={C.coral}>{fmtRegion(data.primaryPainRegion).toUpperCase()}</Kicker>
               <div style={{
                 fontFamily: FF_DISPLAY, fontSize: 22, fontWeight: 800, color: C.coral,
               }}>
@@ -572,7 +578,7 @@ function TelaDor({ data }: { data: M5Data }) {
                   ⚠
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{e.region}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{fmtRegion(e.region)}</div>
                   <div style={{ fontFamily: FF_MONO, fontSize: 10, color: T.textMute }}>{e.date}</div>
                 </div>
                 <div style={{

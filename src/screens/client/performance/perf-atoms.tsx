@@ -1,5 +1,8 @@
 import React from 'react';
 import { C } from './perf-engines';
+import bodyFemaleImg    from '../../../assets/body-female.png';
+import bodyMaleImg      from '../../../assets/body-male.png';
+import bodyBorderlineImg from '../../../assets/body-borderline.png';
 
 // ── Design tokens (M5 spec §2) ────────────────────────────────────────────────
 
@@ -310,57 +313,49 @@ export function BarChart({ data, labels, color = C.cyan, height = 100, suffix = 
 }
 
 // ── BodyDiagram (§4.11) ───────────────────────────────────────────────────────
-// Inline SVG body outline — avoids 700KB PNG downloads on mobile
+
+const GENDER_IMG: Record<string, string> = {
+  female:            bodyFemaleImg,
+  male:              bodyMaleImg,
+  'non-binary':      bodyBorderlineImg,
+  prefer_not_to_say: bodyBorderlineImg,
+};
+function resolveBodyImg(gender?: string | null): string {
+  return (gender && GENDER_IMG[gender]) ?? bodyMaleImg;
+}
 
 interface BodyDiagramProps {
   region?: string | null;
+  gender?: string | null;
 }
 
 const REGION_MAP: Record<string, { label: string; cy: number }> = {
-  lombar:    { label: 'LUMBAR',    cy: 72  },
-  costas:    { label: 'BACK',      cy: 50  },
-  joelho:    { label: 'KNEE',      cy: 119 },
-  ombro:     { label: 'SHOULDER',  cy: 34  },
-  pescoco:   { label: 'NECK',      cy: 26  },
-  quadril:   { label: 'HIP',       cy: 92  },
-  tornozelo: { label: 'ANKLE',     cy: 149 },
+  neck:       { label: 'NECK',       cy: 26  },
+  shoulder:   { label: 'SHOULDER',   cy: 34  },
+  upper_back: { label: 'UPPER BACK', cy: 50  },
+  lower_back: { label: 'LOWER BACK', cy: 72  },
+  elbow:      { label: 'ELBOW',      cy: 100 },
+  hip:        { label: 'HIP',        cy: 92  },
+  knee:       { label: 'KNEE',       cy: 119 },
+  ankle:      { label: 'ANKLE',      cy: 149 },
+  wrist:      { label: 'WRIST',      cy: 148 },
+  other:      { label: 'OTHER',      cy: 72  },
 };
 
 const REGION_PCT: Record<string, number> = {
-  pescoco:   0.155,
-  ombro:     0.205,
-  costas:    0.305,
-  lombar:    0.435,
-  quadril:   0.555,
-  joelho:    0.715,
-  tornozelo: 0.900,
+  neck:       0.155,
+  shoulder:   0.205,
+  upper_back: 0.305,
+  lower_back: 0.435,
+  elbow:      0.540,
+  hip:        0.555,
+  knee:       0.715,
+  wrist:      0.870,
+  ankle:      0.900,
+  other:      0.435,
 };
 
-function SvgBody() {
-  const stroke = T.border;
-  const fill   = T.surf;
-  return (
-    <svg viewBox="0 0 100 200" style={{ width: '100%', height: '100%', display: 'block' }}>
-      {/* Head */}
-      <ellipse cx="50" cy="14" rx="11" ry="15" fill={fill} stroke={stroke} strokeWidth="1.2"/>
-      {/* Neck */}
-      <rect x="44" y="28" width="12" height="6" rx="3" fill={fill} stroke={stroke} strokeWidth="1"/>
-      {/* Torso */}
-      <path d="M35 34 L30 34 C24 34 22 40 22 48 L22 100 C22 106 26 110 32 110 L68 110 C74 110 78 106 78 100 L78 48 C78 40 76 34 70 34 L65 34 Z"
-        fill={fill} stroke={stroke} strokeWidth="1.2"/>
-      {/* Left arm */}
-      <path d="M35 36 C28 36 18 46 16 60 C14 78 14 90 16 100" fill="none" stroke={stroke} strokeWidth="2.5" strokeLinecap="round"/>
-      {/* Right arm */}
-      <path d="M65 36 C72 36 82 46 84 60 C86 78 86 90 84 100" fill="none" stroke={stroke} strokeWidth="2.5" strokeLinecap="round"/>
-      {/* Left leg */}
-      <path d="M35 108 L35 145 L32 180" fill="none" stroke={stroke} strokeWidth="2.8" strokeLinecap="round"/>
-      {/* Right leg */}
-      <path d="M65 108 L65 145 L68 180" fill="none" stroke={stroke} strokeWidth="2.8" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-export function BodyDiagram({ region }: BodyDiagramProps) {
+export function BodyDiagram({ region, gender }: BodyDiagramProps) {
   const IMG_H     = 200;
   const IMG_W     = 100;
   const pct       = region ? (REGION_PCT[region.toLowerCase()] ?? 0.435) : null;
@@ -372,11 +367,12 @@ export function BodyDiagram({ region }: BodyDiagramProps) {
 
   return (
     <div style={{ position: 'relative', width: IMG_W, height: IMG_H + 16, flexShrink: 0 }}>
-      <div style={{ width: IMG_W, height: IMG_H }}>
-        <SvgBody/>
-      </div>
+      <img
+        src={resolveBodyImg(gender)}
+        alt="body diagram"
+        style={{ width: IMG_W, height: IMG_H, objectFit: 'contain', display: 'block' }}
+      />
 
-      {/* Pain region highlight overlay */}
       {hasHighlight && (
         <svg
           viewBox={`0 0 ${IMG_W} ${IMG_H}`}
@@ -391,7 +387,6 @@ export function BodyDiagram({ region }: BodyDiagramProps) {
         </svg>
       )}
 
-      {/* Label below image */}
       {hasHighlight && (
         <div style={{
           textAlign: 'center', fontSize: 7,
