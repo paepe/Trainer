@@ -191,23 +191,30 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
           <button
             onClick={toggleMic}
             style={{
-              width: 72, height: 72, borderRadius: '50%', cursor: 'pointer',
-              background: listening ? '#ef4444' : primary,
+              width: 80, height: 80, borderRadius: '50%', cursor: 'pointer',
+              background: listening
+                ? 'radial-gradient(circle at 40% 35%, #ef4444, #b91c1c)'
+                : 'radial-gradient(circle at 40% 35%, #5eead4, #0891b2)',
               border: 'none',
               boxShadow: listening
-                ? '0 0 0 12px rgba(239,68,68,.15)'
-                : `0 8px 24px ${primary}55`,
+                ? '0 0 0 14px rgba(239,68,68,.12), 0 8px 24px rgba(239,68,68,.35)'
+                : `0 0 0 14px ${primary}18, 0 8px 28px ${primary}45`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'background .2s, box-shadow .2s',
-              fontSize: 28,
+              transition: 'background .25s, box-shadow .25s',
             }}
           >
-            🎙️
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+              stroke="#0E1A2B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="2" width="6" height="12" rx="3"/>
+              <path d="M5 10a7 7 0 0 0 14 0"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+              <line x1="9"  y1="22" x2="15" y2="22"/>
+            </svg>
           </button>
         )}
         {supported && (
           <span style={{ fontSize: 11.5, color: textMute(dark) }}>
-            {listening ? 'Tap to stop' : 'Tap to start'}
+            {listening ? 'Tap to stop' : 'Tap to speak'}
           </span>
         )}
       </div>
