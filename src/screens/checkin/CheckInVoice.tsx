@@ -1,5 +1,5 @@
 import React from 'react';
-import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../theme';
+import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type { CheckInVoice as CheckInVoiceData } from '../../types/checkin-v2';
 
 interface CheckInVoiceProps {
@@ -228,33 +228,20 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
       )}
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: 13, color: primary, fontFamily: 'inherit', fontWeight: 600, padding: 0,
-        }}>
-          ← back
-        </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          style={{
-            flex: 1, padding: '15px', borderRadius: 999,
-            background: canSubmit ? primary : `${primary}44`,
-            border: 'none', color: '#0E1A2B',
-            fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
-            cursor: canSubmit ? 'pointer' : 'default',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}
+          style={{ ...primaryBtn(primary), opacity: canSubmit ? 1 : 0.45 }}
         >
           {parseState === 'parsing' ? (
-            <>
-              <Spinner color="#0E1A2B"/>
-              Analyzing…
-            </>
+            <><Spinner color="#0E1A2B"/> Analyzing…</>
           ) : (
             'Confirm and calculate →'
           )}
+        </button>
+        <button onClick={onBack} style={{ ...outlineBtn(primary), padding: '15px 20px' }}>
+          ← Back
         </button>
       </div>
     </div>
