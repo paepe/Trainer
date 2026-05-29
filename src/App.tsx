@@ -92,23 +92,27 @@ export default function App() {
 
     const cycleDefault = profile.gender === 'female';
 
-    // Read cycle data from profile_v2.body_rhythm (unified source) with legacy fallback
-    fetchProfileV2().then(({ data: pv2 }) => {
-      const br = pv2 && (pv2 as Record<string, unknown>).body_rhythm as Record<string, unknown> | null;
+    // Parallel: fetch profile_v2 + preferences simultaneously
+    Promise.all([
+      fetchProfileV2('body_rhythm'),
+      fetchPreferences(),
+    ]).then(([pv2Res, prefsRes]) => {
+      const br = pv2Res.data && (pv2Res.data as Record<string, unknown>).body_rhythm as Record<string, unknown> | null;
       if (br && br.enabled && typeof br.cycle_duration_days === 'number') {
         // Use profile_v2.body_rhythm as source of truth
-        const today = new Date();
         const day = (typeof br.cycle_current_day === 'number' ? br.cycle_current_day : 14);
         setCycleConfig({
           length: br.cycle_duration_days as number,
           periodLength: 5,
           lastStartOffset: Math.max(0, day - 1),
         });
-        return; // done — no need for legacy
+        setPrefsFromApi(prefsRes.data, cycleDefault);
+        return;
       }
 
       // Fallback: read from legacy cycle_config table
       fetchCycleConfig().then(({ data: legacy }) => {
+        setPrefsFromApi(prefsRes.data, cycleDefault);
         if (!legacy) return;
         const today = new Date();
         const lastStart = legacy.last_start_date ? new Date(legacy.last_start_date) : null;
@@ -121,25 +125,16 @@ export default function App() {
           periodLength: legacy.period_length || 5,
           lastStartOffset: Math.min(offset, len - 1),
         });
-
         // Migrate legacy → profile_v2.body_rhythm (one-time sync)
         const currentDay = Math.min(len, Math.max(1, offset + 1));
-        const bodyRhythm = {
-          enabled: true,
-          cycle_current_day: currentDay,
-          cycle_duration_days: len,
-          adaptation_preference: [],
-        };
-        // Save as top-level: saveProfileV2 wraps the full payload, so we
-        // need to avoid overwriting other fields. Use a targeted upsert approach.
-        saveProfileV2({ body_rhythm: bodyRhythm } as Parameters<typeof saveProfileV2>[0], 'completed');
+        saveProfileV2({ body_rhythm: { enabled: true, cycle_current_day: currentDay, cycle_duration_days: len, adaptation_preference: [] } } as Parameters<typeof saveProfileV2>[0], 'completed');
       });
     });
 
-    fetchPreferences().then(({ data }) => {
+    // Helper: apply preferences from API response
+    function setPrefsFromApi(data: Record<string, unknown> | null | undefined, cyDefault: boolean) {
       if (!data) {
-        // No preferences record yet — apply gender-based cycle default
-        setPrefs(prev => ({ ...prev, cycle: cycleDefault }));
+        setPrefs(prev => ({ ...prev, cycle: cyDefault }));
         return;
       }
       setPrefs({
@@ -149,12 +144,12 @@ export default function App() {
         analysis:          (data.analysis           as boolean | undefined) ?? true,
         behaviour:         (data.behaviour          as boolean | undefined) ?? true,
         sounds:            (data.sounds             as boolean | undefined) ?? false,
-        cycle:             (data.cycle_tracking     as boolean | undefined) ?? cycleDefault,
+        cycle:             (data.cycle_tracking     as boolean | undefined) ?? cyDefault,
         aiPersonalization: (data.ai_personalization as boolean | undefined) ?? true,
         whiteLabel:        false,
       });
-    });
-  }, [profile?.id, fetchCycleConfig, fetchPreferences]);
+    }
+  }, [profile?.id, fetchCycleConfig, fetchPreferences, saveProfileV2, fetchProfileV2]);
 
   // Redirect to welcome when session ends
   React.useEffect(() => {

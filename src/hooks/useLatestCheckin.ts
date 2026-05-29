@@ -51,23 +51,32 @@ export function useLatestCheckin(userId: string | null | undefined) {
         .limit(1)
         .maybeSingle();
 
-      // Compute streak
+      // Compute streak in a single query instead of up to 60 sequential count queries
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const sixtyDaysAgo = new Date(today);
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+      const { data: recentCheckins } = await supabase
+        .from('checkin_prontidao')
+        .select('occurred_at')
+        .eq('user_id', uid)
+        .gte('occurred_at', sixtyDaysAgo.toISOString())
+        .order('occurred_at', { ascending: false });
+
+      // Build set of dates (YYYY-MM-DD) that have check-ins
+      const checkinDays = new Set<string>();
+      for (const row of (recentCheckins ?? [])) {
+        if (row.occurred_at) checkinDays.add(row.occurred_at.split('T')[0]!);
+      }
+
+      // Count consecutive days backwards from today
       let streak = 0;
       for (let d = 0; d < 60; d++) {
-        const checkDay = new Date(today);
-        checkDay.setDate(checkDay.getDate() - d);
-        const start = checkDay.toISOString();
-        checkDay.setDate(checkDay.getDate() + 1);
-        const end = checkDay.toISOString();
-        const { count } = await supabase
-          .from('checkin_prontidao')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', uid)
-          .gte('occurred_at', start)
-          .lt('occurred_at', end);
-        if (count && count > 0) streak++;
+        const day = new Date(today);
+        day.setDate(day.getDate() - d);
+        const key = day.toISOString().split('T')[0]!;
+        if (checkinDays.has(key)) streak++;
         else break;
       }
 

@@ -110,11 +110,11 @@ export function useProfileData(userId: string | undefined) {
     }
   }
 
-  async function fetchProfileV2(): Promise<DataResult<Partial<UserProfileV2> & { current_step?: string; completed_at?: string | null }>> {
+  async function fetchProfileV2(columns: string | null = null): Promise<DataResult<Partial<UserProfileV2> & { current_step?: string; completed_at?: string | null }>> {
     if (!userId) return { data: null, error: null };
     const { data, error } = await supabase
       .from('profile_v2')
-      .select('*')
+      .select(columns ?? '*')
       .eq('user_id', userId)
       .maybeSingle();
     if (error) console.error('[useProfileData] fetchProfileV2:', error);
