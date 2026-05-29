@@ -5,12 +5,14 @@ import type {
   SleepQualityV2, PainRegion, FatigueType,
   EmotionalState, SafetySignal, AdaptationPreference,
 } from '../../types/checkin-v2';
+import type { LatestCheckinData } from '../../hooks/useLatestCheckin';
 
 interface CheckInDetailedProps {
   dark:     boolean;
   primary:  string;
   accent:   string;
   userName?: string | undefined;
+  lastCheckin?: LatestCheckinData;
   onSubmit: (data: CheckInDetailedData) => void;
   onBack:   () => void;
 }
@@ -163,24 +165,24 @@ function ChipBtn({ label, selected, onClick, dark, primary }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function CheckInDetailed({ dark, primary, accent, userName, onSubmit, onBack }: CheckInDetailedProps) {
-  const [energy, setEnergy]                     = React.useState(5);
-  const [sleep, setSleep]                       = React.useState<SleepQualityV2>('regular');
-  const [sleepHours, setSleepHours]             = React.useState(7);
+export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, onSubmit, onBack }: CheckInDetailedProps) {
+  const [energy, setEnergy]                     = React.useState(lastCheckin?.energy            ?? 5);
+  const [sleep, setSleep]                       = React.useState((lastCheckin?.sleep_quality as SleepQualityV2 | undefined) ?? 'regular');
+  const [sleepHours, setSleepHours]             = React.useState(lastCheckin?.sleep_hours       ?? 7);
   const [painOn, setPainOn]                     = React.useState(false);
   const [painRegion, setPainRegion]             = React.useState<PainRegion | undefined>(undefined);
   const [painIntensity, setPainIntensity]       = React.useState(4);
   const [movementTrigger, setMovementTrigger]   = React.useState('');
-  const [fatigue, setFatigue]                   = React.useState(3);
-  const [fatigueType, setFatigueType]           = React.useState<FatigueType | undefined>(undefined);
-  const [emotion, setEmotion]                   = React.useState<EmotionalState | undefined>(undefined);
-  const [minutes, setMinutes]                   = React.useState(45);
-  const [location, setLocation]                 = React.useState<string | undefined>(undefined);
-  const [equipment, setEquipment]               = React.useState<string[]>([]);
+  const [fatigue, setFatigue]                   = React.useState(lastCheckin?.fatigue           ?? 3);
+  const [fatigueType, setFatigueType]           = React.useState((lastCheckin?.fatigue_type as FatigueType | undefined) ?? undefined);
+  const [emotion, setEmotion]                   = React.useState((lastCheckin?.emotional_state as EmotionalState | undefined) ?? undefined);
+  const [minutes, setMinutes]                   = React.useState(lastCheckin?.available_minutes ?? 45);
+  const [location, setLocation]                 = React.useState(lastCheckin?.location_today    ?? undefined);
+  const [equipment, setEquipment]               = React.useState(lastCheckin?.equipment_today   ?? []);
   const [floorOk, setFloorOk]                   = React.useState(true);
   const [signals, setSignals]                   = React.useState<SafetySignal[]>([]);
-  const [bodyRhythm, setBodyRhythm]             = React.useState(false);
-  const [adaptation, setAdaptation]             = React.useState<AdaptationPreference | undefined>(undefined);
+  const [bodyRhythm, setBodyRhythm]             = React.useState(lastCheckin?.body_rhythm_active ?? false);
+  const [adaptation, setAdaptation]             = React.useState((lastCheckin?.adaptation_preference as AdaptationPreference | undefined) ?? undefined);
 
   const toggleEquip = (val: string) => {
     if (val === 'none') { setEquipment(['none']); return; }

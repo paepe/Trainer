@@ -288,7 +288,7 @@ export default function App() {
       case 'checkin':          return (
         <>
           {(noClient && !screenPayload?.clientUserId) && noClientBanner}
-          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} userName={profile?.name ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>
+          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} user={user} userName={profile?.name ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>
         </>
       );
       case 'workout':            return <StartWorkoutScreen      {...common}/>;

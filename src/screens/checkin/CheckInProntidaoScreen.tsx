@@ -2,6 +2,7 @@ import React from 'react';
 import type { NavFn } from '../../types';
 import type { CheckInQuick, CheckInDetailed, CheckInVoice, CheckInPostWorkout, SafetyGateResult } from '../../types/checkin-v2';
 import { computeSafetyGate } from './safetyGate';
+import { useLatestCheckin, type LatestCheckinData } from '../../hooks/useLatestCheckin';
 import { CheckInHub }        from './CheckInHub';
 import { CheckInVoice as VoiceScreen }   from './CheckInVoice';
 import { CheckInQuick as QuickScreen }   from './CheckInQuick';
@@ -34,7 +35,20 @@ interface CheckInProntidaoScreenProps {
   updatePainRecurrence?: (region: string) => Promise<{ error: unknown }>;
 }
 
-export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, clientName, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
+interface CheckInProntidaoScreenProps {
+  nav:                  NavFn;
+  t:                    Theme;
+  dark:                 boolean;
+  user:                 { id: string | null };
+  userName?:            string | undefined;
+  clientUserId?:        string;
+  clientName?:          string;
+  saveCheckinV2?:       SaveCheckinV2Fn;
+  updatePainRecurrence?: (region: string) => Promise<{ error: unknown }>;
+}
+
+export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
+  const last = useLatestCheckin(clientUserId ?? user?.id);
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
 
@@ -92,8 +106,8 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
           isClient={!!clientName}
           onSelect={v => setStage(v)}
           onBack={() => nav(clientUserId ? 'trainerDashboard' : 'profile')}
-          streak={32}
-          lastCheckin="hoje 06:42"
+          streak={last.streak}
+          lastCheckin={last.lastCheckin}
         />
       );
 
@@ -112,6 +126,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
         <QuickScreen
           dark={dark} primary={primary} accent={accent}
           userName={clientName}
+          lastCheckin={last}
           onSubmit={handleQuickSubmit}
           onBack={goHub}
         />
@@ -122,6 +137,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
         <DetailedScreen
           dark={dark} primary={primary} accent={accent}
           userName={clientName}
+          lastCheckin={last}
           onSubmit={handleDetailedSubmit}
           onBack={goHub}
         />

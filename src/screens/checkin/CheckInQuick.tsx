@@ -1,12 +1,14 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type { CheckInQuick as CheckInQuickData, SleepQualityV2, PainRegion } from '../../types/checkin-v2';
+import type { LatestCheckinData } from '../../hooks/useLatestCheckin';
 
 interface CheckInQuickProps {
   dark:     boolean;
   primary:  string;
   accent:   string;
   userName?: string | undefined;
+  lastCheckin?: LatestCheckinData;
   onSubmit: (data: CheckInQuickData) => void;
   onBack:   () => void;
 }
@@ -73,14 +75,14 @@ function SliderRow({ label, value, min, max, unit = '', onChange, dark, primary 
   );
 }
 
-export function CheckInQuick({ dark, primary, accent, userName, onSubmit, onBack }: CheckInQuickProps) {
-  const [energy, setEnergy]             = React.useState(5);
-  const [sleep, setSleep]               = React.useState<SleepQualityV2>('regular');
+export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onSubmit, onBack }: CheckInQuickProps) {
+  const [energy, setEnergy]             = React.useState(lastCheckin?.energy            ?? 5);
+  const [sleep, setSleep]               = React.useState((lastCheckin?.sleep_quality as SleepQualityV2 | undefined) ?? 'regular');
   const [painOn, setPainOn]             = React.useState(false);
   const [painRegion, setPainRegion]     = React.useState<PainRegion | undefined>(undefined);
   const [painIntensity, setPainIntensity] = React.useState(4);
-  const [fatigue, setFatigue]           = React.useState(3);
-  const [minutes, setMinutes]           = React.useState(45);
+  const [fatigue, setFatigue]           = React.useState(lastCheckin?.fatigue           ?? 3);
+  const [minutes, setMinutes]           = React.useState(lastCheckin?.available_minutes ?? 45);
 
   const handleSubmit = () => {
     const pain = painOn && painRegion != null
