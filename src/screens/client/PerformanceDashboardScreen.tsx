@@ -75,7 +75,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
         </div>}
         {(() => {
           switch (activeScreen) {
-            case 'overview':    return <TelaOverview    data={data} nav={nav} setScreen={setActiveScreen} userName={targetName}/>;
+            case 'overview':    return <TelaOverview    data={data} nav={nav} setScreen={setActiveScreen} userName={targetName} viewingClient={!!selectedClient} />;
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
             case 'dor':         return <TelaDor         data={data}/>;
@@ -172,11 +172,13 @@ function TelaOverview({
   data,
   setScreen,
   userName,
+  viewingClient,
 }: {
   data: M5Data;
   nav: NavFn;
   setScreen: (s: ScreenId) => void;
   userName?: string | undefined;
+  viewingClient?: boolean;
 }) {
   const adh = Math.round(data.adherenceRate * 100);
   const mainInsight = data.insights[0];
@@ -197,7 +199,7 @@ function TelaOverview({
     <ScreenWrap>
       <ScreenTitle
         kicker={`MY PROGRESS · ${data.weeksActive} WEEKS`}
-        title={`You are progressing${userName ? ', ' + userName : ''}.`}
+        title={viewingClient && userName ? `Progress of ${userName.split(' ')[0]}` : `You are progressing${userName ? ', ' + userName : ''}.`}
         sub="Summary of your progress over the last few weeks."
       />
 

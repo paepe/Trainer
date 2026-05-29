@@ -9,6 +9,7 @@ interface CheckInHubProps {
   primary:     string;
   accent:      string;
   userName?:   string | undefined;
+  isClient?:   boolean;
   onSelect:    (v: Variant) => void;
   onBack:      () => void;
   streak?:     number;
@@ -52,7 +53,7 @@ const OPTIONS: {
   },
 ];
 
-export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, streak, lastCheckin }: CheckInHubProps) {
+export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin }: CheckInHubProps) {
   return (
     <div style={{ padding: '0 0 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
@@ -92,7 +93,7 @@ export function CheckInHub({ dark, primary, accent, userName, onSelect, onBack, 
           fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.02em',
           marginBottom: 4,
         }}>
-          {greeting()}{userName ? `, ${userName.split(' ')[0]}` : ''}.
+          {isClient && userName ? `Check-in to ${userName.split(' ')[0]}` : `${greeting()}${userName ? `, ${userName.split(' ')[0]}` : ''}`}.
         </div>
         <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
           Before starting, quickly tell us how you're feeling today.

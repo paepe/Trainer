@@ -89,6 +89,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
         <CheckInHub
           dark={dark} primary={primary} accent={accent}
           userName={clientName ?? userName}
+          isClient={!!clientName}
           onSelect={v => setStage(v)}
           onBack={() => nav(clientUserId ? 'trainerDashboard' : 'profile')}
           streak={32}
