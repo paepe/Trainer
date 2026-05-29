@@ -250,12 +250,47 @@ export default function App() {
   if (loading) return <LoadingScreen dark={dark} primary={BRAND.primary} />;
 
   const screenContent = (() => {
+    const noClient = isTrainer && !selectedClient;
+    const noClientBanner = noClient ? (
+      <div style={{
+        margin: '12px 22px', padding: '16px 18px', borderRadius: 14,
+        background: dark ? '#1A2A40' : '#f0f4f8',
+        border: dark ? '1px solid #1F2E45' : '1px solid #d0d8e4',
+        textAlign: 'center',
+      }}>
+        <div style={{
+          fontSize: 8.5, fontWeight: 700, letterSpacing: '.1em',
+          textTransform: 'uppercase', color: '#F5A623', marginBottom: 8,
+        }}>
+          ⚠ No client selected
+        </div>
+        <p style={{
+          margin: '0 0 14px', fontSize: 12.5, color: dark ? 'rgba(255,255,255,.55)' : '#546a7e',
+          lineHeight: 1.5,
+        }}>
+          Select a client from My Clients first to load their data.
+        </p>
+        <button onClick={() => { setScreen('trainerDashboard'); setSelectedClient(null); }} style={{
+          padding: '9px 22px', borderRadius: 999, border: 'none',
+          background: BRAND.primary, color: '#0E1A2B',
+          fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+        }}>
+          Go to My Clients
+        </button>
+      </div>
+    ) : null;
+
     switch (screen) {
       case 'welcome':          return <WelcomeScreen           {...common}/>;
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
       case 'profile':          return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
-      case 'checkin':          return <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} userName={profile?.name ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>;
+      case 'checkin':          return (
+        <>
+          {(noClient && !screenPayload?.clientUserId) && noClientBanner}
+          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} userName={profile?.name ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>
+        </>
+      );
       case 'workout':            return <StartWorkoutScreen      {...common}/>;
       case 'workoutMode':        return <WorkoutModeScreen
           nav={nav} t={t} dark={dark} user={user}
@@ -280,8 +315,18 @@ export default function App() {
           savePostWorkoutFeedback={savePostWorkoutFeedback}
         />;
       case 'goal':               return <GoalAchievedScreen      {...common} sessionData={screenPayload}/>;
-      case 'stats':              return <PerformanceDashboardScreen nav={nav} t={t} dark={dark} user={user} selectedClient={selectedClient}/>;
-      case 'history':            return <HistoryScreen           {...common}/>;
+      case 'stats':              return (
+        <>
+          {noClient && noClientBanner}
+          <PerformanceDashboardScreen nav={nav} t={t} dark={dark} user={user} selectedClient={selectedClient}/>
+        </>
+      );
+      case 'history':            return (
+        <>
+          {noClient && noClientBanner}
+          <HistoryScreen           {...common}/>
+        </>
+      );
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} setDark={setDark}/>;
