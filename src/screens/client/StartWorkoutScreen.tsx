@@ -268,7 +268,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
 
       <div style={{ padding: '0 22px 16px' }}>
         <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden' }}>
-          <PhotoSlot label="trainer · gym lift" w="100%" h={170} radius={18} dark/>
+          <PhotoSlot label="" w="100%" h={170} radius={18} dark/>
           <div style={{
             position: 'absolute', left: 0, right: 0, bottom: 0,
             padding: 18, color: '#fff',
