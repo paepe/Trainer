@@ -47,14 +47,14 @@ export function useExerciseData() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let filteredExercises: any[] = [];
 
-    if (normalized.includes('alternativa') || normalized.includes('substitu')) {
+    if (normalized.includes('alternative') || normalized.includes('substitute') || normalized.includes('replace')) {
       intent = 'find_alternative';
-      const exerciseMatch = normalized.match(/(?:para|de|do)\s+([a-zA-Z\s\-]+?)(?:\s+sem|\s+com|$)/);
+      const exerciseMatch = normalized.match(/(?:for|of|instead of)\s+([a-zA-Z\s\-]+?)(?:\s+without|\s+with|$)/);
       const originalExercise = exerciseMatch?.[1]?.trim() ?? 'burpee';
       let constraint = 'none';
-      if (normalized.includes('sem impacto') || normalized.includes('baixo impacto')) constraint = 'low_impact';
-      else if (normalized.includes('sem ir ao ch') || normalized.includes('fora do ch'))  constraint = 'no_floor';
-      else if (normalized.includes('sentado') || normalized.includes('cadeira'))           constraint = 'seated';
+      if (normalized.includes('no impact') || normalized.includes('low impact')) constraint = 'low_impact';
+      else if (normalized.includes('no floor') || normalized.includes('standing only'))  constraint = 'no_floor';
+      else if (normalized.includes('seated') || normalized.includes('chair'))            constraint = 'seated';
 
       parsedData = { query_intent: intent, original_exercise: originalExercise, constraint };
 
@@ -73,8 +73,8 @@ export function useExerciseData() {
           candidates = candidates.filter((c: any) =>
             c.accessibility_tags?.includes('low_impact') ||
             c.name.toLowerCase().includes('jack') ||
-            c.name.toLowerCase().includes('marcha') ||
-            c.name.toLowerCase().includes('apoio')
+            c.name.toLowerCase().includes('march') ||
+            c.name.toLowerCase().includes('step')
           );
         }
         filteredExercises = candidates.slice(0, 3);
@@ -82,19 +82,19 @@ export function useExerciseData() {
           ? `You can use: ${filteredExercises.map((c: { name: string }) => c.name).join(', ')}.`
           : originalExercise.includes('burpee') && constraint === 'low_impact'
             ? 'You can use step jacks, brisk marching in place, or partial squats with arm raises.'
-          : `We found no registered alternatives with that specific restriction for ${originalExercise}.`;
+          : `No registered alternatives found with that restriction for ${originalExercise}.`;
       } else {
         reply = originalExercise.includes('burpee') && constraint === 'low_impact'
         ? 'You can use step jacks, brisk marching in place, or partial squats with arm raises.'
         : `Exercise "${originalExercise}" not found in the library.`;
       }
 
-    } else if (normalized.includes('buscar') || normalized.includes('procure') || normalized.includes('search') || normalized.includes('find')) {
+    } else if (normalized.includes('search') || normalized.includes('find') || normalized.includes('show me')) {
       intent = 'exercise_search_query';
-      let muscle = normalized.includes('posterior') || normalized.includes('isquio') || normalized.includes('hamstring') ? 'Legs'
-        : normalized.includes('ombro') || normalized.includes('desenvolvimento') || normalized.includes('shoulder') ? 'shoulders'
+      let muscle = normalized.includes('hamstring') || normalized.includes('posterior chain') ? 'Legs'
+        : normalized.includes('shoulder') || normalized.includes('overhead') ? 'shoulders'
         : 'legs';
-      const equip = normalized.includes('halter') || normalized.includes('dumbbell') ? 'halteres' : normalized.includes('barra') || normalized.includes('barbell') ? 'barbell' : '';
+      const equip = normalized.includes('dumbbell') || normalized.includes('db') ? 'dumbbell' : normalized.includes('barbell') || normalized.includes('bar') ? 'barbell' : '';
 
       parsedData = { query_intent: intent, target_muscle: muscle, equipment: equip };
       const { data: exercises } = await supabase.from('exercises').select('*');
@@ -102,12 +102,12 @@ export function useExerciseData() {
       filteredExercises = (exercises ?? []).filter((e: any) =>
         e.muscle_group.toLowerCase() === muscle.toLowerCase() ||
         e.name.toLowerCase().includes('stiff') ||
-        e.name.toLowerCase().includes('posterior')
+        e.name.toLowerCase().includes('romanian')
       );
       if (equip) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         filteredExercises = filteredExercises.filter((e: any) =>
-          e.name.toLowerCase().includes('dumb') || e.name.toLowerCase().includes('halter') || e.name.toLowerCase().includes('db')
+          e.name.toLowerCase().includes('dumb') || e.name.toLowerCase().includes('db') || e.name.toLowerCase().includes(equip)
         );
       }
       filteredExercises = filteredExercises.slice(0, 5);
