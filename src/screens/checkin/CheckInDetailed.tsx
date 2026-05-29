@@ -263,13 +263,13 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
 
       {/* 1 Energia */}
       <div style={block()}>
-        <BlockHeader num={1} icon="⚡" label="Energia" dark={dark}/>
+        <BlockHeader num={1} icon="⚡" label="Energy" dark={dark}/>
         <SliderRow label="how are you feeling?" value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
       {/* 2 Sono */}
       <div style={block()}>
-        <BlockHeader num={2} icon="🌙" label="Sono" dark={dark}/>
+        <BlockHeader num={2} icon="🌙" label="Sleep" dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
           {SLEEP_OPTIONS.map(o => (
             <button key={o.value} onClick={() => setSleep(o.value)} style={btnBase(sleep === o.value)}>
@@ -282,7 +282,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
 
       {/* 3 Dor */}
       <div style={block()}>
-        <BlockHeader num={3} icon="🔴" label="Dor" dark={dark}/>
+        <BlockHeader num={3} icon="🔴" label="Pain" dark={dark}/>
         <ToggleRow
           label="I'm in pain today"
           sub={painOn ? 'Tap to detail region and intensity' : undefined}
@@ -322,7 +322,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
 
       {/* 4 Fadiga */}
       <div style={block()}>
-        <BlockHeader num={4} icon="🔋" label="Fadiga" dark={dark}/>
+        <BlockHeader num={4} icon="🔋" label="Fatigue" dark={dark}/>
         <SliderRow label="perceived fatigue" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           {FATIGUE_TYPES.map(o => (

@@ -354,10 +354,10 @@ export function TrainerClientDetailScreen({
               {/* Legend */}
               <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
                 {[
-                  { color: '#EF5B3C', dot: true, label: 'Dor reportada' },
-                  { color: '#4ade80', label: 'Energia alta' },
-                  { color: '#F5A623', label: 'Energia moderada' },
-                  { color: '#EF5B3C', label: 'Energia baixa' },
+                  { color: '#EF5B3C', dot: true, label: 'Pain reported' },
+                  { color: '#4ade80', label: 'High energy' },
+                  { color: '#F5A623', label: 'Moderate energy' },
+                  { color: '#EF5B3C', label: 'Low energy' },
                 ].map(({ color, dot, label }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     {dot

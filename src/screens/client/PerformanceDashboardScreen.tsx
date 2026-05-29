@@ -255,7 +255,7 @@ function TelaOverview({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <StatCard kicker="Frequency"  value={`${Math.round(data.completedSessions / Math.max(data.weeksActive, 1) * 10) / 10}×`} sub="per week"/>
         <StatCard kicker="Check-ins"   value={`${Math.round(data.checkinRate * 100)}%`} sub="coverage"/>
-        <StatCard kicker="Dor 14d"     value={String(data.painEvents14d.length)}
+        <StatCard kicker="Pain 14d"     value={String(data.painEvents14d.length)}
           sub={data.painRecurrenceCount >= 3 ? 'recurrent' : 'occurrences'}
           color={data.painEvents14d.length >= 3 ? C.coral : T.text}
           deltaTone={data.painEvents14d.length >= 3 ? 'bad' : 'good'}

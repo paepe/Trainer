@@ -130,14 +130,14 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
 
       {/* 1 Energia */}
       <div style={BLOCK_STYLE(dark)}>
-        <BlockHeader num={1} icon="⚡" label="Energia" dark={dark}/>
+        <BlockHeader num={1} icon="⚡" label="Energy" dark={dark}/>
         <div style={{ fontSize: 11.5, color: textSec(dark), marginBottom: 8 }}>how are you feeling?</div>
         <SliderRow value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
       {/* 2 Sono */}
       <div style={BLOCK_STYLE(dark)}>
-        <BlockHeader num={2} icon="🌙" label="Sono" dark={dark}/>
+        <BlockHeader num={2} icon="🌙" label="Sleep" dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {SLEEP_OPTIONS.map(o => (
             <button key={o.value} onClick={() => setSleep(o.value)} style={btnBase(sleep === o.value)}>
@@ -149,7 +149,7 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
 
       {/* 3 Dor */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
-        <BlockHeader num={3} icon="🔴" label="Dor" dark={dark}/>
+        <BlockHeader num={3} icon="🔴" label="Pain" dark={dark}/>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: painOn ? 14 : 0 }}>
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark) }}>I'm in pain today</div>
@@ -193,7 +193,7 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
 
       {/* 4 Fadiga */}
       <div style={BLOCK_STYLE(dark)}>
-        <BlockHeader num={4} icon="🔋" label="Fadiga" dark={dark}/>
+        <BlockHeader num={4} icon="🔋" label="Fatigue" dark={dark}/>
         <SliderRow label="perceived fatigue" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
       </div>
 
