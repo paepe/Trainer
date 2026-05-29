@@ -347,7 +347,7 @@ export function VoiceOption({ dark, primary, note, onClick }: VoiceOptionProps) 
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         border: `1.5px solid ${primary}55`,
       }}>
-        {/* Mic SVG — universally recognised */}
+        {/* Mic SVG — universally recognized */}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
           stroke={primary} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="9" y="2" width="6" height="12" rx="3"/>

@@ -25,7 +25,7 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark }: SettingsScreen
       ['aiPersonalization', 'AI workouts',     'Daily plan from your trainer + AI'],
       ['analysis',          'Workout Analysis','Post-session AI summary'],
       ['cycle',             'Cycle tracking',  'Adapt intensity to your phase'],
-      ['behaviour',         'Behaviour Track', 'Learn from completion + feedback'],
+      ['behaviour',         'Behavior Track', 'Learn from completion + feedback'],
     ]},
     { title: 'Notifications', items: [
       ['notifications', 'Push notifications', 'All app alerts'],
