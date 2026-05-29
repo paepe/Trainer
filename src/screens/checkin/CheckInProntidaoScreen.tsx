@@ -90,7 +90,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
           dark={dark} primary={primary} accent={accent}
           userName={clientName ?? userName}
           onSelect={v => setStage(v)}
-          onBack={() => nav('profile')}
+          onBack={() => nav(clientUserId ? 'trainerDashboard' : 'profile')}
           streak={32}
           lastCheckin="hoje 06:42"
         />
@@ -142,7 +142,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, userName, clientUserId, c
           result={result}
           isTrainer={!!clientUserId}
           onDone={() => nav(clientUserId ? 'workoutPlanEditor' : 'profile')}
-          onAlert={() => nav('profile')}
+          onAlert={() => nav(clientUserId ? 'trainerDashboard' : 'profile')}
         />
       ) : null;
 
