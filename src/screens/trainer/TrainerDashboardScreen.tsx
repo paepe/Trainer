@@ -229,7 +229,6 @@ export function TrainerDashboardScreen({
           <div style={{
             borderRadius: 16,
             background: '#10B9810D', border: '1.5px solid #10B98133',
-            overflow: 'hidden',
           }}>
             {/* Header — always visible, click to toggle */}
             <button
@@ -261,9 +260,9 @@ export function TrainerDashboardScreen({
             {activeNowOpen && (
               <div style={{
                 padding: '0 16px 14px',
-                maxHeight: 272, overflowY: 'auto',
+                maxHeight: 264, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any,
               }}>
-                {activeSessions.slice(0, 10).map(s => (
+                {activeSessions.slice(0, 15).map(s => (
                   <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
                     <div style={{
                       width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
