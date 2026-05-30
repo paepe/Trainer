@@ -53,6 +53,13 @@ interface AppUser {
 
 export default function App() {
   const { session, profile, loading, signIn, signUp, signOut, updateProfile } = useAuth();
+
+  const [prefs, setPrefs] = React.useState<AppPreferences>({
+    notifications: true, goals: true, alerts: true,
+    analysis: true, behaviour: true, sounds: false,
+    cycle: false, aiPersonalization: true, whiteLabel: false,
+  });
+
   const {
     saveCycleConfig, fetchCycleConfig,
     savePreferences, fetchPreferences,
@@ -75,11 +82,6 @@ export default function App() {
   const [screen, setScreen] = React.useState('welcome');
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [selectedClient, setSelectedClient] = React.useState<ClientProfile | null>(null);
-  const [prefs, setPrefs] = React.useState<AppPreferences>({
-    notifications: true, goals: true, alerts: true,
-    analysis: true, behaviour: true, sounds: false,
-    cycle: false, aiPersonalization: true, whiteLabel: false,
-  });
   const [checkin, setCheckin] = React.useState<CheckIn>({
     energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
     location: 'gym', sleep_quality: 'good', equipment: [],
