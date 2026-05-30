@@ -9,3 +9,4 @@ ios/
 android/
 .capacitor/
 .env*.local
+uploads/

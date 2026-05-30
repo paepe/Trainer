@@ -2,6 +2,7 @@ import React from 'react';
 import { BRAND } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { useData } from './hooks/useData';
+import { usePushNotifications } from './hooks/usePushNotifications';
 import {
   WelcomeScreen, LoginScreen, RegisterScreen, ProfileWizardScreen,
   CheckInProntidaoScreen,
@@ -150,6 +151,16 @@ export default function App() {
       });
     }
   }, [profile?.id, fetchCycleConfig, fetchPreferences, saveProfileV2, fetchProfileV2]);
+
+  // Push notification — request permission and register device token on login
+  const push = usePushNotifications();
+  const pushInitRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!profile?.id || pushInitRef.current) return;
+    if (prefs.notifications === false) return;
+    pushInitRef.current = true;
+    push.request().then(granted => { if (granted) push.registerToken(profile.id); });
+  }, [profile?.id, prefs.notifications, push]);
 
   // Redirect to welcome when session ends
   React.useEffect(() => {

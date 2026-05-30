@@ -1,0 +1,763 @@
+# Módulo 5 — Acompanhamento de Performance e Evolução
+## Especificação técnica de sistema de design
+
+> **Documento de referência** para reprodução em alta fidelidade no projeto canônico.
+> Versão capturada a partir de `Módulo 5 - Performance e Evolução.html` (TrAIner Project).
+
+---
+
+## 1. Visão geral
+
+### 1.1 Propósito do módulo
+Transformar dados de execução (Módulo 4), check-ins (Módulo 2), plano (Módulo 3) e perfil (Módulo 1) em **indicadores visuais, interpretáveis e acionáveis** de evolução.
+
+### 1.2 Princípio central de UX
+> *"O aluno não deve precisar interpretar dados complexos para entender se está evoluindo. O sistema deve transformar números em significado."*
+
+Cada tela apresenta no máximo:
+- **3–5 cards principais**
+- **1 gráfico interpretável**
+- **1 mensagem da IA** (insight)
+- **1 ação recomendada**
+
+### 1.3 Estrutura do shell (3 colunas)
+```
+┌─────────────┬──────────────────┬─────────────┐
+│             │                  │             │
+│  FlowMap    │   Phone Frame    │  Audience   │
+│  (260px)    │   (420×860)      │  View       │
+│             │   iPhone-style   │  (360px)    │
+│             │                  │             │
+└─────────────┴──────────────────┴─────────────┘
+                                          ↘ Tweaks panel (floating)
+```
+
+- **Coluna esquerda (260px):** navegação por telas + chips de scores preditivos ao vivo + ficha do aluno ativo
+- **Coluna central (420×860px):** mockup do app em phone frame iOS
+- **Coluna direita (360px):** visão por audiência (Aluno / Personal / Studio / IA-JSON)
+- **Tweaks flutuante:** controles de audiência, navegação, cenário
+
+### 1.4 Background do shell
+```css
+background:
+  radial-gradient(1200px 700px at 80% -10%, rgba(45,212,224,.08), transparent 50%),
+  radial-gradient(900px 600px at -10% 110%, rgba(239,92,60,.07), transparent 50%),
+  #08111E;
+padding: 28px 24px;
+gap: 24px;
+```
+
+---
+
+## 2. Design tokens
+
+### 2.1 Cores (Brand TrAIner)
+
+| Token | Hex | Uso |
+|---|---|---|
+| `navy` | `#0E1A2B` | Background interno do app |
+| `navyDeep` | `#08111E` | Background externo (shell) |
+| `surfRaised` | `#142233` | Cards, seções, inputs |
+| `surfRaised2` | `#1A2A40` | Sub-elevação (raro) |
+| `border` | `#1F2E45` | Hairlines, divisores |
+| `borderSoft` | `#243650` | Hairlines secundárias |
+| `cyan` **(primary)** | `#2DD4E0` | CTAs, links ativos, eixos primários |
+| `cyanDeep` | `#0F8C85` | Gradientes do hero, profundidade |
+| `cyanSoft` | `#9DECF3` | Highlights, texto monospace IA |
+| `coral` **(accent)** | `#EF5B3C` | Alertas, dor, churn, badges |
+| `lavender` | `#A78BFA` | Boolean true, supino, accent terciário |
+| `amber` | `#F5B45A` | Fadiga, RPE, atenção, marcos |
+| `green` | `#4ADE80` | Sucesso, ganhos, baixo risco |
+| `text` | `#FFFFFF` | Texto primário |
+| `textSec` | `rgba(255,255,255,.65)` | Texto secundário |
+| `textMute` | `rgba(255,255,255,.4)` | Labels, eixos, metadados |
+
+#### Risk band colors (predictive scores)
+| Banda | Cor | Range (risk scores) |
+|---|---|---|
+| `low` | `#4ADE80` (green) | 75–100 |
+| `moderate` | `#F5B45A` (amber) | 50–74 |
+| `high` | `#EF5B3C` (coral) | 30–49 |
+| `critical` | `#FF4D4D` | < 30 |
+
+> Para "good scores" (Progression Readiness, Session Completion, Plan Fit, Response Compatibility): inverter — quanto **mais alto, melhor**.
+
+### 2.2 Tipografia
+
+```css
+--ff-display: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+--ff-body:    "Inter", system-ui, -apple-system, sans-serif;
+--ff-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+```
+
+| Uso | Família | Peso | Tamanho | Letter-spacing | Notas |
+|---|---|---|---|---|---|
+| H1 (screen title) | Display | 700 | 22px | -0.01em | line-height 1.15 |
+| H2 (section title interna) | Display | 700 | 18–20px | -0.01em | — |
+| Kicker (eyebrow) | Mono | 700 | 10–10.5px | 0.18em | UPPERCASE, cor: cyan ou coral |
+| Section title (card) | Mono | 700 | 10.5–11px | 0.08em | UPPERCASE |
+| Body | Body | 400–500 | 12.5–13.5px | normal | line-height 1.45–1.6 |
+| Body small | Body | 400–500 | 11–11.5px | normal | textSec |
+| Stat value (grande) | Display | 800 | 22–28px | -0.02em | line-height 1.05 |
+| Stat label | Mono | — | 9.5–10px | 0.08em | UPPERCASE, textMute |
+| Mono value | Mono | 600–700 | 10.5–11.5px | 0.02–0.06em | cyanSoft ou color-coded |
+| Mono caption | Mono | — | 9–9.5px | 0.04em | textMute |
+
+### 2.3 Espaçamento e raios
+
+| Token | Valor |
+|---|---|
+| Grid gap (cards, seções) | 10–14px |
+| Padding interno de card | 12–14px |
+| Padding de seção (interna) | 14px |
+| Margin entre seções | 14px |
+| Padding screen (telefone) | `14px 18px 100px` (bottom extra p/ tab bar) |
+| Border radius — pill | 999px |
+| Border radius — card pequeno | 10–12px |
+| Border radius — card grande | 14–16px |
+| Border radius — botão | 10–12px |
+| Border radius — phone notch | 16px |
+| Border radius — phone screen | 42px |
+| Border radius — phone outer | 52px |
+
+### 2.4 Sombras e efeitos
+
+```css
+/* Phone frame */
+box-shadow: 0 50px 100px rgba(0,0,0,.6), inset 0 0 0 1px #2a3a52;
+background: linear-gradient(180deg,#202B3B 0%,#0E1822 100%);
+
+/* CTA / mic principal */
+box-shadow: 0 8px 24px #2DD4E044;
+
+/* Última barra do BarChart (destaque) */
+box-shadow: 0 0 16px <color>66;
+```
+
+### 2.5 Keyframe animations
+```css
+@keyframes wave        { 0%,100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
+@keyframes pulse-ring  { 0% { transform: scale(0.85); opacity: 0.7; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes grow-bar    { from { transform: scaleY(0); } to { transform: scaleY(1); } } /* origin: bottom */
+@keyframes shimmer     { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
+@keyframes blink       { 50% { opacity: 0.4; } }
+```
+
+---
+
+## 3. Phone frame (iOS-style)
+
+### 3.1 Dimensões e estrutura
+- Outer: **420×860px**, `borderRadius: 52px`
+- Inner screen: **396×836px**, `borderRadius: 42px`, `background: #0E1A2B`
+- Notch: **110×28px**, top: 8px, centralizado, `background: #000`, `borderRadius: 16px`
+- Status bar: 44px alto, padding `14px 28px`, texto branco, "9:41" à esquerda, "5G + battery icon" à direita
+
+### 3.2 Header do app (PhoneHeader)
+```
+┌────────────────────────────────────────────┐
+│ [back/logo]    Módulo 05 · TrAIner    [M] │  ← user chip
+│                Meu Progresso              │
+└────────────────────────────────────────────┘
+```
+- Padding `14px 18px 12px`, `borderBottom: 1px solid #1F2E45`
+- **Botão back** (32×32, radius 10, surfRaised, ícone `back` 15px) OU **logo gradient** (32×32, gradient cyan→cyanDeep, ícone `trendUp`) — depende se está em overview
+- **Centro:** kicker "TrAIner · Módulo 05" (mono, 10px, cyan, .18em) + título da tela (12.5px, weight 600)
+- **User chip:** padding `5px 9px`, radius 8, surfRaised + border, com avatar circular 18px (gradient coral→amber) + nome do aluno
+
+### 3.3 Tab bar (PhoneTabBar)
+- Borda superior `1px solid border`, background navy
+- Padding `8px 14px 12px`, `justify-content: space-around`
+- 4 abas: Início (`home`), Evolução (`trendUp`), IA (`brain`), Voz (`mic`)
+- Aba ativa: cor cyan, stroke 2.4; inativa: textMute, stroke 2.0
+- Label: 9.5px, weight 600
+- Ícone 18px
+
+---
+
+## 4. Componentes-base (atoms)
+
+### 4.1 `<Icon name size color stroke>`
+SVG inline 24×24 viewBox, paths-only, stroke `currentColor`, linecap/linejoin `round`.
+**Lista de ícones usada (33 total):** `back, mic, mic2, shield, lock, eye, eyeOff, check, x, chevron, chevronDown, plus, heart, user, target, activity, home, calendar, brain, accessibility, sparkles, voice, pill, ruler, zap, shieldCheck, trendUp, trendDown, trendFlat, bars, trophy, flame, warning, body, layers, filter, download, refresh, arrowRight`.
+
+### 4.2 `<ScreenWrap>`
+Container das telas. `padding: 14px 18px 100px`, `display: flex; flex-direction: column; gap: 14px`.
+
+### 4.3 `<ScreenTitle kicker title sub>`
+Header de tela:
+- Kicker: mono 10px, cyan, .18em, UPPERCASE, margin-bottom 4px
+- Title: H1 (display 22, weight 700, -0.01em, line 1.15)
+- Sub: 12px, textSec, line 1.45, margin-top 4px
+
+### 4.4 `<Section title right children pad=true>`
+Card-seção:
+- `background: surfRaised`, `borderRadius: 16`, `border: 1px solid border`
+- Header: padding `11px 14px 9px`, `borderBottom: 1px dashed border`, com title em mono uppercase + slot `right` (geralmente badge/delta)
+- Body: padding 14px (ou 0 se `pad=false`)
+
+### 4.5 `<StatCard kicker value sub color big deltaTone>`
+Card de métrica:
+- Padding 12px, radius 12px, `background: navy`, `border: 1px solid border`
+- Kicker: mono 9.5px, textMute, .08em, UPPERCASE
+- Value: display 22px (ou 26 se `big`), weight 800, color customizado, -0.02em, line 1.05
+- Sub: 10.5px, mono, cor conforme `deltaTone` (`good`=green, `bad`=coral, `neutral`=textSec)
+
+### 4.6 `<AIMessage icon title body tone action>`
+Card de mensagem da IA — **assinatura visual do módulo**:
+```jsx
+{
+  padding: 14,
+  borderRadius: 14,
+  background: `linear-gradient(135deg, ${c}18 0%, ${c}06 100%)`,
+  border: `1px solid ${c}55`,
+  display: 'flex', gap: 12,
+}
+```
+- **Ícone 30×30** (radius 9, fundo `${c}22`, color `c`) à esquerda
+- **Kicker:** "IA · {title}" (mono 10px, cor `c`, .12em, UPPERCASE)
+- **Body:** 13px, line 1.5
+- **Action box** (opcional): margin-top 8, padding `8px 10px`, radius 8, `background: navy`, `border: 1px dashed ${c}55`, com ícone `arrowRight` + texto "**Ação:** ..."
+
+Tonalidades disponíveis: `cyan` (default), `coral` (crítico), `amber` (atenção), `green` (positivo), `lavender` (prova de valor).
+
+### 4.7 `<ScoreRing score size color label sub thin=8>`
+Anel circular com score central:
+- SVG rotacionado -90deg
+- Track: stroke border, thickness `thin`
+- Progress: stroke `color`, `stroke-dasharray = 2πr`, `stroke-dashoffset` proporcional
+- Centro: número grande (display 22, weight 800) + label mono 8.5px UPPERCASE + sub opcional 9px
+- Transição: `stroke-dashoffset .6s ease`
+
+### 4.8 `<Sparkline data color height=48 fill showDots>`
+Linha + área:
+- viewBox `240 × height`, `preserveAspectRatio: none`
+- Path linear unindo pontos (sem suavização)
+- Área: linear-gradient vertical de `${color}` (35% opacity topo → 0% bottom)
+- Stroke 2px, linecap round
+- Dots opcionais: r=2.2 (último: r=3.5), fill navy, stroke color
+
+### 4.9 `<BarChart data labels color height=100 suffix>`
+Barras verticais:
+- Container `display: flex; align-items: flex-end`, gap 6px
+- Cada barra: max-width 24px, altura proporcional a `max * 1.1`
+- Cor: última barra `linear-gradient(180deg, color, color88)` + `box-shadow 0 0 16px ${color}66`; demais `${color}55`
+- `borderRadius: 6px 6px 2px 2px`
+- Animação: `grow-bar .6s ease-out` com delay `${i * 0.05}s`, origem bottom
+- Valor acima da barra (mono 9.5, weight 600); label abaixo (mono 9, textMute)
+
+### 4.10 `<DualLine series height=120>`
+Multi-linha com eixo:
+- viewBox `260 × height`, padding interno 16px
+- Grid: 3 linhas dashed (25%, 50%, 75%) em border
+- Cada serie: `{ data, color, dashed? }`
+- Path stroke 2.2px, linecap round
+- Pontos: r=1.8 (último: r=3), fill navy
+
+### 4.11 `<BodyDiagram highlights={[{region, intensity}]}>`
+Silhueta humana estilizada (80×160 SVG):
+- Cabeça: círculo r=10 cx=40 cy=14, stroke borderSoft 1.5
+- Pescoço: linha (40,24)→(40,30), stroke borderSoft 2
+- Torso: path `M 26 30 L 54 30 L 56 68 L 50 96 L 30 96 L 24 68 Z`, fill surfRaised, stroke borderSoft
+- **Zona lombar (highlight):** ellipse cx=40 cy=72 rx=12 ry=7 fill `coral55` stroke coral + círculo dashed externo r=14
+- Braços: linhas (26,34)→(14,64) e (54,34)→(66,64), stroke borderSoft 3, linecap round
+- Mãos: círculos r=3 nos endpoints, fill borderSoft
+- Pernas: linhas (34,96)→(30,140) e (46,96)→(50,140), stroke 4
+- Pés: ellipses rx=6 ry=3
+- Label "LOMBAR" em mono 7px, coral, .06em, abaixo (y=158)
+
+---
+
+## 5. As 7 telas do aluno
+
+### 5.1 Tela 01 — Meu Progresso (overview)
+
+**Estrutura vertical:**
+1. **ScreenTitle:** kicker "MEU PROGRESSO · semana 6", título "Você está evoluindo, {nome}.", sub explicativo
+2. **Hero Section:** `flex` horizontal — `<ScoreRing score=88 color=cyan label="ADERÊNCIA" sub="6 semanas"/>` à esquerda + 2 stats empilhados à direita (Força +25%, Volume +48%)
+3. **AIMessage tone=cyan** — síntese da semana com action box "Manter volume..."
+4. **Grid 2×2 de StatCards:** Frequência, Streak, Dor relatada, Check-ins
+5. **Section "Carga · Leg Press":** Sparkline + start/end labels
+6. **Nav cards (6 botões):** lista vertical de cards-link com ícone + título + sub + chevron, levando às outras telas
+
+**Nav cards (template):**
+```jsx
+<button style={{
+  display: 'flex', alignItems: 'center', gap: 12,
+  padding: '11px 14px', borderRadius: 12,
+  background: surfRaised, border: '1px solid border',
+}}>
+  <div style={{ width: 32, height: 32, borderRadius: 9,
+    background: `${cyan}22`, color: cyan,
+    display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <Icon name={icon} size={15} stroke={2.2}/>
+  </div>
+  <div style={{ flex: 1 }}>
+    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FF_DISPLAY }}>{title}</div>
+    <div style={{ fontSize: 11, color: textSec }}>{sub}</div>
+  </div>
+  <Icon name="chevron" size={14} color={textMute}/>
+</button>
+```
+
+### 5.2 Tela 02 — Aderência
+
+1. ScreenTitle: kicker "ADERÊNCIA · 6 SEMANAS"
+2. **Hero:** ScoreRing 88% + faixa textual ("Boa consistência")
+3. **Week grid:** 7 colunas (SEG–DOM), cada uma com:
+   - Label de dia (mono 9px, textMute)
+   - Cell 36px altura, radius 10, border 1.5px
+   - Conteúdo: ícone `check` (green) / "½" mono (amber) / `x` (coral) / "—" (rest day)
+4. **Legenda:** 3 chips horizontais (Completa/Parcial/Faltou)
+5. **Grid 2×2:** Concluídas, Parciais, Faltas, Check-ins
+6. **AIMessage tone=green** — interpretação positiva
+7. **Section "Últimas sessões":** lista de 5 cards horizontais com:
+   - Dot 7px (color por completion: green/amber/coral)
+   - Data mono 10.5px (44px width)
+   - Nome do plano (12.5px, weight 600)
+   - RPE + flag dor (mono 10px, coral se dor)
+
+### 5.3 Tela 03 — Performance
+
+1. ScreenTitle: kicker "PERFORMANCE · carga, volume, esforço"
+2. **Section "Carga · 3 exercícios principais":** `<DualLine>` com 3 séries (leg press cyan, agacho coral, supino lavender) + legenda inline com valores finais
+3. **Section "Volume semanal total":** `<BarChart>` 6 semanas, color cyan, delta no header
+4. **Section "RPE médio":** `<Sparkline color=amber showDots/>` + caption "↗ subindo" + comparação start/end
+5. **AIMessage tone=amber** — interpretação de fadiga começando
+6. **Section "Progresso por exercício":** 3 progress bars horizontais:
+   - Header: nome + "{start} → {end}kg +X%" em mono
+   - Track: altura 6px, radius 999, background navy
+   - Fill: gradient linear `${color}` → `${color}88`, width capped a `gain * 3`
+
+### 5.4 Tela 04 — Dor & Segurança
+
+1. ScreenTitle: kicker "DOR & SEGURANÇA · 14 DIAS"
+2. **Hero pad=false:** body diagram (80×160) + bloco textual:
+   - Kicker "LOMBAR" mono 10 coral
+   - Display 22px "3/3" coral
+   - Sub 11px textSec: "ocorrências em 14 dias. **Acionou alerta** de recorrência."
+3. **AIMessage tone=coral icon=warning** — Pain Recurrence Engine ATIVADO + ação substituir Stiff
+4. **Section "Histórico de dor":** lista de cards (1 por ocorrência) com:
+   - Ícone warning 28×28 (radius 8, fundo coral22, color coral)
+   - Região · exercício (12px, weight 600)
+   - Data (mono 10.5, textMute)
+   - Intensidade grande (display 14px, coral)
+5. **Section "Ações disponíveis":** 3 botões verticais — Substituir, Bloquear progressão, Notificar Personal
+
+### 5.5 Tela 05 — Scores preditivos (Análise da IA)
+
+1. ScreenTitle: kicker "ANÁLISE DA IA · CAMADA PREDITIVA", título "9 indicadores preditivos.", sub "Predição não é diagnóstico..."
+2. **Grid 2×2 de score cards (9 itens):**
+   ```jsx
+   {
+     padding: 12, borderRadius: 12,
+     background: surfRaised, border: `1px solid ${c}55`,
+   }
+   ```
+   - Header: nome (11px, weight 700) + badge (mono 9, padding `2px 6px`, radius 4, fundo `${c}22`, color `c`)
+   - Linha 2: número grande (display 28px) + progress bar 6px alto
+   - Descrição: 10.5px, textSec, line 1.4
+   - Footer: action recomendada (mono 9px, textMute, com `→`)
+3. **Section "Insights acionáveis · 4":** cards com `borderLeft: 3px solid tone`, contendo:
+   - Badge severity (positive/warning/critical/info)
+   - Title (12px, weight 700)
+   - Data (11px, textSec) — números/dados objetivos
+   - Interpretação (11px italic) — o que significa
+   - Action (10.5px, mono, color tone) — o que fazer
+4. **Disclaimer RN-5.10:** card lavender com texto "Predição não é diagnóstico..."
+
+### 5.6 Tela 06 — Voz analítica
+
+1. ScreenTitle: kicker "VOZ · ANÁLISE CONVERSACIONAL"
+2. **Mic input box:** padding 18, radius 16, surfRaised
+   - **Botão mic central** 72×72, radius 50%, gradient cyan→cyanDeep (ou coral se gravando)
+   - Pulse-ring animation quando ativo
+   - Wave bars (8 barras 3px) abaixo, animation `wave`
+   - Status text: "● Ouvindo" (coral) ou "Toque para falar" (textMute)
+3. **Section "Você perguntou":** card navy com transcript entre aspas curvas "..."
+   - Right slot: "RF-5.9 · query_intent: evolution_summary" (mono 9.5, cyan)
+4. **Section "Resposta da IA":** 
+   - Right slot: "response_style · simple_actionable" (lavender)
+   - Avatar 28×28 gradient cyan + ícone brain
+   - Texto da resposta com `<b style={{color: cyan}}>` em palavras-chave
+   - Action box dashed cyan com "**Recomendação:** ..."
+5. **Section "Perguntas sugeridas":** lista de 6 chips pill (radius 999, padding `9px 12px`) clicáveis com ícone voice + pergunta entre aspas
+6. **Privacy note RV-5.1:** card coral com warning sobre mascaramento
+
+### 5.7 Tela 07 — Marcos & Conquistas
+
+1. ScreenTitle: kicker "MARCOS · PROVA DE VALOR"
+2. **Hero gradient pad=false:**
+   - Background `linear-gradient(135deg, ${coral}15 0%, ${amber}08 100%)`
+   - Trophy box 56×56 radius 14 gradient coral→amber, ícone trophy 26px
+   - Counter "3/5" (display 28, weight 800) + label "marcos desbloqueados nesta jornada"
+3. **Section "Desbloqueados":** lista de cards com:
+   - Avatar 32×32 circle, fundo green22, ícone check green
+   - Label (12.5, weight 600)
+   - Data (mono 10, textMute)
+   - Trophy 14 green à direita
+4. **Section "Em progresso":** cards com:
+   - Header: label + progresso % (mono 11, cyan, weight 700)
+   - Progress bar 5px altura, gradient cyan→cyanDeep
+5. **AIMessage tone=lavender icon=sparkles** — prova de valor + action "Gerar relatório mensal · PDF"
+
+---
+
+## 6. Coluna esquerda — FlowMap
+
+### 6.1 Estrutura
+```
+┌──────────────────────────────────┐
+│ MÓDULO 05                        │
+│ Acompanhamento de                │
+│ Performance e Evolução           │
+│ "Métricas, prova de valor..."    │
+├──────────────────────────────────┤
+│ ▌ TELAS DO ALUNO                 │
+│   TELA 01 · Meu Progresso       │ ← active = cyan + bg cyan1a
+│   TELA 02 · Aderência            │
+│   ...                            │
+├──────────────────────────────────┤
+│ ▌ CAMADA PREDITIVA               │
+│   ● Churn Risk          27       │
+│   ● Fatigue Risk        67       │
+│   ● Pain Recurrence     76       │
+├──────────────────────────────────┤
+│ ▌ ALUNO ATIVO                    │
+│   Mariana Costa                  │
+│   Hipertrofia · membros inf.    │
+│   6 semanas · Push/Pull/Legs    │
+└──────────────────────────────────┘
+```
+- Width 260px, flexShrink 0, margin-top 28px
+- Cada card-bloco: padding 12, radius 12, background surfRaised, border 1px
+- Card de "Aluno Ativo": background `${cyan}10`, border `${cyan}33` (destaque)
+- Botões de tela: padding `7px 8px`, radius 8
+- Score chips: dot 8px color-coded + label + valor mono color-coded
+
+### 6.2 Cabeçalho do FlowMap
+- "MÓDULO 05" mono 10.5px cyan .18em UPPERCASE
+- Título display 22px line 1.1 weight 700
+- Sub 12px textSec line 1.5
+
+---
+
+## 7. Coluna direita — AudienceView
+
+4 modos selecionáveis via Tweaks. Width 360px, gap interno 12px.
+
+### 7.1 Container `<PCard title badge>`
+- Padding 14, radius 14, surfRaised, border
+- Header com `borderBottom: 1px dashed`, title mono 11 .08em UPPERCASE + badge italic 9.5 textMute
+
+### 7.2 Modo "aluno"
+3 cards:
+1. **Mensagem ao aluno** (badge: "linguagem simples · 1 insight + 1 ação"): texto narrativo 13.5px com `<b style={{color: green}}>` nos números
+2. **O que melhorou:** linhas com `✓` verde
+3. **O que cuidar:** linhas com `!` coral/amber
+
+### 7.3 Modo "personal"
+4 cards:
+1. **Briefing técnico · 30d** (badge "objetivo · acionável"): bloco mono 11.5px com pares `chave · valor`
+2. **Scores preditivos · top 4:** linhas com label + mini progress bar + número mono color-coded
+3. **Recomendação técnica** (badge "RF-5.12 → Módulo 6")
+4. **Insights gerados · 4:** lista compacta com dots color-coded
+
+### 7.4 Modo "studio"
+3 cards:
+1. **Painel agregado · 30 dias** (badge "visão de governança"): grid 2×2 com Alunos ativos, Em risco, Dor recorrente, Prontos p/ evoluir
+2. **Qualidade operacional:** 3 blocos textuais com bullet color-coded (amber/green/coral)
+3. **Aluno em foco** (badge "dados sensíveis · mascarados"): sumário privacy-aware
+
+### 7.5 Modo "ia"
+1 card único: **performance_metrics.json** (badge "estrutura técnica"):
+- Bloco mono 10px, cyanSoft
+- Max-height 540px com overflow auto
+- Pretty-print recursivo: chaves em textMute, strings em green, números em amber/weight 600, booleans em lavender
+
+---
+
+## 8. Camada preditiva — 9 scores
+
+Todos os scores retornam:
+```js
+{
+  score: 0-100,
+  name: string,         // "Churn Risk"
+  code: string,         // "churn_risk_score"
+  desc: string,         // descrição curta
+  inputs: string[],     // sinais consumidos
+  action: string,       // ação recomendada code
+  // campos específicos opcionais
+}
+```
+
+### 8.1 Inventário completo
+
+| # | Nome | Code | Lógica resumida |
+|---|---|---|---|
+| 1 | Churn Risk | `churn_risk_score` | Penaliza por adherence<60% (-35), checkin_drop>40% (-25), missed sessions; inverte para risk + baseline 15 |
+| 2 | Fatigue Risk | `fatigue_risk_score` | 20 base + (Δrpe × 15) max 50 + sleep penalty (18 se <6h, 10 se <7h) |
+| 3 | Pain Recurrence | `pain_recurrence_score` | Conta ocorrências de dor lombar × 22 + 10 baseline, cap 100 |
+| 4 | Progression Readiness | `progression_readiness_score` | 15 base + adh ok (35/15) + rpe ok (25/5) + pain ok (25/5) |
+| 5 | Session Completion | `session_completion_score` | (completed + partial×0.5) / planned × 90 − partial_rate × 30 |
+| 6 | Plan Fit | `plan_fit_score` | 85 − partial_rate × 80; flag `fit_issue` se partial > 30% |
+| 7 | Recovery Instability | `recovery_instability_score` | sleep penalty (35/20/5) + rpe_high (20/5) + pain_light_recurrent (15/0) |
+| 8 | Response Compatibility | `response_compatibility_score` | 60 base + load_delta × 60 + vol_delta × 40 |
+| 9 | Plateau Risk | `plateau_risk_score` | load_change_3w: <3%→60, <6%→35, else 15 |
+
+### 8.2 Bandas
+```js
+function band(score) {
+  if (score >= 75) return 'low';
+  if (score >= 50) return 'moderate';
+  if (score >= 30) return 'high';
+  return 'critical';
+}
+```
+
+> **"Good scores"** (Progression Readiness, Session Completion, Plan Fit, Response Compatibility): invertem semântica — labels passam a ser `BOM/ATENÇÃO/BAIXO`.
+
+### 8.3 Insights gerados (RF-5.10)
+4 insights estáticos a partir dos scores. Estrutura:
+```js
+{
+  id, severity: 'positive'|'warning'|'critical'|'info',
+  title, data, interpretation, action, score, tag
+}
+```
+
+Mapeamento severity → cor:
+- positive → green
+- warning → amber
+- critical → coral
+- info → cyan
+
+---
+
+## 9. Dataset de teste (Mariana Costa)
+
+```js
+const MARIANA = {
+  id: 12345,
+  name: 'Mariana Costa',
+  goal: 'Hipertrofia · membros inferiores',
+  plan: 'Push / Pull / Legs · 4x/sem · 60min',
+  weeks_active: 6,
+  age_band: '30-35',
+
+  weekDays:       ['SEG','TER','QUA','QUI','SEX','SAB','DOM'],
+  weekStatus:     [1, 1, 0.5, 0, 1, 1, 0],
+  weekPlanned:    [1, 1, 1,   0, 1, 1, 0],
+  weekCheckins:   [1, 1, 1,   0, 1, 1, 0],
+
+  planned_sessions: 24,
+  completed_sessions: 21,
+  partial_sessions: 2,
+  missed_sessions: 1,
+  workout_streak: 9,
+  checkin_rate: 0.92,
+
+  legPress:     [60, 65, 65, 70, 72, 75],      // kg, semanas 1-6
+  agachamento:  [40, 42, 42, 45, 45, 47],
+  supino:       [32, 34, 36, 36, 38, 38],
+  weeklyVolume: [12.4, 13.8, 14.6, 15.9, 17.2, 18.4],  // ×1000 kg·rep
+  rpeTrend:     [6.2, 6.5, 6.8, 7.0, 7.3, 7.6],
+
+  painEvents: [
+    { date: '14d ago', region: 'Lombar', intensity: 3, exercise: 'Stiff' },
+    { date: '6d ago',  region: 'Lombar', intensity: 4, exercise: 'Stiff' },
+    { date: 'Hoje',    region: 'Lombar', intensity: 3, exercise: 'Stiff' },
+  ],
+
+  recentSessions: [/* 7 itens com plan, completed, rpe, dur, dor, loadDelta */],
+  milestones: [/* 5 itens, 3 unlocked + 2 in-progress */],
+
+  cycle_phase: 'lútea',
+  energy_avg: 6.4,
+  sleep_avg: 6.1,
+};
+```
+
+### 9.1 Cenários alternativos (Tweaks)
+
+| Cenário | Overrides |
+|---|---|
+| **default** | dataset Mariana base |
+| **great** | completed 23, missed 0, partial 1, checkin_rate 0.98, rpe estável ~7.0, streak 18, painEvents [] |
+| **risk** | completed 14, missed 7, partial 3, checkin_rate 0.55, rpe 6.2→8.6 íngreme, streak 1, +1 pain event |
+
+### 9.2 Studio aggregates
+```js
+const STUDIO_AGG = {
+  total_clients: 124,
+  active_30d: 108,
+  at_risk: 14,
+  pain_recurrence_clients: 6,
+  ready_to_progress: 41,
+  template_lowest_adherence: 'Cardio Avançado · 5x/sem',
+  trainer_top: 'Lucas Pereira · 96% aderência média',
+  trainer_attention: 'Roberta Diaz · 4 alunos em risco',
+};
+```
+
+---
+
+## 10. Tweaks panel
+
+### 10.1 Defaults (editáveis pelo host)
+```json
+{
+  "audience": "aluno",
+  "showFrame": true,
+  "showSidePanel": true,
+  "screen": "overview",
+  "scenario": "default"
+}
+```
+
+### 10.2 Controles
+- **Visão (TweakSection):**
+  - TweakSelect "Audiência" → aluno / personal / studio / ia
+  - TweakToggle "Painel lateral"
+  - TweakToggle "Phone frame"
+- **Navegação:**
+  - TweakSelect "Tela atual" → 7 opções (overview ... marcos)
+- **Cenário do aluno:**
+  - TweakRadio "Perfil de dados" → Atual / Ótimo / Em risco
+
+### 10.3 Protocolo `__edit_mode_set_keys`
+A cada navegação interna, o app sincroniza `screen` de volta para o Tweaks via `setTweak('screen', screen)` no `useEffect`.
+
+---
+
+## 11. Regras de negócio observadas
+
+| Código | Regra | Local de aplicação |
+|---|---|---|
+| RN-5.1 | Aderência < 60% por 14d → churn_risk_signal | `computeChurnRisk` |
+| RN-5.2 | RPE↑ + performance↓ → fatigue_risk_signal | `computeFatigueRisk` (via Δrpe) |
+| RN-5.3 | 3+ dores na mesma região em 14d → alerta | Pain Recurrence card na Tela 04 |
+| RN-5.4 | Adh ≥ 85% + RPE ok + pain=0 → progression ready | `computeProgressionReadiness` |
+| RN-5.5 | partial_rate > 30% → plan_fit_issue | `computePlanFit.fitIssue` |
+| RN-5.6 | Check-ins ↓ 40% em 14d → churn signal | `computeChurnRisk` |
+| RN-5.7 | Dados sensíveis mascarados na visão Studio | StudioView card "Aluno em foco" |
+| RN-5.8 | Voz · aluno restrita a dados visíveis ao aluno | Tela Voz, label "response_style · simple_actionable" |
+| RN-5.9 | Studio recebe agregado por padrão | StudioView |
+| RN-5.10 | Predição ≠ diagnóstico → linguagem probabilística | Disclaimer lavender na Tela Scores |
+| RV-5.1 | Voz não expõe dado sensível | Privacy note coral na Tela Voz |
+
+---
+
+## 12. Eventos emitidos (RF gerais)
+
+O módulo é especificado para emitir os seguintes eventos (não implementados como side-effects no protótipo, mas modelados no JSON de saída IA):
+
+```
+performance_dashboard_viewed
+performance_metrics_calculated        ← exposto na AudienceView (ia)
+adherence_drop_detected
+fatigue_risk_detected
+pain_recurrence_detected               ← Tela Dor aciona visualmente
+progression_ready_detected
+plateau_risk_detected
+voice_performance_query_captured       ← Tela Voz simula
+performance_insight_created            ← gerado em generateInsights
+report_draft_created                   ← botão na Tela Marcos
+```
+
+---
+
+## 13. Arquitetura de arquivos
+
+```
+Módulo 5 - Performance e Evolução.html       ← shell HTML
+performance/
+  ├─ tweaks-panel.jsx     ← starter (cópia do checkin/)
+  ├─ perf-atoms.jsx       ← B tokens + Icon + Chip + ChoiceCard + Field + Slider + ToggleRow + helpers
+  ├─ perf-engines.jsx     ← MARIANA + STUDIO_AGG + 9 funções compute* + generateInsights
+  ├─ perf-screens.jsx     ← 7 Telas* + ScreenWrap/Title/Section/StatCard/AIMessage/Sparkline/BarChart/DualLine/ScoreRing/BodyDiagram
+  └─ perf-app.jsx         ← PerfApp + PhoneFrame + PhoneHeader + PhoneTabBar + FlowMap + AudienceView (Aluno/Personal/Studio/IA)
+```
+
+### 13.1 Ordem de carregamento (CRÍTICA)
+```html
+<script src="react@18.3.1"></script>
+<script src="react-dom@18.3.1"></script>
+<script src="@babel/standalone@7.29.0"></script>
+<script type="text/babel" src="performance/tweaks-panel.jsx"></script>  <!-- 1: hooks/components -->
+<script type="text/babel" src="performance/perf-atoms.jsx"></script>    <!-- 2: B tokens, Icon -->
+<script type="text/babel" src="performance/perf-engines.jsx"></script>  <!-- 3: MARIANA, compute* -->
+<script type="text/babel" src="performance/perf-screens.jsx"></script>  <!-- 4: Tela* + atoms de tela -->
+<script type="text/babel" src="performance/perf-app.jsx"></script>      <!-- 5: PerfApp mount -->
+```
+
+### 13.2 Globais expostos (Babel scope workaround)
+Cada arquivo termina com `Object.assign(window, { ... })` listando explicitamente o que outros arquivos consomem. **Sem isso, scripts type=text/babel não compartilham escopo.**
+
+```js
+// perf-atoms.jsx
+Object.assign(window, { B, FF_DISPLAY, FF_MONO, Icon, Chip, ChoiceCard, Field, PrivacyNote, Hint, VoiceBar, StepHeader, Slider, ToggleRow });
+
+// perf-engines.jsx
+Object.assign(window, { MARIANA, STUDIO_AGG, band, bandColor, readinessBand, computeAllScores, generateInsights });
+
+// perf-screens.jsx
+Object.assign(window, { TelaOverview, TelaAderencia, TelaPerformance, TelaDor, TelaScores, TelaVoz, TelaMarcos, Sparkline, BarChart, DualLine, ScoreRing, ScreenWrap, ScreenTitle, Section, StatCard, AIMessage, BodyDiagram });
+```
+
+> **Regra crítica:** nunca declarar `const styles = { ... }` no escopo global — usar inline styles ou objetos com nome específico (`perfStyles`, etc.).
+
+---
+
+## 14. Microcopy (PT-BR)
+
+### 14.1 Tons por tela
+- **Overview:** afirmativo, narrativo, com nome do aluno
+- **Aderência:** factual, encorajador
+- **Performance:** técnico-acessível, comparativo
+- **Dor:** atencioso, sem alarmismo (mas claro)
+- **Scores:** explicativo, sempre com disclaimer probabilístico
+- **Voz:** conversacional, exemplos entre aspas curvas
+- **Marcos:** celebratório, com conexão a "prova de valor" para personal
+
+### 14.2 Vocabulário-chave
+- "evolução" (não "progresso" só)
+- "consistência" (não "frequência" só)
+- "estímulo" (não "intensidade" só)
+- "manter", "progredir", "deload", "revisar" (verbos de ação prescritos no doc-mestre)
+- "Pain Recurrence Engine" (preservar o nome inglês — é a etiqueta técnica do sistema)
+- Aspas curvas para falas/perguntas: `“…”` (não `"..."`)
+
+### 14.3 Padrão da mensagem IA principal
+```
+[Esta semana / Em N semanas] você [verbo positivo] [número X de Y].
+Sua [métrica que melhorou] [Δ].
+Porém, [métrica que precisa atenção] [Δ negativo].
+
+→ Recomendação: [ação específica] [duração].
+```
+
+---
+
+## 15. Checklist de fidelidade (QA visual)
+
+- [ ] Background gradient radial dual (cyan top-right + coral bottom-left) sobre navyDeep
+- [ ] Phone frame com gradient bezel, notch 110×28, screen radius 42
+- [ ] Status bar "9:41 · 5G · battery icon" branco
+- [ ] Header com user chip M (gradient coral→amber) visível em todas as telas
+- [ ] Tab bar fixa com 4 abas, cyan active / textMute inactive
+- [ ] FlowMap esquerda mostrando 7 telas + 3 score chips ao vivo + ficha aluno
+- [ ] AudienceView direita alternável por Tweaks
+- [ ] Mensagens IA sempre com gradient border e action box dashed
+- [ ] Body diagram com lombar destacada em coral
+- [ ] Score ring com transição suave de stroke-dashoffset
+- [ ] Bar chart com última barra glow + grow-bar animation staggered
+- [ ] DualLine com grid dashed e dots reforçados no último ponto
+- [ ] Predição sempre acompanhada do disclaimer RN-5.10
+- [ ] Dados sensíveis com badge "SENSÍVEL" coral ou ícone lock
+- [ ] Microcopy PT-BR com aspas curvas e tom recomendacional
+
+---
+
+*Documento gerado em: 26/05/2026. Compatível com a versão do `Módulo 5 - Performance e Evolução.html` desta data.*

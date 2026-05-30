@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { emitEvent } from '../lib/events';
+import { notify } from '../lib/notify';
 import type { CheckInVariant, CheckInQuick, CheckInDetailed, CheckInVoice, CheckInPostWorkout, SafetyGateResult } from '../types/checkin-v2';
 import type { Json } from '../types/supabase';
 
@@ -45,6 +46,14 @@ export function useCheckinData(userId: string | undefined) {
         ai_led_blocked:    data.safety_gate?.ai_led_blocked  ?? false,
       });
     if (error) { console.error('[useCheckinData] saveCheckinV2:', error); return { error }; }
+    // Notify trainer if safety gate blocks AI-led workout
+    if (data.safety_gate?.ai_led_blocked && effectiveUserId) {
+      void supabase.from('trainer_clients').select('trainer_id').eq('client_id', effectiveUserId).eq('status', 'active').maybeSingle()
+        .then(({ data: tc }) => {
+          if (tc?.trainer_id) void notify(tc.trainer_id, 'Safety Gate activated', 'A client check-in requires human review', '/dashboard');
+        });
+    }
+
     void emitEvent(effectiveUserId, 'checkin_submitted', 'checkin_prontidao', undefined, { variant: data.variant });
     return { error };
   }

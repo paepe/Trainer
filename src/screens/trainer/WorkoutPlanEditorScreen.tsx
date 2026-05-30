@@ -1,6 +1,7 @@
 import React from 'react';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
+import { notify } from '../../lib/notify';
 import { PillInput } from '../../components/PillInput';
 import { requestWorkoutPlan } from '../../lib/workoutGeneration';
 import type { GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
@@ -246,6 +247,12 @@ export function WorkoutPlanEditorScreen({
 
     setSaving(false);
     setSaved(true);
+
+    // Send push notification to client
+    if (status === 'sent' && selectedClient?.id) {
+      void notify(selectedClient.id, 'New workout plan', `${user.name?.split(' ')[0] || 'Your trainer'} sent you a workout plan`);
+    }
+
     setTimeout(() => {
       setSaved(false);
       nav('trainerDashboard');

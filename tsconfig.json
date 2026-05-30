@@ -13,5 +13,5 @@
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src", "api"],
-  "exclude": ["node_modules", "dist", "scripts"]
+  "exclude": ["node_modules", "dist", "scripts", "api/_lib"]
 }
