@@ -69,6 +69,15 @@ export default async function handler(req: any, res: any) {
     }
     res.status(200).json({ sent, failed });
   } catch (err: any) {
-    res.status(500).json({ error: err?.message || 'Failed' });
+    let rawKey = process.env.FCM_PRIVATE_KEY || '';
+    res.status(500).json({
+      error: err?.message || 'Failed',
+      keyStart: rawKey.substring(0, 30),
+      keyLen: rawKey.length,
+      hasBackslash: rawKey.includes('\\n'),
+      hasRealNewline: rawKey.includes('\n'),
+      hasBegin: rawKey.includes('BEGIN'),
+      hasEnd: rawKey.includes('END'),
+    });
   }
 }
