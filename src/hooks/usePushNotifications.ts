@@ -1,36 +1,55 @@
 import React from 'react';
+import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken } from 'firebase/messaging';
 import { supabase } from '../supabase';
 
+type PushStatus = 'idle' | 'requesting' | 'denied' | 'registered' | 'error';
+
 interface UsePushNotificationsReturn {
+  status:       PushStatus;
   permission:   NotificationPermission;
   request:      () => Promise<boolean>;
   registerToken: (userId: string) => Promise<void>;
 }
 
 export function usePushNotifications(): UsePushNotificationsReturn {
+  const [status, setStatus]         = React.useState<PushStatus>('idle');
   const [permission, setPermission] = React.useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'denied'
   );
 
   const request = React.useCallback(async (): Promise<boolean> => {
-    if (typeof Notification === 'undefined') return false;
+    if (typeof Notification === 'undefined') {
+      console.warn('[push] Notification API not available');
+      setStatus('denied');
+      return false;
+    }
+    setStatus('requesting');
     const result = await Notification.requestPermission();
     setPermission(result);
-    return result === 'granted';
+    if (result === 'granted') {
+      console.log('[push] Notification permission granted');
+      return true;
+    }
+    setStatus('denied');
+    console.warn('[push] Notification permission denied:', result);
+    return false;
   }, []);
 
   const registerToken = React.useCallback(async (userId: string) => {
-    if (permission !== 'granted' || typeof navigator === 'undefined') return;
+    const currentPerm = typeof Notification !== 'undefined' ? Notification.permission : 'denied';
+    if (currentPerm !== 'granted' || typeof navigator === 'undefined') {
+      console.warn('[push] Cannot register — permission:', currentPerm);
+      return;
+    }
 
     try {
-      // Register service worker for FCM
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      console.log('[push] Registering service worker...');
+      const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
       await navigator.serviceWorker.ready;
+      console.log('[push] Service worker ready');
 
-      // Dynamically import Firebase Messaging
-      const { initializeApp } = await import('firebase/app');
-      const { getMessaging, getToken } = await import('firebase/messaging');
-
+      console.log('[push] Initializing Firebase...');
       const app = initializeApp({
         apiKey:            import.meta.env.VITE_FCM_API_KEY            || '',
         authDomain:        import.meta.env.VITE_FCM_AUTH_DOMAIN        || '',
@@ -42,22 +61,30 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
       const messaging = getMessaging(app);
       const vapidKey = import.meta.env.VITE_FCM_VAPID_KEY || '';
+      console.log('[push] Getting FCM token...');
 
       const token = await getToken(messaging, {
         vapidKey,
-        serviceWorkerRegistration: registration,
+        serviceWorkerRegistration: reg,
       });
 
       if (token) {
+        console.log('[push] Token obtained, saving to DB...');
         await (supabase.from('device_tokens' as any) as any).upsert(
           { user_id: userId, token, platform: 'web' },
           { onConflict: 'user_id,token' }
         );
+        console.log('[push] Token registered successfully');
+        setStatus('registered');
+      } else {
+        console.warn('[push] No token returned from FCM');
+        setStatus('error');
       }
     } catch (err) {
-      console.warn('[usePushNotifications]', err);
+      console.error('[push] Registration error:', err);
+      setStatus('error');
     }
-  }, [permission]);
+  }, []);
 
-  return { permission, request, registerToken };
+  return { status, permission, request, registerToken };
 }
