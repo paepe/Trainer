@@ -12,6 +12,6 @@
     "skipLibCheck": true,
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src", "api"],
-  "exclude": ["node_modules", "dist", "scripts", "api/_lib"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "scripts"]
 }

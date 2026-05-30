@@ -1,43 +1,47 @@
 // POST /api/send-notification
-// Sends a push notification via Firebase Cloud Messaging.
-// Requires FCM_SERVER_KEY env var (Cloud Messaging → Server key).
-// Body: { userId: string, title: string, body: string, url?: string }
+// Sends push via FCM v1 API with OAuth2 (service account).
+// Requires: FCM_PROJECT_ID, FCM_CLIENT_EMAIL, FCM_PRIVATE_KEY in env.
 
 export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { userId, title, body, url } = req.body || {};
-  if (!userId || !title || !body) {
-    return res.status(400).json({ error: 'userId, title, and body are required' });
-  }
-
-  const serverKey = process.env.FCM_SERVER_KEY || process.env.FCM_PRIVATE_KEY || '';
-  if (!serverKey) return res.status(500).json({ error: 'FCM_SERVER_KEY not configured' });
-
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-  const anonKey     = process.env.VITE_SUPABASE_ANON_KEY || '';
+  if (!userId || !title || !body) return res.status(400).json({ error: 'userId, title, body required' });
 
   try {
-    const tokensRes = await fetch(
-      `${supabaseUrl}/rest/v1/device_tokens?select=token&user_id=eq.${userId}`,
-      { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } }
-    );
+    // OAuth2 access token via service account
+    const { JWT } = await import('google-auth-library');
+    const client = new JWT({
+      email:  process.env.FCM_CLIENT_EMAIL,
+      key:    process.env.FCM_PRIVATE_KEY || '',
+      scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
+    });
+    const auth = await client.authorize();
+    const accessToken = auth?.access_token;
+    if (!accessToken) return res.status(500).json({ error: 'Auth failed — check FCM credentials' });
+
+    // FCM v1 endpoint
+    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${process.env.FCM_PROJECT_ID}/messages:send`;
+
+    // Get device tokens from Supabase
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+    const anonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+    const tokensRes = await fetch(`${supabaseUrl}/rest/v1/device_tokens?select=token&user_id=eq.${userId}`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+    });
     if (!tokensRes.ok) return res.status(200).json({ sent: 0, failed: 0 });
     const tokens = ((await tokensRes.json()) as { token: string }[]).map((t: any) => t.token);
     if (tokens.length === 0) return res.status(200).json({ sent: 0, failed: 0 });
 
+    // Send to each device
     let sent = 0, failed = 0;
     for (const token of tokens) {
       try {
-        const pushRes = await fetch('https://fcm.googleapis.com/fcm/send', {
+        const pushRes = await fetch(fcmUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `key=${serverKey}` },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
           body: JSON.stringify({
-            to: token,
-            notification: { title, body },
-            data: { url: url || '/' },
+            message: { token, notification: { title, body }, data: { url: url || '/' } },
           }),
         });
         if (pushRes.ok) sent++; else failed++;
