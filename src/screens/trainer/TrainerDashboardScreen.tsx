@@ -257,10 +257,13 @@ export function TrainerDashboardScreen({
               </div>
             </button>
 
-            {/* Expandable list */}
+            {/* Expandable list — capped at 10, scrollable */}
             {activeNowOpen && (
-              <div style={{ padding: '0 16px 14px' }}>
-                {activeSessions.map(s => (
+              <div style={{
+                padding: '0 16px 14px',
+                maxHeight: 272, overflowY: 'auto',
+              }}>
+                {activeSessions.slice(0, 10).map(s => (
                   <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
                     <div style={{
                       width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
