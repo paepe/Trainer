@@ -378,7 +378,7 @@ export default function App() {
           <HistoryScreen           {...common}/>
         </>
       );
-      case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))}/>;
+      case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} setDark={setDark}/>;
       case 'targets':            return <GoalAchievedScreen      {...common}/>;

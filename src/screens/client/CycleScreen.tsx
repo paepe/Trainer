@@ -22,6 +22,7 @@ interface CycleScreenProps {
   t:                Theme;
   dark:             boolean;
   cycleConfig:      CycleConfig;
+  cycleEnabled?:    boolean;
   setCycleConfig?:  (cfg: CycleConfig) => void;
   saveCycleConfig?: (data: { cycleLength: number; periodLength: number; lastStartDate: string }) => Promise<{ error: unknown }>;
 }
@@ -46,8 +47,39 @@ export function computeCyclePhases(cycleLen: number, palette: Theme): Phase[] {
 
 
 export function CycleScreen({
-  nav, t, dark, cycleConfig, setCycleConfig, saveCycleConfig,
+  nav, t, dark, cycleConfig, cycleEnabled, setCycleConfig, saveCycleConfig,
 }: CycleScreenProps) {
+  if (cycleEnabled === false) {
+    return (
+      <>
+        <ScreenTitle dark={dark}>Cycle</ScreenTitle>
+        <div style={{ padding: '40px 22px', textAlign: 'center' }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 20, margin: '0 auto 16px',
+            background: dark ? '#1A2A40' : '#eef1f6',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 28,
+          }}>
+            🌙
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: textPri(dark), marginBottom: 8 }}>
+            Cycle tracking is disabled
+          </div>
+          <p style={{ fontSize: 13, color: textSec(dark), lineHeight: 1.55, maxWidth: 280, margin: '0 auto 16px' }}>
+            Enable cycle tracking in Settings to adapt your workout intensity based on your current phase.
+          </p>
+          <button onClick={() => nav('settings')} style={{
+            padding: '11px 24px', borderRadius: 999, border: 'none',
+            background: t.primary, color: '#0E1A2B',
+            fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          }}>
+            Go to Settings
+          </button>
+        </div>
+      </>
+    );
+  }
+
   const cfg = cycleConfig || { length: 28 };
   const cycleLen = cfg.length || 28;
 
