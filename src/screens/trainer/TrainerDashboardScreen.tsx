@@ -76,6 +76,7 @@ export function TrainerDashboardScreen({
   const [pendingReviews, setPendingReviews] = React.useState<SafetyGateEvent[]>([]);
   const [reviewingId, setReviewingId]   = React.useState<string | null>(null);
   const [activeSessions, setActiveSessions] = React.useState<ActiveSession[]>([]);
+  const [activeNowOpen, setActiveNowOpen]   = React.useState(false);
 
   React.useEffect(() => {
     if (!user?.id) {
@@ -223,15 +224,23 @@ export function TrainerDashboardScreen({
           </div>
         )}
 
-        {/* Active Now */}
+        {/* Active Now — collapsible */}
         {!loading && activeSessions.length > 0 && (
           <div style={{
-            padding: '14px 16px', borderRadius: 16,
+            borderRadius: 16,
             background: '#10B9810D', border: '1.5px solid #10B98133',
+            overflow: 'hidden',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            {/* Header — always visible, click to toggle */}
+            <button
+              onClick={() => setActiveNowOpen(o => !o)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer',
+              }}
+            >
               <div style={{
-                width: 8, height: 8, borderRadius: '50%', background: '#10B981',
+                width: 8, height: 8, borderRadius: '50%', background: '#10B981', flexShrink: 0,
                 animation: 'pulse 1.5s ease-in-out infinite',
               }}/>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981' }}>
@@ -243,25 +252,34 @@ export function TrainerDashboardScreen({
               }}>
                 {activeSessions.length}
               </div>
-            </div>
-            {activeSessions.map(s => (
-              <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-                <div style={{
-                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                  background: s.status === 'paused' ? '#F5A623' : '#10B981',
-                  boxShadow: s.status === 'paused' ? '0 0 6px #F5A62388' : '0 0 6px #10B98188',
-                }}/>
-                <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
-                  {clientNameMap[s.user_id] ?? 'Client'}
-                </span>
-                <span style={{
-                  fontSize: 10, fontWeight: 600, marginLeft: 'auto', flexShrink: 0,
-                  color: s.status === 'paused' ? '#F5A623' : '#10B981',
-                }}>
-                  {s.status === 'paused' ? 'Paused' : 'Training'}
-                </span>
+              <div style={{ marginLeft: 'auto', color: '#10B981', fontSize: 12, fontWeight: 700 }}>
+                {activeNowOpen ? '▲' : '▼'}
               </div>
-            ))}
+            </button>
+
+            {/* Expandable list */}
+            {activeNowOpen && (
+              <div style={{ padding: '0 16px 14px' }}>
+                {activeSessions.map(s => (
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+                    <div style={{
+                      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                      background: s.status === 'paused' ? '#F5A623' : '#10B981',
+                      boxShadow: s.status === 'paused' ? '0 0 6px #F5A62388' : '0 0 6px #10B98188',
+                    }}/>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
+                      {clientNameMap[s.user_id] ?? 'Client'}
+                    </span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 600, marginLeft: 'auto', flexShrink: 0,
+                      color: s.status === 'paused' ? '#F5A623' : '#10B981',
+                    }}>
+                      {s.status === 'paused' ? 'Paused' : 'Training'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
             <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }`}</style>
           </div>
         )}
