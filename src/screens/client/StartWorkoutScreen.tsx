@@ -1,6 +1,6 @@
 import React from 'react';
 import { supabase } from '../../supabase';
-import { Icon, PhotoSlot, ScreenTitle, SectionLabel } from '../../components';
+import { Icon, AvatarImage, PhotoSlot, ScreenTitle, SectionLabel } from '../../components';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn } from '../../types';
 import type { Json } from '../../types/supabase';
@@ -44,7 +44,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
   const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);
   const [planId,     setPlanId]     = React.useState<string | null>(null);
   const [planSource, setPlanSource] = React.useState<string | null>(null);
-  const [trainerName, setTrainerName] = React.useState<string | null>(null);
+  const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
+  const [trainerAvatarUrl, setTrainerAvatarUrl] = React.useState<string | null>(null);
   const [planSentAt, setPlanSentAt] = React.useState<string | null>(null);
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
@@ -162,11 +163,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
           setPlanSource('trainer');
           setPlanSentAt(sentPlan.created_at ?? null);
 
-          // Look up trainer name
+          // Look up trainer name + avatar
           if (sentPlan.created_by) {
-            supabase.from('profiles').select('name').eq('id', sentPlan.created_by).maybeSingle()
+            supabase.from('profiles').select('name, avatar_url').eq('id', sentPlan.created_by).maybeSingle()
               .then(({ data: trainerProfile }) => {
                 if (trainerProfile?.name) setTrainerName(trainerProfile.name.split(' ')[0] ?? null);
+                if (trainerProfile?.avatar_url) setTrainerAvatarUrl(trainerProfile.avatar_url);
               });
           }
           void supabase.from('workout_plans').update({ status: 'active' }).eq('id', sentPlan.id);
@@ -268,23 +270,20 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
 
       <div style={{ padding: '0 22px 16px' }}>
         <div style={{
-          borderRadius: 18, padding: '16px 18px',
+          borderRadius: 18, padding: '22px 18px',
           background: dark ? '#0F1E30' : '#f4f8fd',
           border: `1.5px solid ${t.primary}33`,
           display: 'flex', alignItems: 'center', gap: 14,
+          minHeight: 100,
         }}>
           {/* Trainer avatar */}
-          <div style={{
-            width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-            background: `${t.primary}1A`, border: `1.5px solid ${t.primary}44`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 700, fontSize: 18, fontFamily: '"Plus Jakarta Sans",sans-serif',
-            color: t.primary,
-          }}>
-            {planSource === 'trainer' && trainerName
-              ? trainerName.charAt(0).toUpperCase()
-              : '✦'}
-          </div>
+          <AvatarImage
+            url={trainerAvatarUrl}
+            label={trainerName ?? 'Trainer'}
+            w={64} h={64}
+            radius={16}
+            dark={dark}
+          />
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
