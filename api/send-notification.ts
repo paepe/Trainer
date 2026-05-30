@@ -17,8 +17,13 @@ export default async function handler(req: any, res: any) {
 
     // Normalize private key: handle actual newlines, literal \n strings, and any JSON formatting
     let rawKey = process.env.FCM_PRIVATE_KEY || '';
+    console.log('[send-notification] rawKey first 60:', JSON.stringify(rawKey.substring(0, 60)));
+    console.log('[send-notification] rawKey has \\n:', rawKey.includes('\\n'));
+    console.log('[send-notification] rawKey has real newlines:', rawKey.includes('\n'));
     rawKey = rawKey.replace(/\\n/g, '\n');          // literal \n → actual newline
     rawKey = rawKey.replace(/^["'\s]+|["'\s]+$/g, ''); // strip quotes/whitespace
+    console.log('[send-notification] processed first 60:', JSON.stringify(rawKey.substring(0, 60)));
+    console.log('[send-notification] processed length:', rawKey.length);
     // Ensure proper PEM format
     if (!rawKey.includes('-----BEGIN')) {
       rawKey = '-----BEGIN PRIVATE KEY-----\n' + rawKey;
