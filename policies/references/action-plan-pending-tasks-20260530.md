@@ -1,20 +1,20 @@
 # Action Plan — Pending Tasks (2026-05-30)
 
-**Date:** 30/05/2026
-**Author:** paepe
-**Status:** Draft — awaiting stakeholder approval
+**Date:** 30/05/2026  
+**Author:** paepe  
+**Status:** Phase 1-2 complete — Phase 3 pending
 
 ---
 
 ## Task Inventory
 
-| # | Task | Type | Priority | Effort |
+| # | Task | Type | Priority | Status |
 |---|------|------|----------|--------|
-| 1 | Apply SQL policies to Supabase production | Infrastructure | 🔴 Critical | 5 min |
-| 2 | Clean up wizard step LSP warnings (`onSaveLater` props) | Code quality | 🟡 Low | 10 min |
-| 3 | Real-time dashboard for trainer (session status feed) | Feature | 🟠 Medium | 2–3h |
-| 4 | Push notification infrastructure | Feature | 🔴 Later | 1–2 days |
-| 5 | Deprecate `preferences.cycle_tracking` (dead code) | Code quality | 🟡 Low | 15 min |
+| 1 | Apply SQL policies to Supabase production | Infrastructure | 🔴 Critical | ✅ Done (`66e77cb`) |
+| 2 | Clean up wizard step LSP warnings (`onSaveLater` props) | Code quality | 🟡 Low | ✅ Done (confirmed: `tsc` clean, IDE cache only) |
+| 3 | Real-time dashboard for trainer (session status feed) | Feature | 🟠 Medium | ✅ Done (`66e77cb`) |
+| 4 | Push notification infrastructure | Feature | 🔴 Later | ⬜ Pending |
+| 5 | Wire `cycle_tracking` toggle to CycleScreen + female-only guard | Code quality | 🟡 Low | ✅ Done (`a65c64b`) |
 
 ---
 
