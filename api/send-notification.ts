@@ -15,7 +15,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     // Get OAuth2 access token via google-auth-library
-    const { JWT } = require('google-auth-library');
+    const { JWT } = await import('google-auth-library');
     const client = new JWT({
       email:        process.env.FCM_CLIENT_EMAIL,
       key:          (process.env.FCM_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
