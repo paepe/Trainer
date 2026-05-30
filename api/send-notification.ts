@@ -18,7 +18,7 @@ export default async function handler(req: any, res: any) {
     const { JWT } = await import('google-auth-library');
     const client = new JWT({
       email:        process.env.FCM_CLIENT_EMAIL,
-      key:          (process.env.FCM_PRIVATE_KEY || '').replace(/\\n/g, '\n').replace(/\n/g, '\n'),
+      key:          (process.env.FCM_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
       scopes:       ['https://www.googleapis.com/auth/firebase.messaging'],
     });
 
