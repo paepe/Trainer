@@ -77,6 +77,7 @@ export function TrainerDashboardScreen({
   const [reviewingId, setReviewingId]   = React.useState<string | null>(null);
   const [activeSessions, setActiveSessions] = React.useState<ActiveSession[]>([]);
   const [activeNowOpen, setActiveNowOpen]   = React.useState(false);
+  const [activeNowFilter, setActiveNowFilter] = React.useState<'all' | 'training' | 'paused'>('all');
 
   React.useEffect(() => {
     if (!user?.id) {
@@ -234,6 +235,15 @@ export function TrainerDashboardScreen({
             {(() => {
               const training = activeSessions.filter(s => s.status !== 'paused');
               const paused   = activeSessions.filter(s => s.status === 'paused');
+              const showTraining = activeNowFilter !== 'paused';
+              const showPaused   = activeNowFilter !== 'training';
+
+              const toggleFilter = (f: 'training' | 'paused', e: React.MouseEvent) => {
+                e.stopPropagation();
+                setActiveNowFilter(cur => cur === f ? 'all' : f);
+                if (!activeNowOpen) setActiveNowOpen(true);
+              };
+
               return (
                 <>
                   <button
@@ -250,11 +260,29 @@ export function TrainerDashboardScreen({
                     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981' }}>
                       Live Sessions
                     </div>
-                    <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#10B981', color: '#0E1A2B' }}>
+                    {/* Green badge — filter to training only */}
+                    <div
+                      onClick={e => toggleFilter('training', e)}
+                      style={{
+                        fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
+                        background: '#10B981', color: '#0E1A2B', cursor: 'pointer',
+                        outline: activeNowFilter === 'training' ? '2px solid #fff' : 'none',
+                        outlineOffset: 1,
+                      }}
+                    >
                       {training.length}
                     </div>
+                    {/* Amber badge — filter to paused only */}
                     {paused.length > 0 && (
-                      <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#F5A623', color: '#0E1A2B' }}>
+                      <div
+                        onClick={e => toggleFilter('paused', e)}
+                        style={{
+                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
+                          background: '#F5A623', color: '#0E1A2B', cursor: 'pointer',
+                          outline: activeNowFilter === 'paused' ? '2px solid #fff' : 'none',
+                          outlineOffset: 1,
+                        }}
+                      >
                         {paused.length}
                       </div>
                     )}
@@ -267,7 +295,7 @@ export function TrainerDashboardScreen({
                     <div style={{ padding: '0 16px 14px', maxHeight: 320, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any }}>
 
                       {/* Training Now group */}
-                      {training.length > 0 && (
+                      {showTraining && training.length > 0 && (
                         <>
                           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981', marginBottom: 4, marginTop: 2 }}>
                             Training Now · {training.length}
@@ -282,9 +310,9 @@ export function TrainerDashboardScreen({
                       )}
 
                       {/* Paused group */}
-                      {paused.length > 0 && (
+                      {showPaused && paused.length > 0 && (
                         <>
-                          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#F5A623', marginBottom: 4, marginTop: training.length > 0 ? 12 : 2 }}>
+                          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#F5A623', marginBottom: 4, marginTop: showTraining && training.length > 0 ? 12 : 2 }}>
                             Paused · {paused.length}
                           </div>
                           {paused.slice(0, 15).map(s => (
