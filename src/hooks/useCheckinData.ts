@@ -46,12 +46,20 @@ export function useCheckinData(userId: string | undefined) {
         ai_led_blocked:    data.safety_gate?.ai_led_blocked  ?? false,
       });
     if (error) { console.error('[useCheckinData] saveCheckinV2:', error); return { error }; }
-    // Notify trainer if safety gate blocks AI-led workout
-    if (data.safety_gate?.ai_led_blocked && effectiveUserId) {
-      void supabase.from('trainer_clients').select('trainer_id').eq('client_id', effectiveUserId).eq('status', 'active').maybeSingle()
-        .then(({ data: tc }) => {
-          if (tc?.trainer_id) void notify(tc.trainer_id, 'Safety Gate activated', 'A client check-in requires human review', '/dashboard');
-        });
+    // Notify trainer if safety gate blocks or warns about AI-led workout
+    if (data.safety_gate && effectiveUserId) {
+      const blocked = data.safety_gate.ai_led_blocked;
+      const score   = data.safety_gate.readiness_score;
+      if (blocked || (typeof score === 'number' && score < 55)) {
+        const title = blocked ? 'Safety Gate blocked' : 'Low readiness alert';
+        const body  = blocked
+          ? 'A client check-in requires human review'
+          : `Client scored ${score}/100. Review recommended.`;
+        void supabase.from('trainer_clients').select('trainer_id').eq('client_id', effectiveUserId).eq('status', 'active').maybeSingle()
+          .then(({ data: tc }) => {
+            if (tc?.trainer_id) void notify(tc.trainer_id, title, body, '/dashboard');
+          });
+      }
     }
 
     void emitEvent(effectiveUserId, 'checkin_submitted', 'checkin_prontidao', undefined, { variant: data.variant });
