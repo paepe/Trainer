@@ -267,20 +267,44 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
       <ScreenTitle dark={dark}>Start Workout</ScreenTitle>
 
       <div style={{ padding: '0 22px 16px' }}>
-        <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden' }}>
-          <PhotoSlot label="" w="100%" h={170} radius={18} dark/>
+        <div style={{
+          borderRadius: 18, padding: '16px 18px',
+          background: dark ? '#0F1E30' : '#f4f8fd',
+          border: `1.5px solid ${t.primary}33`,
+          display: 'flex', alignItems: 'center', gap: 14,
+        }}>
+          {/* Trainer avatar */}
           <div style={{
-            position: 'absolute', left: 0, right: 0, bottom: 0,
-            padding: 18, color: '#fff',
-            background: 'linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.6))',
+            width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+            background: `${t.primary}1A`, border: `1.5px solid ${t.primary}44`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 700, fontSize: 18, fontFamily: '"Plus Jakarta Sans",sans-serif',
+            color: t.primary,
           }}>
+            {planSource === 'trainer' && trainerName
+              ? trainerName.charAt(0).toUpperCase()
+              : '✦'}
+          </div>
+
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+              <div style={{
+                padding: '2px 8px', borderRadius: 999, fontSize: 9, fontWeight: 700,
+                letterSpacing: '.07em', textTransform: 'uppercase',
+                background: `${t.primary}22`, color: t.primary,
+              }}>
+                {planSource === 'trainer' ? 'Your Trainer' : 'AI Plan'}
+              </div>
+            </div>
             <div style={{
-              display: 'inline-block', padding: '3px 8px', borderRadius: 6,
-              background: t.accent, color: '#fff', fontSize: 9.5, fontWeight: 700, letterSpacing: '.05em',
-              marginBottom: 6,
-            }}>YOUR TRAINER</div>
-            <div style={{ fontSize: 19, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>{planSource === 'trainer' ? 'Trainer\'s Plan' : 'AI-Powered Plan'}</div>
-            <div style={{ fontSize: 12, opacity: .82, marginTop: 2 }}>
+              fontSize: 17, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B',
+              fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {planSource === 'trainer' ? "Trainer's Plan" : 'AI-Powered Plan'}
+            </div>
+            <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.55)' : 'rgba(14,26,43,.5)', marginTop: 2 }}>
               {planSource === 'trainer' && trainerName ? (
                 <>by {trainerName}{planSentAt ? ` · ${new Date(planSentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</>
               ) : (
