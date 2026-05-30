@@ -37,6 +37,13 @@ interface SafetyGateEvent {
   created_at:        string | null;
 }
 
+interface ActiveSession {
+  id:          string;
+  user_id:     string;
+  status:      string | null;
+  started_at:  string | null;
+}
+
 interface TrainerDashboardUser {
   id:    string;
   name?: string;
@@ -68,6 +75,7 @@ export function TrainerDashboardScreen({
   const [inviting, setInviting]         = React.useState(false);
   const [pendingReviews, setPendingReviews] = React.useState<SafetyGateEvent[]>([]);
   const [reviewingId, setReviewingId]   = React.useState<string | null>(null);
+  const [activeSessions, setActiveSessions] = React.useState<ActiveSession[]>([]);
 
   React.useEffect(() => {
     if (!user?.id) {
@@ -77,7 +85,30 @@ export function TrainerDashboardScreen({
     fetchClients();
   }, [user?.id]);
 
-  // Fetch safety gate queue whenever clients list changes — merged into fetchClients below
+  // Realtime subscription for active sessions
+  React.useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel('trainer-active-sessions')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'workout_sessions' },
+        () => {
+          const clientIds = clients.filter(c => c.status === 'active' && c.client?.id).map(c => c.client!.id);
+          if (clientIds.length === 0) { setActiveSessions([]); return; }
+          supabase
+            .from('workout_sessions')
+            .select('id, user_id, status, started_at')
+            .in('user_id', clientIds)
+            .in('status', ['active', 'paused'])
+            .order('started_at', { ascending: false })
+            .then(({ data }) => setActiveSessions((data ?? []) as ActiveSession[]));
+        }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [user?.id, clients]);
+
   const fetchSafetyGate = React.useCallback((clientIds: string[]) => {
     if (clientIds.length === 0) { setPendingReviews([]); return; }
     supabase
@@ -108,6 +139,17 @@ export function TrainerDashboardScreen({
       if (c.status === 'active' && c.client?.id) ids.push(c.client.id);
     }
     fetchSafetyGate(ids);
+
+    // Fetch active sessions for these clients
+    if (ids.length > 0) {
+      const { data: sessions } = await supabase
+        .from('workout_sessions')
+        .select('id, user_id, status, started_at')
+        .in('user_id', ids)
+        .in('status', ['active', 'paused'])
+        .order('started_at', { ascending: false });
+      setActiveSessions(sessions as ActiveSession[]);
+    }
 
     setLoading(false);
   }
@@ -178,6 +220,49 @@ export function TrainerDashboardScreen({
         {loading && (
           <div style={{ textAlign: 'center', padding: 40, color: textMute(dark), fontSize: 13 }}>
             Loading…
+          </div>
+        )}
+
+        {/* Active Now */}
+        {!loading && activeSessions.length > 0 && (
+          <div style={{
+            padding: '14px 16px', borderRadius: 16,
+            background: '#10B9810D', border: '1.5px solid #10B98133',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <div style={{
+                width: 8, height: 8, borderRadius: '50%', background: '#10B981',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}/>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981' }}>
+                Active Now
+              </div>
+              <div style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
+                background: '#10B981', color: '#0E1A2B',
+              }}>
+                {activeSessions.length}
+              </div>
+            </div>
+            {activeSessions.map(s => (
+              <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                  background: s.status === 'paused' ? '#F5A623' : '#10B981',
+                  boxShadow: s.status === 'paused' ? '0 0 6px #F5A62388' : '0 0 6px #10B98188',
+                }}/>
+                <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
+                  {clientNameMap[s.user_id] ?? 'Client'}
+                </span>
+                <span style={{
+                  fontSize: 10, fontWeight: 600, marginLeft: 'auto', flexShrink: 0,
+                  color: s.status === 'paused' ? '#F5A623' : '#10B981',
+                }}>
+                  {s.status === 'paused' ? 'Paused' : 'Training'}
+                </span>
+              </div>
+            ))}
+            <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }`}</style>
           </div>
         )}
 
