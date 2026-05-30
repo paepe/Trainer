@@ -1,15 +1,16 @@
 import React from 'react';
 import { getApps, initializeApp } from 'firebase/app';
-import { getMessaging, getToken } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { supabase } from '../supabase';
 
 type PushStatus = 'idle' | 'requesting' | 'denied' | 'registered' | 'error';
 
 interface UsePushNotificationsReturn {
-  status:       PushStatus;
-  permission:   NotificationPermission;
-  request:      () => Promise<boolean>;
-  registerToken: (userId: string) => Promise<void>;
+  status:          PushStatus;
+  permission:      NotificationPermission;
+  request:         () => Promise<boolean>;
+  registerToken:   (userId: string) => Promise<void>;
+  listenForeground: (cb: (title: string, body: string) => void) => () => void;
 }
 
 const FCM_CONFIG = {
@@ -33,55 +34,38 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
   const request = React.useCallback(async (): Promise<boolean> => {
     if (typeof Notification === 'undefined') {
-      console.warn('[push] Notification API not available');
       setStatus('denied');
       return false;
     }
     setStatus('requesting');
     const result = await Notification.requestPermission();
     setPermission(result);
-    if (result === 'granted') {
-      console.log('[push] Notification permission granted');
-      return true;
-    }
+    if (result === 'granted') return true;
     setStatus('denied');
-    console.warn('[push] Notification permission denied:', result);
     return false;
   }, []);
 
   const registerToken = React.useCallback(async (userId: string) => {
     const currentPerm = typeof Notification !== 'undefined' ? Notification.permission : 'denied';
-    if (currentPerm !== 'granted' || typeof navigator === 'undefined') {
-      console.warn('[push] Cannot register — permission:', currentPerm);
-      return;
-    }
+    if (currentPerm !== 'granted' || typeof navigator === 'undefined') return;
 
     try {
-      console.log('[push] Registering service worker...');
       const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
       await navigator.serviceWorker.ready;
-      console.log('[push] Service worker ready');
 
-      const app = getOrInitApp();
+      const app      = getOrInitApp();
       const messaging = getMessaging(app);
-      const vapidKey = import.meta.env.VITE_FCM_VAPID_KEY || '';
-      console.log('[push] Getting FCM token...');
+      const vapidKey  = import.meta.env.VITE_FCM_VAPID_KEY || '';
 
-      const token = await getToken(messaging, {
-        vapidKey,
-        serviceWorkerRegistration: reg,
-      });
+      const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: reg });
 
       if (token) {
-        console.log('[push] Token obtained, saving to DB...');
         await (supabase.from('device_tokens' as any) as any).upsert(
           { user_id: userId, token, platform: 'web' },
           { onConflict: 'user_id,token' }
         );
-        console.log('[push] Token registered successfully');
         setStatus('registered');
       } else {
-        console.warn('[push] No token returned from FCM');
         setStatus('error');
       }
     } catch (err) {
@@ -90,5 +74,22 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     }
   }, []);
 
-  return { status, permission, request, registerToken };
+  const listenForeground = React.useCallback(
+    (cb: (title: string, body: string) => void): (() => void) => {
+      try {
+        const messaging = getMessaging(getOrInitApp());
+        return onMessage(messaging, (payload) => {
+          cb(
+            payload.notification?.title || 'TrAIner',
+            payload.notification?.body  || ''
+          );
+        });
+      } catch {
+        return () => {};
+      }
+    },
+    []
+  );
+
+  return { status, permission, request, registerToken, listenForeground };
 }

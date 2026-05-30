@@ -152,7 +152,7 @@ export default function App() {
     }
   }, [profile?.id, fetchCycleConfig, fetchPreferences, saveProfileV2, fetchProfileV2]);
 
-  // Push notification — request permission and register device token on login
+  // Push notification — request permission, register token, and listen for foreground messages
   const push = usePushNotifications();
   const pushInitRef = React.useRef(false);
   React.useEffect(() => {
@@ -161,6 +161,18 @@ export default function App() {
     pushInitRef.current = true;
     push.request().then(granted => { if (granted) push.registerToken(profile.id); });
   }, [profile?.id, prefs.notifications, push]);
+
+  const [fgNotif, setFgNotif] = React.useState<{ title: string; body: string } | null>(null);
+  const fgTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => {
+    if (push.status !== 'registered') return;
+    const unsub = push.listenForeground((title, body) => {
+      setFgNotif({ title, body });
+      if (fgTimerRef.current) clearTimeout(fgTimerRef.current);
+      fgTimerRef.current = setTimeout(() => setFgNotif(null), 5000);
+    });
+    return () => { unsub(); if (fgTimerRef.current) clearTimeout(fgTimerRef.current); };
+  }, [push.status, push.listenForeground]);
 
   // Redirect to welcome when session ends
   React.useEffect(() => {
@@ -435,6 +447,33 @@ export default function App() {
         nav={(s) => { setMenuOpen(false); if (s && s !== 'menu') setScreen(s); }}
         t={t} user={user} current={screen} setUser={handleSetUser} role={profile?.role}
       />
+
+      {fgNotif && (
+        <div style={{
+          position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 9999, maxWidth: 380, width: 'calc(100% - 32px)',
+          background: dark ? '#1A2A40' : '#fff',
+          border: `1px solid ${BRAND.primary}`,
+          borderRadius: 14, padding: '14px 16px',
+          boxShadow: '0 8px 32px rgba(0,0,0,.35)',
+          display: 'flex', alignItems: 'flex-start', gap: 12,
+          animation: 'slideDown .25s ease',
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3, color: dark ? '#fff' : '#102236' }}>
+              {fgNotif.title}
+            </div>
+            <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.65)' : '#546a7e', lineHeight: 1.4 }}>
+              {fgNotif.body}
+            </div>
+          </div>
+          <button
+            onClick={() => setFgNotif(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: dark ? 'rgba(255,255,255,.4)' : '#9aacbc', fontSize: 20, lineHeight: 1, padding: 0, marginTop: -2 }}
+          >×</button>
+        </div>
+      )}
+      <style>{`@keyframes slideDown { from { opacity:0; transform:translateX(-50%) translateY(-12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }`}</style>
     </div>
   );
 }
