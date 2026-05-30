@@ -231,57 +231,75 @@ export function TrainerDashboardScreen({
             background: '#10B9810D', border: '1.5px solid #10B98133',
           }}>
             {/* Header — always visible, click to toggle */}
-            <button
-              onClick={() => setActiveNowOpen(o => !o)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer',
-              }}
-            >
-              <div style={{
-                width: 8, height: 8, borderRadius: '50%', background: '#10B981', flexShrink: 0,
-                animation: 'pulse 1.5s ease-in-out infinite',
-              }}/>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981' }}>
-                Active Now
-              </div>
-              <div style={{
-                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-                background: '#10B981', color: '#0E1A2B',
-              }}>
-                {activeSessions.length}
-              </div>
-              <div style={{ marginLeft: 'auto', color: '#10B981', fontSize: 12, fontWeight: 700 }}>
-                {activeNowOpen ? '▲' : '▼'}
-              </div>
-            </button>
-
-            {/* Expandable list — capped at 10, scrollable */}
-            {activeNowOpen && (
-              <div style={{
-                padding: '0 16px 14px',
-                maxHeight: 264, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any,
-              }}>
-                {activeSessions.slice(0, 15).map(s => (
-                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+            {(() => {
+              const training = activeSessions.filter(s => s.status !== 'paused');
+              const paused   = activeSessions.filter(s => s.status === 'paused');
+              return (
+                <>
+                  <button
+                    onClick={() => setActiveNowOpen(o => !o)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer',
+                    }}
+                  >
                     <div style={{
-                      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                      background: s.status === 'paused' ? '#F5A623' : '#10B981',
-                      boxShadow: s.status === 'paused' ? '0 0 6px #F5A62388' : '0 0 6px #10B98188',
+                      width: 8, height: 8, borderRadius: '50%', background: '#10B981', flexShrink: 0,
+                      animation: 'pulse 1.5s ease-in-out infinite',
                     }}/>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
-                      {clientNameMap[s.user_id] ?? 'Client'}
-                    </span>
-                    <span style={{
-                      fontSize: 10, fontWeight: 600, marginLeft: 'auto', flexShrink: 0,
-                      color: s.status === 'paused' ? '#F5A623' : '#10B981',
-                    }}>
-                      {s.status === 'paused' ? 'Paused' : 'Training'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981' }}>
+                      Live Sessions
+                    </div>
+                    <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#10B981', color: '#0E1A2B' }}>
+                      {training.length}
+                    </div>
+                    {paused.length > 0 && (
+                      <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#F5A623', color: '#0E1A2B' }}>
+                        {paused.length}
+                      </div>
+                    )}
+                    <div style={{ marginLeft: 'auto', color: '#10B981', fontSize: 12, fontWeight: 700 }}>
+                      {activeNowOpen ? '▲' : '▼'}
+                    </div>
+                  </button>
+
+                  {activeNowOpen && (
+                    <div style={{ padding: '0 16px 14px', maxHeight: 320, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any }}>
+
+                      {/* Training Now group */}
+                      {training.length > 0 && (
+                        <>
+                          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981', marginBottom: 4, marginTop: 2 }}>
+                            Training Now · {training.length}
+                          </div>
+                          {training.slice(0, 15).map(s => (
+                            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0' }}>
+                              <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: '#10B981', boxShadow: '0 0 6px #10B98188' }}/>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{clientNameMap[s.user_id] ?? 'Client'}</span>
+                            </div>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Paused group */}
+                      {paused.length > 0 && (
+                        <>
+                          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#F5A623', marginBottom: 4, marginTop: training.length > 0 ? 12 : 2 }}>
+                            Paused · {paused.length}
+                          </div>
+                          {paused.slice(0, 15).map(s => (
+                            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0' }}>
+                              <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: '#F5A623', boxShadow: '0 0 6px #F5A62388' }}/>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{clientNameMap[s.user_id] ?? 'Client'}</span>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }`}</style>
           </div>
         )}
