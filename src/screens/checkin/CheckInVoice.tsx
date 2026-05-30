@@ -54,7 +54,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
     rec.onresult = (e: SpeechRecognitionEvent) => {
       let final = '';
       let inter = '';
-      for (let i = 0; i < e.results.length; i++) {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
         if (!r) continue;
         if (r.isFinal) final += r[0]?.transcript ?? '';
@@ -64,7 +64,13 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
       setInterim(inter);
     };
 
-    rec.onerror = () => setListening(false);
+    rec.onerror = (e: Event) => {
+      setListening(false);
+      const errType = (e as any).error as string | undefined;
+      if (errType === 'not-allowed')  setParseError('Microphone permission denied.');
+      else if (errType === 'no-speech') setParseError('No speech detected. Try again.');
+      else setParseError('Microphone error. Try again.');
+    };
     rec.onend   = () => { setListening(false); setInterim(''); };
 
     rec.start();
@@ -101,15 +107,17 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
         signal:  ctrl.signal,
       });
 
-      if (!res.ok) throw new Error('parse failed');
+      const json = await res.json() as { extracted?: Record<string, unknown>; error?: string };
+      if (!res.ok) throw new Error(json.error ?? 'parse failed');
 
-      const { extracted } = await res.json() as { extracted: Record<string, unknown> };
+      const { extracted } = json as { extracted: Record<string, unknown> };
       clearTimeout(timeout);
       setParseState('done');
       onSubmit({ transcript: text, ai_extracted: extracted });
-    } catch {
+    } catch (err: unknown) {
       setParseState('error');
-      setParseError('Unable to analyze. Try typing manually.');
+      const msg = err instanceof Error ? err.message : '';
+      setParseError(msg || 'Unable to analyze. Try speaking again.');
     } finally {
       clearTimeout(timeout);
     }
@@ -163,7 +171,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
         </div>
 
         <textarea
-          value={fullText}
+          value={transcript}
           onChange={e => { setTranscript(e.target.value); setInterim(''); }}
           placeholder="Tap the microphone and describe how you're feeling today. You can talk about sleep, energy, pain, fatigue, available time, where you'll train…"
           style={{
@@ -236,6 +244,14 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
 
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {parseState === 'error' && (
+          <button
+            onClick={() => { setParseState('idle'); setParseError(''); }}
+            style={{ ...outlineBtn(primary), padding: '15px 20px' }}
+          >
+            Try again
+          </button>
+        )}
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}

@@ -88,6 +88,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const match = raw.match(/\{[\s\S]*\}/);
     const extracted = match ? JSON.parse(match[0]) : {};
 
+    if (Object.keys(extracted).length === 0) {
+      console.warn('[parse-voice] extracted empty — transcript may be too ambiguous:', transcript);
+      res.status(422).json({ error: 'Could not extract health data from the transcript. Try speaking more clearly.' });
+      return;
+    }
+
     res.status(200).json({ extracted });
   } catch (err: unknown) {
     if ((err as Error)?.name === 'AbortError') {
