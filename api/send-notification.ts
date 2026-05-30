@@ -1,5 +1,6 @@
 // POST /api/send-notification
 // Sends a push notification via Firebase Cloud Messaging v1 API.
+// Uses google-auth-library for OAuth2 token (lightweight, ~2MB).
 // Body: { userId: string, title: string, body: string, url?: string }
 
 export default async function handler(req: any, res: any) {
@@ -13,24 +14,21 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // Lazy-require firebase-admin (avoids import crash if module missing)
-    let admin: any;
-    try { admin = require('firebase-admin'); } catch { 
-      try { admin = require('firebase-admin'); } catch {
-        return res.status(500).json({ error: 'firebase-admin not available' });
-      }
+    // Get OAuth2 access token via google-auth-library
+    const { JWT } = require('google-auth-library');
+    const client = new JWT({
+      email:        process.env.FCM_CLIENT_EMAIL,
+      key:          (process.env.FCM_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+      scopes:       ['https://www.googleapis.com/auth/firebase.messaging'],
+    });
+
+    const tokenRes = await client.authorize();
+    const accessToken = tokenRes?.access_token;
+    if (!accessToken) {
+      return res.status(500).json({ error: 'Failed to obtain access token' });
     }
 
-    if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId:   process.env.FCM_PROJECT_ID,
-          clientEmail: process.env.FCM_CLIENT_EMAIL,
-          privateKey:  (process.env.FCM_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-        }),
-      });
-    }
-
+    const projectId  = process.env.FCM_PROJECT_ID;
     const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
     const anonKey     = process.env.VITE_SUPABASE_ANON_KEY || '';
 
@@ -44,17 +42,26 @@ export default async function handler(req: any, res: any) {
     const tokens = ((await tokensRes.json()) as { token: string }[]).map((t: any) => t.token);
     if (tokens.length === 0) return res.status(200).json({ sent: 0, failed: 0 });
 
-    const messaging = admin.apps[0].messaging();
+    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
     let sent = 0, failed = 0;
 
     for (const token of tokens) {
       try {
-        await messaging.send({
-          token,
-          notification: { title, body },
-          webpush: { fcmOptions: { link: url || '/' } },
+        const pushRes = await fetch(fcmUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            message: {
+              token,
+              notification: { title, body },
+              data: { url: url || '/' },
+            },
+          }),
         });
-        sent++;
+        if (pushRes.ok) sent++; else failed++;
       } catch { failed++; }
     }
 
