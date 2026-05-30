@@ -8,7 +8,7 @@ interface MutateResult { error: unknown }
 
 const toJson = (v: unknown): Json | null => v != null ? v as unknown as Json : null;
 
-export function useCheckinData(userId: string | undefined) {
+export function useCheckinData(userId: string | undefined, alertsEnabled = true) {
 
   async function saveCheckinV2(data: {
     variant:            CheckInVariant;
@@ -50,7 +50,7 @@ export function useCheckinData(userId: string | undefined) {
     if (data.safety_gate && effectiveUserId) {
       const blocked = data.safety_gate.ai_led_blocked;
       const score   = data.safety_gate.readiness_score;
-      if (blocked || (typeof score === 'number' && score < 55)) {
+      if (alertsEnabled && (blocked || (typeof score === 'number' && score < 55))) {
         const title = blocked ? 'Safety Gate blocked' : 'Low readiness alert';
         const body  = blocked
           ? 'A client check-in requires human review'

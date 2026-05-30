@@ -3,6 +3,7 @@ import { BRAND } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { useData } from './hooks/useData';
 import { usePushNotifications } from './hooks/usePushNotifications';
+import { vibrate } from './lib/haptics';
 import {
   WelcomeScreen, LoginScreen, RegisterScreen, ProfileWizardScreen,
   CheckInProntidaoScreen,
@@ -58,7 +59,7 @@ export default function App() {
     saveProfileV2, fetchProfileV2, saveCheckinV2, updatePainRecurrence,
     startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
     reportWorkoutPain, completeWorkoutSession, savePostWorkoutFeedback,
-  } = useData(session?.user?.id);
+  } = useData(session?.user?.id, prefs.alerts);
 
   const [dark, setDark] = React.useState(true);
   const [cycleEnabled] = React.useState(true);
@@ -168,6 +169,7 @@ export default function App() {
     if (push.status !== 'registered') return;
     const unsub = push.listenForeground((title, body) => {
       setFgNotif({ title, body });
+      vibrate('notification');
       if (fgTimerRef.current) clearTimeout(fgTimerRef.current);
       fgTimerRef.current = setTimeout(() => setFgNotif(null), 5000);
     });
@@ -378,6 +380,7 @@ export default function App() {
           reportWorkoutPain={reportWorkoutPain}
           completeWorkoutSession={completeWorkoutSession}
           updatePainRecurrence={updatePainRecurrence}
+          sounds={prefs.sounds}
         />;
       case 'workoutSummary':     return <PostWorkoutSummaryScreen
           nav={nav} t={t} dark={dark} user={user}

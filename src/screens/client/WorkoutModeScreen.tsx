@@ -4,6 +4,8 @@ import { surfRaised, borderSubtle, textPri, textSec, textMute, primaryBtn } from
 import type { NavFn } from '../../types';
 import type { GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import type { WorkoutSessionExercise, SessionExerciseStatus } from '../../types/workout';
+import { vibrate } from '../../lib/haptics';
+import { soundSetDone, soundRestEnd, soundWorkoutDone } from '../../lib/audio';
 
 interface Theme {
   primary:     string;
@@ -43,6 +45,7 @@ interface WorkoutModeScreenProps {
   reportWorkoutPain:           (data: { session_id: string; session_exercise_id: string | null; body_region: string; intensity: number }) => Promise<{ error: unknown }>;
   completeWorkoutSession:      (data: { sessionId: string; completed_at: string; total_duration_min: number; notes?: string | null }) => Promise<{ error: unknown }>;
   updatePainRecurrence:        (region: string) => Promise<{ error: unknown }>;
+  sounds?:                     boolean;
 }
 
 const PAIN_REGIONS: { value: string; label: string }[] = [
@@ -58,7 +61,10 @@ export function WorkoutModeScreen({
   nav, t, dark, user, planId, exercises, clientUserId, clientName,
   startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
   reportWorkoutPain, completeWorkoutSession, updatePainRecurrence,
+  sounds = false,
 }: WorkoutModeScreenProps) {
+  const soundsRef = React.useRef(sounds);
+  React.useEffect(() => { soundsRef.current = sounds; }, [sounds]);
   const [sessionId,  setSessionId]  = React.useState<string | null>(null);
   const [exStates,   setExStates]   = React.useState<ExState[]>([]);
   const [activeIdx,  setActiveIdx]  = React.useState(0);
@@ -123,7 +129,11 @@ export function WorkoutModeScreen({
   // ── Rest countdown ───────────────────────────────────────────────────────────
   React.useEffect(() => {
     if (phase !== 'rest') return;
-    if (restSec <= 0) { setPhase('active'); return; }
+    if (restSec <= 0) {
+      if (soundsRef.current) { soundRestEnd(); vibrate('rest_end'); }
+      setPhase('active');
+      return;
+    }
     const id = setTimeout(() => setRestSec(r => r - 1), 1000);
     return () => clearTimeout(id);
   }, [phase, restSec]);
@@ -176,6 +186,8 @@ export function WorkoutModeScreen({
         rpe:                 setRpe,
       });
     }
+
+    if (soundsRef.current) { soundSetDone(); vibrate('set_done'); }
 
     if (newSets >= activeEx.setsPrescribed) {
       updateEx(activeIdx, { setsLogged: newSets, status: 'completed' });
@@ -246,6 +258,7 @@ export function WorkoutModeScreen({
       });
     }
 
+    if (soundsRef.current) { soundWorkoutDone(); vibrate('workout_done'); }
     nav('workoutSummary', { sessionId, durationMin, completedCount: completedCnt, total: exStates.length, totalSets, startedAt: startedAt.toISOString() });
   };
 
