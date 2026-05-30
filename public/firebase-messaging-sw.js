@@ -6,12 +6,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey:            'AIzaSyDummyKey-ReplaceWithYourFirebaseConfig',
-  authDomain:        'trainer-app.firebaseapp.com',
-  projectId:         'trainer-app',
-  storageBucket:     'trainer-app.appspot.com',
-  messagingSenderId: '000000000000',
-  appId:             '1:000000000000:web:0000000000000000000000',
+  apiKey:            'AIzaSyAY3QqwsYR8kETNhYzhzlQHNMQh2HeATuI',
+  authDomain:        'trainer-project-4b620.firebaseapp.com',
+  projectId:         'trainer-project-4b620',
+  storageBucket:     'trainer-project-4b620.firebasestorage.app',
+  messagingSenderId: '297201529100',
+  appId:             '1:297201529100:web:a395312127e39dbb2b1929',
 });
 
 const messaging = firebase.messaging();
