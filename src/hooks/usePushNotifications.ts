@@ -1,5 +1,5 @@
 import React from 'react';
-import { initializeApp } from 'firebase/app';
+import { getApps, initializeApp } from 'firebase/app';
 import { getMessaging, getToken } from 'firebase/messaging';
 import { supabase } from '../supabase';
 
@@ -10,6 +10,19 @@ interface UsePushNotificationsReturn {
   permission:   NotificationPermission;
   request:      () => Promise<boolean>;
   registerToken: (userId: string) => Promise<void>;
+}
+
+const FCM_CONFIG = {
+  apiKey:            import.meta.env.VITE_FCM_API_KEY            || '',
+  authDomain:        import.meta.env.VITE_FCM_AUTH_DOMAIN        || '',
+  projectId:         import.meta.env.VITE_FCM_PROJECT_ID         || '',
+  storageBucket:     import.meta.env.VITE_FCM_STORAGE_BUCKET     || '',
+  messagingSenderId: import.meta.env.VITE_FCM_MESSAGING_SENDER_ID || '',
+  appId:             import.meta.env.VITE_FCM_APP_ID             || '',
+};
+
+function getOrInitApp() {
+  return getApps().length ? getApps()[0] : initializeApp(FCM_CONFIG);
 }
 
 export function usePushNotifications(): UsePushNotificationsReturn {
@@ -49,16 +62,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       await navigator.serviceWorker.ready;
       console.log('[push] Service worker ready');
 
-      console.log('[push] Initializing Firebase...');
-      const app = initializeApp({
-        apiKey:            import.meta.env.VITE_FCM_API_KEY            || '',
-        authDomain:        import.meta.env.VITE_FCM_AUTH_DOMAIN        || '',
-        projectId:         import.meta.env.VITE_FCM_PROJECT_ID         || '',
-        storageBucket:     import.meta.env.VITE_FCM_STORAGE_BUCKET     || '',
-        messagingSenderId: import.meta.env.VITE_FCM_MESSAGING_SENDER_ID || '',
-        appId:             import.meta.env.VITE_FCM_APP_ID             || '',
-      });
-
+      const app = getOrInitApp();
       const messaging = getMessaging(app);
       const vapidKey = import.meta.env.VITE_FCM_VAPID_KEY || '';
       console.log('[push] Getting FCM token...');

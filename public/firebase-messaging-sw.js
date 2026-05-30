@@ -22,7 +22,7 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(title || 'TrAIner', {
     body: body || '',
-    icon: '/icon-192.png',
+    icon: '/assets/trainer-logo-circle.png',
     data: { url },
   });
 });

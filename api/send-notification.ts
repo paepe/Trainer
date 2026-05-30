@@ -12,8 +12,8 @@ export default async function handler(req: any, res: any) {
     // OAuth2 access token via service account
     const { JWT } = await import('google-auth-library');
     const client = new JWT({
-      email:  process.env.FCM_CLIENT_EMAIL,
-      key:    process.env.FCM_PRIVATE_KEY || '',
+      email:  process.env.FCM_CLIENT_EMAIL || '',
+      key:    (process.env.FCM_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
       scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
     });
     const auth = await client.authorize();
@@ -23,11 +23,13 @@ export default async function handler(req: any, res: any) {
     // FCM v1 endpoint
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${process.env.FCM_PROJECT_ID}/messages:send`;
 
-    // Get device tokens from Supabase
+    // Get device tokens via SECURITY DEFINER RPC (bypasses RLS safely)
     const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
     const anonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-    const tokensRes = await fetch(`${supabaseUrl}/rest/v1/device_tokens?select=token&user_id=eq.${userId}`, {
-      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+    const tokensRes = await fetch(`${supabaseUrl}/rest/v1/rpc/get_device_tokens`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+      body: JSON.stringify({ uid: userId }),
     });
     if (!tokensRes.ok) return res.status(200).json({ sent: 0, failed: 0 });
     const tokens = ((await tokensRes.json()) as { token: string }[]).map((t: any) => t.token);

@@ -117,5 +117,6 @@ server.listen(PORT, () => {
   console.log('  POST /api/generate-workout');
   console.log('  POST /api/generate-amplified');
   console.log('  POST /api/parse-voice');
+  console.log('  POST /api/send-notification');
   console.log('\n[api-server] Now run "npm run dev" in another terminal.\n');
 });
