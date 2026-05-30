@@ -212,6 +212,17 @@ export function TrainerDashboardScreen({
     return map;
   }, [clients]);
 
+  // Derive per-client session status: 'active' wins over 'paused' if multiple sessions exist
+  const sessionStatusMap = React.useMemo(() => {
+    const map: Record<string, 'active' | 'paused'> = {};
+    for (const s of activeSessions) {
+      if (!map[s.user_id] || s.status !== 'paused') {
+        map[s.user_id] = s.status === 'paused' ? 'paused' : 'active';
+      }
+    }
+    return map;
+  }, [activeSessions]);
+
   return (
     <>
       <ScreenTitle dark={dark} sub={`${activeClients.length} active · ${pendingClients.length} pending`}>
@@ -225,112 +236,7 @@ export function TrainerDashboardScreen({
           </div>
         )}
 
-        {/* Active Now — collapsible */}
-        {!loading && activeSessions.length > 0 && (
-          <div style={{
-            borderRadius: 16,
-            background: '#10B9810D', border: '1.5px solid #10B98133',
-          }}>
-            {/* Header — always visible, click to toggle */}
-            {(() => {
-              const training = activeSessions.filter(s => s.status !== 'paused');
-              const paused   = activeSessions.filter(s => s.status === 'paused');
-              const showTraining = activeNowFilter !== 'paused';
-              const showPaused   = activeNowFilter !== 'training';
-
-              const toggleFilter = (f: 'training' | 'paused', e: React.MouseEvent) => {
-                e.stopPropagation();
-                setActiveNowFilter(cur => cur === f ? 'all' : f);
-                if (!activeNowOpen) setActiveNowOpen(true);
-              };
-
-              return (
-                <>
-                  <button
-                    onClick={() => setActiveNowOpen(o => !o)}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer',
-                    }}
-                  >
-                    <div style={{
-                      width: 8, height: 8, borderRadius: '50%', background: '#10B981', flexShrink: 0,
-                      animation: 'pulse 1.5s ease-in-out infinite',
-                    }}/>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981' }}>
-                      Live Sessions
-                    </div>
-                    {/* Green badge — filter to training only */}
-                    <div
-                      onClick={e => toggleFilter('training', e)}
-                      style={{
-                        fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-                        background: '#10B981', color: '#0E1A2B', cursor: 'pointer',
-                        outline: activeNowFilter === 'training' ? '2px solid #fff' : 'none',
-                        outlineOffset: 1,
-                      }}
-                    >
-                      {training.length}
-                    </div>
-                    {/* Amber badge — filter to paused only */}
-                    {paused.length > 0 && (
-                      <div
-                        onClick={e => toggleFilter('paused', e)}
-                        style={{
-                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-                          background: '#F5A623', color: '#0E1A2B', cursor: 'pointer',
-                          outline: activeNowFilter === 'paused' ? '2px solid #fff' : 'none',
-                          outlineOffset: 1,
-                        }}
-                      >
-                        {paused.length}
-                      </div>
-                    )}
-                    <div style={{ marginLeft: 'auto', color: '#10B981', fontSize: 12, fontWeight: 700 }}>
-                      {activeNowOpen ? '▲' : '▼'}
-                    </div>
-                  </button>
-
-                  {activeNowOpen && (
-                    <div style={{ padding: '0 16px 14px', maxHeight: 320, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any }}>
-
-                      {/* Training Now group */}
-                      {showTraining && training.length > 0 && (
-                        <>
-                          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#10B981', marginBottom: 4, marginTop: 2 }}>
-                            Training Now · {training.length}
-                          </div>
-                          {training.slice(0, 15).map(s => (
-                            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0' }}>
-                              <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: '#10B981', boxShadow: '0 0 6px #10B98188' }}/>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{clientNameMap[s.user_id] ?? 'Client'}</span>
-                            </div>
-                          ))}
-                        </>
-                      )}
-
-                      {/* Paused group */}
-                      {showPaused && paused.length > 0 && (
-                        <>
-                          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#F5A623', marginBottom: 4, marginTop: showTraining && training.length > 0 ? 12 : 2 }}>
-                            Paused · {paused.length}
-                          </div>
-                          {paused.slice(0, 15).map(s => (
-                            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0' }}>
-                              <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: '#F5A623', boxShadow: '0 0 6px #F5A62388' }}/>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{clientNameMap[s.user_id] ?? 'Client'}</span>
-                            </div>
-                          ))}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-            <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }`}</style>
-          </div>
-        )}
+        <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }`}</style>
 
         {/* Safety Gate review queue */}
         {!loading && pendingReviews.length > 0 && (
@@ -474,16 +380,38 @@ export function TrainerDashboardScreen({
                 Pending
               </div>
             ) : (
-              <button
-                onClick={() => tc.client && selectClient && selectClient(tc.client)}
-                style={{
-                  padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                  background: `${t.primary}22`, color: t.primary,
-                  border: 'none', fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0,
-                }}
-              >
-                View →
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                {tc.client?.id && sessionStatusMap[tc.client.id] === 'active' && (
+                  <div style={{
+                    padding: '4px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                    background: '#10B98122', color: '#10B981', letterSpacing: '.05em', textTransform: 'uppercase',
+                    display: 'flex', alignItems: 'center', gap: 5,
+                  }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse 1.5s ease-in-out infinite' }}/>
+                    Training
+                  </div>
+                )}
+                {tc.client?.id && sessionStatusMap[tc.client.id] === 'paused' && (
+                  <div style={{
+                    padding: '4px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                    background: '#F5A62322', color: '#F5A623', letterSpacing: '.05em', textTransform: 'uppercase',
+                    display: 'flex', alignItems: 'center', gap: 5,
+                  }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F5A623' }}/>
+                    Paused
+                  </div>
+                )}
+                <button
+                  onClick={() => tc.client && selectClient && selectClient(tc.client)}
+                  style={{
+                    padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
+                    background: `${t.primary}22`, color: t.primary,
+                    border: 'none', fontFamily: 'inherit', cursor: 'pointer',
+                  }}
+                >
+                  View →
+                </button>
+              </div>
             )}
           </div>
         ))}
