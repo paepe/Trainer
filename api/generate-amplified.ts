@@ -3,14 +3,14 @@
 // Output: { narrative: string; training_profile: object; risk_level: string }
 // Uses DeepSeek to generate an AI-enriched Perfil Ampliado from the completed wizard data.
 
-const SYSTEM_PROMPT = `You are an expert sports science AI for a Brazilian personal training platform called TrAIner.
+const SYSTEM_PROMPT = `You are an expert sports science AI for a personal training platform called TrAIner.
 You receive a structured profile of a fitness client in JSON and must generate:
-1. A "narrative" (2-3 sentences in Portuguese) summarising the client's trainability, safety considerations, and key opportunities.
+1. A "narrative" (2-3 sentences in English) summarising the client's trainability, safety considerations, and key opportunities.
 2. A "training_profile" object with operational fields for the AI trainer.
 
 Return ONLY valid JSON with this exact shape:
 {
-  "narrative": "string — 2-3 sentences PT-BR",
+  "narrative": "string — 2-3 sentences in English",
   "training_profile": {
     "trainability_tier":   "beginner"|"intermediate"|"advanced",
     "priority_goal":       "string",
@@ -28,7 +28,7 @@ Rules:
 - intensity_ceiling: R0/R1 → "high", R2 → "moderate", R3/R4 → "low"
 - progression_rate: R3/R4 or emotional history → "conservative"
 - Be concise and clinical. Never mention sensitive data (medications, substance, psychiatric)
-- narrative must be in Brazilian Portuguese`;
+- narrative must be in English`;
 
 interface VercelRequest  { method?: string; body?: Record<string, unknown> }
 interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     [key: string]:      unknown;
   };
 
-  const userContent = `Client profile:\n${JSON.stringify(safeProfile, null, 2)}\n\nGenerate the Perfil Ampliado.`;
+  const userContent = `Client profile:\n${JSON.stringify(safeProfile, null, 2)}\n\nGenerate the Amplified Profile.`;
 
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 22_000);

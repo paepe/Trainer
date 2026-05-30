@@ -789,7 +789,7 @@ function TelaVoz({ data }: { data: M5Data }) {
     if (!SR) { setNoSupport(true); return; }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rec = new SR() as any;
-    rec.lang = 'pt-BR';
+    rec.lang = 'en-US';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     rec.start();

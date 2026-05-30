@@ -340,7 +340,7 @@ export function TrainerClientDetailScreen({
                       {/* Date */}
                       <div style={{ fontSize: 8, color: textMute(dark), textAlign: 'center' }}>
                         {r.occurred_at
-                          ? new Date(r.occurred_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+                          ? new Date(r.occurred_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' })
                           : '—'}
                       </div>
                       {/* Voice badge */}
@@ -385,7 +385,7 @@ export function TrainerClientDetailScreen({
                 display: 'flex', gap: 12,
               }}>
                 <div style={{ fontSize: 10, color: textMute(dark), minWidth: 72, paddingTop: 2 }}>
-                  {r.occurred_at ? new Date(r.occurred_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '—'}
+                  {r.occurred_at ? new Date(r.occurred_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }) : '—'}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>

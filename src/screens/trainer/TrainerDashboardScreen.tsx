@@ -307,7 +307,7 @@ export function TrainerDashboardScreen({
                   </div>
                   {ev.created_at && (
                     <div style={{ fontSize: 10, color: textMute(dark), marginTop: 2 }}>
-                      {new Date(ev.created_at).toLocaleDateString('pt-BR')}
+                      {new Date(ev.created_at).toLocaleDateString('en-US')}
                     </div>
                   )}
                 </div>
@@ -555,7 +555,7 @@ function AlertsSection({
                 <div style={{ fontSize: 11.5, color: textSec(dark), marginTop: 2 }}>{alert.body}</div>
               )}
               <div style={{ fontSize: 10, color: textMute(dark), marginTop: 3 }}>
-                {new Date(alert.created_at).toLocaleDateString('pt-BR')}
+                {new Date(alert.created_at).toLocaleDateString('en-US')}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
