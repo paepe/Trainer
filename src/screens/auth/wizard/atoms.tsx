@@ -1,9 +1,19 @@
 import React from 'react';
 import type { CSSProperties } from 'react';
 import { Icon } from '../../../components/Icon';
-import {
-  borderSubtle, surfRaised, textPri, textSec, textMute, primaryBtn, iconBtn,
-} from '../../../theme';
+import { DARK } from '../../../theme/tokens';
+
+// ── Design constants (mirrors perfil-atoms.jsx B tokens) ──────────────────────
+const navy       = DARK.bg;           // #0E1A2B
+const surf       = DARK.surface;      // #142233
+const border     = DARK.border;       // #1F2E45
+const borderSoft = DARK.borderSoft;   // #243650
+const text       = DARK.textPri;      // #FFFFFF
+const textSec    = DARK.textSec;      // rgba(255,255,255,.65)
+const textMute   = DARK.textMute;     // rgba(255,255,255,.40)
+
+const FF_DISPLAY = '"Plus Jakarta Sans","Inter",system-ui,sans-serif';
+const FF_MONO    = '"JetBrains Mono",ui-monospace,SFMono-Regular,monospace';
 
 // ── Chip ──────────────────────────────────────────────────────────────────────
 
@@ -11,29 +21,31 @@ interface ChipProps {
   label:     string;
   selected:  boolean;
   onToggle:  () => void;
-  dark:      boolean;
+  dark:      boolean;   // kept for API compat; always dark in profile wizard
   primary:   string;
   accent?:   string;
   disabled?: boolean;
 }
 
-export function Chip({ label, selected, onToggle, dark, primary, accent, disabled }: ChipProps) {
+export function Chip({ label, selected, onToggle, primary, accent, disabled }: ChipProps) {
   const color = (accent && selected) ? accent : primary;
   return (
     <button
       onClick={onToggle}
       disabled={disabled}
       style={{
-        padding: '9px 16px', borderRadius: 999,
-        background: selected ? color : surfRaised(dark),
-        color: selected ? '#0E1A2B' : textPri(dark),
-        border: `1.5px solid ${selected ? color : borderSubtle(dark)}`,
-        fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+        padding: '9px 14px', borderRadius: 999,
+        background: selected ? `${color}22` : 'transparent',
+        color: selected ? color : text,
+        border: `1.5px solid ${selected ? color : border}`,
+        fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600,
         cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.45 : 1,
-        transition: 'background .15s, border-color .15s, color .15s',
+        opacity: disabled ? 0.4 : 1,
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        transition: 'all .12s ease',
       }}
     >
+      {selected && <Icon name="check" size={12} color={color} stroke={2.5}/>}
       {label}
     </button>
   );
@@ -54,23 +66,35 @@ interface GoalCardProps {
   primary:  string;
 }
 
-export function GoalCard({ label, icon, selected, onToggle, dark, primary }: GoalCardProps) {
+export function GoalCard({ label, icon, selected, onToggle, primary }: GoalCardProps) {
   return (
     <button onClick={onToggle} style={{
-      textAlign: 'left', padding: 16, borderRadius: 16,
-      background: selected ? `${primary}18` : surfRaised(dark),
-      border: `1.5px solid ${selected ? primary : borderSubtle(dark)}`,
+      textAlign: 'left', padding: 14, borderRadius: 14,
+      background: selected ? `${primary}14` : surf,
+      border: `1.5px solid ${selected ? primary : border}`,
       fontFamily: 'inherit', cursor: 'pointer',
-      transition: 'background .15s, border-color .15s',
+      display: 'flex', alignItems: 'center', gap: 12,
+      color: text,
+      transition: 'all .12s ease',
     }}>
       <div style={{
-        width: 40, height: 40, borderRadius: 12, marginBottom: 12,
-        background: selected ? primary : `${primary}22`,
+        width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+        background: selected ? `${primary}22` : navy,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Icon name={icon} size={20} color={selected ? '#0E1A2B' : primary} stroke={2.2}/>
+        <Icon name={icon} size={18} color={selected ? primary : textSec} stroke={2}/>
       </div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), lineHeight: 1.3 }}>{label}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FF_DISPLAY, color: text, lineHeight: 1.3 }}>{label}</div>
+      </div>
+      <div style={{
+        width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+        border: `1.5px solid ${selected ? primary : borderSoft}`,
+        background: selected ? primary : 'transparent',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {selected && <Icon name="check" size={11} color={navy} stroke={2.8}/>}
+      </div>
     </button>
   );
 }
@@ -85,19 +109,19 @@ interface SegmentedRowProps {
   primary: string;
 }
 
-export function SegmentedRow({ options, value, onChange, dark, primary }: SegmentedRowProps) {
+export function SegmentedRow({ options, value, onChange, primary }: SegmentedRowProps) {
   return (
     <div style={{ display: 'flex', gap: 8 }}>
       {options.map(o => {
         const on = value === o.value;
         return (
           <button key={o.value} onClick={() => onChange(o.value)} style={{
-            flex: 1, padding: '11px 0', borderRadius: 999,
-            background: on ? primary : surfRaised(dark),
-            border: `1.5px solid ${on ? primary : borderSubtle(dark)}`,
-            color: on ? '#0E1A2B' : textSec(dark),
+            flex: 1, padding: '11px 0', borderRadius: 14,
+            background: on ? `${primary}18` : surf,
+            border: `1.5px solid ${on ? primary : border}`,
+            color: on ? primary : textSec,
             fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            transition: 'background .15s, border-color .15s, color .15s',
+            transition: 'all .12s ease',
           }}>
             {o.label}
           </button>
@@ -116,7 +140,7 @@ interface ToggleProps {
   dark:     boolean;
 }
 
-export function Toggle({ on, onChange, primary, dark }: ToggleProps) {
+export function Toggle({ on, onChange, primary }: ToggleProps) {
   return (
     <div
       onClick={() => onChange(!on)}
@@ -124,14 +148,17 @@ export function Toggle({ on, onChange, primary, dark }: ToggleProps) {
       style={{ cursor: 'pointer', flexShrink: 0 }}
     >
       <div style={{
-        width: 44, height: 26, borderRadius: 999, padding: 3,
-        background: on ? primary : (dark ? '#1F2E45' : '#D0D6DE'),
-        transition: 'background .2s',
+        width: 38, height: 22, borderRadius: 999, padding: 2,
+        background: on ? primary : border,
+        position: 'relative',
+        transition: 'background .15s',
       }}>
         <div style={{
-          width: 20, height: 20, borderRadius: '50%', background: '#fff',
-          marginLeft: on ? 18 : 0, transition: 'margin-left .2s',
-          boxShadow: '0 1px 4px rgba(0,0,0,.25)',
+          position: 'absolute', top: 2, left: on ? 18 : 2,
+          width: 18, height: 18, borderRadius: '50%',
+          background: navy,
+          transition: 'left .15s',
+          boxShadow: '0 1px 3px rgba(0,0,0,.3)',
         }}/>
       </div>
     </div>
@@ -152,15 +179,15 @@ interface SliderFieldProps {
   primary: string;
 }
 
-export function SliderField({ label, value, min, max, step = 1, unit, onChange, dark, primary }: SliderFieldProps) {
+export function SliderField({ label, value, min, max, step = 1, unit, onChange, primary }: SliderFieldProps) {
   return (
     <div>
       {label && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'baseline' }}>
-          <span style={{ fontSize: 13, color: textSec(dark) }}>{label}</span>
-          <span style={{ fontSize: 18, fontWeight: 700, color: primary, letterSpacing: '-0.02em' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, alignItems: 'baseline' }}>
+          <span style={{ fontSize: 12, color: textSec }}>{label}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: text, fontFamily: FF_MONO }}>
             {value}
-            {unit && <span style={{ fontSize: 12, color: textMute(dark), marginLeft: 3, fontWeight: 500 }}>{unit}</span>}
+            {unit && <span style={{ fontSize: 11, color: textMute, marginLeft: 2 }}>{unit}</span>}
           </span>
         </div>
       )}
@@ -169,7 +196,7 @@ export function SliderField({ label, value, min, max, step = 1, unit, onChange, 
         onChange={e => onChange(+e.target.value)}
         style={{ width: '100%', accentColor: primary, cursor: 'pointer' }}
       />
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: textMute(dark), marginTop: 3 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: textMute, fontFamily: FF_MONO, marginTop: 2 }}>
         <span>{min}{unit}</span><span>{max}{unit}</span>
       </div>
     </div>
@@ -179,36 +206,44 @@ export function SliderField({ label, value, min, max, step = 1, unit, onChange, 
 // ── FieldInput ────────────────────────────────────────────────────────────────
 
 interface FieldInputProps {
-  label:       string;
-  value:       string;
-  onChange:    (v: string) => void;
-  dark:        boolean;
-  primary:     string;
+  label:        string;
+  value:        string;
+  onChange:     (v: string) => void;
+  dark:         boolean;
+  primary:      string;
   placeholder?: string;
-  type?:       string;
-  inputMode?:  React.InputHTMLAttributes<HTMLInputElement>['inputMode'];
+  type?:        string;
+  inputMode?:   React.InputHTMLAttributes<HTMLInputElement>['inputMode'];
 }
 
-export function FieldInput({ label, value, onChange, dark, primary, placeholder, type = 'text', inputMode }: FieldInputProps) {
+export function FieldInput({ label, value, onChange, primary, placeholder, type = 'text', inputMode }: FieldInputProps) {
   const [focused, setFocused] = React.useState(false);
   return (
     <div>
-      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
+      <div style={{
+        fontSize: 11.5, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase',
+        color: textSec, marginBottom: 6,
+      }}>
         {label}
       </div>
-      <input
-        type={type} inputMode={inputMode} value={value} placeholder={placeholder}
-        onChange={e => onChange(e.target.value)}
-        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{
-          width: '100%', padding: '12px 14px', borderRadius: 12,
-          background: surfRaised(dark),
-          border: `1.5px solid ${focused ? primary : borderSubtle(dark)}`,
-          color: textPri(dark), fontSize: 15, fontFamily: 'inherit',
-          outline: 'none', boxSizing: 'border-box',
-          transition: 'border-color .15s',
-        }}
-      />
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        background: navy,
+        border: `1.5px solid ${focused ? primary : border}`,
+        borderRadius: 12, padding: '0 14px',
+        transition: 'border-color .15s',
+      }}>
+        <input
+          type={type} inputMode={inputMode} value={value} placeholder={placeholder}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          style={{
+            flex: 1, background: 'transparent', border: 'none', outline: 'none',
+            color: text, padding: '13px 0', fontSize: 14.5,
+            fontFamily: 'inherit',
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -225,12 +260,15 @@ interface TextAreaProps {
   rows?:       number;
 }
 
-export function TextArea({ label, value, onChange, dark, primary, placeholder, rows = 3 }: TextAreaProps) {
+export function TextArea({ label, value, onChange, primary, placeholder, rows = 3 }: TextAreaProps) {
   const [focused, setFocused] = React.useState(false);
   return (
     <div>
       {label && (
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
+        <div style={{
+          fontSize: 11.5, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase',
+          color: textSec, marginBottom: 6,
+        }}>
           {label}
         </div>
       )}
@@ -239,10 +277,10 @@ export function TextArea({ label, value, onChange, dark, primary, placeholder, r
         onChange={e => onChange(e.target.value)}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
         style={{
-          width: '100%', padding: '12px 14px', borderRadius: 12,
-          background: surfRaised(dark),
-          border: `1.5px solid ${focused ? primary : borderSubtle(dark)}`,
-          color: textPri(dark), fontSize: 13, fontFamily: 'inherit',
+          width: '100%', padding: '13px 14px', borderRadius: 12,
+          background: navy,
+          border: `1.5px solid ${focused ? primary : border}`,
+          color: text, fontSize: 14, fontFamily: 'inherit',
           outline: 'none', boxSizing: 'border-box', resize: 'none',
           lineHeight: 1.55, transition: 'border-color .15s',
         }}
@@ -253,11 +291,12 @@ export function TextArea({ label, value, onChange, dark, primary, placeholder, r
 
 // ── SectionLabel ──────────────────────────────────────────────────────────────
 
-export function SectionLabel({ label, dark }: { label: string; dark: boolean }) {
+export function SectionLabel({ label }: { label: string; dark: boolean }) {
   return (
     <div style={{
       fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em',
-      textTransform: 'uppercase', color: textMute(dark), marginBottom: 10,
+      textTransform: 'uppercase', color: textMute, marginBottom: 10,
+      fontFamily: FF_MONO,
     }}>
       {label}
     </div>
@@ -281,9 +320,9 @@ export function Badge({ variant }: { variant: BadgeVariant }) {
   const { bg, fg, label } = BADGE_CFG[variant];
   return (
     <span style={{
-      display: 'inline-block', padding: '2px 8px', borderRadius: 6,
+      display: 'inline-block', padding: '2px 7px', borderRadius: 4,
       background: bg, color: fg,
-      fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase',
+      fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase',
     }}>
       {label}
     </span>
@@ -299,16 +338,16 @@ interface AINoteProps {
   variant?: 'info' | 'warning';
 }
 
-export function AINote({ text, dark, primary, variant = 'info' }: AINoteProps) {
-  const border = variant === 'warning' ? '#EF5B3C' : primary;
+export function AINote({ text, primary, variant = 'info' }: AINoteProps) {
+  const accent = variant === 'warning' ? '#EF5B3C' : primary;
   return (
     <div style={{
       padding: '10px 14px', borderRadius: 12,
-      background: surfRaised(dark), borderLeft: `3px solid ${border}`,
+      background: surf, borderLeft: `3px solid ${accent}`,
       display: 'flex', gap: 10, alignItems: 'flex-start',
     }}>
-      <Icon name="sparkle" size={13} color={border} stroke={2}/>
-      <p style={{ margin: 0, fontSize: 12, color: textSec(dark), lineHeight: 1.55 }}>{text}</p>
+      <Icon name="sparkle" size={13} color={accent} stroke={2}/>
+      <p style={{ margin: 0, fontSize: 12, color: textSec, lineHeight: 1.55 }}>{text}</p>
     </div>
   );
 }
@@ -322,49 +361,39 @@ interface VoiceOptionProps {
   onClick: () => void;
 }
 
-export function VoiceOption({ dark, primary, note, onClick }: VoiceOptionProps) {
+export function VoiceOption({ primary, note, onClick }: VoiceOptionProps) {
   const [hover, setHover] = React.useState(false);
   return (
     <button
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      aria-label="Speak with the app — voice input"
+      aria-label="Voice input"
       style={{
-        width: '100%', textAlign: 'left', padding: '14px 16px', borderRadius: 14,
-        background: hover ? `${primary}12` : surfRaised(dark),
-        border: `1.5px solid ${hover ? primary : primary + '55'}`,
+        width: '100%', textAlign: 'left', padding: '12px 14px', borderRadius: 14,
+        background: hover ? `${primary}12` : navy,
+        border: `1.5px dashed ${hover ? primary : borderSoft}`,
         display: 'flex', alignItems: 'center', gap: 12,
-        fontFamily: 'inherit', cursor: 'pointer',
+        fontFamily: 'inherit', cursor: 'pointer', color: text,
         transition: 'background .15s, border-color .15s',
+        marginTop: 16,
       }}
     >
-      {/* Pulsing mic icon */}
       <div style={{
-        position: 'relative',
-        width: 40, height: 40, borderRadius: 12,
+        width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
         background: `${primary}22`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        border: `1.5px solid ${primary}55`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        {/* Mic SVG — universally recognized */}
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-          stroke={primary} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="9" y="2" width="6" height="12" rx="3"/>
-          <path d="M5 10a7 7 0 0 0 14 0"/>
-          <line x1="12" y1="19" x2="12" y2="22"/>
-          <line x1="8" y1="22" x2="16" y2="22"/>
-        </svg>
+        <Icon name="mic" size={15} color={primary} stroke={2.2}/>
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: primary, marginBottom: 2 }}>
-          🎙 Speak to the app
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: primary, marginBottom: 1 }}>
+          Speak to the app
         </div>
-        <div style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.45 }}>
-          {note ?? 'Say it in your own words — the AI organizes it before saving.'}
+        <div style={{ fontSize: 10.5, color: textMute, lineHeight: 1.4 }}>
+          {note ?? 'Voice input available on this block — AI will structure it for you.'}
         </div>
       </div>
-      {/* Arrow caret */}
       <Icon name="chevR" size={16} color={primary} stroke={2}/>
     </button>
   );
@@ -373,65 +402,77 @@ export function VoiceOption({ dark, primary, note, onClick }: VoiceOptionProps) 
 // ── WizardHeader ──────────────────────────────────────────────────────────────
 
 interface WizardHeaderProps {
-  stepNum:     number;
-  totalSteps:  number;
-  onBack:      () => void;
-  dark:        boolean;
-  primary:     string;
-  badge?:      BadgeVariant;
-  moduleNum?:  number;
-  moduleTitle?:string;
+  stepNum:      number;
+  totalSteps:   number;
+  onBack:       () => void;
+  dark:         boolean;
+  primary:      string;
+  badge?:       BadgeVariant;
+  moduleNum?:   number;
+  moduleTitle?: string;
 }
 
-export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge, moduleNum = 1, moduleTitle = 'Initial setup' }: WizardHeaderProps) {
+export function WizardHeader({ stepNum, totalSteps, onBack, primary, badge, moduleNum = 1, moduleTitle = 'Initial setup' }: WizardHeaderProps) {
+  const cyanDeep = '#0F8C85';
   return (
     <div style={{ marginBottom: 20 }}>
-      {/* Nav row: back + module tag + check badge */}
+      {/* Nav row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <button onClick={onBack} style={iconBtn(dark)}>
-          <Icon name="chevL" size={22} color={textPri(dark)}/>
-        </button>
-        <div style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '5px 10px', borderRadius: 8,
-          background: dark ? '#0B1624' : '#EDF1F7',
+        <button onClick={onBack} style={{
+          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+          background: surf, border: `1px solid ${border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', color: text,
         }}>
-          <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.09em', textTransform: 'uppercase', color: textMute(dark) }}>
+          <Icon name="chevL" size={20} color={text} stroke={2}/>
+        </button>
+
+        <div style={{
+          flex: 1, textAlign: 'center',
+          padding: '5px 10px', borderRadius: 8,
+          background: `${navy}cc`,
+        }}>
+          <span style={{
+            fontSize: 9.5, fontWeight: 700, letterSpacing: '.15em',
+            textTransform: 'uppercase', color: primary, fontFamily: FF_MONO,
+          }}>
             TRAINER · MODULE #{String(moduleNum).padStart(2, '0')} · {moduleTitle}
           </span>
         </div>
+
         <div style={{
-          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-          background: `${primary}22`, border: `1.5px solid ${primary}55`,
+          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+          background: surf, border: `1px solid ${border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon name="check" size={12} color={primary} stroke={3}/>
+          <Icon name="check" size={13} color={primary} stroke={2.5}/>
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar — gradient */}
       {stepNum > 0 && (
-        <div style={{
-          height: 3, borderRadius: 999, marginBottom: 10,
-          background: dark ? '#1F2E45' : '#E7ECF3', overflow: 'hidden',
-        }}>
+        <div style={{ height: 3, borderRadius: 2, background: border, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{
             height: '100%', width: `${(stepNum / totalSteps) * 100}%`,
-            background: primary, borderRadius: 999, transition: 'width .3s ease',
+            background: `linear-gradient(90deg, ${cyanDeep} 0%, ${primary} 100%)`,
+            borderRadius: 2, transition: 'width .35s ease',
           }}/>
         </div>
       )}
 
-      {/* BLOCO label + badge + Passo sub-label */}
+      {/* Block label */}
       {stepNum > 0 && (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-            <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>
-              BLOCK #{String(stepNum).padStart(2, '0')} / {totalSteps}
+            <span style={{
+              fontSize: 10.5, fontWeight: 700, letterSpacing: '.15em',
+              textTransform: 'uppercase', color: primary, fontFamily: FF_MONO,
+            }}>
+              BLOCK #{String(stepNum).padStart(2, '0')} / {String(totalSteps).padStart(2, '0')}
             </span>
             {badge && <Badge variant={badge}/>}
           </div>
-          <div style={{ fontSize: 11, color: textMute(dark) }}>
+          <div style={{ fontSize: 11, color: textMute, fontFamily: FF_MONO }}>
             Step {stepNum} of {totalSteps}
           </div>
         </div>
@@ -452,50 +493,47 @@ interface WizardFooterProps {
   saving?:       boolean | undefined;
 }
 
-export function WizardFooter({ onNext, nextLabel = 'Continue', nextDisabled, dark, primary, onSave, saving }: WizardFooterProps) {
+export function WizardFooter({ onNext, nextLabel = 'Continue', nextDisabled, primary, onSave, saving }: WizardFooterProps) {
   return (
     <div style={{ paddingTop: 20 }}>
-      {onSave ? (
-        <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {onSave && (
           <button
             type="button"
             onClick={onSave}
             disabled={saving}
             style={{
-              flex: 1, padding: '15px 16px', borderRadius: 14,
-              border: `1.5px solid ${primary}`,
-              background: 'transparent', color: primary,
-              fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
+              padding: '14px 18px', borderRadius: 14,
+              background: 'transparent', border: `1.5px solid ${border}`,
+              color: textSec, fontFamily: 'inherit', fontWeight: 600, fontSize: 12.5,
               cursor: saving ? 'default' : 'pointer',
               opacity: saving ? 0.6 : 1,
+              whiteSpace: 'nowrap',
               transition: 'opacity .15s',
             }}
           >
             {saving ? 'Saving…' : 'Save'}
           </button>
-          <button
-            type="button"
-            onClick={onNext}
-            disabled={nextDisabled || saving}
-            style={{
-              ...primaryBtn(primary),
-              flex: 2, marginBottom: 0,
-              opacity: (nextDisabled || saving) ? 0.5 : 1,
-            }}
-          >
-            {nextLabel} →
-          </button>
-        </div>
-      ) : (
+        )}
         <button
           type="button"
           onClick={onNext}
-          disabled={nextDisabled}
-          style={{ ...primaryBtn(primary), marginBottom: 10, opacity: nextDisabled ? 0.5 : 1 }}
+          disabled={nextDisabled || saving}
+          style={{
+            flex: 1, padding: '14px 18px', borderRadius: 14,
+            background: primary, border: 'none',
+            color: navy, fontFamily: FF_DISPLAY, fontWeight: 700, fontSize: 14,
+            cursor: (nextDisabled || saving) ? 'default' : 'pointer',
+            opacity: (nextDisabled || saving) ? 0.5 : 1,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: `0 10px 30px ${primary}33`,
+            transition: 'opacity .15s',
+          }}
         >
-          {nextLabel} →
+          {nextLabel}
+          <Icon name="chevR" size={14} color={navy} stroke={2.4}/>
         </button>
-      )}
+      </div>
     </div>
   );
 }
