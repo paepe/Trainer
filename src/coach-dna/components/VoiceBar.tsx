@@ -59,14 +59,15 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
   const SR = getSpeechRecognition();
   const supported = SR !== null;
 
+  const stop = () => {
+    recRef.current?.stop();
+    setActive(false);
+    setInterim('');
+  };
+
   const toggle = () => {
     if (!supported) return;
-    if (active) {
-      recRef.current?.stop();
-      setActive(false);
-      setInterim('');
-      return;
-    }
+    if (active) { stop(); return; }
 
     setError(null);
     const rec = new SR();
@@ -97,10 +98,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
       setActive(false);
     };
 
-    rec.onend = () => {
-      setActive(false);
-      setInterim('');
-    };
+    rec.onend = () => { setActive(false); setInterim(''); };
 
     rec.start();
     setActive(true);
@@ -113,18 +111,22 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
   if (!supported) return null;
 
   return (
-    <div style={{
-      display:      'flex',
-      alignItems:   'center',
-      gap:          12,
-      padding:      '12px 14px',
-      borderRadius: 12,
-      border:       `1.5px dashed ${active ? BRAND.accent : DARK.border}`,
-      background:   active ? `${BRAND.accent}08` : 'transparent',
-      marginBottom: 8,
-      transition:   'border-color .2s, background .2s',
-    }}>
-      {/* mic button */}
+    <div
+      onClick={active ? stop : undefined}
+      style={{
+        display:      'flex',
+        alignItems:   'center',
+        gap:          12,
+        padding:      '12px 14px',
+        borderRadius: 12,
+        border:       `1.5px dashed ${active ? BRAND.accent : DARK.border}`,
+        background:   active ? `${BRAND.accent}08` : 'transparent',
+        marginBottom: 8,
+        cursor:       active ? 'pointer' : 'default',
+        transition:   'border-color .2s, background .2s',
+      }}
+    >
+      {/* mic / stop button */}
       <div style={{ position: 'relative', flexShrink: 0 }}>
         {active && (
           <div style={{
@@ -132,10 +134,12 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
             borderRadius: '50%',
             border:       `2px solid ${BRAND.accent}`,
             animation:    'dna-pulse-ring 1.2s ease-out infinite',
+            pointerEvents: 'none',
           }}/>
         )}
         <button
-          onClick={toggle}
+          onClick={e => { e.stopPropagation(); toggle(); }}
+          title={active ? 'Parar gravação' : 'Iniciar gravação'}
           style={{
             width: 36, height: 36, borderRadius: '50%', border: 'none',
             background: active ? BRAND.accent : DARK.surface,
@@ -144,7 +148,11 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
             cursor:     'pointer', flexShrink: 0,
           }}
         >
-          <Icon name="mic" size={16} color={active ? '#fff' : DARK.textSec}/>
+          <Icon
+            name={active ? 'close' : 'mic'}
+            size={active ? 14 : 16}
+            color={active ? '#fff' : DARK.textSec}
+          />
         </button>
       </div>
 
@@ -161,7 +169,11 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
               }}/>
             ))}
             {interim && (
-              <span style={{ marginLeft: 8, fontSize: 11.5, color: DARK.textSec, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{
+                marginLeft: 8, fontSize: 11.5, color: DARK.textSec,
+                fontStyle: 'italic', overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
                 {interim}
               </span>
             )}
@@ -173,18 +185,34 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
         )}
       </div>
 
-      {active && (
-        <span style={{
-          fontSize:   9.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase',
-          color:      BRAND.accent,
+      {/* right action label */}
+      {active ? (
+        <div style={{
+          display:      'flex', alignItems: 'center', gap: 5,
+          padding:      '4px 10px', borderRadius: 20,
+          background:   `${BRAND.accent}22`,
+          border:       `1px solid ${BRAND.accent}55`,
+          flexShrink:   0,
         }}>
-          Gravando…
-        </span>
-      )}
+          <div style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: BRAND.accent,
+            animation:  'dna-dot-blink .9s ease-in-out infinite',
+          }}/>
+          <span style={{
+            fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em',
+            textTransform: 'uppercase', color: BRAND.accent,
+            whiteSpace: 'nowrap',
+          }}>
+            Parar
+          </span>
+        </div>
+      ) : null}
 
       <style>{`
-        @keyframes dna-wave { 0%,100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+        @keyframes dna-wave       { 0%,100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
         @keyframes dna-pulse-ring { 0% { transform: scale(.9); opacity:.7; } 100% { transform: scale(1.7); opacity:0; } }
+        @keyframes dna-dot-blink  { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
       `}</style>
     </div>
   );
