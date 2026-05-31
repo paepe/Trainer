@@ -54,7 +54,7 @@ const INSTRUCTION_FORMATS: { value: InstructionFormat; label: string }[] = [
   { value: 'standard',        label: 'Standard'             },
 ];
 
-export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const fc = data.functional_capacity ?? {
     mobility: undefined as unknown as MobilityLevel,
     balance: undefined as unknown as BalanceLevel,
@@ -170,6 +170,7 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
       <WizardFooter
         onNext={onNext}
         nextDisabled={!canAdvance}
+        onSave={onSaveLater} saving={saving}
         dark={dark} primary={primary}
       />
     </div>

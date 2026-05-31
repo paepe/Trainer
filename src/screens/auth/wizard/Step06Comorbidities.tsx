@@ -23,7 +23,7 @@ const CONDITIONS: { value: Comorbidity; label: string }[] = [
   { value: 'prefer_not_to_say', label: 'Prefer not to say'     },
 ];
 
-export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const co = data.comorbidities ?? { conditions: [] };
   const [voiceOpen, setVoiceOpen] = React.useState(false);
 
@@ -75,7 +75,7 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
       />
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
 
       {voiceOpen && (
         <WizardVoiceOverlay

@@ -26,7 +26,7 @@ const HIGH_RISK: HealthCategory[] = [
 
 type Disclosure = 'yes' | 'no' | 'prefer_not';
 
-export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const dh = data.declared_health ?? { has_condition: null, categories: [], free_text: '' };
   const [voiceOpen, setVoiceOpen] = React.useState(false);
 
@@ -131,7 +131,7 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
       )}
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
 
       {voiceOpen && (
         <WizardVoiceOverlay

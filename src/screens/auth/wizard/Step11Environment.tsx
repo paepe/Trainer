@@ -36,7 +36,7 @@ const ACCESSIBILITY_OPTS: { value: AccessibilityCondition; label: string }[] = [
   { value: 'adapted_equipment',     label: 'Adapted equipment'     },
 ];
 
-export function Step11Environment({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step11Environment({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const env = data.environment ?? { locations: [], equipment: [], accessibility: [] };
 
   const toggleLocation = (v: TrainingLocation) => {
@@ -136,6 +136,7 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
       <WizardFooter
         onNext={onNext}
         nextDisabled={!canAdvance}
+        onSave={onSaveLater} saving={saving}
         dark={dark} primary={primary}
       />
     </div>

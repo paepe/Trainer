@@ -19,7 +19,7 @@ interface Step10Props extends WizardStepProps {
   biologicalSex?: string | undefined;
 }
 
-export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps, biologicalSex }: Step10Props) {
+export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps, biologicalSex }: Step10Props) {
   const br = data.body_rhythm ?? {
     enabled: false,
     cycle_current_day: 14,
@@ -131,7 +131,7 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
       )}
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
     </div>
   );
 }

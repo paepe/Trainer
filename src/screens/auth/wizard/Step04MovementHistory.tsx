@@ -55,7 +55,7 @@ const INTENSITY_OPTIONS: { value: PreferredIntensity; label: string }[] = [
   { value: 'intense',   label: 'Intense'   },
 ];
 
-export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   // Page 0 = main history, page 1 = abandon details (conditional)
   const [page, setPage] = React.useState(0);
   const [voiceOpen, setVoiceOpen] = React.useState(false);
@@ -189,7 +189,7 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         />
 
         <div style={{ flex: 1 }}/>
-        <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+        <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
 
         {voiceOpen && (
           <WizardVoiceOverlay
@@ -289,6 +289,7 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
       <WizardFooter
         onNext={handleNext}
         nextDisabled={!mh.frequency || !mh.fitness_level}
+        onSave={onSaveLater} saving={saving}
         dark={dark} primary={primary}
       />
     </div>

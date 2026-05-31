@@ -427,12 +427,12 @@ export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
             <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>
-              BLOCO #{String(stepNum).padStart(2, '0')} / {totalSteps}
+              BLOCK #{String(stepNum).padStart(2, '0')} / {totalSteps}
             </span>
             {badge && <Badge variant={badge}/>}
           </div>
           <div style={{ fontSize: 11, color: textMute(dark) }}>
-            Passo {stepNum} de {totalSteps}
+            Step {stepNum} of {totalSteps}
           </div>
         </div>
       )}
@@ -443,24 +443,59 @@ export function WizardHeader({ stepNum, totalSteps, onBack, dark, primary, badge
 // ── WizardFooter ──────────────────────────────────────────────────────────────
 
 interface WizardFooterProps {
-  onNext:       () => void;
-  nextLabel?:   string;
-  nextDisabled?:boolean;
-  dark:         boolean;
-  primary:      string;
+  onNext:        () => void;
+  nextLabel?:    string;
+  nextDisabled?: boolean;
+  dark:          boolean;
+  primary:       string;
+  onSave?:       (() => void) | undefined;
+  saving?:       boolean | undefined;
 }
 
-export function WizardFooter({ onNext, nextLabel = 'Continue', nextDisabled, dark, primary }: WizardFooterProps) {
+export function WizardFooter({ onNext, nextLabel = 'Continue', nextDisabled, dark, primary, onSave, saving }: WizardFooterProps) {
   return (
     <div style={{ paddingTop: 20 }}>
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={nextDisabled}
-        style={{ ...primaryBtn(primary), marginBottom: 10, opacity: nextDisabled ? 0.5 : 1 }}
-      >
-        {nextLabel} →
-      </button>
+      {onSave ? (
+        <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            style={{
+              flex: 1, padding: '15px 16px', borderRadius: 14,
+              border: `1.5px solid ${primary}`,
+              background: 'transparent', color: primary,
+              fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
+              cursor: saving ? 'default' : 'pointer',
+              opacity: saving ? 0.6 : 1,
+              transition: 'opacity .15s',
+            }}
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={nextDisabled || saving}
+            style={{
+              ...primaryBtn(primary),
+              flex: 2, marginBottom: 0,
+              opacity: (nextDisabled || saving) ? 0.5 : 1,
+            }}
+          >
+            {nextLabel} →
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={nextDisabled}
+          style={{ ...primaryBtn(primary), marginBottom: 10, opacity: nextDisabled ? 0.5 : 1 }}
+        >
+          {nextLabel} →
+        </button>
+      )}
     </div>
   );
 }

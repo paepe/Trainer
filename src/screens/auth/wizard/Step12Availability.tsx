@@ -26,7 +26,7 @@ const BARRIERS: { value: AdherenceBarrier; label: string }[] = [
 
 const SESSION_PRESETS = [30, 45, 60, 90];
 
-export function Step12Availability({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step12Availability({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const av = data.availability ?? {
     days_per_week: 3,
     session_duration_min: 45,
@@ -147,7 +147,7 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
       </div>
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
     </div>
   );
 }

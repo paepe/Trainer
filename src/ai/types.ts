@@ -1,0 +1,234 @@
+import type { CoachArchetype } from '../types/coach-dna';
+
+export type AITask = 'generate_workout' | 'suggest_objectives' | 'daily_insight';
+
+// ─── Trainer (Coach DNA) ──────────────────────────────────────────────────────
+
+export interface TrainerContext {
+  id:                string;
+  name:              string;
+  archetype:         CoachArchetype;
+  coachingStyles:    string[];
+  coreValues:        string[];
+  coachVoice:        string;
+  motto:             string;
+  methods:           string[];
+  environments:      string[];
+  intensity:         string;
+  focus: {
+    strength:  number;
+    endurance: number;
+    mobility:  number;
+    athletic:  number;
+    coord:     number;
+    balance:   number;
+  };
+  preferredFormats:    string[];
+  intensityCurve:      string;
+  sessionOrder:        string[];
+  communicationTone:   string[];
+  clientProfiles:      string[];
+  favoriteExercises:   string[];
+  avoidExercises:      string[];
+}
+
+// ─── Client (Profile V2 + Amplified) ─────────────────────────────────────────
+
+export interface ClientContext {
+  id:                  string;
+  name:                string;
+  age?:                number | undefined;
+  biologicalSex?:      string | undefined;
+  primaryGoal:         string;
+  secondaryGoals:      string[];
+  fitnessLevel:        string;
+  daysPerWeek:         number;
+  sessionDuration:     number;
+  preferredTime:       string;
+  modalities:          string[];
+  hasHealthCondition:  boolean;
+  healthCategories:    string[];
+  comorbidities:       string[];
+  mobilityLevel:       string;
+  balanceLevel:        string;
+  effortTolerance:     string;
+  baselinePainLevel:   string;
+  locations:           string[];
+  equipment:           string[];
+  preferenceIntensity: string;
+  explanationLevel:    string;
+  trainingFocus:       string;
+  riskLevel:           string;
+  riskFlags:           string[];
+  // Amplified (optional — only present when generate-amplified ran)
+  trainabilityTier?:   string | undefined;
+  priorityGoal?:       string | undefined;
+  intensityCeiling?:   string | undefined;
+  progressionRate?:    string | undefined;
+  safetyFlags?:        string[] | undefined;
+  aiNotes?:            string | undefined;
+}
+
+// ─── Today (Check-in V2) ──────────────────────────────────────────────────────
+
+export interface TodayContext {
+  checkinAt:         string;
+  variant:           string;
+  readinessScore:    number;
+  energyLevel:       number;
+  sleepQuality:      string;
+  sleepHours?:       number | undefined;
+  fatigueLevel:      number;
+  fatigueType?:      string | undefined;
+  emotionalState?:   string | undefined;
+  painPresent:       boolean;
+  painIntensity:     number;
+  painRegions:       string[];
+  safetyStatus:      string;
+  aiLedBlocked:      boolean;
+  safetySignals:     string[];
+  availableMinutes:  number;
+  location:          string;
+  equipmentToday?:   string[] | undefined;
+  // Female cycle (optional — NEVER sent to AI raw; stripped to phase label only)
+  cycleActive?:      boolean | undefined;
+  cyclePhase?:       string | undefined;
+  cycleDayOfPhase?:  number | undefined;
+  cycleAdaptation?:  string | undefined;
+}
+
+// ─── Stats (Personal Statistics / M5) ────────────────────────────────────────
+
+export interface StatsContext {
+  adherenceRate:        number;
+  workoutStreak:        number;
+  sessionsLast30d:      number;
+  avgEnergy7d:          number;
+  avgReadiness7d:       number;
+  avgRPELast3:          number;
+  painEvents14d:        number;
+  primaryPainRegion?:   string | undefined;
+  painRecurrenceAlert:  boolean;
+  predictiveScores: {
+    progressionReadiness: number;
+    fatigueRisk:          number;
+    painRecurrence:       number;
+    sessionCompletion:    number;
+    planFit:              number;
+  };
+}
+
+// ─── Library (Exercise Library constraints) ───────────────────────────────────
+
+export interface LibraryContext {
+  excludedRegions:    string[];
+  favoriteExercises:  string[];
+  avoidExercises:     string[];
+  equipmentAvailable: string[];
+}
+
+// ─── Task ─────────────────────────────────────────────────────────────────────
+
+export interface TaskContext {
+  type:                AITask;
+  durationMin?:        number | undefined;
+  focusOverride?:      string | undefined;
+  extraInstructions?:  string | undefined;
+}
+
+// ─── Unified AI Context ───────────────────────────────────────────────────────
+
+export interface AIContext {
+  trainer:        TrainerContext;
+  client:         ClientContext;
+  today:          TodayContext;
+  stats:          StatsContext;
+  library:        LibraryContext;
+  task:           TaskContext;
+  contextVersion: '1.0';
+  builtAt:        string;
+}
+
+// ─── Output shapes ────────────────────────────────────────────────────────────
+
+export interface WorkoutExercise {
+  name:         string;
+  muscleGroup:  string;
+  sets:         number;
+  reps:         string;
+  load:         string;
+  restSeconds:  number;
+  cue:           string;
+  safetyNote?:   string | undefined;
+}
+
+export interface WorkoutPhase {
+  phase:       string;
+  label:       string;
+  durationMin: number;
+  exercises:   WorkoutExercise[];
+}
+
+export interface SmartWorkout {
+  title:           string;
+  format:          string;
+  totalDurationMin: number;
+  coachNote:       string;
+  adaptations:     string[];
+  phases:          WorkoutPhase[];
+}
+
+export interface ObjectiveItem {
+  type:      'short_term' | 'medium_term' | 'long_term';
+  title:     string;
+  rationale: string;
+  metrics:   string;
+  priority:  'high' | 'medium' | 'low';
+  timeframe: string;
+}
+
+export interface PlanAdjustment {
+  aspect:    string;
+  current:   string;
+  suggested: string;
+  reason:    string;
+}
+
+export interface ObjectiveSuggestions {
+  analysis:    string;
+  objectives:  ObjectiveItem[];
+  adjustments: PlanAdjustment[];
+}
+
+export interface DailyInsight {
+  title:    string;
+  body:     string;
+  action?:  string | undefined;
+  tone:     string;
+}
+
+// ─── API shapes ───────────────────────────────────────────────────────────────
+
+export interface SmartWorkoutRequest {
+  trainer: TrainerContext;
+  client:  ClientContext;
+  today:   TodayContext;
+  stats:   StatsContext;
+  library: LibraryContext;
+  task:    TaskContext;
+}
+
+export interface SmartWorkoutResponse {
+  workout?:    SmartWorkout    | undefined;
+  objectives?: ObjectiveSuggestions | undefined;
+  insight?:    DailyInsight    | undefined;
+  usage: {
+    input_tokens:  number;
+    output_tokens: number;
+  };
+  context_snapshot: {
+    readinessScore: number;
+    safetyStatus:   string;
+    adaptations:    string[];
+  };
+}

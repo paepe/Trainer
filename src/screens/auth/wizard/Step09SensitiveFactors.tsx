@@ -4,7 +4,7 @@ import { WizardHeader, WizardFooter, AINote, VoiceOption, FieldInput } from './a
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 
-export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const sf = data.sensitive_factors ?? {
     declares_emotional_history: false,
     declares_recreational_substance: false,
@@ -121,7 +121,7 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
       </div>
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
 
       {voiceOpen && (
         <WizardVoiceOverlay

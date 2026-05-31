@@ -43,7 +43,7 @@ interface Step02Props extends WizardStepProps {
 }
 
 export function Step02BasicData({
-  dark, primary, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps,
+  dark, primary, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps,
   user, saveUser,
 }: Step02Props) {
   const d = data.basic_data ?? {} as Partial<ProfileBasicData>;
@@ -270,6 +270,7 @@ export function Step02BasicData({
       <WizardFooter
         onNext={handleNext}
         nextDisabled={!canAdvance}
+        onSave={handleSaveLater} saving={saving}
         dark={dark} primary={primary}
       />
     </div>

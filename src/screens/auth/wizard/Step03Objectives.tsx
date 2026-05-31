@@ -32,7 +32,7 @@ const SECONDARY_GOALS: { value: SecondaryGoal; label: string }[] = [
   { value: 'consistency',        label: 'Consistency'        },
 ];
 
-export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const obj = data.objectives ?? { primary_goal: undefined as unknown as PrimaryGoal, secondary_goals: [] };
 
   const setPrimary = (v: PrimaryGoal) =>
@@ -104,6 +104,8 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
       <WizardFooter
         onNext={onNext}
         nextDisabled={!canAdvance}
+        onSave={onSaveLater}
+        saving={saving}
         dark={dark} primary={primary}
       />
 

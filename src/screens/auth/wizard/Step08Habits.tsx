@@ -22,7 +22,7 @@ const BARRIERS: { value: LifestyleBarrier; label: string }[] = [
   { value: 'financial_stress',    label: 'Financial stress'              },
 ];
 
-export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const habits = data.habits ?? { lifestyle_barriers: [] };
 
   const toggle = (v: LifestyleBarrier) => {
@@ -66,7 +66,7 @@ export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, on
       )}
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
     </div>
   );
 }

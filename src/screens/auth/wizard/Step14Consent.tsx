@@ -49,7 +49,7 @@ const DEFAULT_STUDIO: ConsentCategory = {
   body_rhythm:                  'hidden',
 };
 
-export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const consent = data.consent ?? {
     personal: DEFAULT_PERSONAL,
     studio:   DEFAULT_STUDIO,
@@ -142,7 +142,7 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
       </p>
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
     </div>
   );
 }

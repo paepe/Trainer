@@ -38,7 +38,7 @@ const SUPPORT_OPTS: { value: SupportLevel; label: string }[] = [
   { value: 'guided',     label: 'Close guidance' },
 ];
 
-export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, stepNum, totalSteps }: WizardStepProps) {
+export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const pref = data.preferences ?? {
     preferred_intensity: 'moderate' as PreferredIntensity,
     training_company: 'solo' as TrainingCompany,
@@ -136,7 +136,7 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
       </div>
 
       <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} dark={dark} primary={primary}/>
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
     </div>
   );
 }

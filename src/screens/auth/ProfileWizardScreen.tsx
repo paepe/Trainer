@@ -6,6 +6,7 @@ import { AvatarImage } from '../../components/Avatar';
 import type { NavFn, Profile } from '../../types';
 import type { ProfileV2Step, RiskClassification } from '../../types/profile-v2';
 import type { WizardData } from './wizard/types';
+import { Step01Welcome }            from './wizard/Step01Welcome';
 import { Step02BasicData }          from './wizard/Step02BasicData';
 import { Step03Objectives }         from './wizard/Step03Objectives';
 import { Step04MovementHistory }    from './wizard/Step04MovementHistory';
@@ -113,6 +114,7 @@ type ScreenMode = 'wizard' | 'view';
 
 export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV2, saveUser, user }: ProfileWizardScreenProps) {
   const [mode,        setMode]        = React.useState<ScreenMode>('view');
+  const [showWelcome, setShowWelcome] = React.useState(false);
   const [currentStep, setCurrentStep] = React.useState<ProfileV2Step>('basic_data');
   const [data,        setData]        = React.useState<WizardData>({});
   const [loading,     setLoading]     = React.useState(true);
@@ -134,7 +136,8 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
         setData(profileData);
         setMode('view');
       } else {
-        setMode('wizard');   // new user: start wizard at basic_data
+        setShowWelcome(true);
+        setMode('wizard');   // new user: show welcome then start wizard
       }
       setLoading(false);
     });
@@ -257,6 +260,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     onNext:      saveAndGoNext,   // saves current step + advances to next
     onBack:      goBack,
     onSaveLater: saveLater,       // saves all accumulated data + returns to list
+    saving,
     stepNum:     STEP_NUM[currentStep] ?? 0,
     totalSteps:  TOTAL_STEPS,
   };
@@ -336,6 +340,16 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       default: return <Step02BasicData {...common} {...(user ? { user } : {})} {...(saveUser ? { saveUser } : {})}/>;
     }
   })();
+
+  if (showWelcome) {
+    return (
+      <Step01Welcome
+        {...common}
+        onNext={() => setShowWelcome(false)}
+        stepNum={0}
+      />
+    );
+  }
 
   return <>{wizardBanner}{statusBanner}{stepContent}</>;
 }
