@@ -31,9 +31,15 @@ export default async function handler(req: any, res: any) {
       headers: { 'Content-Type': 'application/json', apikey: anonKey, Authorization: `Bearer ${anonKey}` },
       body: JSON.stringify({ uid: userId }),
     });
-    if (!tokensRes.ok) return res.status(200).json({ sent: 0, failed: 0 });
-    const tokens = ((await tokensRes.json()) as { token: string }[]).map((t: any) => t.token);
-    if (tokens.length === 0) return res.status(200).json({ sent: 0, failed: 0 });
+    if (!tokensRes.ok) {
+      const errText = await tokensRes.text().catch(() => 'unknown');
+      console.error('[send-notification] get_device_tokens failed:', tokensRes.status, errText);
+      return res.status(200).json({ sent: 0, failed: 0, error: 'get_device_tokens RPC failed' });
+    }
+    const rawTokens = (await tokensRes.json()) as { token: string }[];
+    const tokens = rawTokens.map((t: any) => t.token);
+    console.log(`[send-notification] user=${userId} tokens=${tokens.length}`);
+    if (tokens.length === 0) return res.status(200).json({ sent: 0, failed: 0, error: 'no tokens' });
 
     // Send to each device
     let sent = 0, failed = 0;
@@ -46,9 +52,14 @@ export default async function handler(req: any, res: any) {
             message: { token, notification: { title, body }, data: { url: url || '/' } },
           }),
         });
-        if (pushRes.ok) sent++; else failed++;
-      } catch { failed++; }
+        if (pushRes.ok) { sent++; }
+        else {
+          failed++;
+          console.error('[send-notification] FCM send failed:', pushRes.status, await pushRes.text().catch(() => ''));
+        }
+      } catch (e: any) { failed++; console.error('[send-notification] FCM error:', e?.message); }
     }
+    console.log(`[send-notification] sent=${sent} failed=${failed}`);
     res.status(200).json({ sent, failed });
   } catch (err: any) {
     res.status(500).json({ error: err?.message || 'Failed' });
