@@ -1,19 +1,14 @@
 import React from 'react';
+import { TextInput, VStack, HStack, Spacer } from '@/ui';
 import { supabase } from '../../supabase';
 import { useAlerts } from '../../hooks/useAlerts';
 import { Icon } from '../../components/Icon';
-import { PillInput } from '../../components/PillInput';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, ghostBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { TrainerAlert, OperationalTask } from '../../types/workout';
-
-interface Theme {
-  primary:     string;
-  primaryDeep: string;
-  primarySoft: string;
-  accent:      string;
-}
+import { DARK } from '../../theme/tokens';
+import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 
 interface ClientProfile {
   id:    string;
@@ -52,19 +47,16 @@ interface TrainerDashboardUser {
 
 interface TrainerDashboardScreenProps {
   nav:          NavFn;
-  t:            Theme;
-  dark:         boolean;
   user:         TrainerDashboardUser | null;
   selectClient?: (client: ClientProfile) => void;
 }
 
 export function TrainerDashboardScreen({
   nav,
-  t,
-  dark,
   user,
   selectClient,
 }: TrainerDashboardScreenProps) {
+  const { t, dark } = useTrainerTheme();
   const { alerts, tasks, acknowledgeAlert, resolveAlert, completeTask } = useAlerts(user?.id);
 
   const [clients, setClients]           = React.useState<TrainerClient[]>([]);
@@ -229,7 +221,7 @@ export function TrainerDashboardScreen({
         My Clients
       </ScreenTitle>
 
-      <div style={{ padding: '0 22px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <VStack padding="0 22px 32px" gap={12}>
         {loading && (
           <div style={{ textAlign: 'center', padding: 40, color: textMute(dark), fontSize: 13 }}>
             Loading…
@@ -244,7 +236,7 @@ export function TrainerDashboardScreen({
             padding: '14px 16px', borderRadius: 16,
             background: '#EF5B3C0D', border: `1.5px solid #EF5B3C33`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <HStack gap={8} style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#EF5B3C' }}>
                 Safety Gate · Pending Review
               </div>
@@ -254,7 +246,7 @@ export function TrainerDashboardScreen({
               }}>
                 {pendingReviews.length}
               </div>
-            </div>
+            </HStack>
 
             {pendingReviews.map((ev, i) => (
               <div key={ev.id} style={{
@@ -266,7 +258,7 @@ export function TrainerDashboardScreen({
                   <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
                     {clientNameMap[ev.user_id] || 'Cliente'}
                   </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 3 }}>
+                  <HStack gap={6} flexWrap="wrap" style={{ marginTop: 3 }}>
                     <span style={{
                       fontSize: 10, fontWeight: 700,
                       color: ev.status === 'blocked' ? '#EF5B3C' : '#F5A623',
@@ -276,7 +268,7 @@ export function TrainerDashboardScreen({
                     {(ev.triggered_signals ?? []).slice(0, 2).map(s => (
                       <span key={s} style={{ fontSize: 10, color: textMute(dark) }}>· {s}</span>
                     ))}
-                  </div>
+                  </HStack>
                   {ev.created_at && (
                     <div style={{ fontSize: 10, color: textMute(dark), marginTop: 2 }}>
                       {new Date(ev.created_at).toLocaleDateString('en-US')}
@@ -380,7 +372,7 @@ export function TrainerDashboardScreen({
                 Pending
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <HStack gap={8} style={{ flexShrink: 0 }}>
                 {tc.client?.id && sessionStatusMap[tc.client.id] === 'active' && (
                   <div style={{
                     padding: '4px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700,
@@ -411,7 +403,7 @@ export function TrainerDashboardScreen({
                 >
                   View →
                 </button>
-              </div>
+              </HStack>
             )}
           </div>
         ))}
@@ -425,21 +417,19 @@ export function TrainerDashboardScreen({
             <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), marginBottom: 10 }}>
               Invite by email
             </div>
-            <PillInput
+            <TextInput
               icon="mail"
               placeholder="client@email.com"
               type="email"
               value={inviteEmail}
               onChange={setInviteEmail}
-              primary={t.primary}
-              dark={dark}
             />
             {inviteErr && (
               <div style={{ color: t.accent, fontSize: 11, marginTop: 8 }}>
                 {inviteErr}
               </div>
             )}
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <HStack gap={8} style={{ marginTop: 12 }}>
               <button
                 onClick={() => { setShowInvite(false); setInviteEmail(''); setInviteErr(''); }}
                 style={{
@@ -457,29 +447,29 @@ export function TrainerDashboardScreen({
                 disabled={inviting}
                 style={{
                   flex: 2, padding: '13px 0', border: 'none', borderRadius: 999,
-                  background: t.primary, color: '#0E1A2B', fontSize: 14, fontWeight: 700,
-                  fontFamily: 'inherit', cursor: 'pointer', opacity: inviting ? 0.7 : 1,
+                  background: t.accent, color: '#FFFFFF', fontSize: 14, fontWeight: 700,
+                  fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer', opacity: inviting ? 0.7 : 1,
                 }}
               >
                 {inviting ? 'Sending…' : 'Send invite'}
               </button>
-            </div>
+            </HStack>
           </div>
         ) : (
           <button
             onClick={() => setShowInvite(true)}
             style={{
               padding: '14px 18px', borderRadius: 14,
-              border: `1.5px dashed ${dark ? '#1F2E45' : '#D0D8E4'}`,
-              background: 'transparent', color: t.primary,
-              fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              border: `1.5px dashed ${DARK.surface}`,
+              background: 'transparent', color: t.accent,
+              fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 13, fontWeight: 600, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
-            <Icon name="plus" size={16} color={t.primary} /> Invite client
+            <Icon name="plus" size={16} color={t.accent} /> Invite client
           </button>
         )}
-      </div>
+      </VStack>
     </>
   );
 }
@@ -498,7 +488,7 @@ function AlertsSection({
 }: {
   alerts:         TrainerAlert[];
   dark:           boolean;
-  t:              Theme;
+  t:              any;
   clientNameMap:  Record<string, string>;
   onAcknowledge:  (id: string) => Promise<void>;
   onResolve:      (id: string) => Promise<void>;
@@ -601,7 +591,7 @@ function TasksSection({
 }: {
   tasks:          OperationalTask[];
   dark:           boolean;
-  t:              Theme;
+  t:              any;
   clientNameMap:  Record<string, string>;
   onComplete:     (id: string) => Promise<void>;
 }) {

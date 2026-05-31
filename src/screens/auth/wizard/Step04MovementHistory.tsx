@@ -1,9 +1,6 @@
 import React from 'react';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
-import {
-  WizardHeader, WizardFooter, Chip, ChipGroup, SegmentedRow,
-  SliderField, AINote, VoiceOption, SectionLabel, Toggle, TextArea,
-} from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type {
@@ -105,48 +102,38 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
 
   if (page === 1) {
     return (
-      <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-        <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={handleBack} dark={dark} primary={primary}/>
+      <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+        <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={handleBack} title="What led to dropping out?" subtitle="No judgment. This helps the plan work around the same obstacles." />
 
-        <h2 style={{
-          margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-          fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-        }}>
-          What led to dropping out?
-        </h2>
-        <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-          No judgment. This helps the plan work around the same obstacles.
-        </p>
+        
+        
 
-        <ChipGroup style={{ marginBottom: 20 }}>
+        <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
           {ABANDON_REASONS.map(r => (
             <Chip
               key={r.value}
               label={r.label}
-              selected={(ah.reasons ?? []).includes(r.value)}
-              onToggle={() => toggleReason(r.value)}
-              dark={dark} primary={primary}
+              active={(ah.reasons ?? []).includes(r.value)}
+              onClick={() => toggleReason(r.value)}
             />
           ))}
-        </ChipGroup>
+        </HStack>
 
-        <AINote
-          dark={dark} primary={primary}
+        <Alert isAI
           text="This data feeds the Churn Risk Engine — queried and exposed internally as 'focus reasons'."
         />
 
         <div style={{ marginTop: 20 }}>
-          <SectionLabel label="How do you prefer to progress?" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>How do you prefer to progress?</Typography>
+          <SegmentedControl
             options={INTENSITY_OPTIONS}
             value={ah.preferred_intensity ?? 'moderate'}
             onChange={v => setAH({ ...ah, preferred_intensity: v as PreferredIntensity })}
-            dark={dark} primary={primary}
           />
         </div>
 
         {/* Churn risk signals */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+        <VStack gap={10} style={{ marginTop: 8 }}>
           {([
             { key: 'had_negative_experience', label: 'I had negative workout experiences' },
             { key: 'fear_of_injury',           label: "I'm afraid of getting injured"            },
@@ -163,37 +150,33 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
               {label}
             </button>
           ))}
-        </div>
+        </VStack>
 
-        <TextArea
+        <TextInput multiline
           label="What helps with consistency?"
           value={ah.what_helped_consistency ?? ''}
           onChange={v => setAH({ ...ah, what_helped_consistency: v })}
-          dark={dark} primary={primary}
           placeholder="e.g.: Morning training, training partner, seeing progress..."
           rows={2}
         />
-        <TextArea
+        <TextInput multiline
           label="What disrupted your routine before?"
           value={ah.what_disrupted_routine ?? ''}
           onChange={v => setAH({ ...ah, what_disrupted_routine: v })}
-          dark={dark} primary={primary}
           placeholder="e.g.: Work trip, injury, lack of time..."
           rows={2}
         />
 
         <VoiceOption
-          dark={dark} primary={primary}
           note="You can tell us in your own words."
           onClick={() => setVoiceOpen(true)}
         />
 
-        <div style={{ flex: 1 }}/>
-        <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
+        <Spacer />
+        <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
 
         {voiceOpen && (
-          <WizardVoiceOverlay
-            dark={dark} primary={primary}
+          <WizardVoiceOverlay dark={dark} primary={primary}
             context="Tell us about your history"
             onConfirm={(text) => {
               setAH({ ...ah, voice_note: text });
@@ -203,13 +186,13 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
             onClose={() => setVoiceOpen(false)}
           />
         )}
-      </div>
+      </VStack>
     );
   }
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={handleBack} dark={dark} primary={primary}/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader title="Movement History" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={handleBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
@@ -221,52 +204,48 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         To understand experience, adherence patterns, and what got in your way.
       </p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <VStack gap={20}>
         <div>
-          <SectionLabel label="Current frequency" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Current frequency</Typography>
+          <SegmentedControl
             options={FREQUENCY_OPTIONS}
             value={mh.frequency ?? ''}
             onChange={v => setMH({ ...mh, frequency: v as TrainingFrequency })}
-            dark={dark} primary={primary}
           />
         </div>
 
         <div>
-          <SectionLabel label="Current level" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Current level</Typography>
+          <SegmentedControl
             options={LEVEL_OPTIONS}
             value={mh.fitness_level ?? ''}
             onChange={v => setMH({ ...mh, fitness_level: v as FitnessLevelV2 })}
-            dark={dark} primary={primary}
           />
         </div>
 
-        <SliderField
+        <Slider
           label="Typical frequency"
           value={mh.weekly_frequency ?? 3}
-          min={1} max={7} unit="×/week"
+          min={1} max={7} suffix="×/week"
           onChange={v => setMH({ ...mh, weekly_frequency: v })}
-          dark={dark} primary={primary}
         />
 
         <div>
-          <SectionLabel label="Practiced modalities" dark={dark}/>
-          <ChipGroup>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Practiced modalities</Typography>
+          <HStack style={{ flexWrap: 'wrap' }} gap={8}>
             {MODALITIES.map(m => (
               <Chip
                 key={m.value}
                 label={m.label}
-                selected={(mh.modalities ?? []).includes(m.value)}
-                onToggle={() => toggleModality(m.value)}
-                dark={dark} primary={primary}
+                active={(mh.modalities ?? []).includes(m.value)}
+                onClick={() => toggleModality(m.value)}
               />
             ))}
-          </ChipGroup>
+          </HStack>
         </div>
 
         {/* Abandon toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <HStack justifyContent="space-between">
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
               Have you abandoned a workout before?
@@ -280,18 +259,16 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
           <Toggle
             on={mh.abandoned_before ?? false}
             onChange={v => setMH({ ...mh, abandoned_before: v })}
-            primary={primary} dark={dark}
           />
-        </div>
-      </div>
+        </HStack>
+      </VStack>
 
-      <div style={{ flex: 1 }}/>
+      <Spacer />
       <WizardFooter
         onNext={handleNext}
         nextDisabled={!mh.frequency || !mh.fitness_level}
         onSave={onSaveLater} saving={saving}
-        dark={dark} primary={primary}
       />
-    </div>
+    </VStack>
   );
 }

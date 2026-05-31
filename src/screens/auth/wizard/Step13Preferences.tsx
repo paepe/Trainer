@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, SegmentedRow, Chip, ChipGroup, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type {
   PreferredIntensity, TrainingCompany, PreferredLanguage,
@@ -55,8 +55,8 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
   };
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary}/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
@@ -68,75 +68,69 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
         Defines the communication tone and adjusts the plan to your behavioral profile.
       </p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+      <VStack gap={22}>
         <div>
-          <SectionLabel label="Preferred intensity" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Preferred intensity</Typography>
+          <SegmentedControl
             options={INTENSITY_OPTS}
             value={pref.preferred_intensity ?? 'moderate'}
             onChange={v => set({ preferred_intensity: v as PreferredIntensity })}
-            dark={dark} primary={primary}
           />
         </div>
 
         <div>
-          <SectionLabel label="Train alone or accompanied?" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Train alone or accompanied?</Typography>
+          <SegmentedControl
             options={COMPANY_OPTS}
             value={pref.training_company ?? 'solo'}
             onChange={v => set({ training_company: v as TrainingCompany })}
-            dark={dark} primary={primary}
           />
         </div>
 
         <div>
-          <SectionLabel label="Preferred language" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Preferred language</Typography>
+          <SegmentedControl
             options={LANGUAGE_OPTS}
             value={pref.preferred_language ?? 'explanatory'}
             onChange={v => set({ preferred_language: v as PreferredLanguage })}
-            dark={dark} primary={primary}
           />
         </div>
 
         <div>
-          <SectionLabel label="Explanation level" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Explanation level</Typography>
+          <SegmentedControl
             options={EXPLANATION_OPTS}
             value={pref.explanation_level ?? 'simple'}
             onChange={v => set({ explanation_level: v as ExplanationLevel })}
-            dark={dark} primary={primary}
           />
         </div>
 
         <div>
-          <SectionLabel label="Goal focus" dark={dark}/>
-          <ChipGroup>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Goal focus</Typography>
+          <HStack style={{ flexWrap: 'wrap' }} gap={8}>
             {FOCUS_OPTS.map(f => (
               <Chip
                 key={f.value}
                 label={f.label}
-                selected={pref.focus === f.value}
-                onToggle={() => toggleFocus(f.value)}
-                dark={dark} primary={primary}
+                active={pref.focus === f.value}
+                onClick={() => toggleFocus(f.value)}
               />
             ))}
-          </ChipGroup>
+          </HStack>
         </div>
 
         <div>
-          <SectionLabel label="Support level" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Support level</Typography>
+          <SegmentedControl
             options={SUPPORT_OPTS}
             value={pref.support_level ?? 'guided'}
             onChange={v => set({ support_level: v as SupportLevel })}
-            dark={dark} primary={primary}
           />
         </div>
-      </div>
+      </VStack>
 
-      <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
-    </div>
+      <Spacer />
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
+    </VStack>
   );
 }

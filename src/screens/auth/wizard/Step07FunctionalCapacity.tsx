@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, SegmentedRow, Chip, ChipGroup, AINote, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type {
   MobilityLevel, BalanceLevel, AutonomyLevel, EffortTolerance,
@@ -85,8 +85,8 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
   const canAdvance = !!(fc.mobility && fc.balance && fc.autonomy && fc.effort_tolerance);
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary}/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
@@ -98,81 +98,77 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
         Movement capability before training. Let's ensure the plan is realistic.
       </p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <VStack gap={20}>
         <div>
-          <SectionLabel label="Mobility" dark={dark}/>
-          <SegmentedRow options={MOBILITY_OPTS} value={fc.mobility ?? ''} onChange={v => set({ mobility: v as MobilityLevel })} dark={dark} primary={primary}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Mobility</Typography>
+          <SegmentedControl options={MOBILITY_OPTS} value={fc.mobility ?? ''} onChange={v => set({ mobility: v as MobilityLevel })}/>
         </div>
 
         <div>
-          <SectionLabel label="Balance" dark={dark}/>
-          <SegmentedRow options={BALANCE_OPTS} value={fc.balance ?? ''} onChange={v => set({ balance: v as BalanceLevel })} dark={dark} primary={primary}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Balance</Typography>
+          <SegmentedControl options={BALANCE_OPTS} value={fc.balance ?? ''} onChange={v => set({ balance: v as BalanceLevel })}/>
         </div>
 
         <div>
-          <SectionLabel label="Autonomy" dark={dark}/>
-          <SegmentedRow options={AUTONOMY_OPTS} value={fc.autonomy ?? ''} onChange={v => set({ autonomy: v as AutonomyLevel })} dark={dark} primary={primary}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Autonomy</Typography>
+          <SegmentedControl options={AUTONOMY_OPTS} value={fc.autonomy ?? ''} onChange={v => set({ autonomy: v as AutonomyLevel })}/>
         </div>
 
         <div>
-          <SectionLabel label="Effort tolerance" dark={dark}/>
-          <SegmentedRow options={EFFORT_OPTS} value={fc.effort_tolerance ?? ''} onChange={v => set({ effort_tolerance: v as EffortTolerance })} dark={dark} primary={primary}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Effort tolerance</Typography>
+          <SegmentedControl options={EFFORT_OPTS} value={fc.effort_tolerance ?? ''} onChange={v => set({ effort_tolerance: v as EffortTolerance })}/>
         </div>
 
         <div>
-          <SectionLabel label="Usual pain level" dark={dark}/>
-          <SegmentedRow options={PAIN_OPTS} value={fc.pain_level ?? ''} onChange={v => set({ pain_level: v as PainLevel })} dark={dark} primary={primary}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Usual pain level</Typography>
+          <SegmentedControl options={PAIN_OPTS} value={fc.pain_level ?? ''} onChange={v => set({ pain_level: v as PainLevel })}/>
         </div>
 
         <div>
-          <SectionLabel label="Access to training environment" dark={dark}/>
-          <SegmentedRow options={ACCESS_OPTS} value={fc.access_level ?? ''} onChange={v => set({ access_level: v as AccessLevel })} dark={dark} primary={primary}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Access to training environment</Typography>
+          <SegmentedControl options={ACCESS_OPTS} value={fc.access_level ?? ''} onChange={v => set({ access_level: v as AccessLevel })}/>
         </div>
 
         <div>
-          <SectionLabel label="Support resources you use" dark={dark}/>
-          <ChipGroup>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Support resources you use</Typography>
+          <HStack style={{ flexWrap: 'wrap' }} gap={8}>
             {SUPPORT_RESOURCES.map(r => (
               <Chip
                 key={r.value}
                 label={r.label}
-                selected={(fc.support_resources ?? []).includes(r.value)}
-                onToggle={() => toggleSupport(r.value)}
-                dark={dark} primary={primary}
+                active={(fc.support_resources ?? []).includes(r.value)}
+                onClick={() => toggleSupport(r.value)}
                 disabled={r.value !== 'none' && (fc.support_resources ?? []).includes('none')}
               />
             ))}
-          </ChipGroup>
+          </HStack>
         </div>
 
         <div>
-          <SectionLabel label="How do you prefer to receive instructions?" dark={dark}/>
-          <ChipGroup>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>How do you prefer to receive instructions?</Typography>
+          <HStack style={{ flexWrap: 'wrap' }} gap={8}>
             {INSTRUCTION_FORMATS.map(f => (
               <Chip
                 key={f.value}
                 label={f.label}
-                selected={(fc.instruction_format ?? []).includes(f.value)}
-                onToggle={() => toggleFormat(f.value)}
-                dark={dark} primary={primary}
+                active={(fc.instruction_format ?? []).includes(f.value)}
+                onClick={() => toggleFormat(f.value)}
               />
             ))}
-          </ChipGroup>
+          </HStack>
         </div>
 
-        <AINote
-          dark={dark} primary={primary}
+        <Alert isAI
           text="This data generates the Functional Capacity Profile and filters exercises — for example, if you cannot bend your knees, fewer floor exercises will be prescribed."
         />
-      </div>
+      </VStack>
 
-      <div style={{ flex: 1 }}/>
+      <Spacer />
       <WizardFooter
         onNext={onNext}
         nextDisabled={!canAdvance}
         onSave={onSaveLater} saving={saving}
-        dark={dark} primary={primary}
       />
-    </div>
+    </VStack>
   );
 }

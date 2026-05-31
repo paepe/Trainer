@@ -1,8 +1,8 @@
 import React from 'react';
+import { TextInput } from '@/ui';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { FieldLabel }  from '../components/FieldLabel';
-import { DNAField }    from '../components/DNAField';
 import { VoiceBar }    from '../components/VoiceBar';
 import { PrivacyNote } from '../components/PrivacyNote';
 import { MOTTO_EXAMPLES } from '../constants';
@@ -25,7 +25,7 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
     <Hint>This is the most personal block. Write or dictate in your own words.</Hint>
 
     <FieldLabel hint="optional">Coach motto</FieldLabel>
-    <DNAField
+    <TextInput
       value={philosophy.motto}
       placeholder='e.g. "Train with purpose, recover with intelligence."'
       onChange={v => onChange({ ...philosophy, motto: v })}

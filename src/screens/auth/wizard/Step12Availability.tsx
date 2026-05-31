@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, SliderField, SegmentedRow, Chip, ChipGroup, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { PreferredTime, AdherenceBarrier } from '../../../types/profile-v2';
 
@@ -48,38 +48,30 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
   };
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary}/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} title="Availability and barriers" subtitle="To calibrate the plan within what you can actually fulfill." />
 
-      <h2 style={{
-        margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-      }}>
-        Availability and barriers
-      </h2>
-      <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        To calibrate the plan within what you can actually fulfill.
-      </p>
+      
+      
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-        <SliderField
+      <VStack gap={22}>
+        <Slider
           label="Days per week"
           value={av.days_per_week ?? 3}
-          min={1} max={7} unit=" days/week"
+          min={1} max={7} suffix=" days/week"
           onChange={v => set({ days_per_week: v })}
-          dark={dark} primary={primary}
         />
 
         {/* Session duration */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'baseline' }}>
+          <HStack justifyContent="space-between" alignItems="baseline" style={{ marginBottom: 8 }}>
             <span style={{ fontSize: 13, color: textSec(dark) }}>Duration per session</span>
             <span style={{ fontSize: 18, fontWeight: 700, color: primary, letterSpacing: '-0.02em' }}>
               {av.session_duration_min ?? 45}
               <span style={{ fontSize: 12, color: '#888', marginLeft: 3, fontWeight: 500 }}>min</span>
             </span>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          </HStack>
+          <HStack gap={8}>
             {SESSION_PRESETS.map(m => {
               const on = (av.session_duration_min ?? 45) === m;
               return (
@@ -94,24 +86,23 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
                 </button>
               );
             })}
-          </div>
+          </HStack>
         </div>
 
         {/* Preferred time */}
         <div>
-          <SectionLabel label="Best time" dark={dark}/>
-          <SegmentedRow
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Best time</Typography>
+          <SegmentedControl
             options={TIME_OPTIONS}
             value={av.preferred_time ?? 'afternoon'}
             onChange={v => set({ preferred_time: v as PreferredTime })}
-            dark={dark} primary={primary}
           />
         </div>
 
         {/* Preferred days */}
         <div>
-          <SectionLabel label="Preferred days" dark={dark}/>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Preferred days</Typography>
+          <HStack gap={8} justifyContent="space-between">
             {WEEK_DAYS.map((d, i) => {
               const on = (av.preferred_days ?? []).includes(i);
               return (
@@ -126,28 +117,27 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
                 </button>
               );
             })}
-          </div>
+          </HStack>
         </div>
 
         {/* Adherence barriers */}
         <div>
-          <SectionLabel label="Adherence barriers" dark={dark}/>
-          <ChipGroup>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Adherence barriers</Typography>
+          <HStack style={{ flexWrap: 'wrap' }} gap={8}>
             {BARRIERS.map(b => (
               <Chip
                 key={b.value}
                 label={b.label}
-                selected={(av.adherence_barriers ?? []).includes(b.value)}
-                onToggle={() => toggleBarrier(b.value)}
-                dark={dark} primary={primary}
+                active={(av.adherence_barriers ?? []).includes(b.value)}
+                onClick={() => toggleBarrier(b.value)}
               />
             ))}
-          </ChipGroup>
+          </HStack>
         </div>
-      </div>
+      </VStack>
 
-      <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
-    </div>
+      <Spacer />
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
+    </VStack>
   );
 }

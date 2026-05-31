@@ -1,6 +1,7 @@
 import React from 'react';
+import { Button, TextInput } from '@/ui';
 import type { Protocol, ProtocolExercise } from '../../types';
-import { Btn, Field, C } from './SharedAtoms';
+import { C } from './SharedAtoms';
 
 interface ProtocolDetailProps {
   protocol: Protocol;
@@ -56,7 +57,7 @@ export function ProtocolDetail({ protocol, onAddExercise }: ProtocolDetailProps)
       )}
       {showAdd && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 14, padding: 16, borderRadius: 12, background: C.surface2 }}>
-          <Field label="Exercise" value={draft.exercise_name} onChange={v => setDraft({ ...draft, exercise_name: v })} placeholder="e.g. Bench Press"/>
+          <TextInput label="Exercise" value={draft.exercise_name} onChange={v => setDraft({ ...draft, exercise_name: v })} placeholder="e.g. Bench Press"/>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: C.textMute, textTransform: 'uppercase', letterSpacing: '.06em' }}>Muscle group</span>
             <select value={draft.muscle_group} onChange={e => setDraft({ ...draft, muscle_group: e.target.value })}
@@ -64,13 +65,13 @@ export function ProtocolDetail({ protocol, onAddExercise }: ProtocolDetailProps)
               {['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs', 'Full body', 'Cardio'].map(g => <option key={g}>{g}</option>)}
             </select>
           </label>
-          <Field label="Sets" value={draft.sets} onChange={v => setDraft({ ...draft, sets: v })} placeholder="3"/>
-          <Field label="Reps" value={draft.reps} onChange={v => setDraft({ ...draft, reps: v })} placeholder="10"/>
-          <Field label="Load (kg)" value={draft.load_kg} onChange={v => setDraft({ ...draft, load_kg: v })} placeholder="optional"/>
-          <Field label="Rest (s)" value={draft.rest_seconds} onChange={v => setDraft({ ...draft, rest_seconds: v })} placeholder="60"/>
+          <TextInput label="Sets" value={draft.sets} onChange={v => setDraft({ ...draft, sets: v })} placeholder="3"/>
+          <TextInput label="Reps" value={draft.reps} onChange={v => setDraft({ ...draft, reps: v })} placeholder="10"/>
+          <TextInput label="Load (kg)" value={draft.load_kg} onChange={v => setDraft({ ...draft, load_kg: v })} placeholder="optional"/>
+          <TextInput label="Rest (s)" value={draft.rest_seconds} onChange={v => setDraft({ ...draft, rest_seconds: v })} placeholder="60"/>
           <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8 }}>
-            <Btn size="sm" onClick={add}>Add</Btn>
-            <Btn variant="ghost" size="sm" onClick={() => setShowAdd(false)}>Cancel</Btn>
+            <Button size="sm" onClick={add}>Add</Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowAdd(false)}>Cancel</Button>
           </div>
         </div>
       )}

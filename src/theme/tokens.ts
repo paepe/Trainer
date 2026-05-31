@@ -10,6 +10,21 @@ export const BRAND = {
   criticalRed: '#FF4D4D',
 } as const;
 
+// TRAINER_BRAND — Canonical values per references/coach_dna_system_design.md
+// Hierarchy note: accent (Coral) is the PRIMARY action color for Trainer UI.
+// This is the inverse of the CLIENT theme where primary (Cyan) drives actions.
+export const TRAINER_BRAND = {
+  primary:     '#2DD4E0', // cyan   — structural labels, icons (BLOCK 01/12, detail)
+  primaryDeep: '#0F8C85',
+  accent:      '#EF5B3C', // coral  — CTAs, kicker labels, progress bar, hero shadows
+  primarySoft: '#9DECF3', // archetype: Technician
+  lavender:    '#A78BFA', // archetype: Movement Specialist
+  amber:       '#F5B45A', // archetype: Motivator / warm-up icons
+  success:     '#4ADE80', // archetype: Guide / cool-down icons
+  criticalRed: '#FF4D4D',
+} as const;
+
+
 export const DARK = {
   bg:         '#0E1A2B',
   surface:    '#142233',

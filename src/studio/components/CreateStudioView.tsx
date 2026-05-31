@@ -1,5 +1,6 @@
 import React from 'react';
-import { Btn, C } from './SharedAtoms';
+import { Button } from '@/ui';
+import { C } from './SharedAtoms';
 
 interface CreateStudioViewProps {
   onCreate: (name: string) => Promise<{ error: unknown }>;
@@ -32,7 +33,7 @@ export default function CreateStudioView({ onCreate }: CreateStudioViewProps) {
         style={{ width: '100%', padding: '14px 16px', borderRadius: 12, background: C.surface2, border: `1.5px solid ${C.border}`, color: C.textPri, fontSize: 15, outline: 'none', marginBottom: 12 }}
       />
       {err && <div style={{ color: C.accent, fontSize: 13, marginBottom: 12 }}>{err}</div>}
-      <Btn onClick={submit} loading={loading} full>Create Studio →</Btn>
+      <Button onClick={submit} loading={loading} full>Create Studio →</Button>
     </div>
   );
 }

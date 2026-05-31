@@ -1,14 +1,13 @@
 import React from 'react';
-import { textMute } from '../theme';
+import { Typography } from '../ui/Typography';
 
 interface SectionLabelProps {
   children: React.ReactNode;
-  dark:     boolean;
+  dark?:    boolean;
 }
 
-export const SectionLabel: React.FC<SectionLabelProps> = ({ children, dark }) => (
-  <div style={{
-    fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase',
-    color: textMute(dark), marginBottom: 8,
-  }}>{children}</div>
+export const SectionLabel: React.FC<SectionLabelProps> = ({ children }) => (
+  <Typography variant="overline" color="muted" style={{ marginBottom: 8, display: 'block' }}>
+    {children}
+  </Typography>
 );

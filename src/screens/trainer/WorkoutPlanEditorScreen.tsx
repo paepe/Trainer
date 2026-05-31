@@ -1,8 +1,8 @@
 import React from 'react';
+import { TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { notify } from '../../lib/notify';
-import { PillInput } from '../../components/PillInput';
 import { requestWorkoutPlan } from '../../lib/workoutGeneration';
 import type { GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import {
@@ -17,13 +17,8 @@ import {
   outlineBtn,
 } from '../../theme';
 import type { NavFn } from '../../types';
-
-interface Theme {
-  primary:     string;
-  primaryDeep: string;
-  primarySoft: string;
-  accent:      string;
-}
+import { DARK } from '../../theme/tokens';
+import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 
 interface ClientProfile {
   id:    string;
@@ -72,19 +67,17 @@ interface TrainerDashboardUser {
 
 interface WorkoutPlanEditorScreenProps {
   nav:             NavFn;
-  t:               Theme;
-  dark:            boolean;
+
   user:            TrainerDashboardUser | null;
   selectedClient?: ClientProfile | null;
 }
 
 export function WorkoutPlanEditorScreen({
   nav,
-  t,
-  dark,
   user,
   selectedClient,
 }: WorkoutPlanEditorScreenProps) {
+  const { t, dark } = useTrainerTheme();
   const [context, setContext] = React.useState<WorkoutPlanEditorContext | null>(null);
   const [exercises, setExercises] = React.useState<WorkoutExercise[]>([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
@@ -413,13 +406,11 @@ export function WorkoutPlanEditorScreen({
           }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>New exercise</div>
             <div>
-              <PillInput
+              <TextInput
                 icon="dumbbell"
                 placeholder="Exercise name"
                 value={draft.exercise_name}
                 onChange={v => { setDraft({ ...draft, exercise_name: v }); setNameError(false); }}
-                primary={nameError ? t.accent : t.primary}
-                dark={dark}
               />
               {nameError && (
                 <div style={{ fontSize: 11.5, color: t.accent, marginTop: 4, paddingLeft: 4, fontWeight: 600 }}>
@@ -433,7 +424,7 @@ export function WorkoutPlanEditorScreen({
                 return (
                   <button key={mg} onClick={() => setDraft({ ...draft, muscle_group: on ? '' : mg })} style={{
                     padding: '5px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                    background: on ? t.primary : (dark ? '#1F2E45' : '#EEF1F7'),
+                    background: on ? t.primary : DARK.surface,
                     color: on ? '#0E1A2B' : textSec(dark),
                     border: 'none', fontFamily: 'inherit', cursor: 'pointer',
                   }}>{mg}</button>
@@ -472,10 +463,10 @@ export function WorkoutPlanEditorScreen({
               })}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <PillInput icon="bolt"  placeholder="Load (kg)" value={String(draft.load_kg || '')}
-                onChange={v => setDraft({ ...draft, load_kg: v })} primary={t.primary} dark={dark}/>
-              <PillInput icon="clock" placeholder="Rest (s)"  value={String(draft.rest_seconds || '')}
-                onChange={v => setDraft({ ...draft, rest_seconds: Number(v) || 60 })} primary={t.primary} dark={dark}/>
+              <TextInput icon="bolt"  placeholder="Load (kg)" value={String(draft.load_kg || '')}
+                onChange={v => setDraft({ ...draft, load_kg: v })}/>
+              <TextInput icon="clock" placeholder="Rest (s)"  value={String(draft.rest_seconds || '')}
+                onChange={v => setDraft({ ...draft, rest_seconds: Number(v) || 60 })}/>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setShowAddForm(false)} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
@@ -501,7 +492,7 @@ export function WorkoutPlanEditorScreen({
           rows={2}
           style={{
             width: '100%', padding: '12px 14px', borderRadius: 12, boxSizing: 'border-box',
-            background: dark ? '#142233' : '#F4F6FA',
+            background: '#142233',
             border: `1.5px solid ${borderSubtle(dark)}`,
             color: textPri(dark), fontFamily: 'inherit', fontSize: 13,
             resize: 'none', outline: 'none',
@@ -551,7 +542,7 @@ export function WorkoutPlanEditorScreen({
       <div style={{ padding: '12px 22px 32px' }}>
         <button onClick={startSessionNow} disabled={saving || exercises.length === 0} style={{
           width: '100%', padding: '15px 0', borderRadius: 14,
-          background: exercises.length === 0 ? (dark ? '#1F2E45' : '#D0D8E4') : '#10B981',
+          background: exercises.length === 0 ? DARK.surface : '#10B981',
           color: '#fff', border: 'none',
           fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

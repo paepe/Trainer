@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised } from '../../../theme';
-import { WizardHeader, WizardFooter, Toggle, SliderField, Chip, ChipGroup, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { BodyRhythmAdaptation } from '../../../types/profile-v2';
 
@@ -40,18 +40,11 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
   const markPeriodToday = () => set({ cycle_current_day: 1 });
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary} badge="opt-in"/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} badge="opt-in" title="Body Rhythm" subtitle="Private adaptation to physiological cycle, whenever you want to activate it. Never inspected." />
 
-      <h2 style={{
-        margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-      }}>
-        Body Rhythm
-      </h2>
-      <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Private adaptation to physiological cycle, whenever you want to activate it. Never inspected.
-      </p>
+      
+      
 
       {/* Main toggle */}
       <div style={{
@@ -66,25 +59,23 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
             This feature is opt-in. You can deactivate and delete data at any time.
           </div>
         </div>
-        <Toggle on={br.enabled} onChange={v => set({ enabled: v })} primary={primary} dark={dark}/>
+        <Toggle on={br.enabled} onChange={v => set({ enabled: v })}/>
       </div>
 
       {br.enabled && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <SliderField
+        <VStack gap={20}>
+          <Slider
             label="Current cycle day"
             value={br.cycle_current_day ?? 14}
-            min={1} max={35} unit=" day"
+            min={1} max={35} suffix=" day"
             onChange={v => set({ cycle_current_day: v })}
-            dark={dark} primary={primary}
           />
 
-          <SliderField
+          <Slider
             label="Average cycle duration"
             value={br.cycle_duration_days ?? 28}
-            min={21} max={35} unit=" days"
+            min={21} max={35} suffix=" days"
             onChange={v => set({ cycle_duration_days: v })}
-            dark={dark} primary={primary}
           />
 
           <button
@@ -110,28 +101,27 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
           </button>
 
           <div>
-            <SectionLabel label="Adaptation preference" dark={dark}/>
-            <ChipGroup>
+            <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Adaptation preference</Typography>
+            <HStack style={{ flexWrap: 'wrap' }} gap={8}>
               {ADAPTATIONS.map(a => (
                 <Chip
                   key={a.value}
                   label={a.label}
-                  selected={(br.adaptation_preference ?? []).includes(a.value)}
-                  onToggle={() => toggleAdaptation(a.value)}
-                  dark={dark} primary={primary}
+                  active={(br.adaptation_preference ?? []).includes(a.value)}
+                  onClick={() => toggleAdaptation(a.value)}
                 />
               ))}
-            </ChipGroup>
+            </HStack>
           </div>
 
           <p style={{ fontSize: 11.5, color: textMute(dark), lineHeight: 1.5, margin: 0 }}>
             We never adopt things like "the student is on her period". Your operational adaptation will be: "Temporary biological factor — moderate approach and lower impact recommended".
           </p>
-        </div>
+        </VStack>
       )}
 
-      <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
-    </div>
+      <Spacer />
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
+    </VStack>
   );
 }

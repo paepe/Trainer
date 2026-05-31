@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, Chip, ChipGroup, AINote } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { LifestyleBarrier } from '../../../types/profile-v2';
 
@@ -33,8 +33,8 @@ export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, on
   const hasSelection = (habits.lifestyle_barriers?.length ?? 0) > 0;
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary}/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
@@ -46,27 +46,25 @@ export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, on
         Select only what you find relevant. This data helps the plan respect your reality.
       </p>
 
-      <ChipGroup style={{ marginBottom: 20 }}>
+      <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
         {BARRIERS.map(b => (
           <Chip
             key={b.value}
             label={b.label}
-            selected={(habits.lifestyle_barriers ?? []).includes(b.value)}
-            onToggle={() => toggle(b.value)}
-            dark={dark} primary={primary}
+            active={(habits.lifestyle_barriers ?? []).includes(b.value)}
+            onClick={() => toggle(b.value)}
           />
         ))}
-      </ChipGroup>
+      </HStack>
 
       {hasSelection && (
-        <AINote
-          dark={dark} primary={primary}
+        <Alert isAI
           text="This data feeds internal fatigue, adherence, and recovery predictions. Nothing is displayed directly to the trainer without authorization."
         />
       )}
 
-      <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
-    </div>
+      <Spacer />
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
+    </VStack>
   );
 }

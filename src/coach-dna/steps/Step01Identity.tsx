@@ -1,7 +1,7 @@
 import React from 'react';
+import { TextInput } from '@/ui';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
-import { DNAField }    from '../components/DNAField';
 import { Chip }        from '../components/Chip';
 import { VoiceBar }    from '../components/VoiceBar';
 import { PhotoSlot }   from '../components/PhotoSlot';
@@ -33,7 +33,7 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
       trainerId={trainerId}
     />
 
-    <DNAField
+    <TextInput
       label="Full name"
       value={data.name}
       onChange={name => onChange({ name })}
@@ -60,7 +60,7 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
       </div>
     </div>
 
-    <DNAField
+    <TextInput
       label="Age"
       value={data.age}
       onChange={age => onChange({ age })}

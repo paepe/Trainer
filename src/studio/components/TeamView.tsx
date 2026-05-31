@@ -1,6 +1,7 @@
 import React from 'react';
+import { Button, Badge } from '@/ui';
 import type { StudioMember, StudioStats } from '../../types';
-import { PageHeader, Btn, C, Empty, Table, Badge } from './SharedAtoms';
+import { PageHeader, C, Empty, Table } from './SharedAtoms';
 
 interface TeamData {
   stats: StudioStats;
@@ -37,7 +38,7 @@ export default function TeamView({ data }: TeamViewProps) {
   return (
     <>
       <PageHeader title="Team" sub={`${data.stats.trainers} trainer${data.stats.trainers !== 1 ? 's' : ''}`}>
-        <Btn onClick={() => setShowInvite(v => !v)}>+ Invite trainer</Btn>
+        <Button onClick={() => setShowInvite(v => !v)}>+ Invite trainer</Button>
       </PageHeader>
 
       {showInvite && (
@@ -50,8 +51,8 @@ export default function TeamView({ data }: TeamViewProps) {
               placeholder="trainer@email.com"
               style={{ flex: 1, padding: '12px 14px', borderRadius: 10, background: C.surface2, border: `1px solid ${C.border}`, color: C.textPri, fontSize: 14, outline: 'none' }}
             />
-            <Btn onClick={invite} loading={loading}>Send</Btn>
-            <Btn variant="ghost" onClick={() => { setShowInvite(false); setEmail(''); setErr(''); }}>Cancel</Btn>
+            <Button onClick={invite} loading={loading}>Send</Button>
+            <Button variant="ghost" onClick={() => { setShowInvite(false); setEmail(''); setErr(''); }}>Cancel</Button>
           </div>
           {err && <div style={{ color: C.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
         </div>
@@ -66,7 +67,7 @@ export default function TeamView({ data }: TeamViewProps) {
             <span key="name" style={{ fontWeight: 600 }}>{m.profile?.name || '—'}</span>,
             <span key="email" style={{ color: C.textSec }}>{m.profile?.email}</span>,
             <Badge key="role">{m.role}</Badge>,
-            <Btn key="action" variant="danger" size="sm" onClick={() => void data.removeMember(m.id)}>Remove</Btn>,
+            <Button key="action" variant="danger" size="sm" onClick={() => void data.removeMember(m.id)}>Remove</Button>,
           ])}
         />
       )}

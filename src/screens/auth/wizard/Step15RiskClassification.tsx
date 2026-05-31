@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { RiskLevel, OperationalRiskFlags, RiskClassification } from '../../../types/profile-v2';
 
@@ -77,18 +77,11 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
   const meta = RISK_META[risk.level];
 
   return (
-    <div style={{ padding: '20px 24px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary} badge="technical"/>
+    <VStack padding="20px 24px 32px" style={{ minHeight: '100%' }}>
+      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} badge="technical" title="Operational risk classification" subtitle="Calculated from the previous blocks. You can review and request human validation." />
 
-      <h2 style={{
-        margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-      }}>
-        Operational risk classification
-      </h2>
-      <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
-        Calculated from the previous blocks. You can review and request human validation.
-      </p>
+      
+      
 
       {/* Risk badge */}
       <div style={{
@@ -97,7 +90,7 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
         border: `2px solid ${meta.color}44`,
         marginBottom: 20,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+        <HStack gap={14} style={{ marginBottom: 12 }}>
           <div style={{
             width: 48, height: 48, borderRadius: 14,
             background: meta.color,
@@ -115,7 +108,7 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
               {meta.label}
             </div>
           </div>
-        </div>
+        </HStack>
         <p style={{ margin: '0 0 14px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.5 }}>
           {meta.description}
         </p>
@@ -137,7 +130,7 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
       </div>
 
       {/* Risk scale */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+      <HStack gap={8} style={{ marginBottom: 24 }}>
         {RISK_LEVELS.map(lvl => {
           const m = RISK_META[lvl];
           const active = lvl === risk.level;
@@ -151,13 +144,13 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
             </div>
           );
         })}
-      </div>
+      </HStack>
 
       <p style={{ fontSize: 11.5, color: textMute(dark), lineHeight: 1.5, margin: '0 0 24px' }}>
         The classification is <strong style={{ color: textPri(dark) }}>explainable</strong>: you can request details of the factors that weighed into each decision.
       </p>
 
-      <div style={{ flex: 1 }}/>
+      <Spacer />
 
       {/* Generate CTA */}
       <button
@@ -183,7 +176,7 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
           'Generate Amplified Profile →'
         )}
       </button>
-    </div>
+    </VStack>
   );
 }
 

@@ -6,6 +6,10 @@ import type { GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import type { WorkoutSessionExercise, SessionExerciseStatus } from '../../types/workout';
 import { vibrate } from '../../lib/haptics';
 import { soundSetDone, soundRestEnd, soundWorkoutDone } from '../../lib/audio';
+import { ExerciseCard } from './workout/ExerciseCard';
+import { BottomPanel } from './workout/BottomPanel';
+import { LabeledInput } from './workout/LabeledInput';
+import type { Phase, ExState } from './workout/types';
 
 interface Theme {
   primary:     string;
@@ -14,21 +18,6 @@ interface Theme {
 }
 
 interface AppUser { id: string | null }
-
-type Phase = 'init' | 'active' | 'set_form' | 'rest' | 'pain_form' | 'skip_form';
-
-interface ExState {
-  id:             string;
-  name:           string;
-  muscleGroup:    string;
-  setsPrescribed: number;
-  repsPrescribed: number | null;
-  loadPrescribed: number | null;
-  restSeconds:    number;
-  notes:          string | null;
-  status:         SessionExerciseStatus;
-  setsLogged:     number;
-}
 
 interface WorkoutModeScreenProps {
   nav:                         NavFn;
@@ -357,7 +346,7 @@ export function WorkoutModeScreen({
 
       {/* ── Overlay: Set form ── */}
       {phase === 'set_form' && activeEx && (
-        <BottomPanel title={`Set ${activeEx.setsLogged + 1} of ${activeEx.setsPrescribed} — ${activeEx.name}`} dark={dark} t={t}>
+        <BottomPanel title={`Set ${activeEx.setsLogged + 1} of ${activeEx.setsPrescribed} — ${activeEx.name}`} dark={dark}>
           <LabeledInput label="Reps" value={setReps} onChange={setSetReps} type="number" dark={dark}/>
           <LabeledInput label="Load (kg)" value={setLoad} onChange={setSetLoad} type="number" dark={dark}/>
           <div>
@@ -390,7 +379,7 @@ export function WorkoutModeScreen({
 
       {/* ── Overlay: Rest timer ── */}
       {phase === 'rest' && (
-        <BottomPanel title="Rest" dark={dark} t={t}>
+        <BottomPanel title="Rest" dark={dark}>
           <div style={{ textAlign: 'center', padding: '8px 0' }}>
             <div style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 52, fontWeight: 700, color: t.primary, lineHeight: 1 }}>
               {String(Math.floor(restSec / 60)).padStart(2,'0')}:{String(restSec % 60).padStart(2,'0')}
@@ -406,7 +395,7 @@ export function WorkoutModeScreen({
 
       {/* ── Overlay: Pain form ── */}
       {phase === 'pain_form' && (
-        <BottomPanel title="Report Pain" dark={dark} t={t}>
+        <BottomPanel title="Report Pain" dark={dark}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
               Body Region
@@ -454,7 +443,7 @@ export function WorkoutModeScreen({
 
       {/* ── Overlay: Skip form ── */}
       {phase === 'skip_form' && activeEx && (
-        <BottomPanel title={`Skip Exercise — ${activeEx.name}`} dark={dark} t={t}>
+        <BottomPanel title={`Skip Exercise — ${activeEx.name}`} dark={dark}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
               Reason for skipping
@@ -508,163 +497,6 @@ export function WorkoutModeScreen({
           </div>
         </BottomPanel>
       )}
-    </div>
-  );
-}
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-interface ExerciseCardProps {
-  ex:          ExState;
-  isActive:    boolean;
-  dark:        boolean;
-  t:           { primary: string; accent: string };
-  onLogSet:    () => void;
-  onSkip:      () => void;
-  onPain:      () => void;
-  onSetActive: () => void;
-}
-
-function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, onSetActive }: ExerciseCardProps) {
-  const statusColor = ex.status === 'completed' ? t.primary
-    : ex.status === 'skipped' ? textMute(dark)
-    : ex.status === 'in_progress' ? t.primary
-    : borderSubtle(dark);
-
-  return (
-    <div
-      onClick={onSetActive}
-      style={{
-        marginBottom: 10, borderRadius: 14, overflow: 'hidden',
-        background: surfRaised(dark),
-        border: `1.5px solid ${isActive ? t.primary : borderSubtle(dark)}`,
-        opacity: ex.status === 'skipped' ? 0.55 : 1,
-        transition: 'border-color .2s, opacity .2s',
-      }}
-    >
-      {/* Header row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px 10px' }}>
-        <div style={{
-          width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-          background: statusColor,
-        }}/>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 14, fontWeight: 700, color: textPri(dark),
-            textDecoration: ex.status === 'skipped' ? 'line-through' : 'none',
-          }}>{ex.name}</div>
-          <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 1 }}>
-            {[
-              ex.muscleGroup,
-              ex.setsPrescribed && ex.repsPrescribed ? `${ex.setsPrescribed}×${ex.repsPrescribed}` : null,
-              ex.loadPrescribed ? `${ex.loadPrescribed} kg` : null,
-              ex.restSeconds    ? `${ex.restSeconds}s rest`  : null,
-            ].filter(Boolean).join(' · ')}
-          </div>
-        </div>
-        {ex.status === 'completed' && <Icon name="check" size={16} color={t.primary} stroke={2.5}/>}
-      </div>
-
-      {/* Active controls */}
-      {isActive && ex.status !== 'completed' && ex.status !== 'skipped' && (
-        <div style={{ padding: '0 14px 14px' }}>
-          {/* Sets progress dots */}
-          {ex.setsPrescribed > 1 && (
-            <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
-              {Array.from({ length: ex.setsPrescribed }, (_, i) => (
-                <div key={i} style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: i < ex.setsLogged ? t.primary : (dark ? '#1F2E45' : '#E5EAF1'),
-                  transition: 'background .2s',
-                }}/>
-              ))}
-              <span style={{ fontSize: 11.5, color: textSec(dark), marginLeft: 4 }}>
-                {ex.setsLogged}/{ex.setsPrescribed} sets
-              </span>
-            </div>
-          )}
-          {ex.notes && (
-            <div style={{ fontSize: 11.5, color: t.primary, fontStyle: 'italic', marginBottom: 10 }}>
-              {ex.notes}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={(e) => { e.stopPropagation(); onLogSet(); }} style={{
-              flex: 2, padding: '10px 0', borderRadius: 14, border: 'none',
-              background: t.primary, color: '#0E1A2B',
-              fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}>
-              <Icon name="play" size={12} color="#0E1A2B" stroke={2.5}/> Log Set
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); onPain(); }} style={{
-              flex: 1, padding: '10px 0', borderRadius: 999,
-              border: `1.5px solid ${t.accent}55`, background: 'transparent',
-              color: t.accent, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-            }}>Pain</button>
-            <button onClick={(e) => { e.stopPropagation(); onSkip(); }} style={{
-              flex: 1, padding: '10px 0', borderRadius: 999,
-              border: `1.5px solid ${borderSubtle(dark)}`, background: 'transparent',
-              color: textSec(dark), fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
-            }}>Skip</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface BottomPanelProps {
-  title:    string;
-  dark:     boolean;
-  t:        { primary: string; accent: string };
-  children: React.ReactNode;
-}
-
-function BottomPanel({ title, dark, children }: BottomPanelProps) {
-  return (
-    <div style={{
-      position: 'absolute', left: 0, right: 0, bottom: 0,
-      background: dark ? '#0E1A2B' : '#fff',
-      borderTop: `1px solid ${borderSubtle(dark)}`,
-      borderRadius: '20px 20px 0 0',
-      padding: '20px 22px 32px',
-      boxShadow: '0 -8px 32px rgba(0,0,0,.3)',
-      display: 'flex', flexDirection: 'column', gap: 14,
-    }}>
-      <div style={{ fontSize: 15, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B' }}>{title}</div>
-      {children}
-    </div>
-  );
-}
-
-interface LabeledInputProps {
-  label:    string;
-  value:    string;
-  onChange: (v: string) => void;
-  type:     string;
-  dark:     boolean;
-}
-
-function LabeledInput({ label, value, onChange, type, dark }: LabeledInputProps) {
-  return (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
-        {label}
-      </div>
-      <input
-        type={type}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        inputMode="decimal"
-        style={{
-          width: '100%', boxSizing: 'border-box',
-          padding: '10px 14px', borderRadius: 10,
-          border: `1.5px solid ${borderSubtle(dark)}`,
-          background: surfRaised(dark), color: textPri(dark),
-          fontFamily: 'inherit', fontSize: 15, fontWeight: 600, outline: 'none',
-        }}
-      />
     </div>
   );
 }

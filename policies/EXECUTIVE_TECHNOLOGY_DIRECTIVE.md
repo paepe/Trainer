@@ -147,6 +147,14 @@ In the TrAIner ecosystem:
 
 are not cosmetic. They are architecture and quality criteria. The app's brand identity (navy/cyan/coral palette, Plus Jakarta Sans + Inter typography, the "PT & ME Experience") is an architectural constant, not a theming afterthought.
 
+**Role-Based Design Constraints:**
+To maintain clear visual boundaries and cognitive separation between user roles, the system enforces the following design authority:
+- **CLIENT (Student/etc):** Adopts the System Design of `trainer_system_design.md` (Standard Light/Dark modes, Navy/Cyan primary palette).
+- **TRAINER (Personal/Coach):** Adopts the System Design of `coach_dna_system_design.md` (Always-Dark mode, Dark/Coral primary palette).
+- **STUDIO:** To be defined.
+
+UI components must strictly respect the design system corresponding to the active role.
+
 ### 4.8. Refactor to protect, not to exhibit virtuosity
 
 Refactoring only makes sense when it:
@@ -181,20 +189,20 @@ Not with comfortable assumptions or cosmetic fixes. AI model output anomalies mu
 
 ### 5.1. Current topology
 
-The current TrAIner prototype runs on React 18 loaded via CDN with Babel in-browser transpilation. The application is structured as:
+The TrAIner application (V2) runs on a modern build toolchain. The application is structured as:
 
-- **Shell** (`app.jsx`): navigation, side menu, phone frame, bottom tabs, global state (`user`, `prefs`, `checkin`, `cycleConfig`, `screen`, `menuOpen`)
-- **Screens** (`screens.jsx`): 15 screen components + shared atoms (Icon, PillInput, HeroIllustration, OAuth, form controls, color helpers)
-- **Dev tooling** (`tweaks-panel.jsx`): palette presets, dark mode, device frame, white-label toggle, role switch, screen navigation
+- **Frontend Core:** React 18, TypeScript, and Vite for proper bundling and environment management.
+- **State Management:** Orchestrated via `App.tsx` (State Container) and specific Custom Hooks (`src/hooks/useData.ts` including `useAuth`, `useCheckinData`, `useWorkoutData`), ensuring unidirectional data flow without relying on heavy global state libraries.
+- **Component Separation:** Modularized components and screens with clear domain boundaries.
+
+*(Note: The legacy V1 prototype using HTML, Babel, `app.jsx`, and `screens.jsx` is preserved only for historical reference).*
 
 ### 5.2. Evolution path
 
-The architecture must evolve toward:
+The architecture must continue to evolve toward:
 
-- **Build toolchain:** Migration from CDN-based Babel to Vite or Next.js with proper bundling, tree-shaking, and environment variable management
-- **Component separation:** Split `screens.jsx` into per-screen or per-domain modules once a build toolchain is in place
-- **Type safety:** Adopt TypeScript for all new code; the prototype's JSX is an acceptable starting point but must not remain the production standard
-- **State management:** Formalize state beyond React's `useState` hooks — consider Context API or Zustand for cross-module state before the codebase scales further
+- **Mobile Support:** Expanding the PWA foundation into native wrappers via Capacitor.
+- **Type Safety:** Maintaining strict TypeScript for all new code; no new modules should be written in plain JavaScript.
 - **Mobile-first rendering:** All UI must be designed, tested, and validated on mobile viewports first; the current iPhone-style frame is a prototyping convenience, not a substitute for responsive design
 
 ### 5.3. Screen module boundaries
@@ -454,8 +462,10 @@ This directive was consolidated and adapted from:
 
 The following documents serve as the TrAIner-specific operational foundation:
 
-- `../README.md` — project overview, file layout, brand system, screen catalog, app-wide state, conventions
-- `PROFILE.md` — official professional profile and quality standards for this project
+- `references/trainer_system_design.md` — authoritative architecture, data models, state management, B2B multi-tenant setup, and system design principles (Canonical for Client).
+- `references/coach_dna_system_design.md` — authoritative visual system design, token palette, and typography for the Trainer role.
+- `../README.md` — project overview, setup instructions, and high-level directory structure.
+- `PROFILE.md` — official professional profile and quality standards for this project.
 
 Additional reference documents shall be maintained in `references/` as the project evolves.
 

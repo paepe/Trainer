@@ -1,7 +1,7 @@
 import React from 'react';
+import { TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
-import { PillInput } from '../../components/PillInput';
 import { iconBtn, borderSubtle, textPri, textSec, textMute, primaryBtn, textBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { AuthError } from '@supabase/supabase-js';
@@ -114,8 +114,8 @@ export function LoginScreen({ nav, t, dark, signIn }: LoginScreenProps) {
         <OAuthSection onProvider={oauth} dark={dark} primary={t.primary}/>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <PillInput icon="mail" placeholder="Email"    type="email"    value={email} onChange={setEmail} primary={t.primary} dark={dark}/>
-        <PillInput icon="lock" placeholder="Password" type="password" value={pw}    onChange={setPw}    primary={t.primary} dark={dark}/>
+        <TextInput icon="mail" placeholder="Email"    type="email"    value={email} onChange={setEmail}/>
+        <TextInput icon="lock" placeholder="Password" type="password" value={pw}    onChange={setPw}/>
       </div>
       {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
       <div style={{ flex: 1, minHeight: 12 }}/>

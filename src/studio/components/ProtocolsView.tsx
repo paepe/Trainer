@@ -1,6 +1,7 @@
 import React from 'react';
+import { Button, TextInput } from '@/ui';
 import type { Protocol, CreateProtocolPayload, FitnessLevel, ProtocolExercise } from '../../types';
-import { Btn, Field, PageHeader, Empty, C } from './SharedAtoms';
+import { PageHeader, Empty, C } from './SharedAtoms';
 import { ProtocolDetail } from './ProtocolDetail';
 
 interface ProtocolsViewProps {
@@ -107,7 +108,7 @@ export function ProtocolsView({ data }: ProtocolsViewProps) {
         title="Protocol Library"
         sub={`${visible.length} of ${data.protocols.length} protocol${data.protocols.length !== 1 ? 's' : ''}`}
       >
-        <Btn onClick={() => setShowCreate(v => !v)}>+ New protocol</Btn>
+        <Button onClick={() => setShowCreate(v => !v)}>+ New protocol</Button>
       </PageHeader>
 
       {/* ── Create form ──────────────────────────────────────────── */}
@@ -115,8 +116,8 @@ export function ProtocolsView({ data }: ProtocolsViewProps) {
         <div style={{ marginBottom: 24, padding: 24, borderRadius: 16, background: C.surface, border: `1.5px solid ${C.primary}` }}>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>New protocol</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-            <Field label="Name" value={form.name} onChange={v => setForm({ ...form, name: v })} placeholder="e.g. Hypertrophy Beginner"/>
-            <Field label="Objective" value={form.objective || ''} onChange={v => setForm({ ...form, objective: v })} placeholder="e.g. Muscle building"/>
+            <TextInput label="Name" value={form.name} onChange={v => setForm({ ...form, name: v })} placeholder="e.g. Hypertrophy Beginner"/>
+            <TextInput label="Objective" value={form.objective || ''} onChange={v => setForm({ ...form, objective: v })} placeholder="e.g. Muscle building"/>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: C.textMute, textTransform: 'uppercase', letterSpacing: '.06em' }}>Level</span>
               <select value={form.level || 'beginner'} onChange={e => setForm({ ...form, level: e.target.value as FitnessLevel })}
@@ -124,13 +125,13 @@ export function ProtocolsView({ data }: ProtocolsViewProps) {
                 {['beginner', 'intermediate', 'advanced'].map(l => <option key={l} value={l}>{l}</option>)}
               </select>
             </label>
-            <Field label="Duration (min)" value={String(form.duration_minutes || '')} onChange={v => setForm({ ...form, duration_minutes: Number(v) || null })} placeholder="45"/>
+            <TextInput label="Duration (min)" value={String(form.duration_minutes || '')} onChange={v => setForm({ ...form, duration_minutes: Number(v) || null })} placeholder="45"/>
           </div>
-          <Field label="Description" value={form.description || ''} onChange={v => setForm({ ...form, description: v })} placeholder="Brief description of this protocol…" multiline/>
+          <TextInput label="Description" value={form.description || ''} onChange={v => setForm({ ...form, description: v })} placeholder="Brief description of this protocol…" multiline/>
           {err && <div style={{ color: C.accent, fontSize: 12, margin: '10px 0' }}>{err}</div>}
           <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-            <Btn onClick={create} loading={loading}>Create protocol</Btn>
-            <Btn variant="ghost" onClick={() => { setShowCreate(false); setErr(''); }}>Cancel</Btn>
+            <Button onClick={create} loading={loading}>Create protocol</Button>
+            <Button variant="ghost" onClick={() => { setShowCreate(false); setErr(''); }}>Cancel</Button>
           </div>
         </div>
       )}
@@ -250,7 +251,7 @@ export function ProtocolsView({ data }: ProtocolsViewProps) {
                     }}>{p.level}</span>
                   )}
 
-                  <Btn variant="danger" size="sm" onClick={e => { e.stopPropagation(); void data.deleteProtocol(p.id); }}>Delete</Btn>
+                  <Button variant="danger" size="sm" onClick={e => { e.stopPropagation(); void data.deleteProtocol(p.id); }}>Delete</Button>
 
                   <span style={{
                     color: C.textMute, fontSize: 18, flexShrink: 0,

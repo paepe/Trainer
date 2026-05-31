@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, Toggle, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { ConsentCategory, ConsentValue } from '../../../types/profile-v2';
 
@@ -64,18 +64,11 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
     onUpdate({ consent: { ...consent, studio: { ...consent.studio, [key]: v } } });
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary} badge="lgpd"/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} badge="lgpd" title="Consent and visibility" subtitle="You decide who sees what, and can revoke at any time." />
 
-      <h2 style={{
-        margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-      }}>
-        Consent and visibility
-      </h2>
-      <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 16px', lineHeight: 1.55 }}>
-        You decide who sees what, and can revoke at any time.
-      </p>
+      
+      
 
       {/* Column headers */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 130px 130px', gap: 8, marginBottom: 8, paddingLeft: 4 }}>
@@ -89,7 +82,7 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
       </div>
 
       {/* Consent rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+      <VStack gap={8} style={{ marginBottom: 20 }}>
         {ROWS.map(row => (
           <div key={row.key} style={{
             display: 'grid', gridTemplateColumns: '1fr 130px 130px', gap: 8, alignItems: 'center',
@@ -108,49 +101,47 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
             <ConsentPicker
               value={(consent.personal?.[row.key] ?? DEFAULT_PERSONAL[row.key]) as ConsentValue}
               onChange={v => setPersonal(row.key, v)}
-              dark={dark} primary={primary}
             />
             <ConsentPicker
               value={(consent.studio?.[row.key] ?? DEFAULT_STUDIO[row.key]) as ConsentValue}
               onChange={v => setStudio(row.key, v)}
-              dark={dark} primary={primary}
             />
           </div>
         ))}
-      </div>
+      </VStack>
 
       {/* Global toggles */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+      <VStack gap={12} style={{ marginBottom: 16 }}>
         <GlobalToggle
           label="Allows AI use for plan adaptation"
           description="The AI uses authorized data — it does not have access to what you have hidden."
           on={consent.allow_ai_adaptation}
           onChange={v => onUpdate({ consent: { ...consent, allow_ai_adaptation: v } })}
-          dark={dark} primary={primary}
+          dark={dark}
         />
         <GlobalToggle
           label="Maintain access history"
           description="You will be able to audit who accessed what and when."
           on={consent.maintain_access_log}
           onChange={v => onUpdate({ consent: { ...consent, maintain_access_log: v } })}
-          dark={dark} primary={primary}
+          dark={dark}
         />
-      </div>
+      </VStack>
 
       <p style={{ fontSize: 11, color: textMute(dark), lineHeight: 1.5, margin: 0 }}>
         Revoking consent prevents unauthorized future use and maintains an auditable decision record.
       </p>
 
-      <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
-    </div>
+      <Spacer />
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
+    </VStack>
   );
 }
 
 // ── ConsentPicker — cycles through 4 values on tap ───────────────────────────
 
-function ConsentPicker({ value, onChange, dark, primary }: {
-  value: ConsentValue; onChange: (v: ConsentValue) => void; dark: boolean; primary: string;
+function ConsentPicker({ value, onChange }: {
+  value: ConsentValue; onChange: (v: ConsentValue) => void; 
 }) {
   const next = () => {
     const idx = VALUES.indexOf(value);
@@ -172,9 +163,9 @@ function ConsentPicker({ value, onChange, dark, primary }: {
 
 // ── GlobalToggle ──────────────────────────────────────────────────────────────
 
-function GlobalToggle({ label, description, on, onChange, dark, primary }: {
+function GlobalToggle({ label, description, on, onChange, dark }: {
   label: string; description: string; on: boolean;
-  onChange: (v: boolean) => void; dark: boolean; primary: string;
+  onChange: (v: boolean) => void; dark: boolean;
 }) {
   return (
     <div style={{
@@ -186,7 +177,7 @@ function GlobalToggle({ label, description, on, onChange, dark, primary }: {
         <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), marginBottom: 3 }}>{label}</div>
         <div style={{ fontSize: 11.5, color: textSec(dark), lineHeight: 1.4 }}>{description}</div>
       </div>
-      <Toggle on={on} onChange={onChange} primary={primary} dark={dark}/>
+      <Toggle on={on} onChange={onChange}/>
     </div>
   );
 }

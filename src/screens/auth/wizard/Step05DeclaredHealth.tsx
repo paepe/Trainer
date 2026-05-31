@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, Badge, Chip, ChipGroup, AINote, TextArea, VoiceOption, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { HealthCategory } from '../../../types/profile-v2';
@@ -49,23 +49,18 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
   const hasHighRisk = dh.categories?.some(c => HIGH_RISK.includes(c));
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary} badge="sensitive"/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} badge="sensitive" title="Declared Health"  />
 
-      <h2 style={{
-        margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-      }}>
-        Declared Health
-      </h2>
+      
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
         The system <strong style={{ color: textPri(dark) }}>does not diagnose</strong>. It only uses what you declare
         to adapt the plan safely.
       </p>
 
       {/* Disclosure choice */}
-      <SectionLabel label="Is there any condition to consider?" dark={dark}/>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Is there any condition to consider?</Typography>
+      <VStack gap={8} style={{ marginBottom: 20 }}>
         {([
           { v: 'yes',        label: 'Yes, what are they'       },
           { v: 'no',         label: 'Not applicable'    },
@@ -84,37 +79,34 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
             </button>
           );
         })}
-      </div>
+      </VStack>
 
       {/* Category multi-select — shown only when "yes" */}
       {disclosure === 'yes' && (
         <>
-          <SectionLabel label="Categories" dark={dark}/>
-          <ChipGroup style={{ marginBottom: 16 }}>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Categories</Typography>
+          <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
             {CATEGORIES.map(c => (
               <Chip
                 key={c.value}
                 label={c.label}
-                selected={(dh.categories ?? []).includes(c.value)}
-                onToggle={() => toggleCategory(c.value)}
-                dark={dark} primary={primary}
+                active={(dh.categories ?? []).includes(c.value)}
+                onClick={() => toggleCategory(c.value)}
               />
             ))}
-          </ChipGroup>
+          </HStack>
 
-          <TextArea
+          <TextInput multiline
             label="Free note"
             value={dh.free_text ?? ''}
             onChange={v => onUpdate({ declared_health: { ...dh, free_text: v } })}
-            dark={dark} primary={primary}
             placeholder="e.g.: Knee surgery in 2023, cleared for weight training"
             rows={3}
           />
 
           {hasHighRisk && (
             <div style={{ marginTop: 14 }}>
-              <AINote
-                dark={dark} primary={primary} variant="warning"
+              <Alert isAI variant="warning"
                 text="Sensitive data. Check these points to validate operational restrictions — recommend conservative progression."
               />
             </div>
@@ -122,7 +114,6 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
 
           <div style={{ marginTop: 14 }}>
             <VoiceOption
-              dark={dark} primary={primary}
               note="Tell us about your condition in your own words."
               onClick={() => setVoiceOpen(true)}
             />
@@ -130,12 +121,11 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
         </>
       )}
 
-      <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
+      <Spacer />
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
 
       {voiceOpen && (
-        <WizardVoiceOverlay
-          dark={dark} primary={primary}
+        <WizardVoiceOverlay dark={dark} primary={primary}
           context="Tell us about your health"
           onConfirm={(text) => {
             onUpdate({ declared_health: { ...dh, voice_note: text } });
@@ -145,6 +135,6 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
           onClose={() => setVoiceOpen(false)}
         />
       )}
-    </div>
+    </VStack>
   );
 }

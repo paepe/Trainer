@@ -2,22 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
-import { useData } from '../../hooks/useData';
+import { useExerciseData } from '../../hooks/useExerciseData';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../theme';
+import { DARK } from '../../theme/tokens';
 import type { NavFn, ExerciseCatalogItem } from '../../types';
 import { TRAINER_ROLES } from '../../types/auth';
 
-interface Theme {
-  primary:     string;
-  primaryDeep: string;
-  primarySoft: string;
-  accent:      string;
-}
+import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 
 interface TrainerLibraryExercisesScreenProps {
   nav: NavFn;
-  t: Theme;
-  dark: boolean;
   user: {
     id: string;
     role: string;
@@ -25,8 +19,9 @@ interface TrainerLibraryExercisesScreenProps {
   };
 }
 
-export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLibraryExercisesScreenProps) {
-  const { fetchExercises, saveExercise, fetchProtocolsList, simulateVoiceAssistant } = useData(user.id);
+export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExercisesScreenProps) {
+  const { fetchExercises, saveExercise, fetchProtocolsList, simulateVoiceAssistant } = useExerciseData();
+  const { t, dark } = useTrainerTheme();
 
   // State
   const [activeTab, setActiveTab] = useState<'exercises' | 'protocols'>('exercises');
@@ -197,145 +192,18 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
 
       {/* AI Voice Assistant Simulator Section */}
       {showVoicePanel && (
-        <div style={{ padding: '0 22px 18px' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(110, 68, 255, 0.12) 0%, rgba(14, 26, 43, 0.4) 100%)',
-            border: `1px solid rgba(110, 68, 255, 0.3)`,
-            borderRadius: 16, padding: 16, boxShadow: '0 8px 32px rgba(110, 68, 255, 0.08)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Icon name="sparkle" size={18} color="#6e44ff" />
-                <span style={{ fontWeight: 700, fontSize: 14, color: '#9b51e0' }}>AI Voice Assistant (Module 8)</span>
-              </div>
-              <button 
-                onClick={() => setShowVoicePanel(false)}
-                style={{ background: 'transparent', border: 'none', color: textMute(dark), cursor: 'pointer' }}
-              >
-                <Icon name="close" size={14} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-              <input
-                type="text"
-                placeholder='E.g., "Low-impact alternative for burpees?"'
-                value={voiceQuery}
-                onChange={(e) => setVoiceQuery(e.target.value)}
-                style={{
-                  flex: 1, padding: '10px 14px', borderRadius: 10,
-                  border: `1px solid ${borderSubtle(dark)}`,
-                  background: dark ? '#0A111E' : '#f5f7fa',
-                  color: textPri(dark), fontFamily: 'inherit', fontSize: 13
-                }}
-              />
-              <button
-                onClick={() => handleVoiceSimulate(voiceQuery)}
-                disabled={voiceLoading}
-                style={{
-                  padding: '10px 16px', borderRadius: 10, border: 'none',
-                  background: '#6e44ff', color: '#fff', fontWeight: 600, cursor: 'pointer'
-                }}
-              >
-                {voiceLoading ? 'Analyzing...' : 'Simulate'}
-              </button>
-            </div>
-
-            {/* Quick Templates */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-              <button 
-                onClick={() => { setVoiceQuery('Low-impact alternative for burpees?'); handleVoiceSimulate('Low-impact alternative for burpees?'); }}
-                style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: dark ? '#1C293E' : '#eef2f6', color: textSec(dark), fontSize: 11, cursor: 'pointer' }}
-              >
-                "Low-impact alternative for burpees"
-              </button>
-              <button 
-                onClick={() => { setVoiceQuery('Search hamstring with dumbbells'); handleVoiceSimulate('Search hamstring with dumbbells'); }}
-                style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: dark ? '#1C293E' : '#eef2f6', color: textSec(dark), fontSize: 11, cursor: 'pointer' }}
-              >
-                "Hamstring with dumbbells"
-              </button>
-              <button 
-                onClick={() => { setVoiceQuery('Mark burpee as restricted for beginners'); handleVoiceSimulate('Mark burpee as restricted for beginners'); }}
-                style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: dark ? '#1C293E' : '#eef2f6', color: textSec(dark), fontSize: 11, cursor: 'pointer' }}
-              >
-                "Restrict burpee for beginners"
-              </button>
-            </div>
-
-            {/* Voice Response Output */}
-            {voiceResponse && (
-              <div style={{
-                background: dark ? '#09101C' : '#fafafa',
-                border: `1px solid ${borderSubtle(dark)}`,
-                borderRadius: 12, padding: 12, marginTop: 10
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, color: '#9b51e0', fontWeight: 600 }}>Parsed Intent: {voiceResponse.intent}</span>
-                </div>
-                <p style={{ fontSize: 13, margin: '4px 0 10px 0', lineHeight: 1.4, color: textPri(dark) }}>
-                  "{voiceResponse.reply}"
-                </p>
-
-                {/* Recommended matching list */}
-                {voiceResponse.exercises && voiceResponse.exercises.length > 0 && (
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, color: textMute(dark), marginBottom: 4 }}>Matching exercises:</div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {voiceResponse.exercises.map((e: any) => (
-                        <div
-                          key={e.id}
-                          onClick={() => { setSelectedExercise(e); setIsEditing(false); }}
-                          style={{
-                            padding: '4px 10px', borderRadius: 6, background: 'rgba(110, 68, 255, 0.1)',
-                            border: '1px solid rgba(110, 68, 255, 0.3)', color: '#9b51e0',
-                            fontSize: 11, fontWeight: 600, cursor: 'pointer'
-                          }}
-                        >
-                          {e.name}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Governance preview & Human confirmation (RV-8.3) */}
-                {voiceResponse.intent.includes('restrict') || voiceResponse.intent.includes('block') || voiceResponse.intent.includes('create') ? (
-                  <div style={{
-                    marginTop: 10, padding: 10, borderRadius: 8,
-                    background: 'rgba(242, 201, 76, 0.08)',
-                    border: '1px dashed rgba(242, 201, 76, 0.4)'
-                  }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#f2c94c', marginBottom: 6 }}>
-                      ⚠️ Governance Action Pre-authorized (RV-8.3)
-                    </div>
-                    <button
-                      onClick={() => handleConfirmGovernance(`${voiceResponse.intent} for query: ${voiceQuery}`)}
-                      style={{
-                        padding: '6px 12px', background: '#f2c94c', color: '#0E1A2B',
-                        border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 11, cursor: 'pointer'
-                      }}
-                    >
-                      Confirm and Log Action
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {/* Audit Logs */}
-            {auditLogs.length > 0 && (
-              <div style={{ marginTop: 10, fontSize: 11, color: textMute(dark) }}>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>Governance Audit Log:</div>
-                <div style={{ maxHeight: 60, overflowY: 'auto' }}>
-                  {auditLogs.map((log, index) => (
-                    <div key={index} style={{ marginBottom: 2, fontFamily: 'monospace' }}>{log}</div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <VoiceAssistantPanel
+          voiceQuery={voiceQuery}
+          voiceResponse={voiceResponse}
+          voiceLoading={voiceLoading}
+          auditLogs={auditLogs}
+          dark={dark}
+          onClose={() => setShowVoicePanel(false)}
+          onQueryChange={setVoiceQuery}
+          onSimulate={handleVoiceSimulate}
+          onGovernance={handleConfirmGovernance}
+          onSelectExercise={(ex) => { setSelectedExercise(ex); setIsEditing(false); }}
+        />
       )}
 
       {/* Exercises View */}
@@ -411,7 +279,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
                     onChange={(e) => setFilterMuscle(e.target.value)}
                     style={{
                       width: '100%', marginTop: 4, padding: 8, borderRadius: 8,
-                      background: dark ? '#0A111E' : '#fff', color: textPri(dark),
+                      background: DARK.bg, color: textPri(dark),
                       border: `1px solid ${borderSubtle(dark)}`
                     }}
                   >
@@ -432,7 +300,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
                     onChange={(e) => setFilterEquipment(e.target.value)}
                     style={{
                       width: '100%', marginTop: 4, padding: 8, borderRadius: 8,
-                      background: dark ? '#0A111E' : '#fff', color: textPri(dark),
+                      background: DARK.bg, color: textPri(dark),
                       border: `1px solid ${borderSubtle(dark)}`
                     }}
                   >
@@ -452,7 +320,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
                     onChange={(e) => setFilterLevel(e.target.value)}
                     style={{
                       width: '100%', marginTop: 4, padding: 8, borderRadius: 8,
-                      background: dark ? '#0A111E' : '#fff', color: textPri(dark),
+                      background: DARK.bg, color: textPri(dark),
                       border: `1px solid ${borderSubtle(dark)}`
                     }}
                   >
@@ -470,7 +338,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
                     onChange={(e) => setFilterStatus(e.target.value)}
                     style={{
                       width: '100%', marginTop: 4, padding: 8, borderRadius: 8,
-                      background: dark ? '#0A111E' : '#fff', color: textPri(dark),
+                      background: DARK.bg, color: textPri(dark),
                       border: `1px solid ${borderSubtle(dark)}`
                     }}
                   >
@@ -532,7 +400,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
                           {ex.accessibility_tags.map(t => (
                             <span key={t} style={{
                               fontSize: 9, padding: '2px 6px', borderRadius: 4,
-                              background: dark ? '#162235' : '#eef2f6', color: textSec(dark)
+                              background: DARK.surface2, color: textSec(dark)
                             }}>
                               {t}
                             </span>
@@ -602,7 +470,7 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
                         <div
                           key={pe.id || idx}
                           style={{
-                            padding: 10, borderRadius: 10, background: dark ? '#0A111E' : '#f8f9fa',
+                            padding: 10, borderRadius: 10, background: DARK.bg,
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                           }}
                         >
@@ -633,317 +501,322 @@ export function TrainerLibraryExercisesScreen({ nav, t, dark, user }: TrainerLib
 
       {/* Selected Exercise Drawer / Modal */}
       {selectedExercise && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 100, display: 'flex',
-          alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)'
-        }}>
-          <div style={{
-            background: dark ? '#0E1A2B' : '#fff', border: `1px solid ${borderSubtle(dark)}`,
-            borderRadius: 20, padding: 22, width: '90%', maxWidth: 500, maxHeight: '90vh',
-            overflowY: 'auto', position: 'relative', boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
-          }}>
+        <ExerciseDetailModal
+          exercise={selectedExercise}
+          isEditing={isEditing}
+          formError={formError}
+          isTrainerOrAdmin={isTrainerOrAdmin}
+          dark={dark}
+          t={t}
+          onClose={() => { setSelectedExercise(null); setIsEditing(false); }}
+          onStartEdit={() => setIsEditing(true)}
+          onCancelEdit={() => setIsEditing(false)}
+          onChange={setSelectedExercise}
+          onSave={handleSave}
+        />
+      )}
+    </>
+  );
+}
+
+// ── VoiceAssistantPanel ───────────────────────────────────────────────────────
+
+interface VoiceAssistantPanelProps {
+  voiceQuery:       string;
+  voiceResponse:    any | null;
+  voiceLoading:     boolean;
+  auditLogs:        string[];
+  dark:             boolean;
+  onClose:          () => void;
+  onQueryChange:    (q: string) => void;
+  onSimulate:       (q: string) => void;
+  onGovernance:     (action: string) => void;
+  onSelectExercise: (ex: any) => void;
+}
+
+function VoiceAssistantPanel({
+  voiceQuery, voiceResponse, voiceLoading, auditLogs, dark,
+  onClose, onQueryChange, onSimulate, onGovernance, onSelectExercise,
+}: VoiceAssistantPanelProps) {
+  return (
+    <div style={{ padding: '0 22px 18px' }}>
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(110, 68, 255, 0.12) 0%, rgba(14, 26, 43, 0.4) 100%)',
+        border: '1px solid rgba(110, 68, 255, 0.3)',
+        borderRadius: 16, padding: 16, boxShadow: '0 8px 32px rgba(110, 68, 255, 0.08)',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="sparkle" size={18} color="#6e44ff" />
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#9b51e0' }}>AI Voice Assistant (Module 8)</span>
+          </div>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: textMute(dark), cursor: 'pointer' }}>
+            <Icon name="close" size={14} />
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <input
+            type="text"
+            placeholder='E.g., "Low-impact alternative for burpees?"'
+            value={voiceQuery}
+            onChange={e => onQueryChange(e.target.value)}
+            style={{
+              flex: 1, padding: '10px 14px', borderRadius: 10,
+              border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg,
+              color: textPri(dark), fontFamily: 'inherit', fontSize: 13,
+            }}
+          />
+          <button
+            onClick={() => onSimulate(voiceQuery)}
+            disabled={voiceLoading}
+            style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#6e44ff', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+          >
+            {voiceLoading ? 'Analyzing...' : 'Simulate'}
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+          {[
+            'Low-impact alternative for burpees?',
+            'Search hamstring with dumbbells',
+            'Mark burpee as restricted for beginners',
+          ].map(tpl => (
             <button
-              onClick={() => { setSelectedExercise(null); setIsEditing(false); }}
-              style={{
-                position: 'absolute', top: 16, right: 16, background: 'transparent',
-                border: 'none', color: textPri(dark), cursor: 'pointer'
-              }}
+              key={tpl}
+              onClick={() => { onQueryChange(tpl); onSimulate(tpl); }}
+              style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: DARK.surface3, color: textSec(dark), fontSize: 11, cursor: 'pointer' }}
             >
-              <Icon name="close" size={20} />
+              "{tpl}"
             </button>
+          ))}
+        </div>
 
-            <h3 style={{ margin: '0 0 16px 0', fontSize: 18, color: textPri(dark), display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Icon name="dumbbell" size={20} color={t.primary} />
-              {isEditing ? (selectedExercise.id ? 'Edit Exercise' : 'New Exercise') : 'Exercise Details'}
-            </h3>
+        {voiceResponse && (
+          <div style={{ background: DARK.bg, border: `1px solid ${borderSubtle(dark)}`, borderRadius: 12, padding: 12, marginTop: 10 }}>
+            <span style={{ fontSize: 11, color: '#9b51e0', fontWeight: 600 }}>Parsed Intent: {voiceResponse.intent}</span>
+            <p style={{ fontSize: 13, margin: '4px 0 10px 0', lineHeight: 1.4, color: textPri(dark) }}>"{voiceResponse.reply}"</p>
 
-            {/* Blocked / Restricted Banner */}
-            {selectedExercise.status === 'blocked' && (
-              <div style={{
-                background: 'rgba(235, 87, 87, 0.12)', border: '1px solid #eb5757',
-                borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: '#eb5757',
-                lineHeight: 1.4
-              }}>
-                <b>⚠️ Blocked Exercise:</b> This exercise has been blocked due to severe safety risks or client contraindications. Postgres constraints actively prevent loading it onto any new workout plans.
+            {voiceResponse.exercises?.length > 0 && (
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: textMute(dark), marginBottom: 4 }}>Matching exercises:</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {voiceResponse.exercises.map((e: any) => (
+                    <div key={e.id} onClick={() => onSelectExercise(e)} style={{
+                      padding: '4px 10px', borderRadius: 6, background: 'rgba(110, 68, 255, 0.1)',
+                      border: '1px solid rgba(110, 68, 255, 0.3)', color: '#9b51e0',
+                      fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    }}>{e.name}</div>
+                  ))}
+                </div>
               </div>
             )}
 
-            {selectedExercise.status === 'restricted' && (
-              <div style={{
-                background: 'rgba(242, 201, 76, 0.12)', border: '1px solid #f2c94c',
-                borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: '#f2c94c',
-                lineHeight: 1.4
-              }}>
-                <b>⚠️ Restricted Exercise:</b> This exercise contains relative constraints. Ensure proper supervision and form correction.
-              </div>
-            )}
-
-            {/* Form / Detail */}
-            {isEditing ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {formError && <div style={{ color: '#eb5757', fontSize: 12, fontWeight: 600 }}>{formError}</div>}
-
-                <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Exercise Name</label>
-                  <input
-                    type="text"
-                    value={selectedExercise.name || ''}
-                    onChange={(e) => setSelectedExercise({ ...selectedExercise, name: e.target.value })}
-                    style={{
-                      width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                      border: `1px solid ${borderSubtle(dark)}`,
-                      background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark)
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Muscle Group</label>
-                    <select
-                      value={selectedExercise.muscle_group || 'Legs'}
-                      onChange={(e) => setSelectedExercise({ ...selectedExercise, muscle_group: e.target.value })}
-                      style={{
-                        width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                        border: `1px solid ${borderSubtle(dark)}`,
-                        background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark)
-                      }}
-                    >
-                      <option value="Chest">Chest</option>
-                      <option value="Back">Back</option>
-                      <option value="Shoulders">Shoulders</option>
-                      <option value="Legs">Legs</option>
-                      <option value="Arms">Arms</option>
-                      <option value="Core">Core</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Status</label>
-                    <select
-                      value={selectedExercise.status || 'draft'}
-                      onChange={(e) => setSelectedExercise({ ...selectedExercise, status: e.target.value as any })}
-                      style={{
-                        width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                        border: `1px solid ${borderSubtle(dark)}`,
-                        background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark)
-                      }}
-                    >
-                      <option value="active">Active</option>
-                      <option value="blocked">Blocked</option>
-                      <option value="restricted">Restricted</option>
-                      <option value="draft">Draft</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Equipment</label>
-                    <input
-                      type="text"
-                      value={selectedExercise.equipment ? (Array.isArray(selectedExercise.equipment) ? selectedExercise.equipment.join(', ') : selectedExercise.equipment) : ''}
-                      onChange={(e) => setSelectedExercise({ ...selectedExercise, equipment: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                      style={{
-                        width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                        border: `1px solid ${borderSubtle(dark)}`,
-                        background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark)
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Level</label>
-                    <select
-                      value={selectedExercise.level || 'beginner'}
-                      onChange={(e) => setSelectedExercise({ ...selectedExercise, level: e.target.value as any })}
-                      style={{
-                        width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                        border: `1px solid ${borderSubtle(dark)}`,
-                        background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark)
-                      }}
-                    >
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Description & Instructions</label>
-                  <textarea
-                    rows={3}
-                    value={selectedExercise.short_instruction || ''}
-                    onChange={(e) => setSelectedExercise({ ...selectedExercise, short_instruction: e.target.value })}
-                    style={{
-                      width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                      border: `1px solid ${borderSubtle(dark)}`,
-                      background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark),
-                      fontFamily: 'inherit', fontSize: 13
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Video URL</label>
-                  <input
-                    type="text"
-                    value={selectedExercise.video_url || ''}
-                    onChange={(e) => setSelectedExercise({ ...selectedExercise, video_url: e.target.value })}
-                    style={{
-                      width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                      border: `1px solid ${borderSubtle(dark)}`,
-                      background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark)
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Accessibility Tags (comma separated)</label>
-                  <input
-                    type="text"
-                    placeholder="low_impact, no_floor, seated"
-                    value={selectedExercise.accessibility_tags?.join(', ') || ''}
-                    onChange={(e) => setSelectedExercise({
-                      ...selectedExercise,
-                      accessibility_tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                    })}
-                    style={{
-                      width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                      border: `1px solid ${borderSubtle(dark)}`,
-                      background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark)
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Alternative Exercises (comma separated)</label>
-                  <input
-                    type="text"
-                    placeholder="Step Jack, Marcha no Lugar"
-                    value={selectedExercise.alternatives?.join(', ') || ''}
-                    onChange={(e) => setSelectedExercise({
-                      ...selectedExercise,
-                      alternatives: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                    })}
-                    style={{
-                      width: '100%', marginTop: 4, padding: 10, borderRadius: 8,
-                      border: `1px solid ${borderSubtle(dark)}`,
-                      background: dark ? '#0A111E' : '#f5f7fa', color: textPri(dark)
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    style={{
-                      flex: 1, padding: 12, borderRadius: 10, border: `1px solid ${borderSubtle(dark)}`,
-                      background: 'transparent', color: textPri(dark), cursor: 'pointer', fontWeight: 600
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    style={{
-                      flex: 1, padding: 12, borderRadius: 10, border: 'none',
-                      background: t.primary, color: '#0E1A2B', cursor: 'pointer', fontWeight: 700
-                    }}
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: dark ? '#1F2E45' : '#eef2f6', color: textSec(dark) }}>
-                    💪 {selectedExercise.muscle_group}
-                  </span>
-                  {selectedExercise.equipment && (
-                    <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: dark ? '#1F2E45' : '#eef2f6', color: textSec(dark) }}>
-                      🔧 {Array.isArray(selectedExercise.equipment) ? selectedExercise.equipment.join(', ') : selectedExercise.equipment}
-                    </span>
-                  )}
-                  {selectedExercise.level && (
-                    <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: dark ? '#1F2E45' : '#eef2f6', color: textSec(dark) }}>
-                      ⚡ {selectedExercise.level}
-                    </span>
-                  )}
-                </div>
-
-                {selectedExercise.short_instruction && (
-                  <div>
-                    <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Instructions:</div>
-                    <div style={{ fontSize: 13, color: textPri(dark), marginTop: 4, lineHeight: 1.5 }}>
-                      {selectedExercise.short_instruction}
-                    </div>
-                  </div>
-                )}
-
-                {selectedExercise.video_url && (
-                  <div>
-                    <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Video Reference:</div>
-                    <a href={selectedExercise.video_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: t.primary, marginTop: 4, display: 'inline-block' }}>
-                      📹 View execution video
-                    </a>
-                  </div>
-                )}
-
-                {selectedExercise.accessibility_tags && selectedExercise.accessibility_tags.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Accessibility Tags:</div>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                      {selectedExercise.accessibility_tags.map(tag => (
-                        <span key={tag} style={{
-                          fontSize: 10, padding: '3px 8px', borderRadius: 6,
-                          background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', fontWeight: 600
-                        }}>
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedExercise.alternatives && selectedExercise.alternatives.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Alternative Exercises:</div>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                      {selectedExercise.alternatives.map(alt => (
-                        <span key={alt} style={{
-                          fontSize: 10, padding: '3px 8px', borderRadius: 6,
-                          background: 'rgba(110, 68, 255, 0.1)', color: '#9b51e0', fontWeight: 600
-                        }}>
-                          {alt}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {isTrainerOrAdmin && (
-                  <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      style={{
-                        flex: 1, padding: 12, borderRadius: 10, border: 'none',
-                        background: t.primary, color: '#0E1A2B', cursor: 'pointer', fontWeight: 700,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
-                      }}
-                    >
-                      <Icon name="edit" size={16} color="#0E1A2B" />
-                      Edit exercise
-                    </button>
-                  </div>
-                )}
+            {(voiceResponse.intent.includes('restrict') || voiceResponse.intent.includes('block') || voiceResponse.intent.includes('create')) && (
+              <div style={{ marginTop: 10, padding: 10, borderRadius: 8, background: 'rgba(242, 201, 76, 0.08)', border: '1px dashed rgba(242, 201, 76, 0.4)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#f2c94c', marginBottom: 6 }}>⚠️ Governance Action Pre-authorized (RV-8.3)</div>
+                <button
+                  onClick={() => onGovernance(`${voiceResponse.intent} for query: ${voiceQuery}`)}
+                  style={{ padding: '6px 12px', background: '#f2c94c', color: '#0E1A2B', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}
+                >
+                  Confirm and Log Action
+                </button>
               </div>
             )}
           </div>
-        </div>
-      )}
-    </>
+        )}
+
+        {auditLogs.length > 0 && (
+          <div style={{ marginTop: 10, fontSize: 11, color: textMute(dark) }}>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>Governance Audit Log:</div>
+            <div style={{ maxHeight: 60, overflowY: 'auto' }}>
+              {auditLogs.map((log, i) => <div key={i} style={{ marginBottom: 2, fontFamily: 'monospace' }}>{log}</div>)}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── ExerciseDetailModal ───────────────────────────────────────────────────────
+
+interface ExerciseDetailModalProps {
+  exercise:         Partial<ExerciseCatalogItem>;
+  isEditing:        boolean;
+  formError:        string;
+  isTrainerOrAdmin: boolean;
+  dark:             boolean;
+  t:                { primary: string; accent: string };
+  onClose:          () => void;
+  onStartEdit:      () => void;
+  onCancelEdit:     () => void;
+  onChange:         (ex: Partial<ExerciseCatalogItem>) => void;
+  onSave:           () => void;
+}
+
+function ExerciseDetailModal({
+  exercise, isEditing, formError, isTrainerOrAdmin, dark, t,
+  onClose, onStartEdit, onCancelEdit, onChange, onSave,
+}: ExerciseDetailModalProps) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(0,0,0,0.7)',
+    }}>
+      <div style={{
+        background: DARK.bg, border: `1px solid ${borderSubtle(dark)}`,
+        borderRadius: 20, padding: 22, width: '90%', maxWidth: 500, maxHeight: '90vh',
+        overflowY: 'auto', position: 'relative', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+      }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', color: textPri(dark), cursor: 'pointer' }}>
+          <Icon name="close" size={20} />
+        </button>
+
+        <h3 style={{ margin: '0 0 16px 0', fontSize: 18, color: textPri(dark), display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="dumbbell" size={20} color={t.primary} />
+          {isEditing ? (exercise.id ? 'Edit Exercise' : 'New Exercise') : 'Exercise Details'}
+        </h3>
+
+        {exercise.status === 'blocked' && (
+          <div style={{ background: 'rgba(235, 87, 87, 0.12)', border: '1px solid #eb5757', borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: '#eb5757', lineHeight: 1.4 }}>
+            <b>⚠️ Blocked Exercise:</b> This exercise has been blocked due to severe safety risks or client contraindications.
+          </div>
+        )}
+        {exercise.status === 'restricted' && (
+          <div style={{ background: 'rgba(242, 201, 76, 0.12)', border: '1px solid #f2c94c', borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: '#f2c94c', lineHeight: 1.4 }}>
+            <b>⚠️ Restricted Exercise:</b> Ensure proper supervision and form correction.
+          </div>
+        )}
+
+        {isEditing ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {formError && <div style={{ color: '#eb5757', fontSize: 12, fontWeight: 600 }}>{formError}</div>}
+            <div>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Exercise Name</label>
+              <input type="text" value={exercise.name || ''} onChange={e => onChange({ ...exercise, name: e.target.value })}
+                style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Muscle Group</label>
+                <select value={exercise.muscle_group || 'Legs'} onChange={e => onChange({ ...exercise, muscle_group: e.target.value })}
+                  style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
+                >
+                  {['Chest','Back','Shoulders','Legs','Arms','Core'].map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Status</label>
+                <select value={exercise.status || 'draft'} onChange={e => onChange({ ...exercise, status: e.target.value as any })}
+                  style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
+                >
+                  {['active','blocked','restricted','draft'].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Equipment</label>
+                <input type="text"
+                  value={exercise.equipment ? (Array.isArray(exercise.equipment) ? exercise.equipment.join(', ') : exercise.equipment) : ''}
+                  onChange={e => onChange({ ...exercise, equipment: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Level</label>
+                <select value={exercise.level || 'beginner'} onChange={e => onChange({ ...exercise, level: e.target.value as any })}
+                  style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
+                >
+                  {['beginner','intermediate','advanced'].map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Description & Instructions</label>
+              <textarea rows={3} value={exercise.short_instruction || ''} onChange={e => onChange({ ...exercise, short_instruction: e.target.value })}
+                style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark), fontFamily: 'inherit', fontSize: 13 }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Video URL</label>
+              <input type="text" value={exercise.video_url || ''} onChange={e => onChange({ ...exercise, video_url: e.target.value })}
+                style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Accessibility Tags (comma separated)</label>
+              <input type="text" placeholder="low_impact, no_floor, seated"
+                value={exercise.accessibility_tags?.join(', ') || ''}
+                onChange={e => onChange({ ...exercise, accessibility_tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Alternative Exercises (comma separated)</label>
+              <input type="text" placeholder="Step Jack, Marcha no Lugar"
+                value={exercise.alternatives?.join(', ') || ''}
+                onChange={e => onChange({ ...exercise, alternatives: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+              <button onClick={onCancelEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+              <button onClick={onSave} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.primary, color: '#0E1A2B', cursor: 'pointer', fontWeight: 700 }}>Save Changes</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: DARK.surface, color: textSec(dark) }}>💪 {exercise.muscle_group}</span>
+              {exercise.equipment && <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: DARK.surface, color: textSec(dark) }}>🔧 {Array.isArray(exercise.equipment) ? exercise.equipment.join(', ') : exercise.equipment}</span>}
+              {exercise.level && <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: DARK.surface, color: textSec(dark) }}>⚡ {exercise.level}</span>}
+            </div>
+            {exercise.short_instruction && (
+              <div>
+                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Instructions:</div>
+                <div style={{ fontSize: 13, color: textPri(dark), marginTop: 4, lineHeight: 1.5 }}>{exercise.short_instruction}</div>
+              </div>
+            )}
+            {exercise.video_url && (
+              <div>
+                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Video Reference:</div>
+                <a href={exercise.video_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: t.primary, marginTop: 4, display: 'inline-block' }}>📹 View execution video</a>
+              </div>
+            )}
+            {exercise.accessibility_tags && exercise.accessibility_tags.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Accessibility Tags:</div>
+                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                  {exercise.accessibility_tags.map(tag => (
+                    <span key={tag} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', fontWeight: 600 }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {exercise.alternatives && exercise.alternatives.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Alternative Exercises:</div>
+                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                  {exercise.alternatives.map(alt => (
+                    <span key={alt} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(110, 68, 255, 0.1)', color: '#9b51e0', fontWeight: 600 }}>{alt}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {isTrainerOrAdmin && (
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button onClick={onStartEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.primary, color: '#0E1A2B', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="edit" size={16} color="#0E1A2B" /> Edit exercise
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, FieldInput, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { BiologicalSex, ProfileBasicData } from '../../../types/profile-v2';
 import type { Profile } from '../../../types';
@@ -104,54 +104,43 @@ export function Step02BasicData({
   };
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary}/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} title="Personal Information" subtitle="Fill in your data to adapt the plan to your age, sex, and history." />
 
-      <h2 style={{
-        margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-      }}>
-        Personal Information
-      </h2>
-      <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 22px', lineHeight: 1.55 }}>
-        Fill in your data to adapt the plan to your age, sex, and history.
-      </p>
+      
+      
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <VStack gap={16}>
 
         {/* ── Identity ── */}
-        <FieldInput
+        <TextInput
           label="Name"
           value={d.name ?? ''}
           onChange={v => setBasic({ name: v })}
-          dark={dark} primary={primary}
           placeholder="Mariana Costa"
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <FieldInput
+          <TextInput
             label="Email"
             value={email}
             onChange={setEmail}
-            dark={dark} primary={primary}
             type="email" placeholder="you@email.com"
           />
-          <FieldInput
+          <TextInput
             label="Phone"
             value={phone}
             onChange={v => setPhone(v.replace(/[^\d+\s\-()]/g, ''))}
-            dark={dark} primary={primary}
             type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
           />
         </div>
 
         {/* DOB + age (read-only) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <FieldInput
+          <TextInput
             label="Date of birth"
             value={dob}
             onChange={setDob}
-            dark={dark} primary={primary}
             type="date" placeholder="AAAA-MM-DD"
           />
           {/* Age: computed, read-only */}
@@ -174,44 +163,40 @@ export function Step02BasicData({
           </div>
         </div>
 
-        <FieldInput
+        <TextInput
           label="City / Address"
           value={address}
           onChange={setAddress}
-          dark={dark} primary={primary}
           placeholder="New York, NY"
         />
 
         {/* ── Training data ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <FieldInput
+          <TextInput
             label="Height (cm)"
             value={d.height_cm ? String(d.height_cm) : ''}
             onChange={v => setBasic({ height_cm: v ? +v : undefined as unknown as number })}
-            dark={dark} primary={primary}
             type="number" inputMode="decimal" placeholder="165"
           />
-          <FieldInput
+          <TextInput
             label="Current weight (kg)"
             value={d.weight_kg ? String(d.weight_kg) : ''}
             onChange={v => setBasic({ weight_kg: v ? +v : undefined as unknown as number })}
-            dark={dark} primary={primary}
             type="number" inputMode="decimal" placeholder="64"
           />
         </div>
 
-        <FieldInput
+        <TextInput
           label="Language"
           value={d.language ?? 'English'}
           onChange={v => setBasic({ language: v })}
-          dark={dark} primary={primary}
           placeholder="English"
         />
 
         {/* Biological sex */}
         <div>
-          <SectionLabel label="Biological sex" dark={dark}/>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Biological sex</Typography>
+          <HStack gap={8} flexWrap="wrap">
             {SEX_OPTIONS.map(o => {
               const on = d.biological_sex === o.value;
               return (
@@ -226,7 +211,7 @@ export function Step02BasicData({
                 </button>
               );
             })}
-          </div>
+          </HStack>
           <p style={{ fontSize: 11, color: textSec(dark), margin: '8px 0 0' }}>
             Used for personalization — never for diagnosis.
           </p>
@@ -250,29 +235,26 @@ export function Step02BasicData({
             <span style={{ fontSize: 12, color: textSec(dark) }}>{emergencyOpen ? '▲' : '▼'}</span>
           </button>
           {emergencyOpen && (
-            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <FieldInput
+            <VStack gap={12} style={{ marginTop: 14 }}>
+              <TextInput
                 label="Name" value={d.emergency_contact?.name ?? ''}
-                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { phone: '' }), name: v } })}
-                dark={dark} primary={primary} placeholder="First and last name"
+                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { phone: '' }), name: v } })} placeholder="First and last name"
               />
-              <FieldInput
+              <TextInput
                 label="Phone" value={d.emergency_contact?.phone ?? ''}
-                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { name: '' }), phone: v } })}
-                dark={dark} primary={primary} type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
+                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { name: '' }), phone: v } })} type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
               />
-            </div>
+            </VStack>
           )}
         </div>
-      </div>
+      </VStack>
 
-      <div style={{ flex: 1 }}/>
+      <Spacer />
       <WizardFooter
         onNext={handleNext}
         nextDisabled={!canAdvance}
         onSave={handleSaveLater} saving={saving}
-        dark={dark} primary={primary}
       />
-    </div>
+    </VStack>
   );
 }

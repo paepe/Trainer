@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, Chip, ChipGroup, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { Icon } from '../../../components/Icon';
 import type { WizardStepProps } from './types';
 import type { TrainingLocation, Equipment, AccessibilityCondition } from '../../../types/profile-v2';
@@ -63,8 +63,8 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
   const canAdvance = (env.locations?.length ?? 0) > 0;
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary}/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
@@ -77,7 +77,7 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
       </p>
 
       {/* Locations — card grid */}
-      <SectionLabel label="Possible locations" dark={dark}/>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Possible locations</Typography>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
         {LOCATIONS.map(loc => {
           const on = (env.locations ?? []).includes(loc.value);
@@ -105,40 +105,37 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
         })}
       </div>
 
-      <SectionLabel label="Available equipment" dark={dark}/>
-      <ChipGroup style={{ marginBottom: 22 }}>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Available equipment</Typography>
+      <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
         {EQUIPMENT_OPTS.map(e => (
           <Chip
             key={e.value}
             label={e.label}
-            selected={(env.equipment ?? []).includes(e.value)}
-            onToggle={() => toggleEquipment(e.value)}
-            dark={dark} primary={primary}
+            active={(env.equipment ?? []).includes(e.value)}
+            onClick={() => toggleEquipment(e.value)}
             disabled={e.value !== 'none' && (env.equipment ?? []).includes('none')}
           />
         ))}
-      </ChipGroup>
+      </HStack>
 
-      <SectionLabel label="Accessibility conditions" dark={dark}/>
-      <ChipGroup>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Accessibility conditions</Typography>
+      <HStack style={{ flexWrap: 'wrap' }} gap={8}>
         {ACCESSIBILITY_OPTS.map(a => (
           <Chip
             key={a.value}
             label={a.label}
-            selected={(env.accessibility ?? []).includes(a.value)}
-            onToggle={() => toggleAccessibility(a.value)}
-            dark={dark} primary={primary}
+            active={(env.accessibility ?? []).includes(a.value)}
+            onClick={() => toggleAccessibility(a.value)}
           />
         ))}
-      </ChipGroup>
+      </HStack>
 
-      <div style={{ flex: 1 }}/>
+      <Spacer />
       <WizardFooter
         onNext={onNext}
         nextDisabled={!canAdvance}
         onSave={onSaveLater} saving={saving}
-        dark={dark} primary={primary}
       />
-    </div>
+    </VStack>
   );
 }

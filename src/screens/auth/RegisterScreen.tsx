@@ -1,7 +1,7 @@
 import React from 'react';
+import { TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
-import { PillInput } from '../../components/PillInput';
 import { iconBtn, borderSubtle, textPri, textSec, textMute, primaryBtn, textBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { AuthError } from '@supabase/supabase-js';
@@ -151,10 +151,10 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
       <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel="or sign up with email"/>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <PillInput icon="user" placeholder="Full Name"         value={name}  onChange={setName}  primary={t.primary} dark={dark}/>
-        <PillInput icon="mail" placeholder="Email" type="email" value={email} onChange={setEmail} primary={t.primary} dark={dark}/>
-        <PillInput icon="lock" placeholder="Password"          value={pw}    onChange={setPw}    primary={t.primary} dark={dark} type="password"/>
-        <PillInput icon="lock" placeholder="Confirm Password"  value={pw2}   onChange={setPw2}   primary={t.primary} dark={dark} type="password"/>
+        <TextInput icon="user" placeholder="Full Name"         value={name}  onChange={setName}/>
+        <TextInput icon="mail" placeholder="Email" type="email" value={email} onChange={setEmail}/>
+        <TextInput icon="lock" placeholder="Password"          value={pw}    onChange={setPw}    type="password"/>
+        <TextInput icon="lock" placeholder="Confirm Password"  value={pw2}   onChange={setPw2}   type="password"/>
       </div>
       {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
       <div style={{ flex: 1, minHeight: 10 }}/>

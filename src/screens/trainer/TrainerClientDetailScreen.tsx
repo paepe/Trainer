@@ -11,13 +11,8 @@ import {
   iconBtn,
 } from '../../theme';
 import type { NavFn } from '../../types';
-
-interface Theme {
-  primary:     string;
-  primaryDeep: string;
-  primarySoft: string;
-  accent:      string;
-}
+import { DARK } from '../../theme/tokens';
+import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 
 interface ClientProfile {
   id:    string;
@@ -82,18 +77,15 @@ interface TrainerDashboardUser {
 
 interface TrainerClientDetailScreenProps {
   nav:             NavFn;
-  t:               Theme;
-  dark:            boolean;
   user:            TrainerDashboardUser | null;
   selectedClient?: ClientProfile | null;
 }
 
 export function TrainerClientDetailScreen({
   nav,
-  t,
-  dark,
   selectedClient,
 }: TrainerClientDetailScreenProps) {
+  const { t, dark } = useTrainerTheme();
   const [sessions, setSessions]     = React.useState<WorkoutSession[]>([]);
   const [plans, setPlans]           = React.useState<WorkoutPlan[]>([]);
   const [profileV2, setProfileV2]   = React.useState<ProfileV2Row | null>(null);
@@ -289,7 +281,7 @@ export function TrainerClientDetailScreen({
               {t3Count > 0 && (
                 <div style={{
                   marginTop: 10, padding: '8px 12px', borderRadius: 10,
-                  background: dark ? '#1A2740' : '#F0F4F8',
+                  background: DARK.surface,
                   display: 'flex', alignItems: 'center', gap: 8,
                 }}>
                   <span style={{ fontSize: 13 }}>🔒</span>
@@ -500,7 +492,7 @@ export function TrainerClientDetailScreen({
       <div style={{
         position: 'sticky', bottom: 0,
         padding: '12px 22px calc(12px + env(safe-area-inset-bottom, 0px))',
-        background: dark ? 'rgba(14,26,43,.95)' : 'rgba(255,255,255,.95)',
+        background: 'rgba(14,26,43,.95)',
         backdropFilter: 'blur(12px)',
         borderTop: `1px solid ${borderSubtle(dark)}`,
       }}>
@@ -509,7 +501,7 @@ export function TrainerClientDetailScreen({
         <button onClick={() => nav('checkin', { clientUserId: selectedClient.id, clientName: selectedClient.name })} style={{
           width: '100%', padding: '12px 0', borderRadius: 14, marginBottom: 8,
           background: 'transparent', border: `1.5px solid ${t.primary}55`, color: t.primary,
-          fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 13, fontWeight: 600, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
           <Icon name="sparkle" size={14} color={t.primary}/> Readiness Check-in for {selectedClient.name?.split(' ')[0] || 'client'}
@@ -517,8 +509,8 @@ export function TrainerClientDetailScreen({
       )}
       <button onClick={() => nav('workoutPlanEditor')} style={{
           width: '100%', padding: '14px 0', borderRadius: 14,
-          background: t.primary, color: '#0E1A2B',
-          border: 'none', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+          background: t.accent, color: '#FFFFFF',
+          border: 'none', fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 14, fontWeight: 700, cursor: 'pointer',
         }}>
         + Create Plan for {selectedClient.name?.split(' ')[0] || 'Client'}
       </button>

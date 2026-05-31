@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, Chip, ChipGroup, VoiceOption } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { Comorbidity } from '../../../types/profile-v2';
@@ -39,47 +39,37 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
   };
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary} badge="selective"/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} badge="selective" title="Comorbidities and care" subtitle="Only what you feel comfortable sharing. Influences automation and human validation." />
 
-      <h2 style={{
-        margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-      }}>
-        Comorbidities and care
-      </h2>
-      <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Only what you feel comfortable sharing. Influences automation and human validation.
-      </p>
+      
+      
 
-      <ChipGroup style={{ marginBottom: 20 }}>
+      <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
         {CONDITIONS.map(c => (
           <Chip
             key={c.value}
             label={c.label}
-            selected={(co.conditions ?? []).includes(c.value)}
-            onToggle={() => toggleCondition(c.value)}
-            dark={dark} primary={primary}
+            active={(co.conditions ?? []).includes(c.value)}
+            onClick={() => toggleCondition(c.value)}
             disabled={
               c.value !== 'prefer_not_to_say' &&
               (co.conditions ?? []).includes('prefer_not_to_say')
             }
           />
         ))}
-      </ChipGroup>
+      </HStack>
 
       <VoiceOption
-        dark={dark} primary={primary}
         note="You can describe your health situation in your own words."
         onClick={() => setVoiceOpen(true)}
       />
 
-      <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
+      <Spacer />
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
 
       {voiceOpen && (
-        <WizardVoiceOverlay
-          dark={dark} primary={primary}
+        <WizardVoiceOverlay dark={dark} primary={primary}
           context="Tell us about your conditions"
           onConfirm={(text) => {
             onUpdate({ comorbidities: { ...co, voice_note: text } });
@@ -89,6 +79,6 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
           onClose={() => setVoiceOpen(false)}
         />
       )}
-    </div>
+    </VStack>
   );
 }

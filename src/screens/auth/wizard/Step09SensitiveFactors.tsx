@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, AINote, VoiceOption, FieldInput } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 
@@ -17,25 +17,17 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
     onUpdate({ sensitive_factors: { ...sf, ...patch } });
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary} badge="blinded"/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} badge="blinded" title="Protected Sensitive Factors" subtitle="Intimate data is protected. Appears to operational awareness. You can review and request human validation." />
 
-      <h2 style={{
-        margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
-      }}>
-        Protected Sensitive Factors
-      </h2>
-      <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 16px', lineHeight: 1.55 }}>
-        Intimate data is protected. Appears to operational awareness. You can review and request human validation.
-      </p>
+      
+      
 
-      <AINote
-        dark={dark} primary={accent} variant="warning"
+      <Alert isAI variant="warning"
         text="Medications, voluntarily declared substances, psychological history — stay private to you and are marked as 'declared safety factor' — conservative progression."
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
+      <VStack gap={12} style={{ marginTop: 20 }}>
 
         {/* Medications — opt-in expandable */}
         <div style={{
@@ -67,14 +59,13 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
           </button>
           {medOpen && (
             <div style={{ marginTop: 14 }}>
-              <FieldInput
+              <TextInput
                 label="Medication name (optional)"
                 value={sf.regular_medications ?? ''}
                 onChange={v => {
                   if (v) set({ regular_medications: v });
                   else { const { regular_medications: _, ...rest } = sf; onUpdate({ sensitive_factors: rest }); }
                 }}
-                dark={dark} primary={primary}
                 placeholder="e.g.: Losartan, Metformin, Fluoxetine"
               />
               <p style={{ fontSize: 11, color: textMute(dark), margin: '8px 0 0', lineHeight: 1.45 }}>
@@ -90,7 +81,8 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
           description="Helps only so the AI can make safer decisions and slow progression is planned for the entire journey."
           enabled={sf.declares_emotional_history}
           onToggle={() => set({ declares_emotional_history: !sf.declares_emotional_history })}
-          dark={dark} primary={primary}
+          dark={dark}
+          primary={primary}
         />
 
         {/* Recreational substance */}
@@ -99,7 +91,8 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
           description="Anonymous. Influences intensity and monitoring recommendations."
           enabled={sf.declares_recreational_substance}
           onToggle={() => set({ declares_recreational_substance: !sf.declares_recreational_substance })}
-          dark={dark} primary={primary}
+          dark={dark}
+          primary={primary}
         />
 
         {/* Privacy rule */}
@@ -114,18 +107,16 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
         </div>
 
         <VoiceOption
-          dark={dark} primary={primary}
           note="Speak freely — the AI structures it before saving."
           onClick={() => setVoiceOpen(true)}
         />
-      </div>
+      </VStack>
 
-      <div style={{ flex: 1 }}/>
-      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving} dark={dark} primary={primary}/>
+      <Spacer />
+      <WizardFooter onNext={onNext} onSave={onSaveLater} saving={saving}/>
 
       {voiceOpen && (
-        <WizardVoiceOverlay
-          dark={dark} primary={primary}
+        <WizardVoiceOverlay dark={dark} primary={primary}
           context="Tell us about sensitive factors"
           onConfirm={(text) => {
             onUpdate({ sensitive_factors: { ...sf, voice_note: text } });
@@ -135,7 +126,7 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
           onClose={() => setVoiceOpen(false)}
         />
       )}
-    </div>
+    </VStack>
   );
 }
 

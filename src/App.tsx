@@ -1,23 +1,32 @@
 import React from 'react';
-import { BRAND } from './theme';
+import { BRAND, TRAINER_BRAND } from './theme';
 import { useAuth } from './hooks/useAuth';
-import { useData } from './hooks/useData';
+import { useProfileData }  from './hooks/useProfileData';
+import { useCheckinData }  from './hooks/useCheckinData';
+import { useWorkoutData }  from './hooks/useWorkoutData';
 import { usePushNotifications } from './hooks/usePushNotifications';
-import { vibrate } from './lib/haptics';
-import {
-  WelcomeScreen, LoginScreen, RegisterScreen, ProfileWizardScreen,
-  CheckInProntidaoScreen,
-  StartWorkoutScreen, GoalAchievedScreen,
-  WorkoutModeScreen, PostWorkoutSummaryScreen,
-  PerformanceDashboardScreen, HistoryScreen,
-  CycleScreen, TrainerStudioScreen, SettingsScreen,
-  TrainerDashboardScreen, TrainerClientDetailScreen,
-  WorkoutPlanEditorScreen, TrainerLibraryExercisesScreen,
-} from './screens';
-import { CoachDNAScreen } from './coach-dna';
-import { SideMenu, BottomTabs } from './components';
+import { WelcomeScreen, LoginScreen, RegisterScreen } from './screens/auth';
+import { AppLayout } from './layouts';
+import { NotificationProvider, useNotification, ThemeProvider } from './contexts';
 import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './types';
 import { TRAINER_ROLES } from './types/auth';
+
+const ProfileWizardScreen        = React.lazy(() => import('./screens/auth/ProfileWizardScreen').then(m => ({ default: m.ProfileWizardScreen })));
+const CheckInProntidaoScreen     = React.lazy(() => import('./screens/checkin/CheckInProntidaoScreen').then(m => ({ default: m.CheckInProntidaoScreen })));
+const StartWorkoutScreen         = React.lazy(() => import('./screens/client/StartWorkoutScreen').then(m => ({ default: m.StartWorkoutScreen })));
+const GoalAchievedScreen         = React.lazy(() => import('./screens/client/GoalAchievedScreen').then(m => ({ default: m.GoalAchievedScreen })));
+const WorkoutModeScreen          = React.lazy(() => import('./screens/client/WorkoutModeScreen').then(m => ({ default: m.WorkoutModeScreen })));
+const PostWorkoutSummaryScreen   = React.lazy(() => import('./screens/client/PostWorkoutSummaryScreen').then(m => ({ default: m.PostWorkoutSummaryScreen })));
+const PerformanceDashboardScreen = React.lazy(() => import('./screens/client/PerformanceDashboardScreen').then(m => ({ default: m.PerformanceDashboardScreen })));
+const HistoryScreen              = React.lazy(() => import('./screens/client/HistoryScreen').then(m => ({ default: m.HistoryScreen })));
+const CycleScreen                = React.lazy(() => import('./screens/client/CycleScreen').then(m => ({ default: m.CycleScreen })));
+const SettingsScreen             = React.lazy(() => import('./screens/client/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
+const TrainerStudioScreen        = React.lazy(() => import('./screens/trainer/TrainerStudioScreen').then(m => ({ default: m.TrainerStudioScreen })));
+const TrainerDashboardScreen     = React.lazy(() => import('./screens/trainer/TrainerDashboardScreen').then(m => ({ default: m.TrainerDashboardScreen })));
+const TrainerClientDetailScreen  = React.lazy(() => import('./screens/trainer/TrainerClientDetailScreen').then(m => ({ default: m.TrainerClientDetailScreen })));
+const WorkoutPlanEditorScreen    = React.lazy(() => import('./screens/trainer/WorkoutPlanEditorScreen').then(m => ({ default: m.WorkoutPlanEditorScreen })));
+const TrainerLibraryExercisesScreen = React.lazy(() => import('./screens/trainer/TrainerLibraryExercisesScreen').then(m => ({ default: m.TrainerLibraryExercisesScreen })));
+const CoachDNAScreen             = React.lazy(() => import('./coach-dna/CoachDNAScreen').then(m => ({ default: m.CoachDNAScreen })));
 
 const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
 
@@ -64,17 +73,22 @@ export default function App() {
   const {
     saveCycleConfig, fetchCycleConfig,
     savePreferences, fetchPreferences,
-    saveProfileV2, fetchProfileV2, saveCheckinV2, updatePainRecurrence,
+    saveProfileV2, fetchProfileV2,
+  } = useProfileData(session?.user?.id);
+
+  const { saveCheckinV2, updatePainRecurrence } = useCheckinData(session?.user?.id, prefs.alerts);
+
+  const {
     startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
     reportWorkoutPain, completeWorkoutSession, savePostWorkoutFeedback,
-  } = useData(session?.user?.id, prefs.alerts);
+  } = useWorkoutData(session?.user?.id);
 
   const [dark, setDark] = React.useState(true);
   const [cycleEnabled] = React.useState(true);
 
   const isTrainer = profile?.role != null && (TRAINER_ROLES as readonly string[]).includes(profile.role);
   const t = {
-    ...BRAND,
+    ...(isTrainer ? TRAINER_BRAND : BRAND),
     dark,
     cycleEnabled,
     role: (profile?.role ?? 'client') as UserRole | 'client',
@@ -156,7 +170,7 @@ export default function App() {
     }
   }, [profile?.id, fetchCycleConfig, fetchPreferences, saveProfileV2, fetchProfileV2]);
 
-  // Push notification — request permission, register token, and listen for foreground messages
+  // Push notification — request permission, register token
   const push = usePushNotifications();
   const pushInitRef = React.useRef(false);
   React.useEffect(() => {
@@ -165,19 +179,6 @@ export default function App() {
     pushInitRef.current = true;
     push.request().then(granted => { if (granted) push.registerToken(profile.id); });
   }, [profile?.id, prefs.notifications, push]);
-
-  const [fgNotif, setFgNotif] = React.useState<{ title: string; body: string } | null>(null);
-  const fgTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  React.useEffect(() => {
-    if (push.status !== 'registered') return;
-    const unsub = push.listenForeground((title, body) => {
-      setFgNotif({ title, body });
-      vibrate('notification');
-      if (fgTimerRef.current) clearTimeout(fgTimerRef.current);
-      fgTimerRef.current = setTimeout(() => setFgNotif(null), 5000);
-    });
-    return () => { unsub(); if (fgTimerRef.current) clearTimeout(fgTimerRef.current); };
-  }, [push.status, push.listenForeground]);
 
   // Redirect to welcome when session ends
   React.useEffect(() => {
@@ -264,7 +265,9 @@ export default function App() {
     id: user.id || '',
   };
 
-  const surfaceBg = dark ? '#0E1A2B' : '#FFFFFF';
+  // Trainer is always dark (DARK.bg) per coach_dna_system_design.md §8.
+  // Client respects the user's dark preference toggle.
+  const surfaceBg = isTrainer ? '#0E1A2B' : (dark ? '#0E1A2B' : '#FFFFFF');
   // Unified cycle save: writes to profile_v2.body_rhythm (primary) + cycle_config (legacy)
   const saveCycleUnified = React.useCallback(async (params: { cycleLength: number; periodLength: number; lastStartDate: string }) => {
     // Update local state immediately
@@ -306,10 +309,10 @@ export default function App() {
     ? ['workout','workoutMode','goal','stats','history',
        'settings','targets','checkin','cycle','studio',
        'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
-       'postWorkoutSummary','coachDNA']
+       'workoutSummary','coachDNA']
     : ['profile','workout','workoutMode','goal','stats','history',
        'settings','targets','checkin','cycle','studio',
-       'postWorkoutSummary']
+       'workoutSummary']
   ).includes(screen);
 
   const tabs: [string, string, string][] = isTrainer
@@ -328,15 +331,16 @@ export default function App() {
         ['menu',     'menu',    'Menu'],
       ];
 
-  if (loading) return <LoadingScreen dark={dark} primary={BRAND.primary} />;
+  if (loading) return <LoadingScreen dark={dark} primary={t.primary} />;
 
   const screenContent = (() => {
     const noClient = isTrainer && !selectedClient;
     const noClientBanner = noClient ? (
       <div style={{
         margin: '12px 22px', padding: '16px 18px', borderRadius: 14,
-        background: dark ? '#1A2A40' : '#f0f4f8',
-        border: dark ? '1px solid #1F2E45' : '1px solid #d0d8e4',
+        // Trainer is always dark; use DARK tokens directly
+        background: '#1A2A40',
+        border: '1px solid #1F2E45',
         textAlign: 'center',
       }}>
         <div style={{
@@ -346,14 +350,14 @@ export default function App() {
           ⚠ No client selected
         </div>
         <p style={{
-          margin: '0 0 14px', fontSize: 12.5, color: dark ? 'rgba(255,255,255,.55)' : '#546a7e',
+          margin: '0 0 14px', fontSize: 12.5, color: 'rgba(255,255,255,.55)',
           lineHeight: 1.5,
         }}>
           Select a client from My Clients first to load their data.
         </p>
         <button onClick={() => { setScreen('trainerDashboard'); setSelectedClient(null); }} style={{
           padding: '9px 22px', borderRadius: 14, border: 'none',
-          background: BRAND.primary, color: '#0E1A2B',
+          background: t.primary, color: '#0E1A2B',
           fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
         }}>
           Go to My Clients
@@ -413,78 +417,55 @@ export default function App() {
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} setDark={setDark}/>;
       case 'targets':            return <GoalAchievedScreen      {...common}/>;
-      case 'trainerDashboard':    return <TrainerDashboardScreen     {...common} user={trainerUser}/>;
-      case 'trainerClientDetail': return <TrainerClientDetailScreen  {...common} user={trainerUser}/>;
-      case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    {...common} user={trainerUser}/>;
-      case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen {...common} user={trainerUser}/>;
+      case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={setSelectedClient}/>;
+      case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} user={trainerUser} selectedClient={selectedClient}/>;
+      case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient}/>;
+      case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen nav={nav} user={trainerUser}/>;
       case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser}/>;
       default:                   return <WelcomeScreen           {...common}/>;
     }
   })();
 
+  const layoutProps = {
+    contentRef,
+    surfaceBg,
+    dark,
+    showTabs,
+    tabs,
+    screen,
+    nav,
+    t,
+    user: isTrainer ? trainerUser : user,
+    menuOpen,
+    setMenuOpen,
+    handleSetUser,
+    profile,
+  };
+
   return (
-    <div style={{
-      height: '100dvh',
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      background: surfaceBg,
-      overflow: 'hidden',
-      position: 'relative',
-      fontFamily: '"Inter","Plus Jakarta Sans",system-ui,-apple-system,sans-serif',
-      color: dark ? '#fff' : '#102236',
-    }}>
-      <div
-        ref={contentRef}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          scrollbarWidth: 'none',
-          WebkitOverflowScrolling: 'touch',
-        }}
-      >
-        {screenContent}
-      </div>
-
-      {showTabs && (
-        <BottomTabs tabs={tabs} active={screen} onTap={nav} primary={t.primary} dark={dark}/>
-      )}
-
-      <SideMenu
-        open={menuOpen}
-        nav={(s) => { setMenuOpen(false); if (s && s !== 'menu') setScreen(s); }}
-        t={t} user={user} current={screen} setUser={handleSetUser} role={profile?.role}
-      />
-
-      {fgNotif && (
-        <div style={{
-          position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 9999, maxWidth: 380, width: 'calc(100% - 32px)',
-          background: dark ? '#1A2A40' : '#fff',
-          border: `1px solid ${BRAND.primary}`,
-          borderRadius: 14, padding: '14px 16px',
-          boxShadow: '0 8px 32px rgba(0,0,0,.35)',
-          display: 'flex', alignItems: 'flex-start', gap: 12,
-          animation: 'slideDown .25s ease',
-        }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3, color: dark ? '#fff' : '#102236' }}>
-              {fgNotif.title}
-            </div>
-            <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.65)' : '#546a7e', lineHeight: 1.4 }}>
-              {fgNotif.body}
-            </div>
-          </div>
-          <button
-            onClick={() => setFgNotif(null)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: dark ? 'rgba(255,255,255,.4)' : '#9aacbc', fontSize: 20, lineHeight: 1, padding: 0, marginTop: -2 }}
-          >×</button>
-        </div>
-      )}
-      <style>{`@keyframes slideDown { from { opacity:0; transform:translateX(-50%) translateY(-12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }`}</style>
-    </div>
+    <ThemeProvider t={t} dark={dark} isTrainer={isTrainer}>
+      <NotificationProvider t={t} dark={dark} isTrainer={isTrainer}>
+        <PushListener push={push} />
+        <AppLayout role={isTrainer ? "trainer" : "client"} {...layoutProps}>
+          <React.Suspense fallback={<LoadingScreen dark={dark} primary={t.primary} />}>
+            {screenContent}
+          </React.Suspense>
+        </AppLayout>
+      </NotificationProvider>
+    </ThemeProvider>
   );
+}
+
+function PushListener({ push }: { push: any }) {
+  const { showNotification } = useNotification();
+  React.useEffect(() => {
+    if (push.status !== 'registered') return;
+    const unsub = push.listenForeground((title: string, body: string) => {
+      showNotification(title, body);
+    });
+    return () => { unsub(); };
+  }, [push.status, push.listenForeground, showNotification]);
+  return null;
 }
 
 function LoadingScreen({ dark, primary }: { dark: boolean; primary: string }) {

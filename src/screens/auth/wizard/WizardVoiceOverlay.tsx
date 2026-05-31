@@ -1,5 +1,6 @@
 import React from 'react';
 import { primaryBtn, surfRaised, textPri, textSec, textMute, borderSubtle } from '../../../theme';
+import { HStack } from '../../../ui';
 import { Icon } from '../../../components/Icon';
 
 // ─── Detect browser Speech Recognition ────────────────────────────────────────
@@ -9,9 +10,8 @@ const SpeechRecognitionAPI =
     : null;
 
 interface WizardVoiceOverlayProps {
-  dark:       boolean;
-  primary:    string;
-  /** Label shown at the top: e.g. "Objetivos" */
+  dark?: boolean;
+  primary?: string;
   context:    string;
   /** Called with the final transcribed / typed text */
   onConfirm:  (text: string) => void;
@@ -29,7 +29,7 @@ interface WizardVoiceOverlayProps {
  * can either pre-fill its own fields or ship the text to the AI.
  */
 export function WizardVoiceOverlay({
-  dark, primary, context, onConfirm, onClose,
+  dark = true, primary = '#2DD4E0', context, onConfirm, onClose,
 }: WizardVoiceOverlayProps) {
   const [text,       setText]       = React.useState('');
   const [listening,  setListening]  = React.useState(false);
@@ -99,7 +99,7 @@ export function WizardVoiceOverlay({
         animation: 'slideUp .25s ease',
       }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <HStack justifyContent="space-between" style={{ marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: primary, marginBottom: 2 }}>
               🎙 Voice Input
@@ -115,7 +115,7 @@ export function WizardVoiceOverlay({
           >
             <Icon name="more" size={20} color={textMute(dark)} stroke={2}/>
           </button>
-        </div>
+        </HStack>
 
         {/* Instruction */}
         <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>

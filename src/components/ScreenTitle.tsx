@@ -1,19 +1,15 @@
 import React from 'react';
-import { textPri, textSec } from '../theme';
+import { Typography } from '../ui/Typography';
 
 interface ScreenTitleProps {
   children: React.ReactNode;
   sub?:     string;
-  dark:     boolean;
+  dark?:    boolean;
 }
 
-export const ScreenTitle: React.FC<ScreenTitleProps> = ({ children, sub, dark }) => (
+export const ScreenTitle: React.FC<ScreenTitleProps> = ({ children, sub }) => (
   <div style={{ padding: '4px 22px 18px' }}>
-    <h1 style={{
-      margin: 0, fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
-      fontSize: 30, fontWeight: 600, letterSpacing: '-0.02em',
-      color: textPri(dark),
-    }}>{children}</h1>
-    {sub && <div style={{ marginTop: 4, fontSize: 13, color: textSec(dark) }}>{sub}</div>}
+    <Typography variant="h1">{children}</Typography>
+    {sub && <Typography variant="body" color="secondary" style={{ marginTop: 4, fontSize: 13 }}>{sub}</Typography>}
   </div>
 );

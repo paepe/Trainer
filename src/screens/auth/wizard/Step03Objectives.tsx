@@ -1,6 +1,6 @@
 import React from 'react';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, GoalCard, Chip, ChipGroup, VoiceOption, SectionLabel } from './atoms';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { PrimaryGoal, SecondaryGoal } from '../../../types/profile-v2';
@@ -49,8 +49,8 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
   const [voiceOpen, setVoiceOpen] = React.useState(false);
 
   return (
-    <div style={{ padding: '20px 24px 28px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <WizardHeader stepNum={stepNum} totalSteps={totalSteps} onBack={onBack} dark={dark} primary={primary}/>
+    <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
+      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
@@ -62,56 +62,50 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
         "What would you like movement to improve in your life?"
       </p>
 
-      <SectionLabel label="Primary goal" dark={dark}/>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Primary goal</Typography>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
         {PRIMARY_GOALS.map(g => (
-          <GoalCard
+          <ChoiceCard
             key={g.value}
-            label={g.label}
+            title={g.label}
             icon={g.icon}
-            selected={obj.primary_goal === g.value}
-            onToggle={() => setPrimary(g.value)}
-            dark={dark}
-            primary={primary}
+            active={obj.primary_goal === g.value}
+            onClick={() => setPrimary(g.value)}
           />
         ))}
       </div>
 
       {obj.primary_goal && (
         <>
-          <SectionLabel label="Secondary goals (optional)" dark={dark}/>
-          <ChipGroup style={{ marginBottom: 20 }}>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Secondary goals (optional)</Typography>
+          <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
             {availableSecondary.map(g => (
               <Chip
                 key={g.value}
                 label={g.label}
-                selected={(obj.secondary_goals ?? []).includes(g.value)}
-                onToggle={() => toggleSecondary(g.value)}
-                dark={dark} primary={primary}
+                active={(obj.secondary_goals ?? []).includes(g.value)}
+                onClick={() => toggleSecondary(g.value)}
               />
             ))}
-          </ChipGroup>
+          </HStack>
         </>
       )}
 
       <VoiceOption
-        dark={dark} primary={primary}
         note="Tell us about your goals in your own words."
         onClick={() => setVoiceOpen(true)}
       />
 
-      <div style={{ flex: 1 }}/>
+      <Spacer />
       <WizardFooter
         onNext={onNext}
         nextDisabled={!canAdvance}
         onSave={onSaveLater}
         saving={saving}
-        dark={dark} primary={primary}
       />
 
       {voiceOpen && (
-        <WizardVoiceOverlay
-          dark={dark} primary={primary}
+        <WizardVoiceOverlay dark={dark} primary={primary}
           context="Tell us about your goals"
           onConfirm={(text) => {
             onUpdate({ objectives: { ...obj, voice_note: text } });
@@ -121,6 +115,6 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
           onClose={() => setVoiceOpen(false)}
         />
       )}
-    </div>
+    </VStack>
   );
 }

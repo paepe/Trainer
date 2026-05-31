@@ -1,5 +1,6 @@
 import { Icon } from '../../../components/Icon';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
+import { VStack, Spacer } from '../../../ui';
 
 const FEATURES = [
   { icon: 'user',     text: 'Basic data, goals and history'           },
@@ -20,7 +21,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
   const cyanDeep = '#0F8C85';
 
   return (
-    <div style={{ padding: '28px 24px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <VStack padding="28px 24px 32px" style={{ minHeight: '100%' }}>
 
       {/* hero icon — centered */}
       <div style={{
@@ -117,7 +118,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
         ≈ 6–9 min · 14 blocks · LGPD compatible
       </div>
 
-      <div style={{ flex: 1 }}/>
+      <Spacer />
 
       {/* CTA */}
       <button
@@ -141,6 +142,6 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
           to   { opacity: 1; transform: translateY(0);    }
         }
       `}</style>
-    </div>
+    </VStack>
   );
 }

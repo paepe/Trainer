@@ -1,6 +1,7 @@
 import React from 'react';
+import { Button } from '@/ui';
 import { supabase } from '../../supabase';
-import { C, Btn } from './SharedAtoms';
+import { C } from './SharedAtoms';
 import type { Profile } from '../../types';
 import type { useStudioData } from '../hooks/useStudioData';
 
@@ -56,7 +57,7 @@ export function Sidebar({ view, setView, profile, data }: SidebarProps) {
       <div style={{ padding: '16px 18px', borderTop: `1px solid ${C.border}` }}>
         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{profile.name || '—'}</div>
         <div style={{ fontSize: 11, color: C.textMute, marginBottom: 12, overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.email}</div>
-        <Btn variant="danger" size="sm" onClick={() => supabase.auth.signOut()} full>Sign out</Btn>
+        <Button variant="danger" size="sm" onClick={() => supabase.auth.signOut()} full>Sign out</Button>
       </div>
     </aside>
   );
