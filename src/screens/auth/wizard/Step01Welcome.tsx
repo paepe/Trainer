@@ -22,41 +22,47 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
   return (
     <div style={{ padding: '28px 24px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
-      {/* hero icon */}
+      {/* hero icon — centered */}
       <div style={{
-        width: 56, height: 56, borderRadius: 18, marginBottom: 18,
-        background: `linear-gradient(135deg, ${primary} 0%, ${cyanDeep} 100%)`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: `0 12px 30px ${primary}33`,
+        display: 'flex', justifyContent: 'center', marginBottom: 18,
         animation: 'wp-arrive .4s .04s cubic-bezier(.34,1.56,.64,1) both',
       }}>
-        <Icon name="brain" size={28} color="#0E1A2B" stroke={2}/>
+        <div style={{
+          width: 56, height: 56, borderRadius: 18,
+          background: `linear-gradient(135deg, ${primary} 0%, ${cyanDeep} 100%)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: `0 12px 30px ${primary}33`,
+        }}>
+          <Icon name="brain" size={28} color="#0E1A2B" stroke={2}/>
+        </div>
       </div>
 
-      {/* kicker */}
+      {/* kicker — centered */}
       <div style={{
         fontSize: 10.5, fontWeight: 700, letterSpacing: '.18em',
         textTransform: 'uppercase', color: primary, marginBottom: 8,
         fontFamily: '"JetBrains Mono",ui-monospace,monospace',
+        textAlign: 'center',
         animation: 'wp-arrive .35s ease both',
       }}>
         MODULE 01 · PREDICTIVE BASE
       </div>
 
-      {/* title */}
+      {/* title — centered */}
       <h1 style={{
         margin: '0 0 10px',
         fontFamily: '"Plus Jakarta Sans","Inter",system-ui,sans-serif',
         fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1,
-        color: textPri(dark),
+        color: textPri(dark), textAlign: 'center',
         animation: 'wp-arrive .4s .06s ease both',
       }}>
-        Smart Student<br/>Profile
+        Smart Student Profile
       </h1>
 
-      {/* subtitle + body */}
+      {/* subtitle + body — centered */}
       <div style={{
         fontSize: 13.5, color: textSec(dark), lineHeight: 1.55, marginBottom: 22,
+        textAlign: 'center',
         animation: 'wp-arrive .4s .1s ease both',
       }}>
         Health, Movement, Privacy and Predictive Base.
