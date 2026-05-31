@@ -218,7 +218,7 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
           onClick={handleSubmit}
           disabled={!canSubmit || saving}
           style={{
-            flex: 1, padding: '16px', borderRadius: 999,
+            flex: 1, padding: '16px', borderRadius: 14,
             background: canSubmit ? primary : `${primary}44`,
             border: 'none', color: '#0E1A2B',
             fontSize: 15, fontWeight: 700, fontFamily: 'inherit',

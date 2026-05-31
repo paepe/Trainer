@@ -352,7 +352,7 @@ export default function App() {
           Select a client from My Clients first to load their data.
         </p>
         <button onClick={() => { setScreen('trainerDashboard'); setSelectedClient(null); }} style={{
-          padding: '9px 22px', borderRadius: 999, border: 'none',
+          padding: '9px 22px', borderRadius: 14, border: 'none',
           background: BRAND.primary, color: '#0E1A2B',
           fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
         }}>

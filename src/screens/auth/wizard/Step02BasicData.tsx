@@ -216,7 +216,7 @@ export function Step02BasicData({
               const on = d.biological_sex === o.value;
               return (
                 <button key={o.value} onClick={() => setBasic({ biological_sex: o.value })} style={{
-                  padding: '9px 14px', borderRadius: 999,
+                  padding: '9px 14px', borderRadius: 14,
                   background: on ? `${primary}22` : surfRaised(dark),
                   color: on ? primary : textPri(dark),
                   border: `1.5px solid ${on ? primary : borderSubtle(dark)}`,

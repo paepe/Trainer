@@ -19,7 +19,7 @@ export const PillInput: React.FC<PillInputProps> = ({
   return (
     <label style={{
       display: 'flex', alignItems: 'center', gap: 12,
-      padding: '14px 18px', borderRadius: 999,
+      padding: '14px 18px', borderRadius: 14,
       background: dark ? '#142233' : '#F4F6FA',
       border: `1.5px solid ${focus ? primary : 'transparent'}`,
       transition: 'border-color .15s',

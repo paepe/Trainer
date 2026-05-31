@@ -481,7 +481,7 @@ export function WorkoutPlanEditorScreen({
               <button onClick={() => setShowAddForm(false)} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
                 Cancel
               </button>
-              <button onClick={addExercise} style={{ flex: 2, padding: '12px 0', borderRadius: 999, background: t.primary, color: '#0E1A2B', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={addExercise} style={{ flex: 2, padding: '12px 0', borderRadius: 14, background: t.primary, color: '#0E1A2B', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Add exercise
               </button>
             </div>
@@ -550,7 +550,7 @@ export function WorkoutPlanEditorScreen({
       {/* In-Person Trainer CTA */}
       <div style={{ padding: '12px 22px 32px' }}>
         <button onClick={startSessionNow} disabled={saving || exercises.length === 0} style={{
-          width: '100%', padding: '15px 0', borderRadius: 999,
+          width: '100%', padding: '15px 0', borderRadius: 14,
           background: exercises.length === 0 ? (dark ? '#1F2E45' : '#D0D8E4') : '#10B981',
           color: '#fff', border: 'none',
           fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',

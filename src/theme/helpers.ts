@@ -37,7 +37,7 @@ export const primaryBtn = (primary: string = BRAND.primary, loading = false): CS
   cursor:       'pointer',
   color:        '#0E1A2B',
   padding:      '17px 20px',
-  borderRadius: '999px',
+  borderRadius: '14px',
   fontSize:     '15px',
   fontWeight:   700,
   width:        '100%',
@@ -50,7 +50,7 @@ export const primaryBtn = (primary: string = BRAND.primary, loading = false): CS
 export const outlineBtn = (primary: string = BRAND.primary): CSSProperties => ({
   width:        '100%',
   padding:      '16px 20px',
-  borderRadius: '999px',
+  borderRadius: '14px',
   background:   'transparent',
   color:        primary,
   fontSize:     '15px',

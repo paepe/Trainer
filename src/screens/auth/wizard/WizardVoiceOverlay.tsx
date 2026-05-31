@@ -213,7 +213,7 @@ export function WizardVoiceOverlay({
         <button
           onClick={onClose}
           style={{
-            width: '100%', padding: '12px', borderRadius: 999,
+            width: '100%', padding: '12px', borderRadius: 14,
             background: 'transparent', border: 'none',
             color: textMute(dark), fontSize: 13, fontFamily: 'inherit', cursor: 'pointer',
           }}

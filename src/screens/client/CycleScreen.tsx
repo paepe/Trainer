@@ -69,7 +69,7 @@ export function CycleScreen({
             Enable cycle tracking in Settings to adapt your workout intensity based on your current phase.
           </p>
           <button onClick={() => nav('settings')} style={{
-            padding: '11px 24px', borderRadius: 999, border: 'none',
+            padding: '11px 24px', borderRadius: 14, border: 'none',
             background: t.primary, color: '#0E1A2B',
             fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
           }}>
@@ -248,11 +248,11 @@ export function CycleScreen({
 
       <div style={{ padding: '14px 22px 28px', display: 'flex', gap: 10 }}>
         <button onClick={() => setDay(1)} style={{
-          flex: 1, padding: '12px', borderRadius: 999, border: `1.5px solid ${t.accent}`,
+          flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${t.accent}`,
           background: 'transparent', color: t.accent, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
         }}>Period started today</button>
         <button onClick={() => { setDraftDay(day); setDraftLen(cycleLen); setEditing(true); }} style={{
-          flex: 1, padding: '12px', borderRadius: 999, border: 'none',
+          flex: 1, padding: '12px', borderRadius: 14, border: 'none',
           background: t.primary, color: '#0E1A2B', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
         }}>Set current day</button>
       </div>
@@ -334,7 +334,7 @@ export function CycleScreen({
 
             <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
               <button onClick={() => setEditing(false)} style={{
-                flex: 1, padding: '13px', borderRadius: 999,
+                flex: 1, padding: '13px', borderRadius: 14,
                 border: `1.5px solid ${borderSubtle(dark)}`,
                 background: 'transparent', color: textPri(dark),
                 fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
@@ -360,7 +360,7 @@ export function CycleScreen({
                 }
                 setEditing(false);
               }} style={{
-                flex: 1, padding: '13px', borderRadius: 999, border: 'none',
+                flex: 1, padding: '13px', borderRadius: 14, border: 'none',
                 background: t.primary, color: '#0E1A2B',
                 fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
               }}>Save</button>

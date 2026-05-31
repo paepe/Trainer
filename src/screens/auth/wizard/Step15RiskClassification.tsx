@@ -164,7 +164,7 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
         onClick={() => onGenerate(risk)}
         disabled={generating}
         style={{
-          width: '100%', padding: '18px 20px', borderRadius: 999,
+          width: '100%', padding: '18px 20px', borderRadius: 14,
           background: generating ? `${primary}88` : primary,
           border: 'none', color: '#0E1A2B',
           fontSize: 16, fontWeight: 700, fontFamily: 'inherit',

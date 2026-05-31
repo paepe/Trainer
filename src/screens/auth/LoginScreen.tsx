@@ -37,7 +37,7 @@ function OAuthButton({ provider, onClick, dark, primary }: {
       onMouseLeave={() => setHover(false)}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-        width: '100%', padding: '14px 18px', borderRadius: 999,
+        width: '100%', padding: '14px 18px', borderRadius: 14,
         background: hover ? (dark ? '#1a2c43' : '#EDF1F7') : (dark ? '#142233' : '#F4F6FA'),
         color: textPri(dark),
         border: `1px solid ${hover ? primary : borderSubtle(dark)}`,

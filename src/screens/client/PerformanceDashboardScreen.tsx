@@ -674,7 +674,7 @@ function TelaScores({ data }: { data: M5Data }) {
               {/* mini progress bar */}
               <div style={{ height: 6, borderRadius: 999, background: T.navy, marginBottom: 6 }}>
                 <div style={{
-                  height: '100%', borderRadius: 999, width: `${s.score}%`,
+                  height: '100%', borderRadius: 14, width: `${s.score}%`,
                   background: `linear-gradient(90deg, ${c} 0%, ${c}88 100%)`,
                   transition: 'width .6s ease',
                 }}/>
@@ -871,7 +871,7 @@ function TelaVoz({ data }: { data: M5Data }) {
               key={q}
               onClick={() => process(q)}
               style={{
-                padding: '9px 12px', borderRadius: 999,
+                padding: '9px 12px', borderRadius: 14,
                 background: T.surf, border: `1px solid ${T.border}`,
                 display: 'flex', alignItems: 'center', gap: 8,
                 cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
@@ -981,7 +981,7 @@ function TelaMarcos({ data }: { data: M5Data }) {
                   </div>
                   <div style={{ height: 5, borderRadius: 999, background: T.navy }}>
                     <div style={{
-                      height: '100%', borderRadius: 999, width: `${pct}%`,
+                      height: '100%', borderRadius: 14, width: `${pct}%`,
                       background: `linear-gradient(90deg, ${C.cyan} 0%, ${C.cyanDeep} 100%)`,
                       transition: 'width .6s ease',
                     }}/>
