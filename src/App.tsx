@@ -198,11 +198,13 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, profile, isTrainer, screen]);
 
-  const [screenPayload, setScreenPayload] = React.useState<Record<string, unknown> | null>(null);
+  const [screenPayload,  setScreenPayload]  = React.useState<Record<string, unknown> | null>(null);
+  const [profileNavKey,  setProfileNavKey]  = React.useState(0);
   const nav = (target: string, payload?: Record<string, unknown>) => {
     if (target === 'menu') { setMenuOpen(true); return; }
     setMenuOpen(false);
     setScreenPayload(payload ?? null);
+    if (target === 'profile') setProfileNavKey(k => k + 1);
     setScreen(target);
   };
 
@@ -363,7 +365,7 @@ export default function App() {
       case 'welcome':          return <WelcomeScreen           {...common}/>;
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
-      case 'profile':          return <ProfileWizardScreen     nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
+      case 'profile':          return <ProfileWizardScreen     key={profileNavKey} nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
       case 'checkin':          return (
         <>
           {(noClient && !screenPayload?.clientUserId) && noClientBanner}
