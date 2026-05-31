@@ -1,111 +1,124 @@
-import React from 'react';
 import { Icon } from '../../../components/Icon';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
-import type { WizardStepProps } from './types';
 
-const FEATURES: { icon: string; text: string }[] = [
-  { icon: 'chart',    text: 'Basic data, goals & movement history'    },
-  { icon: 'heart',    text: 'Declared health — no diagnosis required' },
-  { icon: 'activity', text: 'Functional capacity & accessibility'     },
+const FEATURES = [
+  { icon: 'user',     text: 'Basic data, goals and history'           },
+  { icon: 'shield',   text: 'Declared health — no diagnosis required' },
+  { icon: 'activity', text: 'Functional capacity and accessibility'   },
   { icon: 'lock',     text: 'Sensitive factors stay protected'        },
-  { icon: 'moon',     text: 'Body Rhythm — opt-in, always private'   },
-];
+  { icon: 'sparkle',  text: 'Body Rhythm — opt-in, always private'   },
+] as const;
 
-export function Step01Welcome({ dark, primary, onNext }: WizardStepProps) {
+interface Step01WelcomeProps {
+  dark:           boolean;
+  primary:        string;
+  onNext:         () => void;
+  profileExists?: boolean | undefined;
+}
+
+export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01WelcomeProps) {
+  const cyanDeep = '#0F8C85';
+
   return (
-    <div style={{ padding: '32px 24px 36px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <div style={{ padding: '28px 24px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+
+      {/* hero icon */}
+      <div style={{
+        width: 56, height: 56, borderRadius: 18, marginBottom: 18,
+        background: `linear-gradient(135deg, ${primary} 0%, ${cyanDeep} 100%)`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: `0 12px 30px ${primary}33`,
+        animation: 'wp-arrive .4s .04s cubic-bezier(.34,1.56,.64,1) both',
+      }}>
+        <Icon name="brain" size={28} color="#0E1A2B" stroke={2}/>
+      </div>
 
       {/* kicker */}
       <div style={{
-        fontSize: 9.5, fontWeight: 700, letterSpacing: '.18em',
-        textTransform: 'uppercase', color: primary,
-        marginBottom: 28, textAlign: 'center',
+        fontSize: 10.5, fontWeight: 700, letterSpacing: '.18em',
+        textTransform: 'uppercase', color: primary, marginBottom: 8,
         fontFamily: '"JetBrains Mono",ui-monospace,monospace',
         animation: 'wp-arrive .35s ease both',
       }}>
-        TrAIner · Module 01 · Student Profile
+        MODULE 01 · PREDICTIVE BASE
       </div>
 
-      {/* hero icon */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22, animation: 'wp-arrive .4s .04s cubic-bezier(.34,1.56,.64,1) both' }}>
-        <div style={{
-          width: 80, height: 80, borderRadius: 26,
-          background: `linear-gradient(135deg, ${primary}, ${primary}aa)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: `0 16px 40px ${primary}44`,
-        }}>
-          <Icon name="user" size={38} color="#0E1A2B" stroke={2}/>
-        </div>
-      </div>
+      {/* title */}
+      <h1 style={{
+        margin: '0 0 10px',
+        fontFamily: '"Plus Jakarta Sans","Inter",system-ui,sans-serif',
+        fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1,
+        color: textPri(dark),
+        animation: 'wp-arrive .4s .06s ease both',
+      }}>
+        Smart Student<br/>Profile
+      </h1>
 
-      {/* heading */}
-      <div style={{ textAlign: 'center', marginBottom: 24, animation: 'wp-arrive .4s .08s ease both' }}>
-        <h1 style={{
-          margin: '0 0 10px',
-          fontFamily: '"Plus Jakarta Sans","Inter",system-ui,sans-serif',
-          fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.08,
-          color: textPri(dark),
-        }}>
-          Smart Student Profile
-        </h1>
-        <p style={{ margin: 0, fontSize: 13.5, color: textSec(dark), lineHeight: 1.6 }}>
-          Build your{' '}
-          <strong style={{ color: textPri(dark) }}>Extended Trainability Profile</strong>
-          {' '}— the data the AI uses to adapt intensity, safety, and progression for every session.
-        </p>
-      </div>
-
-      {/* feature cards */}
+      {/* subtitle + body */}
       <div style={{
-        background: surfRaised(dark), borderRadius: 16,
+        fontSize: 13.5, color: textSec(dark), lineHeight: 1.55, marginBottom: 22,
+        animation: 'wp-arrive .4s .1s ease both',
+      }}>
+        Health, Movement, Privacy and Predictive Base.
+        <br/><br/>
+        Let's build your{' '}
+        <strong style={{ color: textPri(dark) }}>Extended Trainability Profile</strong>
+        {' '}— the foundation TrAIner uses to adapt intensity, safety, and progression of your plan.
+      </div>
+
+      {/* feature card */}
+      <div style={{
+        borderRadius: 14, padding: 14,
+        background: surfRaised(dark),
         border: `1px solid ${borderSubtle(dark)}`,
-        padding: '4px 0', marginBottom: 24,
+        marginBottom: 16,
         animation: 'wp-arrive .4s .14s ease both',
       }}>
         {FEATURES.map(f => (
           <div key={f.text} style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            padding: '11px 16px',
+            display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0',
           }}>
             <div style={{
-              width: 32, height: 32, borderRadius: 10, flexShrink: 0,
-              background: `${primary}20`,
+              width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+              background: `${primary}18`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Icon name={f.icon} size={16} color={primary} stroke={2}/>
+              <Icon name={f.icon} size={14} color={primary} stroke={2}/>
             </div>
-            <span style={{ fontSize: 13.5, color: textSec(dark), lineHeight: 1.4 }}>{f.text}</span>
+            <span style={{ fontSize: 13, color: textSec(dark) }}>{f.text}</span>
           </div>
         ))}
       </div>
 
-      <div style={{ flex: 1 }}/>
-
-      {/* time / privacy note */}
+      {/* privacy note */}
       <p style={{
-        fontSize: 11.5, color: textMute(dark), textAlign: 'center',
-        margin: '0 0 18px', lineHeight: 1.5,
-        fontFamily: '"JetBrains Mono",ui-monospace,monospace',
-        letterSpacing: '.03em',
+        margin: '0 0 14px', padding: '10px 14px', borderRadius: 12,
+        background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+        fontSize: 11.5, color: textMute(dark), lineHeight: 1.5,
         animation: 'wp-arrive .4s .18s ease both',
       }}>
-        ≈ 5–8 min · 14 blocks · powers the AI training engine
+        You can save and return at any time. No partial data is lost.
+        All sensitive information is masked before reaching your trainer.
       </p>
 
-      <p style={{
-        fontSize: 11.5, color: textMute(dark), textAlign: 'center',
-        margin: '0 0 22px', lineHeight: 1.5,
+      {/* time / LGPD note */}
+      <div style={{
+        fontSize: 11, color: textMute(dark),
+        fontFamily: '"JetBrains Mono",ui-monospace,monospace',
+        letterSpacing: '.04em',
         animation: 'wp-arrive .4s .2s ease both',
       }}>
-        You can leave and return at any time. No data is lost.{' '}
-        All sensitive information is encrypted before reaching any recommender.
-      </p>
+        ≈ 6–9 min · 14 blocks · LGPD compatible
+      </div>
+
+      <div style={{ flex: 1 }}/>
 
       {/* CTA */}
       <button
         onClick={onNext}
         style={{
-          width: '100%', padding: '17px 20px', borderRadius: 16, border: 'none',
+          width: '100%', padding: '17px 20px', marginTop: 24,
+          borderRadius: 16, border: 'none',
           background: primary, color: '#0E1A2B',
           fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
           cursor: 'pointer',
@@ -113,12 +126,12 @@ export function Step01Welcome({ dark, primary, onNext }: WizardStepProps) {
           animation: 'wp-arrive .4s .22s cubic-bezier(.34,1.56,.64,1) both',
         }}
       >
-        Build my Smart Profile
+        {profileExists ? 'Edit Smart Profile' : 'Build my Smart Profile'} →
       </button>
 
       <style>{`
         @keyframes wp-arrive {
-          from { opacity: 0; transform: translateY(14px); }
+          from { opacity: 0; transform: translateY(12px); }
           to   { opacity: 1; transform: translateY(0);    }
         }
       `}</style>

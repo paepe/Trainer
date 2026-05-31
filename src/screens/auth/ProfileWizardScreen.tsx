@@ -113,9 +113,10 @@ interface ProfileWizardScreenProps {
 type ScreenMode = 'wizard' | 'view';
 
 export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV2, saveUser, user }: ProfileWizardScreenProps) {
-  const [mode,        setMode]        = React.useState<ScreenMode>('view');
-  const [showWelcome, setShowWelcome] = React.useState(false);
-  const [currentStep, setCurrentStep] = React.useState<ProfileV2Step>('basic_data');
+  const [mode,          setMode]          = React.useState<ScreenMode>('view');
+  const [showWelcome,   setShowWelcome]   = React.useState(true);   // arrive screen on every entry
+  const [profileExists, setProfileExists] = React.useState(false);
+  const [currentStep,   setCurrentStep]   = React.useState<ProfileV2Step>('basic_data');
   const [data,        setData]        = React.useState<WizardData>({});
   const [loading,     setLoading]     = React.useState(true);
   const [generating,  setGenerating]  = React.useState(false);
@@ -134,10 +135,11 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
           existing as WizardData & { current_step?: string; completed_at?: string | null };
         dataRef.current = profileData;
         setData(profileData);
-        setMode('view');
+        setProfileExists(true);
+        setMode('view');       // revealed after arrive screen is dismissed
       } else {
-        setShowWelcome(true);
-        setMode('wizard');   // new user: show welcome then start wizard
+        setProfileExists(false);
+        setMode('wizard');     // revealed after arrive screen is dismissed
       }
       setLoading(false);
     });
@@ -267,6 +269,19 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
 
   if (loading) return null;
 
+  // ── ARRIVE screen — shown on every module entry ────────────────────────────
+
+  if (showWelcome) {
+    return (
+      <Step01Welcome
+        dark={dark}
+        primary={t.primary}
+        profileExists={profileExists}
+        onNext={() => setShowWelcome(false)}
+      />
+    );
+  }
+
   // ── VIEW mode ──────────────────────────────────────────────────────────────
 
   if (mode === 'view') {
@@ -340,16 +355,6 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       default: return <Step02BasicData {...common} {...(user ? { user } : {})} {...(saveUser ? { saveUser } : {})}/>;
     }
   })();
-
-  if (showWelcome) {
-    return (
-      <Step01Welcome
-        {...common}
-        onNext={() => setShowWelcome(false)}
-        stepNum={0}
-      />
-    );
-  }
 
   return <>{wizardBanner}{statusBanner}{stepContent}</>;
 }
