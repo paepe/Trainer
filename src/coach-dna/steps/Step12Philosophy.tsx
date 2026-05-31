@@ -18,16 +18,16 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
   <div>
     <StepHeader
       idx={12} total={12}
-      title="Filosofia & identidade"
-      sub="O manifesto que guia cada treino que você cria."
+      title="Philosophy & identity"
+      sub="The manifesto that guides every workout you create."
       badge="Coach DNA"
     />
-    <Hint>Este é o bloco mais pessoal. Escreva ou dite com as suas próprias palavras.</Hint>
+    <Hint>This is the most personal block. Write or dictate in your own words.</Hint>
 
-    <FieldLabel hint="opcional">Lema do coach</FieldLabel>
+    <FieldLabel hint="optional">Coach motto</FieldLabel>
     <DNAField
       value={philosophy.motto}
-      placeholder='ex: "Treine com propósito, recover com inteligência."'
+      placeholder='e.g. "Train with purpose, recover with intelligence."'
       onChange={v => onChange({ ...philosophy, motto: v })}
     />
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 24, marginTop: -4 }}>
@@ -47,9 +47,9 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
       ))}
     </div>
 
-    <FieldLabel hint="opcional">Prompt livre — sua voz de coach para a IA</FieldLabel>
+    <FieldLabel hint="optional">Free prompt — your coach voice for the AI</FieldLabel>
     <VoiceBar
-      hint="Ditar seu manifesto de coaching"
+      hint="Dictate your coaching manifesto"
       onTranscript={text =>
         onChange({ ...philosophy, prompt: philosophy.prompt + (philosophy.prompt ? ' ' : '') + text })
       }
@@ -57,7 +57,7 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
     <textarea
       value={philosophy.prompt}
       onChange={e => onChange({ ...philosophy, prompt: e.target.value })}
-      placeholder="Descreva em suas próprias palavras como você treina, o que você valoriza e como quer que a IA represente seu estilo ao gerar treinos..."
+      placeholder="Describe in your own words how you train, what you value, and how you want the AI to represent your style when generating workouts..."
       rows={6}
       style={{
         width: '100%', padding: '12px 14px', borderRadius: 12,
@@ -69,7 +69,7 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
     />
 
     <PrivacyNote tone="coach">
-      Este prompt é o contexto mais poderoso do seu DNA — a IA usa estas palavras literalmente para capturar a sua voz.
+      This prompt is the most powerful context in your DNA — the AI uses these words literally to capture your voice.
     </PrivacyNote>
   </div>
 );

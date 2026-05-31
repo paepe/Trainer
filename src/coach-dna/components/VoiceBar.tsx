@@ -49,7 +49,7 @@ function getSpeechRecognition(): SRCtor | null {
 
 export const VoiceBar: React.FC<VoiceBarProps> = ({
   onTranscript,
-  hint = 'Ditar para a IA',
+  hint = 'Dictate to AI',
 }) => {
   const [active, setActive]   = React.useState(false);
   const [interim, setInterim] = React.useState('');
@@ -92,9 +92,9 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
 
     rec.onerror = (e: Event) => {
       const err = (e as unknown as Record<string, unknown>).error as string | undefined;
-      if (err === 'not-allowed') setError('Permissão de microfone negada.');
-      else if (err === 'no-speech') setError('Nenhuma fala detectada.');
-      else setError('Erro no reconhecimento de voz.');
+      if (err === 'not-allowed') setError('Microphone permission denied.');
+      else if (err === 'no-speech') setError('No speech detected.');
+      else setError('Speech recognition error.');
       setActive(false);
     };
 
@@ -204,7 +204,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
             textTransform: 'uppercase', color: BRAND.accent,
             whiteSpace: 'nowrap',
           }}>
-            Parar
+            Stop
           </span>
         </div>
       ) : null}

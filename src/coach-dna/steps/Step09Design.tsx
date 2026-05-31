@@ -33,13 +33,13 @@ export const Step09Design: React.FC<Step09Props> = ({ design, onChange }) => {
     <div>
       <StepHeader
         idx={9} total={12}
-        title="Design de sessão"
-        sub="Os formatos e a curva de intensidade que você prefere."
+        title="Session design"
+        sub="The formats and intensity curve you prefer."
         badge="Coach DNA"
       />
-      <Hint>Escolha os formatos que você usa e a curva de intensidade típica das suas sessões.</Hint>
+      <Hint>Choose the formats you use and the typical intensity curve of your sessions.</Hint>
 
-      <FieldLabel hint="escolha todos que usa">Formatos preferidos</FieldLabel>
+      <FieldLabel hint="choose all you use">Preferred formats</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
         {FORMATS.map(f => (
           <Chip
@@ -53,7 +53,7 @@ export const Step09Design: React.FC<Step09Props> = ({ design, onChange }) => {
         ))}
       </div>
 
-      <FieldLabel>Curva de intensidade</FieldLabel>
+      <FieldLabel>Intensity curve</FieldLabel>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {CURVES.map(c => (
           <ChoiceCard

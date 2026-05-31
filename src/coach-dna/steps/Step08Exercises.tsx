@@ -80,22 +80,22 @@ export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) 
   <div>
     <StepHeader
       idx={8} total={12}
-      title="Exercícios & repertório"
-      sub="Seu vocabulário de movimento define sua identidade como coach."
+      title="Exercises & repertoire"
+      sub="Your movement vocabulary defines your identity as a coach."
       badge="Coach DNA"
     />
-    <Hint>Adicione os exercícios que você mais usa e os que evita. Pressione Enter ou vírgula para confirmar.</Hint>
+    <Hint>Add the exercises you use most and the ones you avoid. Press Enter or comma to confirm.</Hint>
 
-    <FieldLabel hint="ilimitado">Exercícios favoritos</FieldLabel>
+    <FieldLabel hint="unlimited">Favorite exercises</FieldLabel>
     <TagInput
       tags={exercises.favorites}
-      placeholder="ex: Back Squat, Turkish Get-Up…"
+      placeholder="e.g. Back Squat, Turkish Get-Up…"
       color={BRAND.accent}
       onAdd={t  => onChange({ ...exercises, favorites: [...exercises.favorites, t] })}
       onRemove={t => onChange({ ...exercises, favorites: exercises.favorites.filter(x => x !== t) })}
     />
     <VoiceBar
-      hint="Ditar exercícios favoritos"
+      hint="Dictate favorite exercises"
       onTranscript={text => {
         const parts = text.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
         const next  = [...exercises.favorites];
@@ -105,10 +105,10 @@ export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) 
     />
 
     <div style={{ marginTop: 24 }}>
-      <FieldLabel hint="opcional">Exercícios que evita / não usa</FieldLabel>
+      <FieldLabel hint="optional">Exercises to avoid / not use</FieldLabel>
       <TagInput
         tags={exercises.avoid}
-        placeholder="ex: Leg Press, Sit-up convencional…"
+        placeholder="e.g. Leg Press, traditional sit-up…"
         color={DARK.textSec}
         onAdd={t  => onChange({ ...exercises, avoid: [...exercises.avoid, t] })}
         onRemove={t => onChange({ ...exercises, avoid: exercises.avoid.filter(x => x !== t) })}
@@ -116,7 +116,7 @@ export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) 
     </div>
 
     <PrivacyNote tone="optional">
-      Este repertório alimenta a seleção automática de exercícios pelo AI Coach Engine.
+      This repertoire feeds the automatic exercise selection by the AI Coach Engine.
     </PrivacyNote>
   </div>
 );

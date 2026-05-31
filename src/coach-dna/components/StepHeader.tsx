@@ -17,7 +17,7 @@ export const StepHeader: React.FC<StepHeaderProps> = ({ idx, total, title, sub, 
         fontSize:      10.5, fontWeight: 700, letterSpacing: '.15em',
         textTransform: 'uppercase', color: BRAND.primary,
       }}>
-        BLOCO {String(idx).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        BLOCK {String(idx).padStart(2, '0')} / {String(total).padStart(2, '0')}
       </span>
       {badge && (
         <span style={{

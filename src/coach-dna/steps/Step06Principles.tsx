@@ -27,11 +27,11 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
     <div>
       <StepHeader
         idx={6} total={12}
-        title="Princípios fundamentais"
-        sub="As convicções que guiam suas decisões de prescrição."
-        badge={`Escolha até ${MAX}`}
+        title="Core principles"
+        sub="The beliefs that guide your prescription decisions."
+        badge={`Choose up to ${MAX}`}
       />
-      <Hint>Qual é a sua filosofia de treinamento em essência?</Hint>
+      <Hint>What is your training philosophy at its core?</Hint>
 
       {/* counter */}
       <div style={{
@@ -45,7 +45,7 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
         {PRINCIPLES.map(p => {
-          const rank    = principles.indexOf(p.key) + 1; // 0 if not selected
+          const rank    = principles.indexOf(p.key) + 1;
           const active  = rank > 0;
           const dimmed  = !active && atMax;
 
@@ -65,7 +65,6 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
                 transition:   'background .15s, border-color .15s, opacity .15s',
               }}
             >
-              {/* rank badge */}
               <div style={{
                 width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                 border:     `1.5px solid ${active ? BRAND.accent : DARK.border}`,
@@ -92,7 +91,7 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
       </div>
 
       <PrivacyNote tone="coach">
-        Os princípios selecionados estabelecem prioridades absolutas no gerador — o que aparece primeiro em toda prescrição.
+        The selected principles set absolute priorities in the generator — what appears first in every prescription.
       </PrivacyNote>
     </div>
   );

@@ -164,8 +164,8 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
   // ── header subtitle ───────────────────────────────────────────────────────────
   const subtitle = (() => {
     if (step === 0)           return 'Coach DNA';
-    if (step === OUTPUT_STEP) return 'Fase 2 Concluída';
-    return `Bloco ${step} de ${TOTAL_STEPS}`;
+    if (step === OUTPUT_STEP) return 'Phase 2 Complete';
+    return `Block ${step} of ${TOTAL_STEPS}`;
   })();
 
   if (loading) {
@@ -285,7 +285,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               boxShadow: `0 10px 30px ${BRAND.accent}44`,
             }}
           >
-            Construir meu Coach DNA
+            Build my Coach DNA
           </button>
         ) : step === OUTPUT_STEP ? (
           <button
@@ -300,7 +300,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               boxShadow: `0 10px 30px ${BRAND.accent}44`,
             }}
           >
-            {saving ? 'Ativando…' : 'Ativar Coach DNA'}
+            {saving ? 'Activating…' : 'Activate Coach DNA'}
           </button>
         ) : (
           <div style={{ display: 'flex', gap: 10 }}>
@@ -315,7 +315,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
                 cursor: 'pointer', opacity: saving ? 0.6 : 1,
               }}
             >
-              Salvar
+              Save
             </button>
             <button
               onClick={() => save(true)}
@@ -329,7 +329,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
                 boxShadow: `0 8px 24px ${BRAND.accent}44`,
               }}
             >
-              {saving ? 'Salvando…' : step < TOTAL_STEPS ? 'Continuar' : 'Concluir Coach DNA'}
+              {saving ? 'Saving…' : step < TOTAL_STEPS ? 'Continue' : 'Complete Coach DNA'}
             </button>
           </div>
         )}

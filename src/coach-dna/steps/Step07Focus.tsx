@@ -14,11 +14,11 @@ export const Step07Focus: React.FC<Step07Props> = ({ focus, onChange }) => (
   <div>
     <StepHeader
       idx={7} total={12}
-      title="Foco do treino"
-      sub="Qual o peso de cada capacidade física no seu método?"
+      title="Training focus"
+      sub="How much weight does each physical capacity carry in your method?"
       badge="Coach DNA"
     />
-    <Hint>Distribua a ênfase de cada qualidade física. 0 = não priorizo, 10 = fundamento central.</Hint>
+    <Hint>Distribute emphasis across physical qualities. 0 = not a priority, 10 = central pillar.</Hint>
 
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {FOCUS_ITEMS.map(item => {
@@ -38,8 +38,8 @@ export const Step07Focus: React.FC<Step07Props> = ({ focus, onChange }) => (
               style={{ width: '100%', accentColor: item.color, cursor: 'pointer' }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-              <span style={{ fontSize: 10, color: DARK.textMute }}>0 – Não priorizo</span>
-              <span style={{ fontSize: 10, color: DARK.textMute }}>10 – Fundamento central</span>
+              <span style={{ fontSize: 10, color: DARK.textMute }}>0 – Not a priority</span>
+              <span style={{ fontSize: 10, color: DARK.textMute }}>10 – Central pillar</span>
             </div>
           </div>
         );

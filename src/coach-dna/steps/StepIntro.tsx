@@ -4,11 +4,11 @@ import { PrivacyNote } from '../components/PrivacyNote';
 import { BRAND, DARK } from '../../theme/tokens';
 
 const FEATURES = [
-  { icon: 'fingerprint', label: 'Identidade e formação profissional'     },
-  { icon: 'zap',         label: 'Estilo de coaching e DNA metodológico'  },
-  { icon: 'target',      label: 'Distribuição de foco e exercícios'      },
-  { icon: 'users',       label: 'Comunicação e perfil de clientes'       },
-  { icon: 'brain',       label: 'Filosofia e personalidade da IA'        },
+  { icon: 'fingerprint', label: 'Professional identity and background'    },
+  { icon: 'zap',         label: 'Coaching style and methodological DNA'   },
+  { icon: 'target',      label: 'Focus distribution and exercise library' },
+  { icon: 'users',       label: 'Communication style and client profile'  },
+  { icon: 'brain',       label: 'Philosophy and AI personality'           },
 ] as const;
 
 export const StepIntro: React.FC = () => (
@@ -44,8 +44,8 @@ export const StepIntro: React.FC = () => (
         Coach DNA
       </h1>
       <p style={{ margin: 0, fontSize: 13.5, color: DARK.textSec, lineHeight: 1.55 }}>
-        Capture <strong>sua assinatura</strong> de treinamento para que o AI Coach Engine gere
-        treinos com o seu método real — não recomendações genéricas.
+        Capture <strong>your training signature</strong> so the AI Coach Engine generates
+        workouts with your real method — not generic recommendations.
       </p>
     </div>
 
@@ -73,7 +73,7 @@ export const StepIntro: React.FC = () => (
     </div>
 
     <PrivacyNote tone="coach">
-      Quanto mais fiel for o perfil do treinador, mais os treinos gerados parecerão escritos por você.
+      The more accurate your profile, the more the generated workouts will sound like you wrote them.
     </PrivacyNote>
 
     <p style={{
@@ -81,7 +81,7 @@ export const StepIntro: React.FC = () => (
       fontFamily: '"JetBrains Mono",ui-monospace,monospace',
       fontSize: 10.5, color: DARK.textMute, textAlign: 'center', letterSpacing: '.04em',
     }}>
-      ≈ 5–8 min · 12 blocos · alimenta o AI Coach Engine
+      ≈ 5–8 min · 12 blocks · powers the AI Coach Engine
     </p>
   </div>
 );

@@ -32,12 +32,12 @@ export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
     <div>
       <StepHeader
         idx={4} total={12}
-        title="Como e onde você treina"
-        sub="Métodos, ambientes e intensidade geral que marcam sua prática."
+        title="How and where you train"
+        sub="Methods, environments, and general intensity that define your practice."
       />
-      <Hint>Selecione tudo que faz parte do seu repertório cotidiano.</Hint>
+      <Hint>Select everything that's part of your daily repertoire.</Hint>
 
-      <FieldLabel hint="múltipla escolha">Métodos de treinamento</FieldLabel>
+      <FieldLabel hint="multiple choice">Training methods</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
         {METHODS.map(m => (
           <Chip
@@ -49,7 +49,7 @@ export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
         ))}
       </div>
 
-      <FieldLabel hint="múltipla escolha">Ambientes preferidos</FieldLabel>
+      <FieldLabel hint="multiple choice">Preferred environments</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
         {ENVIRONMENTS.map(e => (
           <Chip
@@ -61,7 +61,7 @@ export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
         ))}
       </div>
 
-      <FieldLabel>Intensidade geral</FieldLabel>
+      <FieldLabel>General intensity</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
         {INTENSITY.map(i => (
           <Chip
@@ -74,7 +74,7 @@ export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
       </div>
 
       <PrivacyNote>
-        Métodos e ambientes guiam o AI Coach Engine na seleção de exercícios e formatos compatíveis com sua realidade.
+        Methods and environments guide the AI Coach Engine in selecting exercises and formats compatible with your context.
       </PrivacyNote>
     </div>
   );

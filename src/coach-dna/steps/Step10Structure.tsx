@@ -26,11 +26,11 @@ export const Step10Structure: React.FC<Step10Props> = ({ structure, onChange }) 
     <div>
       <StepHeader
         idx={10} total={12}
-        title="Estrutura da sessão"
-        sub="Defina a ordem padrão dos blocos de uma sessão típica."
+        title="Session structure"
+        sub="Define the default order of blocks in a typical session."
         badge="Coach DNA"
       />
-      <Hint>Reordene os blocos com as setas. Esta sequência será o template padrão dos seus treinos.</Hint>
+      <Hint>Reorder blocks using the arrows. This sequence will be the default template for your workouts.</Hint>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {structure.map((key, idx) => {

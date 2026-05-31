@@ -38,34 +38,34 @@ export function computeArchetype(data: CoachDNAData): CoachArchetype {
 
   // Training methods
   const m = data.training.methods;
-  if (m.includes('CrossFit'))                  s.performance += 2;
-  if (m.includes('HIIT'))                      s.performance += 1;
-  if (m.includes('Mobilidade'))                s.movement    += 2;
-  if (m.includes('Performance Atlética'))      s.performance += 2;
-  if (m.includes('Treino de Força'))           s.drill       += 2;
-  if (m.includes('Musculação / Bodybuilding')) { s.drill += 1; s.technician += 1; }
-  if (m.includes('Calistenia'))                s.movement    += 1;
-  if (m.includes('Treino Funcional'))          { s.movement += 1; s.guide += 1; }
+  if (m.includes('CrossFit'))                    s.performance += 2;
+  if (m.includes('HIIT'))                        s.performance += 1;
+  if (m.includes('Mobility'))                    s.movement    += 2;
+  if (m.includes('Athletic Performance'))        s.performance += 2;
+  if (m.includes('Strength Training'))           s.drill       += 2;
+  if (m.includes('Weightlifting / Bodybuilding')){ s.drill += 1; s.technician += 1; }
+  if (m.includes('Calisthenics'))                s.movement    += 1;
+  if (m.includes('Functional Training'))         { s.movement += 1; s.guide += 1; }
 
   // Intensity
-  if (data.training.intensity === 'Altamente exigente') { s.performance += 2; s.drill += 1; }
-  if (data.training.intensity === 'Moderada')           { s.guide += 1; s.movement += 1; }
+  if (data.training.intensity === 'High intensity') { s.performance += 2; s.drill += 1; }
+  if (data.training.intensity === 'Moderate')       { s.guide += 1; s.movement += 1; }
 
   // Audience tone
   const t = data.audience.tone;
-  if (t.includes('Motivacional'))  s.motivator   += 2;
-  if (t.includes('Técnico'))       s.technician  += 2;
-  if (t.includes('Atlético'))      s.performance += 1;
-  if (t.includes('Direto'))        s.drill       += 1;
-  if (t.includes('Descontraído'))  s.motivator   += 1;
-  if (t.includes('Profissional'))  s.technician  += 1;
+  if (t.includes('Motivational'))  s.motivator   += 2;
+  if (t.includes('Technical'))     s.technician  += 2;
+  if (t.includes('Athletic'))      s.performance += 1;
+  if (t.includes('Direct'))        s.drill       += 1;
+  if (t.includes('Casual'))        s.motivator   += 1;
+  if (t.includes('Professional'))  s.technician  += 1;
 
   // Audience clients
   const c = data.audience.clients;
-  if (c.includes('Atletas avançados'))   s.performance += 1;
-  if (c.includes('Atletas de CrossFit')) s.performance += 1;
-  if (c.includes('Reabilitação'))        s.guide       += 2;
-  if (c.includes('Iniciantes'))          s.guide       += 1;
+  if (c.includes('Advanced athletes'))  s.performance += 1;
+  if (c.includes('CrossFit athletes')) s.performance += 1;
+  if (c.includes('Rehabilitation'))    s.guide       += 2;
+  if (c.includes('Beginners'))         s.guide       += 1;
 
   const sorted = (Object.entries(s) as [CoachArchetype, number][])
     .sort(([, a], [, b]) => b - a);

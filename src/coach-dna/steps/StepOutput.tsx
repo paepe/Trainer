@@ -14,44 +14,44 @@ interface ArchetypeMeta {
 
 const ARCHETYPE_META: Record<CoachArchetype, ArchetypeMeta> = {
   performance: {
-    title: 'Coach de Performance',
-    sub:   'Alto rendimento & metas mensuráveis',
-    desc:  'Você treina para resultados. Cada sessão tem métricas, cada aluno tem metas. O seu DNA gera treinos orientados a performance, progressão de carga e superação pessoal.',
+    title: 'Performance Coach',
+    sub:   'High performance & measurable goals',
+    desc:  'You train for results. Every session has metrics, every client has targets. Your DNA generates performance-oriented workouts focused on load progression and personal bests.',
     icon:  'zap',
     color: BRAND.accent,
   },
   technician: {
-    title: 'O Técnico',
-    sub:   'Biomecânica & precisão metodológica',
-    desc:  'Você é obcecado por método. Cada exercício tem razão de ser, cada fase tem lógica. O seu DNA gera treinos com cueing técnico preciso e progressões bem estruturadas.',
+    title: 'The Technician',
+    sub:   'Biomechanics & methodological precision',
+    desc:  'You are obsessed with method. Every exercise has a reason, every phase has logic. Your DNA generates workouts with precise technical cuing and well-structured progressions.',
     icon:  'gauge',
     color: BRAND.primarySoft,
   },
   motivator: {
-    title: 'O Motivador',
-    sub:   'Energia & experiências memoráveis',
-    desc:  'Você cria ambientes que inspiram. O seu DNA gera treinos com linguagem energizante, variedade e desafios que mantêm o aluno engajado e voltando sempre.',
+    title: 'The Motivator',
+    sub:   'Energy & memorable experiences',
+    desc:  'You create environments that inspire. Your DNA generates workouts with energizing language, variety, and challenges that keep clients engaged and coming back.',
     icon:  'flame',
     color: BRAND.amber,
   },
   guide: {
-    title: 'O Guia',
-    sub:   'Empatia & evolução sustentável',
-    desc:  'Você acompanha cada aluno no seu ritmo. O seu DNA gera treinos progressivos, explicados com empatia e focados em saúde e autonomia de longo prazo.',
+    title: 'The Guide',
+    sub:   'Empathy & sustainable progress',
+    desc:  'You accompany each client at their own pace. Your DNA generates progressive workouts explained with empathy, focused on long-term health and client autonomy.',
     icon:  'heart',
     color: BRAND.success,
   },
   drill: {
     title: 'Drill Master',
-    sub:   'Disciplina & rigor progressivo',
-    desc:  'Você exige o melhor de cada aluno. O seu DNA gera treinos desafiadores com sequências de força bem definidas e exigência de execução máxima em cada repetição.',
+    sub:   'Discipline & progressive rigor',
+    desc:  'You demand the best from every client. Your DNA generates challenging workouts with well-defined strength sequences and maximum execution standards in every rep.',
     icon:  'shieldCheck',
     color: BRAND.primary,
   },
   movement: {
-    title: 'Especialista em Movimento',
-    sub:   'Função, mobilidade & padrão motor',
-    desc:  'Você enxerga o corpo como um sistema integrado. O seu DNA gera treinos com ênfase em qualidade de movimento, mobilidade e padrões funcionais.',
+    title: 'Movement Specialist',
+    sub:   'Function, mobility & motor patterns',
+    desc:  'You see the body as an integrated system. Your DNA generates workouts emphasizing movement quality, mobility, and functional patterns.',
     icon:  'wave',
     color: BRAND.lavender,
   },
@@ -74,7 +74,7 @@ export const StepOutput: React.FC<StepOutputProps> = ({ archetype }) => {
         textTransform: 'uppercase', color: meta.color,
         marginBottom: 24,
       }}>
-        Coach DNA · Arquétipo
+        Coach DNA · Archetype
       </div>
 
       {/* archetype icon */}
@@ -118,7 +118,7 @@ export const StepOutput: React.FC<StepOutputProps> = ({ archetype }) => {
       </div>
 
       <PrivacyNote tone="coach">
-        O arquétipo é derivado automaticamente do seu DNA e atualiza conforme você evolui o perfil.
+        The archetype is derived automatically from your DNA and updates as you evolve your profile.
       </PrivacyNote>
 
       <style>{`

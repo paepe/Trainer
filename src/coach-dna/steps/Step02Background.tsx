@@ -26,10 +26,10 @@ export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
     <div>
       <StepHeader
         idx={2} total={12}
-        title="Formação e experiência"
-        sub="Quanto tempo você atua e qual é sua base acadêmica / certificações."
+        title="Background & experience"
+        sub="How long you've been coaching and your academic / certification base."
       />
-      <Hint>Sua experiência molda a profundidade dos treinos gerados.</Hint>
+      <Hint>Your experience shapes the depth of the workouts generated.</Hint>
 
       <div style={{
         background: DARK.surface, borderRadius: 14,
@@ -37,16 +37,16 @@ export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
         marginBottom: 20,
       }}>
         <DNASlider
-          label="Anos de experiência"
+          label="Years of experience"
           value={data.years}
           onChange={years => onChange({ years })}
           min={0} max={40}
-          suffix=" anos"
+          suffix=" yrs"
           color={BRAND.accent}
         />
       </div>
 
-      <FieldLabel>Certificações e formação</FieldLabel>
+      <FieldLabel>Certifications & education</FieldLabel>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
         {CERTS.map(cert => (
           <ChoiceCard
@@ -61,7 +61,7 @@ export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
       </div>
 
       <PrivacyNote>
-        Sua formação informa o AI Coach Engine sobre o nível técnico dos protocolos que você usa.
+        Your background informs the AI Coach Engine about the technical depth of the protocols you use.
       </PrivacyNote>
     </div>
   );

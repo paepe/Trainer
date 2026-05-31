@@ -22,11 +22,11 @@ export const Step05Style: React.FC<Step05Props> = ({ style, onChange }) => {
     <div>
       <StepHeader
         idx={5} total={12}
-        title="Estilo de coaching"
-        sub="Como você se comporta com seus alunos na prática."
+        title="Coaching style"
+        sub="How you show up with your clients in practice."
         badge="Coach DNA"
       />
-      <Hint>Escolha todos os estilos que descrevem sua abordagem.</Hint>
+      <Hint>Choose all styles that describe your approach.</Hint>
 
       {/* 2-column grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
@@ -67,7 +67,7 @@ export const Step05Style: React.FC<Step05Props> = ({ style, onChange }) => {
       </div>
 
       <PrivacyNote tone="coach">
-        O estilo de coaching é a parte mais decisiva do seu DNA — define o tom e a voz dos treinos gerados.
+        Coaching style is the most decisive part of your DNA — it defines the tone and voice of every generated workout.
       </PrivacyNote>
     </div>
   );

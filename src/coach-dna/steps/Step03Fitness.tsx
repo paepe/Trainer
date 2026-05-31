@@ -15,10 +15,10 @@ export const Step03Fitness: React.FC<Step03Props> = ({ data, onChange }) => (
   <div>
     <StepHeader
       idx={3} total={12}
-      title="Seu nível físico atual"
-      sub="Sua referência pessoal de condicionamento."
+      title="Your current fitness level"
+      sub="Your personal conditioning reference point."
     />
-    <Hint>Não o dos alunos — o seu próprio nível de condicionamento hoje.</Hint>
+    <Hint>Not your clients' — your own fitness level today.</Hint>
 
     <LevelPicker
       value={data.level}
@@ -27,8 +27,8 @@ export const Step03Fitness: React.FC<Step03Props> = ({ data, onChange }) => (
     />
 
     <PrivacyNote tone="optional">
-      Este dado calibra a intensidade de referência dos treinos que você prescreve,
-      sem expor suas informações pessoais aos alunos.
+      This calibrates the reference intensity of the workouts you prescribe,
+      without exposing your personal information to clients.
     </PrivacyNote>
   </div>
 );

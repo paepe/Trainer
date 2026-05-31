@@ -30,13 +30,13 @@ export const Step11Audience: React.FC<Step11Props> = ({ audience, onChange }) =>
     <div>
       <StepHeader
         idx={11} total={12}
-        title="Audiência & tom"
-        sub="Para quem você treina e como você se comunica."
+        title="Audience & tone"
+        sub="Who you train and how you communicate."
         badge="Coach DNA"
       />
-      <Hint>Selecione todos os perfis de alunos que você atende e o tom predominante na sua comunicação.</Hint>
+      <Hint>Select all client profiles you work with and the predominant tone of your communication.</Hint>
 
-      <FieldLabel hint="multi">Tom de comunicação</FieldLabel>
+      <FieldLabel hint="multi">Communication tone</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
         {TONES.map(t => (
           <Chip
@@ -50,7 +50,7 @@ export const Step11Audience: React.FC<Step11Props> = ({ audience, onChange }) =>
         ))}
       </div>
 
-      <FieldLabel hint="multi">Perfil de alunos</FieldLabel>
+      <FieldLabel hint="multi">Client profile</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {CLIENTS.map(c => (
           <Chip

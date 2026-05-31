@@ -9,7 +9,7 @@ import { FieldLabel }  from '../components/FieldLabel';
 import { BRAND }       from '../../theme/tokens';
 import type { CoachDNAIdentity } from '../../types/coach-dna';
 
-const GENDERS = ['Masculino', 'Feminino', 'Outro', 'Prefiro não informar'] as const;
+const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'] as const;
 
 interface Step01Props {
   data:      CoachDNAIdentity;
@@ -21,10 +21,10 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
   <div>
     <StepHeader
       idx={1} total={12}
-      title="Identidade do treinador"
-      sub="Informações básicas que identificam sua presença no app."
+      title="Trainer identity"
+      sub="Basic information that identifies your presence in the app."
     />
-    <Hint>Como você se apresenta aos seus alunos?</Hint>
+    <Hint>How do you introduce yourself to your clients?</Hint>
 
     <PhotoSlot
       value={data.photo}
@@ -34,19 +34,19 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
     />
 
     <DNAField
-      label="Nome completo"
+      label="Full name"
       value={data.name}
       onChange={name => onChange({ name })}
-      placeholder="Ex: Rafael Mendes"
+      placeholder="e.g. Rafael Mendes"
     />
 
     <VoiceBar
       onTranscript={text => onChange({ name: (data.name + ' ' + text).trim() })}
-      hint="Ditar nome para a IA"
+      hint="Dictate name to AI"
     />
 
     <div style={{ marginBottom: 16 }}>
-      <FieldLabel>Gênero</FieldLabel>
+      <FieldLabel>Gender</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {GENDERS.map(g => (
           <Chip
@@ -61,12 +61,12 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
     </div>
 
     <DNAField
-      label="Idade"
+      label="Age"
       value={data.age}
       onChange={age => onChange({ age })}
       placeholder="34"
       type="number"
-      suffix="anos"
+      suffix="yrs"
       optional
     />
   </div>
