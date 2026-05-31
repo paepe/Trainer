@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react';
 import { HStack } from '../ui';
 
 import { vibrate } from '../lib/haptics';
@@ -21,25 +21,27 @@ export function NotificationProvider({ children, t, dark, isTrainer }: Notificat
   const [notif, setNotif] = useState<{ title: string; body: string } | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showNotification = (title: string, body: string) => {
+  const showNotification = useCallback((title: string, body: string) => {
     setNotif({ title, body });
     vibrate('notification');
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setNotif(null), 5000);
-  };
+  }, []);
 
-  const hideNotification = () => {
+  const hideNotification = useCallback(() => {
     setNotif(null);
     if (timerRef.current) clearTimeout(timerRef.current);
-  };
+  }, []);
 
   const notifBg = isTrainer ? '#1A2A40' : (dark ? '#1A2A40' : '#fff');
   const notifColor = isTrainer ? '#FFFFFF' : (dark ? '#fff' : '#102236');
   const notifSubColor = isTrainer ? 'rgba(255,255,255,.65)' : (dark ? 'rgba(255,255,255,.65)' : '#546a7e');
   const closeBtnColor = isTrainer ? 'rgba(255,255,255,.40)' : (dark ? 'rgba(255,255,255,.4)' : '#9aacbc');
 
+  const value = useMemo(() => ({ showNotification, hideNotification }), [showNotification, hideNotification]);
+
   return (
-    <NotificationContext.Provider value={{ showNotification, hideNotification }}>
+    <NotificationContext.Provider value={value}>
       {children}
       {notif && (
         <HStack
