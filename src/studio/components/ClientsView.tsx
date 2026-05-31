@@ -74,7 +74,7 @@ export default function ClientsView({ data }: ClientsViewProps) {
             const color  = lv === 'all' ? C.primary : LEVEL_COLORS[lv];
             return (
               <button key={lv} onClick={() => setLevel(lv)} style={{
-                padding: '8px 14px', borderRadius: 14, fontSize: 12, fontWeight: 600,
+                padding: '8px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600,
                 background: active ? color : 'transparent',
                 color: active ? (lv === 'all' ? '#07101D' : '#fff') : C.textSec,
                 border: `1.5px solid ${active ? color : C.border}`,

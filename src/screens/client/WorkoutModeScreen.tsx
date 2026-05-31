@@ -377,7 +377,7 @@ export function WorkoutModeScreen({
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
             <button onClick={() => setPhase('active')} style={{
-              flex: 1, padding: '12px 0', borderRadius: 14, border: `1.5px solid ${borderSubtle(dark)}`,
+              flex: 1, padding: '12px 0', borderRadius: 999, border: `1.5px solid ${borderSubtle(dark)}`,
               background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>Cancel</button>
             <button onClick={() => void confirmSet()} style={{
@@ -414,7 +414,7 @@ export function WorkoutModeScreen({
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {PAIN_REGIONS.map(r => (
                 <button key={r.value} onClick={() => setPainRegion(r.value)} style={{
-                  padding: '7px 12px', borderRadius: 14,
+                  padding: '7px 12px', borderRadius: 999,
                   background: painRegion === r.value ? `${t.accent}22` : surfRaised(dark),
                   color: painRegion === r.value ? t.accent : textSec(dark),
                   border: `1.5px solid ${painRegion === r.value ? t.accent : borderSubtle(dark)}`,
@@ -440,7 +440,7 @@ export function WorkoutModeScreen({
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
             <button onClick={() => setPhase('active')} style={{
-              flex: 1, padding: '12px 0', borderRadius: 14, border: `1.5px solid ${borderSubtle(dark)}`,
+              flex: 1, padding: '12px 0', borderRadius: 999, border: `1.5px solid ${borderSubtle(dark)}`,
               background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>Cancel</button>
             <button onClick={() => void submitPain()} disabled={!painRegion} style={{
@@ -598,12 +598,12 @@ function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, onSetAc
               <Icon name="play" size={12} color="#0E1A2B" stroke={2.5}/> Log Set
             </button>
             <button onClick={(e) => { e.stopPropagation(); onPain(); }} style={{
-              flex: 1, padding: '10px 0', borderRadius: 14,
-              border: `1.5px solid ${t.accent}55`, background: `${t.accent}18`,
+              flex: 1, padding: '10px 0', borderRadius: 999,
+              border: `1.5px solid ${t.accent}55`, background: 'transparent',
               color: t.accent, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
             }}>Pain</button>
             <button onClick={(e) => { e.stopPropagation(); onSkip(); }} style={{
-              flex: 1, padding: '10px 0', borderRadius: 14,
+              flex: 1, padding: '10px 0', borderRadius: 999,
               border: `1.5px solid ${borderSubtle(dark)}`, background: 'transparent',
               color: textSec(dark), fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
             }}>Skip</button>

@@ -871,7 +871,7 @@ function TelaVoz({ data }: { data: M5Data }) {
               key={q}
               onClick={() => process(q)}
               style={{
-                padding: '9px 12px', borderRadius: 14,
+                padding: '9px 12px', borderRadius: 999,
                 background: T.surf, border: `1px solid ${T.border}`,
                 display: 'flex', alignItems: 'center', gap: 8,
                 cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',

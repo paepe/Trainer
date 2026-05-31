@@ -196,12 +196,12 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
     setSignals(cur => cur.includes(val) ? cur.filter(x => x !== val) : [...cur, val]);
 
   const btnBase = (active: boolean): React.CSSProperties => ({
-    padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
+    padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
     fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
-    background: active ? primary : surfRaised(dark),
+    background: active ? `${primary}22` : 'transparent',
     border: `1.5px solid ${active ? primary : borderSubtle(dark)}`,
-    color: active ? '#0E1A2B' : textPri(dark),
-    transition: 'background .15s',
+    color: active ? primary : textPri(dark),
+    transition: 'all .12s ease',
   });
 
   const block = (extra: React.CSSProperties = {}): React.CSSProperties => ({

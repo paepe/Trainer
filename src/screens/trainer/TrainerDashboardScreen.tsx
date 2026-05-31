@@ -456,7 +456,7 @@ export function TrainerDashboardScreen({
                 onClick={invite}
                 disabled={inviting}
                 style={{
-                  flex: 2, padding: '13px 0', border: 'none', borderRadius: 14,
+                  flex: 2, padding: '13px 0', border: 'none', borderRadius: 999,
                   background: t.primary, color: '#0E1A2B', fontSize: 14, fontWeight: 700,
                   fontFamily: 'inherit', cursor: 'pointer', opacity: inviting ? 0.7 : 1,
                 }}

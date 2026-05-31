@@ -116,8 +116,8 @@ export function SegmentedRow({ options, value, onChange, primary }: SegmentedRow
         const on = value === o.value;
         return (
           <button key={o.value} onClick={() => onChange(o.value)} style={{
-            flex: 1, padding: '11px 0', borderRadius: 14,
-            background: on ? `${primary}18` : surf,
+            flex: 1, padding: '11px 0', borderRadius: 999,
+            background: on ? `${primary}22` : 'transparent',
             border: `1.5px solid ${on ? primary : border}`,
             color: on ? primary : textSec,
             fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',

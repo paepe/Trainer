@@ -149,8 +149,9 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient }: HistoryScr
               planId:          s.plan_id,
               sessionId:       s.id,
             })} style={{
-              padding: '7px 14px', borderRadius: 14, border: 'none',
-              background: t.primary, color: '#0E1A2B', fontSize: 12, fontWeight: 700,
+              padding: '7px 14px', borderRadius: 999,
+              border: `1.5px solid ${t.primary}`, background: 'transparent',
+              color: t.primary, fontSize: 12, fontWeight: 700,
               fontFamily: 'inherit', cursor: 'pointer',
             }}>View Progress</button>
           </div>

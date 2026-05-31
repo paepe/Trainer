@@ -341,7 +341,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
           }}>
             <div style={{ fontSize: 13, color: t.accent, marginBottom: 10 }}>{error}</div>
             <button onClick={fetchPlan} style={{
-              padding: '8px 18px', borderRadius: 14, border: 'none',
+              padding: '8px 18px', borderRadius: 999, border: 'none',
               background: t.accent, color: '#fff',
               fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
             }}>Retry</button>
