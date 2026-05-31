@@ -16,20 +16,21 @@ interface SideMenuProps {
 }
 
 const MENU_ITEMS: [string, string, string][] = [
-  ['Profile',              'profile',     'user'],
-  ['Check-in',        'checkin',         'sparkle'],
-  ['Workout',         'workout',         'play'],
-  ['Targets',         'goal',            'target'],
-  ['History',         'history',         'history'],
-  ['Progress',        'stats',           'chart'],
-  ['Cycle',           'cycle',           'moon'],
-  ['Trainer Studio',  'studio',          'flask'],
-  ['Exercise Library', 'trainerLibraryExercises', 'dumbbell'],
-  ['Settings',        'settings',        'settings'],
+  ['Profile',              'profile',                  'user'],
+  ['Check-in',             'checkin',                  'sparkle'],
+  ['Workout',              'workout',                  'play'],
+  ['Targets',              'goal',                     'target'],
+  ['History',              'history',                  'history'],
+  ['Progress',             'stats',                    'chart'],
+  ['Cycle',                'cycle',                    'moon'],
+  ['Coach DNA',            'coachDNA',                 'fingerprint'],
+  ['Trainer Studio',       'studio',                   'flask'],
+  ['Exercise Library',     'trainerLibraryExercises',  'dumbbell'],
+  ['Settings',             'settings',                 'settings'],
 ];
 
 const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'goal', 'cycle', 'studio']);
-const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio']);
+const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA']);
 
 export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
   const isTrainerRole = role === 'trainer' || role === 'studio_trainer' || role === 'internal_trainer' || role === 'technical_coordinator' || role === 'studio_admin' || role === 'studio_manager';

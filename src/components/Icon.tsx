@@ -7,7 +7,11 @@ type IconName =
   | 'play' | 'target' | 'bolt' | 'bell' | 'sparkle'
   | 'logout' | 'plus' | 'male' | 'activity' | 'history' | 'chart' | 'map'
   | 'edit' | 'heart' | 'moon' | 'sun' | 'clock' | 'pulse' | 'dumbbell' | 'grad'
-  | 'chat' | 'flask' | 'bookmark' | 'shield' | 'list' | 'mic';
+  | 'chat' | 'flask' | 'bookmark' | 'shield' | 'list' | 'mic'
+  // Coach DNA icons
+  | 'fingerprint' | 'compass' | 'wave' | 'mountain' | 'quote' | 'grip'
+  | 'brain' | 'camera' | 'ban' | 'percent' | 'layers' | 'gauge' | 'run'
+  | 'zap' | 'minus' | 'users' | 'shieldCheck' | 'arrowUp' | 'arrowDown';
 
 interface IconProps {
   name:    IconName | string;
@@ -63,7 +67,27 @@ export const Icon: React.FC<IconProps> = ({ name, size = 22, color = 'currentCol
     shield:   <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
     list:     <><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill={color}/><circle cx="4" cy="12" r="1.5" fill={color}/><circle cx="4" cy="18" r="1.5" fill={color}/></>,
     mic:      <><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="22" x2="12" y2="18"/><line x1="8" y1="22" x2="16" y2="22"/></>,
-    bookmark: <><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></>,
+    bookmark:     <><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></>,
+    // Coach DNA additions
+    fingerprint:  <><path d="M12 10a2 2 0 0 0-2 2v2"/><path d="M12 10a2 2 0 0 1 2 2v2"/><path d="M8 12a4 4 0 0 1 8 0v2"/><path d="M6 12a6 6 0 0 1 12 0v2"/><path d="M4 12a8 8 0 0 1 16 0v2"/></>,
+    compass:      <><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></>,
+    wave:         <><path d="M2 12c1.5-3 3-4.5 4.5-4.5S9 9 10.5 9s3-1.5 4.5-4.5S18 0 19.5 0 22 3 22 4.5"/><path d="M2 18c1.5-3 3-4.5 4.5-4.5S9 15 10.5 15s3-1.5 4.5-4.5S18 6 19.5 6 22 9 22 10.5"/></>,
+    mountain:     <><polygon points="3 20 9 8 15 16 18 12 21 20 3 20"/></>,
+    quote:        <><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></>,
+    grip:         <><circle cx="9"  cy="6"  r="1.2" fill={color}/><circle cx="9"  cy="12" r="1.2" fill={color}/><circle cx="9"  cy="18" r="1.2" fill={color}/><circle cx="15" cy="6"  r="1.2" fill={color}/><circle cx="15" cy="12" r="1.2" fill={color}/><circle cx="15" cy="18" r="1.2" fill={color}/></>,
+    brain:        <><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-3.16A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-3.16A2.5 2.5 0 0 0 14.5 2z"/></>,
+    camera:       <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></>,
+    ban:          <><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></>,
+    percent:      <><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></>,
+    layers:       <><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></>,
+    gauge:        <><path d="M12 2a10 10 0 0 1 7.38 16.75"/><path d="M12 2a10 10 0 0 0-7.38 16.75"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="12" x2="16.5" y2="7.5"/><circle cx="12" cy="12" r="2"/></>,
+    run:          <><circle cx="13" cy="4" r="2"/><path d="m14.34 12.56-2.2-2.2-2.08 2.68A4.95 4.95 0 0 1 6 14.41V20"/><path d="M10.14 10.36 9 12H4"/><path d="m14.34 12.56 2.05 2.36A4.95 4.95 0 0 0 20 15.5"/></>,
+    zap:          <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill={color}/></>,
+    minus:        <><line x1="5" y1="12" x2="19" y2="12"/></>,
+    users:        <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+    shieldCheck:  <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></>,
+    arrowUp:      <><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></>,
+    arrowDown:    <><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></>,
   };
 
   return (

@@ -14,6 +14,7 @@ import {
   TrainerDashboardScreen, TrainerClientDetailScreen,
   WorkoutPlanEditorScreen, TrainerLibraryExercisesScreen,
 } from './screens';
+import { CoachDNAScreen } from './coach-dna';
 import { SideMenu, BottomTabs } from './components';
 import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './types';
 import { TRAINER_ROLES } from './types/auth';
@@ -303,7 +304,7 @@ export default function App() {
     ? ['workout','workoutMode','goal','stats','history',
        'settings','targets','checkin','cycle','studio',
        'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
-       'postWorkoutSummary']
+       'postWorkoutSummary','coachDNA']
     : ['profile','workout','workoutMode','goal','stats','history',
        'settings','targets','checkin','cycle','studio',
        'postWorkoutSummary']
@@ -414,6 +415,7 @@ export default function App() {
       case 'trainerClientDetail': return <TrainerClientDetailScreen  {...common} user={trainerUser}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    {...common} user={trainerUser}/>;
       case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen {...common} user={trainerUser}/>;
+      case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser}/>;
       default:                   return <WelcomeScreen           {...common}/>;
     }
   })();

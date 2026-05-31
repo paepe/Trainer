@@ -1,0 +1,99 @@
+import React from 'react';
+import { StepHeader }  from '../components/StepHeader';
+import { Hint }        from '../components/Hint';
+import { PrivacyNote } from '../components/PrivacyNote';
+import { BRAND, DARK } from '../../theme/tokens';
+import { PRINCIPLES }  from '../constants';
+
+const MAX = 3;
+
+interface Step06Props {
+  principles: string[];
+  onChange:   (principles: string[]) => void;
+}
+
+export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }) => {
+  const toggle = (key: string) => {
+    if (principles.includes(key)) {
+      onChange(principles.filter(p => p !== key));
+    } else if (principles.length < MAX) {
+      onChange([...principles, key]);
+    }
+  };
+
+  const atMax = principles.length >= MAX;
+
+  return (
+    <div>
+      <StepHeader
+        idx={6} total={12}
+        title="Princípios fundamentais"
+        sub="As convicções que guiam suas decisões de prescrição."
+        badge={`Escolha até ${MAX}`}
+      />
+      <Hint>Qual é a sua filosofia de treinamento em essência?</Hint>
+
+      {/* counter */}
+      <div style={{
+        display: 'flex', justifyContent: 'flex-end',
+        marginBottom: 12,
+        fontFamily: '"JetBrains Mono",ui-monospace,monospace',
+        fontSize: 11, color: atMax ? BRAND.accent : DARK.textMute,
+      }}>
+        {principles.length}/{MAX}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+        {PRINCIPLES.map(p => {
+          const rank    = principles.indexOf(p.key) + 1; // 0 if not selected
+          const active  = rank > 0;
+          const dimmed  = !active && atMax;
+
+          return (
+            <button
+              key={p.key}
+              onClick={() => toggle(p.key)}
+              disabled={dimmed}
+              style={{
+                display:      'flex', alignItems: 'center', gap: 12,
+                padding:      '13px 14px', borderRadius: 12,
+                border:       `1.5px solid ${active ? BRAND.accent : DARK.border}`,
+                background:   active ? `${BRAND.accent}14` : DARK.surface,
+                cursor:       dimmed ? 'not-allowed' : 'pointer',
+                opacity:      dimmed ? 0.4 : 1,
+                fontFamily:   'inherit', textAlign: 'left',
+                transition:   'background .15s, border-color .15s, opacity .15s',
+              }}
+            >
+              {/* rank badge */}
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                border:     `1.5px solid ${active ? BRAND.accent : DARK.border}`,
+                background: active ? BRAND.accent : 'transparent',
+                display:    'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: '"Plus Jakarta Sans","Inter",sans-serif',
+                fontSize:   12, fontWeight: 800,
+                color:      active ? '#0E1A2B' : DARK.textMute,
+                transition: 'background .15s, border-color .15s',
+              }}>
+                {active ? rank : ''}
+              </div>
+
+              <span style={{
+                fontSize: 13.5, fontWeight: active ? 600 : 400,
+                color:    active ? DARK.textPri : DARK.textSec,
+                flex:     1,
+              }}>
+                {p.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <PrivacyNote tone="coach">
+        Os princípios selecionados estabelecem prioridades absolutas no gerador — o que aparece primeiro em toda prescrição.
+      </PrivacyNote>
+    </div>
+  );
+};
