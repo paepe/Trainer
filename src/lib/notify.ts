@@ -10,5 +10,7 @@ export function notify(userId: string, title: string, body: string, url?: string
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, title, body, url }),
-  }).catch(() => {});
+  }).catch((err) => {
+    console.warn('[notify] push failed:', err);
+  });
 }

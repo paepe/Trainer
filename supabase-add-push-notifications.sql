@@ -19,3 +19,13 @@ CREATE POLICY "users manage own device tokens" ON device_tokens
 
 -- Index for efficient lookup by user_id
 CREATE INDEX IF NOT EXISTS idx_device_tokens_user_id ON device_tokens(user_id);
+
+-- SECURITY DEFINER RPC to fetch device tokens for a user (bypasses RLS for server-side use)
+CREATE OR REPLACE FUNCTION get_device_tokens(uid uuid)
+RETURNS TABLE(token text)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT token FROM device_tokens WHERE user_id = uid;
+$$;
