@@ -172,6 +172,8 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     return 'Error saving. Check your connection.';
   };
 
+  const isMale = () => dataRef.current.basic_data?.biological_sex === 'male';
+
   const saveAndGoNext = async () => {
     setSaving(true);
     setSaveError(null);
@@ -186,13 +188,17 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     }
     setData(snapshot);
     setSaving(false);
-    const next = STEP_SEQUENCE[stepIndex + 1] as ProfileV2Step | undefined;
+    let nextIdx = stepIndex + 1;
+    if (STEP_SEQUENCE[nextIdx] === 'body_rhythm' && isMale()) nextIdx++;
+    const next = STEP_SEQUENCE[nextIdx] as ProfileV2Step | undefined;
     if (next && next !== 'completed') setCurrentStep(next);
   };
 
   const goBack = () => {
     if (stepIndex <= 0) { setMode('view'); return; }
-    setCurrentStep(STEP_SEQUENCE[stepIndex - 1] as ProfileV2Step);
+    let prevIdx = stepIndex - 1;
+    if (STEP_SEQUENCE[prevIdx] === 'body_rhythm' && isMale()) prevIdx--;
+    setCurrentStep(STEP_SEQUENCE[Math.max(0, prevIdx)] as ProfileV2Step);
   };
 
   // saveLater: persist ALL accumulated data up to currentStep, then return to list.
@@ -439,9 +445,11 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
           background: surfRaised(dark), borderRadius: 16,
           border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden',
         }}>
-          {WIZARD_SECTIONS.map((section, i) => {
+          {WIZARD_SECTIONS
+            .filter(s => !(s.step === 'body_rhythm' && data.basic_data?.biological_sex === 'male'))
+            .map((section, i, arr) => {
             const summary = section.summary(data);
-            const isLast  = i === WIZARD_SECTIONS.length - 1;
+            const isLast  = i === arr.length - 1;
             const filled  = summary !== null;
             return (
               <button key={section.step} onClick={() => onEditStep(section.step)} style={{

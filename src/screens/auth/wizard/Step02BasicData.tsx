@@ -63,7 +63,7 @@ export function Step02BasicData({
     !!(d.emergency_contact?.name || d.emergency_contact?.phone),
   );
 
-  const canAdvance = !!(d.name?.trim() && dob && age !== null && d.height_cm && d.weight_kg);
+  const canAdvance = !!(d.name?.trim() && dob && age !== null && d.height_cm && d.weight_kg && d.biological_sex);
 
   const handleNext = async () => {
     if (age !== null) {

@@ -8,13 +8,14 @@ import type {
 import type { LatestCheckinData } from '../../hooks/useLatestCheckin';
 
 interface CheckInDetailedProps {
-  dark:     boolean;
-  primary:  string;
-  accent:   string;
-  userName?: string | undefined;
-  lastCheckin?: LatestCheckinData;
-  onSubmit: (data: CheckInDetailedData) => void;
-  onBack:   () => void;
+  dark:           boolean;
+  primary:        string;
+  accent:         string;
+  userName?:      string | undefined;
+  lastCheckin?:   LatestCheckinData;
+  biologicalSex?: string | undefined;
+  onSubmit:       (data: CheckInDetailedData) => void;
+  onBack:         () => void;
 }
 
 // ── Local config ──────────────────────────────────────────────────────────────
@@ -165,7 +166,7 @@ function ChipBtn({ label, selected, onClick, dark, primary }: {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, onSubmit, onBack }: CheckInDetailedProps) {
+export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, biologicalSex, onSubmit, onBack }: CheckInDetailedProps) {
   const [energy, setEnergy]                     = React.useState(lastCheckin?.energy            ?? 5);
   const [sleep, setSleep]                       = React.useState((lastCheckin?.sleep_quality as SleepQualityV2 | undefined) ?? 'regular');
   const [sleepHours, setSleepHours]             = React.useState(lastCheckin?.sleep_hours       ?? 7);
@@ -418,8 +419,8 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
         )}
       </div>
 
-      {/* 11 Ritmo do Corpo */}
-      <div style={block({ background: `${primary}08`, border: `1px solid ${primary}22` })}>
+      {/* 11 Body Rhythm — opt-in, hidden for biological sex = male */}
+      {biologicalSex !== 'male' && <div style={block({ background: `${primary}08`, border: `1px solid ${primary}22` })}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
           <BlockHeader num={11} icon="🌊" label="Body Rhythm" dark={dark}/>
           <span style={{
@@ -437,7 +438,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
           onChange={setBodyRhythm}
           dark={dark} primary={primary}
         />
-      </div>
+      </div>}
 
       {/* 12 Adaptation preference */}
       <div style={block()}>

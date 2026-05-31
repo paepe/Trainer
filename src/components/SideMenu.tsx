@@ -3,7 +3,7 @@ import { Icon } from './Icon';
 import { AvatarImage } from './Avatar';
 import type { NavFn, Profile } from '../types';
 
-type SideMenuUser = Pick<Profile, 'name' | 'email' | 'role' | 'avatar_url'>;
+type SideMenuUser = Pick<Profile, 'name' | 'email' | 'role' | 'avatar_url'> & { gender?: string | undefined };
 
 interface SideMenuProps {
   open:     boolean;
@@ -34,9 +34,10 @@ const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA
 
 export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
   const isTrainerRole = role === 'trainer' || role === 'studio_trainer' || role === 'internal_trainer' || role === 'technical_coordinator' || role === 'studio_admin' || role === 'studio_manager';
+  const isMale = user.gender === 'male';
   const items = isTrainerRole
     ? MENU_ITEMS.filter(([, screen]) => !TRAINER_EXCLUDE.has(screen)).sort(([a], [b]) => a.localeCompare(b))
-    : MENU_ITEMS.filter(([, screen]) => !CLIENT_EXCLUDE.has(screen));
+    : MENU_ITEMS.filter(([, screen]) => !CLIENT_EXCLUDE.has(screen) && !(isMale && screen === 'cycle'));
 
   return (
     <div style={{

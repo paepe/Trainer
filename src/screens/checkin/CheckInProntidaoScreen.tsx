@@ -43,11 +43,12 @@ interface CheckInProntidaoScreenProps {
   userName?:            string | undefined;
   clientUserId?:        string;
   clientName?:          string;
+  biologicalSex?:       string | undefined;
   saveCheckinV2?:       SaveCheckinV2Fn;
   updatePainRecurrence?: (region: string) => Promise<{ error: unknown }>;
 }
 
-export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
+export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
   const last = useLatestCheckin(clientUserId ?? user?.id);
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
@@ -138,6 +139,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           dark={dark} primary={primary} accent={accent}
           userName={clientName}
           lastCheckin={last}
+          biologicalSex={biologicalSex}
           onSubmit={handleDetailedSubmit}
           onBack={goHub}
         />
