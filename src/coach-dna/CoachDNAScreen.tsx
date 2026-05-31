@@ -39,10 +39,11 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
   const trainerId = trainerIdProp ?? user.id;
   const { fetchCoachDNA, saveCoachDNA } = useCoachDNA(trainerId);
 
-  const [step,    setStep]    = React.useState(0);
-  const [data,    setData]    = React.useState<CoachDNAData>(COACH_DNA_DEFAULTS);
-  const [loading, setLoading] = React.useState(true);
-  const [saving,  setSaving]  = React.useState(false);
+  const [step,      setStep]      = React.useState(0);
+  const [data,      setData]      = React.useState<CoachDNAData>(COACH_DNA_DEFAULTS);
+  const [loading,   setLoading]   = React.useState(true);
+  const [saving,    setSaving]    = React.useState(false);
+  const [dnaActive, setDnaActive] = React.useState(false);
 
   const contentRef = React.useRef<HTMLDivElement>(null);
 
@@ -67,7 +68,8 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
           philosophy: row.philosophy ?? COACH_DNA_DEFAULTS.philosophy,
         });
         if (row.current_step === 'completed') {
-          setStep(OUTPUT_STEP);
+          setDnaActive(true);
+          // always open on intro so the trainer can navigate and edit any block
         } else {
           const savedIdx = STEP_KEYS.indexOf(row.current_step);
           if (savedIdx > 0) setStep(Math.min(savedIdx + 1, TOTAL_STEPS));
@@ -285,7 +287,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               boxShadow: `0 10px 30px ${BRAND.accent}44`,
             }}
           >
-            Build my Coach DNA
+            {dnaActive ? 'Edit Coach DNA' : 'Build my Coach DNA'}
           </button>
         ) : step === OUTPUT_STEP ? (
           <button
@@ -300,7 +302,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               boxShadow: `0 10px 30px ${BRAND.accent}44`,
             }}
           >
-            {saving ? 'Activating…' : 'Activate Coach DNA'}
+            {saving ? 'Saving…' : dnaActive ? 'Update Coach DNA' : 'Activate Coach DNA'}
           </button>
         ) : (
           <div style={{ display: 'flex', gap: 10 }}>
