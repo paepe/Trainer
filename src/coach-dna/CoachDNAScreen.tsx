@@ -3,19 +3,26 @@ import { Icon }          from '../components/Icon';
 import { useCoachDNA }   from '../hooks/useCoachDNA';
 import { BRAND, DARK }   from '../theme/tokens';
 import { TOTAL_STEPS }   from './constants';
+import { computeArchetype } from './computeArchetype';
 import {
   StepIntro, Step01Identity, Step02Background,
   Step03Fitness, Step04Training, Step05Style, Step06Principles,
+  Step07Focus, Step08Exercises, Step09Design, Step10Structure,
+  Step11Audience, Step12Philosophy, StepOutput,
 } from './steps';
 import type { NavFn }       from '../types/auth';
 import type { CoachDNAData, CoachDNAStep } from '../types/coach-dna';
 import { COACH_DNA_DEFAULTS } from '../types/coach-dna';
 
-// ─── Step → DB key map ────────────────────────────────────────────────────────
+// ─── Step → DB key map (index 0 = step 1) ────────────────────────────────────
 
 const STEP_KEYS: CoachDNAStep[] = [
   'identity', 'background', 'fitness', 'training', 'dna_style', 'dna_principles',
+  'focus', 'exercises', 'design', 'structure', 'audience', 'philosophy',
 ];
+
+// step 13 = output / archetype reveal (no DB key)
+const OUTPUT_STEP = TOTAL_STEPS + 1;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -59,9 +66,12 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
           audience:   row.audience   ?? COACH_DNA_DEFAULTS.audience,
           philosophy: row.philosophy ?? COACH_DNA_DEFAULTS.philosophy,
         });
-        // resume from last saved step (capped at phase 1 max = 6)
-        const savedIdx = STEP_KEYS.indexOf(row.current_step);
-        if (savedIdx > 0) setStep(Math.min(savedIdx + 1, TOTAL_STEPS));
+        if (row.current_step === 'completed') {
+          setStep(OUTPUT_STEP);
+        } else {
+          const savedIdx = STEP_KEYS.indexOf(row.current_step);
+          if (savedIdx > 0) setStep(Math.min(savedIdx + 1, TOTAL_STEPS));
+        }
       }
       setLoading(false);
     });
@@ -78,7 +88,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
     setData(prev => ({ ...prev, [key]: val }));
   }
 
-  // ── build DB payload for current step ───────────────────────────────────────
+  // ── build DB payload ─────────────────────────────────────────────────────────
   function buildPayload(targetStep: CoachDNAStep) {
     return {
       current_step:   targetStep,
@@ -86,26 +96,45 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
       background:     data.background,
       fitness:        data.fitness,
       training:       data.training,
-      dna_style:      { style:       data.dna.style       },
-      dna_principles: { principles:  data.dna.principles  },
+      dna_style:      { style:      data.dna.style       },
+      dna_principles: { principles: data.dna.principles  },
+      focus:          data.focus,
+      exercises:      data.exercises,
+      design:         data.design,
+      structure:      { order: data.structure },
+      audience:       data.audience,
+      philosophy:     data.philosophy,
     };
   }
 
   // ── save current step ────────────────────────────────────────────────────────
   async function save(advance = false) {
     setSaving(true);
-    const currentKey: CoachDNAStep = step > 0 ? (STEP_KEYS[step - 1] ?? 'identity') : 'identity';
-    const nextKey: CoachDNAStep    = step < STEP_KEYS.length ? (STEP_KEYS[step] ?? 'dna_principles') : 'dna_principles';
+    const currentKey: CoachDNAStep = step > 0 ? (STEP_KEYS[step - 1] ?? 'identity')   : 'identity';
+    const nextKey:    CoachDNAStep = step < STEP_KEYS.length ? (STEP_KEYS[step] ?? 'philosophy') : 'philosophy';
     await saveCoachDNA(buildPayload(advance ? nextKey : currentKey));
     setSaving(false);
     if (advance) {
-      if (step < 6) {
+      if (step < TOTAL_STEPS) {
         setStep(s => s + 1);
       } else {
-        // Phase 1 complete — return to dashboard
-        nav('trainerDashboard');
+        setStep(OUTPUT_STEP);
       }
     }
+  }
+
+  // ── activate Coach DNA ───────────────────────────────────────────────────────
+  async function activate() {
+    setSaving(true);
+    const archetype = computeArchetype(data);
+    await saveCoachDNA({
+      archetype,
+      dna_active:   true,
+      completed_at: new Date().toISOString(),
+      current_step: 'completed',
+    });
+    setSaving(false);
+    nav('trainerDashboard');
   }
 
   // ── step content ─────────────────────────────────────────────────────────────
@@ -118,17 +147,26 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
       case 4:  return <Step04Training   data={data.training}   onChange={v => set('training',   { ...data.training,   ...v })}/>;
       case 5:  return <Step05Style      style={data.dna.style} onChange={style => set('dna', { ...data.dna, style })}/>;
       case 6:  return <Step06Principles principles={data.dna.principles} onChange={principles => set('dna', { ...data.dna, principles })}/>;
+      case 7:  return <Step07Focus      focus={data.focus}         onChange={v => set('focus',     v)}/>;
+      case 8:  return <Step08Exercises  exercises={data.exercises}  onChange={v => set('exercises', v)}/>;
+      case 9:  return <Step09Design     design={data.design}        onChange={v => set('design',    v)}/>;
+      case 10: return <Step10Structure  structure={data.structure}  onChange={v => set('structure', v)}/>;
+      case 11: return <Step11Audience   audience={data.audience}    onChange={v => set('audience',  v)}/>;
+      case 12: return <Step12Philosophy philosophy={data.philosophy} onChange={v => set('philosophy', v)}/>;
+      case OUTPUT_STEP: return <StepOutput archetype={computeArchetype(data)}/>;
       default: return null;
     }
   })();
 
-  // ── progress bar width ───────────────────────────────────────────────────────
-  const progressPct = step === 0 ? 0 : (step / TOTAL_STEPS) * 100;
+  // ── progress bar ─────────────────────────────────────────────────────────────
+  const progressPct = step === 0 ? 0 : Math.min((step / TOTAL_STEPS) * 100, 100);
 
-  // ── subtitle ─────────────────────────────────────────────────────────────────
-  const subtitle = step === 0
-    ? 'Coach DNA'
-    : `Bloco ${step} de ${TOTAL_STEPS}`;
+  // ── header subtitle ───────────────────────────────────────────────────────────
+  const subtitle = (() => {
+    if (step === 0)           return 'Coach DNA';
+    if (step === OUTPUT_STEP) return 'Fase 2 Concluída';
+    return `Bloco ${step} de ${TOTAL_STEPS}`;
+  })();
 
   if (loading) {
     return (
@@ -156,9 +194,9 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
 
       {/* ── Header ── */}
       <div style={{
-        padding:     '16px 22px 12px',
+        padding:      '16px 22px 12px',
         borderBottom: `1px solid ${DARK.border}`,
-        flexShrink:  0,
+        flexShrink:   0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           {/* back */}
@@ -188,16 +226,16 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
             </div>
           </div>
 
-          {/* save icon */}
+          {/* save icon — hidden on intro and output */}
           <button
-            onClick={() => step > 0 && save(false)}
-            disabled={step === 0 || saving}
+            onClick={() => step > 0 && step < OUTPUT_STEP && save(false)}
+            disabled={step === 0 || step === OUTPUT_STEP || saving}
             style={{
               width: 34, height: 34, borderRadius: 10,
               background: DARK.surface, border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: step === 0 ? 'default' : 'pointer',
-              opacity: step === 0 ? 0 : 1, flexShrink: 0,
+              cursor: (step === 0 || step === OUTPUT_STEP) ? 'default' : 'pointer',
+              opacity: (step === 0 || step === OUTPUT_STEP) ? 0 : 1, flexShrink: 0,
             }}
           >
             <Icon name="check" size={16} color={BRAND.accent}/>
@@ -230,28 +268,41 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
 
       {/* ── Bottom Action Bar ── */}
       <div style={{
-        padding:      '14px 18px 18px',
-        borderTop:    `1px solid ${DARK.border}`,
-        background:   DARK.bg,
-        flexShrink:   0,
+        padding:    '14px 18px 18px',
+        borderTop:  `1px solid ${DARK.border}`,
+        background: DARK.bg,
+        flexShrink: 0,
       }}>
         {step === 0 ? (
-          /* Intro CTA */
           <button
             onClick={() => setStep(1)}
             style={{
-              width:        '100%', padding: '16px 20px',
+              width: '100%', padding: '16px 20px',
               borderRadius: 14, border: 'none',
-              background:   BRAND.accent, color: '#fff',
-              fontSize:     15, fontWeight: 700, fontFamily: 'inherit',
-              cursor:       'pointer',
-              boxShadow:    `0 10px 30px ${BRAND.accent}44`,
+              background: BRAND.accent, color: '#fff',
+              fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
+              cursor: 'pointer',
+              boxShadow: `0 10px 30px ${BRAND.accent}44`,
             }}
           >
             Construir meu Coach DNA
           </button>
+        ) : step === OUTPUT_STEP ? (
+          <button
+            onClick={activate}
+            disabled={saving}
+            style={{
+              width: '100%', padding: '16px 20px',
+              borderRadius: 14, border: 'none',
+              background: BRAND.accent, color: '#fff',
+              fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
+              cursor: 'pointer', opacity: saving ? 0.6 : 1,
+              boxShadow: `0 10px 30px ${BRAND.accent}44`,
+            }}
+          >
+            {saving ? 'Ativando…' : 'Ativar Coach DNA'}
+          </button>
         ) : (
-          /* Block CTAs */
           <div style={{ display: 'flex', gap: 10 }}>
             <button
               onClick={() => save(false)}
@@ -278,7 +329,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
                 boxShadow: `0 8px 24px ${BRAND.accent}44`,
               }}
             >
-              {saving ? 'Salvando…' : step < 6 ? 'Continuar' : 'Concluir Fase 1'}
+              {saving ? 'Salvando…' : step < TOTAL_STEPS ? 'Continuar' : 'Concluir Coach DNA'}
             </button>
           </div>
         )}

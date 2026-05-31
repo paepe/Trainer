@@ -1,0 +1,122 @@
+import React from 'react';
+import { StepHeader }  from '../components/StepHeader';
+import { Hint }        from '../components/Hint';
+import { FieldLabel }  from '../components/FieldLabel';
+import { VoiceBar }    from '../components/VoiceBar';
+import { PrivacyNote } from '../components/PrivacyNote';
+import { Icon }        from '../../components/Icon';
+import { BRAND, DARK } from '../../theme/tokens';
+import type { CoachDNAExercises } from '../../types/coach-dna';
+
+interface Step08Props {
+  exercises: CoachDNAExercises;
+  onChange:  (exercises: CoachDNAExercises) => void;
+}
+
+function TagInput({ tags, placeholder, onAdd, onRemove, color }: {
+  tags:        string[];
+  placeholder: string;
+  color:       string;
+  onAdd:       (t: string) => void;
+  onRemove:    (t: string) => void;
+}) {
+  const [val, setVal] = React.useState('');
+  const submit = () => {
+    const t = val.trim();
+    if (t && !tags.includes(t)) onAdd(t);
+    setVal('');
+  };
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+        <input
+          value={val}
+          onChange={e => setVal(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); submit(); } }}
+          placeholder={placeholder}
+          style={{
+            flex: 1, padding: '10px 12px', borderRadius: 10,
+            border: `1.5px solid ${DARK.border}`, background: DARK.surface,
+            color: DARK.textPri, fontSize: 13, fontFamily: 'inherit', outline: 'none',
+          }}
+        />
+        <button
+          onClick={submit}
+          disabled={!val.trim()}
+          style={{
+            padding: '0 16px', borderRadius: 10, border: 'none',
+            background: color, color: '#fff', fontWeight: 700, fontSize: 15,
+            cursor: 'pointer', opacity: val.trim() ? 1 : 0.35, flexShrink: 0,
+          }}
+        >+</button>
+      </div>
+      {tags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {tags.map(t => (
+            <div key={t} style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '5px 10px', borderRadius: 20,
+              background: `${color}18`, border: `1px solid ${color}40`,
+            }}>
+              <span style={{ fontSize: 12.5, color: DARK.textPri }}>{t}</span>
+              <button
+                onClick={() => onRemove(t)}
+                style={{
+                  background: 'none', border: 'none', padding: 0,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center',
+                }}
+              >
+                <Icon name="minus" size={11} color={color}/>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) => (
+  <div>
+    <StepHeader
+      idx={8} total={12}
+      title="Exercícios & repertório"
+      sub="Seu vocabulário de movimento define sua identidade como coach."
+      badge="Coach DNA"
+    />
+    <Hint>Adicione os exercícios que você mais usa e os que evita. Pressione Enter ou vírgula para confirmar.</Hint>
+
+    <FieldLabel hint="ilimitado">Exercícios favoritos</FieldLabel>
+    <TagInput
+      tags={exercises.favorites}
+      placeholder="ex: Back Squat, Turkish Get-Up…"
+      color={BRAND.accent}
+      onAdd={t  => onChange({ ...exercises, favorites: [...exercises.favorites, t] })}
+      onRemove={t => onChange({ ...exercises, favorites: exercises.favorites.filter(x => x !== t) })}
+    />
+    <VoiceBar
+      hint="Ditar exercícios favoritos"
+      onTranscript={text => {
+        const parts = text.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+        const next  = [...exercises.favorites];
+        parts.forEach(p => { if (!next.includes(p)) next.push(p); });
+        onChange({ ...exercises, favorites: next });
+      }}
+    />
+
+    <div style={{ marginTop: 24 }}>
+      <FieldLabel hint="opcional">Exercícios que evita / não usa</FieldLabel>
+      <TagInput
+        tags={exercises.avoid}
+        placeholder="ex: Leg Press, Sit-up convencional…"
+        color={DARK.textSec}
+        onAdd={t  => onChange({ ...exercises, avoid: [...exercises.avoid, t] })}
+        onRemove={t => onChange({ ...exercises, avoid: exercises.avoid.filter(x => x !== t) })}
+      />
+    </div>
+
+    <PrivacyNote tone="optional">
+      Este repertório alimenta a seleção automática de exercícios pelo AI Coach Engine.
+    </PrivacyNote>
+  </div>
+);
