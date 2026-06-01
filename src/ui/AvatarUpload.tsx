@@ -29,7 +29,7 @@ export function AvatarUpload({
   onChange,
   onUpload,
   name = '',
-  label = 'Foto de perfil',
+  label = 'Profile photo',
 }: AvatarUploadProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -98,7 +98,7 @@ export function AvatarUpload({
                 textAlign: 'center',
               }}
             >
-              TROCAR
+              CHANGE
             </div>
           </>
         ) : loading ? (
@@ -143,7 +143,7 @@ export function AvatarUpload({
           }}
         >
           <Icon name="camera" size={13} color={DARK.textSec} />
-          {hasImage ? 'Trocar imagem' : 'Enviar imagem'}
+          {hasImage ? 'Change image' : 'Upload image'}
         </button>
       </VStack>
 

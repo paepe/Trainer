@@ -255,7 +255,7 @@ function generateInsights(params: {
   if (params.painCount14d >= 3) {
     insights.push({
       id: 'pi-3', severity: 'critical',
-      title: 'Pain Recurrence Engine ativado',
+      title: 'Pain Recurrence Engine activated',
       data: `${params.painCount14d} pain occurrences in 14 days`,
       interpretation: 'Recurring pain in the same region indicates structural risk.',
       action: 'Replace exercise and notify trainer',

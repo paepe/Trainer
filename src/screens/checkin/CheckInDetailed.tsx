@@ -302,7 +302,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
             <SliderRow label="Intensity" value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
             <div style={{ marginTop: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
-                MOVIMENTO GATILHO
+                TRIGGER MOVEMENT
               </div>
               <input
                 type="text"

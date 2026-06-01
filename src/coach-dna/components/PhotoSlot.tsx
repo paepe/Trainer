@@ -71,7 +71,7 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
               fontSize: 9, fontWeight: 700, letterSpacing: '.08em',
               textTransform: 'uppercase', color: '#fff', textAlign: 'center',
             }}>
-              TROCAR
+              CHANGE
             </div>
           </>
         ) : loading ? (
@@ -92,7 +92,7 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
       {/* label + action */}
       <div>
         <p style={{ margin: '0 0 8px', fontSize: 13, color: DARK.textSec, lineHeight: 1.4 }}>
-          Foto de perfil do coach
+          Coach profile photo
         </p>
         <button
           onClick={() => !loading && fileRef.current?.click()}
@@ -103,7 +103,7 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
           }}
         >
           <Icon name="camera" size={13} color={DARK.textSec}/>{' '}
-          {hasImage ? 'Trocar imagem' : 'Enviar imagem'}
+          {hasImage ? 'Change image' : 'Upload image'}
         </button>
       </div>
 

@@ -73,7 +73,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
 
     setError(null);
     const rec = new SR();
-    rec.lang            = 'pt-BR';
+    rec.lang            = 'en-US';
     rec.continuous      = true;
     rec.interimResults  = true;
     recRef.current = rec;
@@ -141,7 +141,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
         )}
         <button
           onClick={e => { e.stopPropagation(); toggle(); }}
-          title={active ? 'Parar gravação' : 'Iniciar gravação'}
+          title={active ? 'Stop recording' : 'Start recording'}
           style={{
             width: 36, height: 36, borderRadius: '50%', border: 'none',
             background: active ? t.accent : DARK.surface,
