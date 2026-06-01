@@ -523,13 +523,6 @@ export function WorkoutPlanEditorScreen({
           ) : '✦ Ask AI'}
         </button>
         <button
-          onClick={() => sendPlan('draft')}
-          disabled={saving || exercises.length === 0}
-          style={{ ...ghostBtn(dark), width: '100%', fontSize: 13, fontWeight: 600, textAlign: 'center', padding: '15px 20px', opacity: exercises.length === 0 ? 0.4 : 1 }}
-        >
-          Save draft
-        </button>
-        <button
           onClick={() => sendPlan('sent')}
           disabled={saving || exercises.length === 0}
           style={{ ...primaryBtn(t.primary, saving), marginBottom: 0, opacity: exercises.length === 0 ? 0.4 : saving ? 0.7 : 1 }}
