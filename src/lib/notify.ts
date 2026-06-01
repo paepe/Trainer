@@ -25,8 +25,8 @@ export function notify(
     ? new Date(Date.now() + opts.expiresInMin * 60_000).toISOString()
     : null;
 
-  // 1 — Persist to DB
-  void supabase.from('notification_log').insert({
+  // 1 — Persist to DB (log errors so failures are visible in console)
+  const row: Record<string, unknown> = {
     to_user_id:   userId,
     from_user_id: opts.fromUserId ?? null,
     title,
@@ -34,8 +34,14 @@ export function notify(
     type:         opts.type       ?? null,
     entity_type:  opts.entityType ?? null,
     entity_id:    opts.entityId   ?? null,
-    ...(expiresAt ? { expires_at: expiresAt } : {}),
-  });
+  };
+  if (expiresAt) row.expires_at = expiresAt;
+
+  supabase.from('notification_log').insert(row as any)
+    .then(({ error }) => {
+      if (error) console.error('[notify] db insert failed:', error.message, error.code, row);
+      else console.log('[notify] db insert ok → to:', userId, 'type:', opts.type ?? '—');
+    });
 
   // 2 — FCM push
   console.log('[notify] sending push to', userId, title);

@@ -43,13 +43,16 @@ export function TrainerAlertsScreen({ nav, user }: { nav: NavFn; user: { id: str
     if (!user?.id) return;
     setLoading(true);
 
-    const { data } = await supabase
+    console.log('[TrainerAlerts] loading for user.id:', user.id);
+    const { data, error } = await supabase
       .from('notification_log')
       .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at')
       .eq('to_user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50);
 
+    if (error) console.error('[TrainerAlerts] select failed:', error.message, error.code);
+    console.log('[TrainerAlerts] rows returned:', data?.length ?? 'null');
     if (!data) { setLoading(false); return; }
 
     // Resolve client names for workout_ready items
