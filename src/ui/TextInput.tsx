@@ -1,5 +1,6 @@
 import React from 'react';
 import { DARK, BRAND } from '../theme/tokens';
+import { Icon } from '../components/Icon';
 
 export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, 'onChange'> {
   label?: string;
@@ -12,7 +13,7 @@ export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInput
   helper?: string;
   optional?: boolean;
   disabled?: boolean;
-  icon?: React.ReactNode;
+  icon?: string | React.ReactNode;
   rows?: number;
 }
 
@@ -62,7 +63,9 @@ export function TextInput({
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
         {icon && (
           <div style={{ position: 'absolute', left: 14, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-            {icon}
+            {typeof icon === 'string'
+              ? <Icon name={icon} size={16} color={focus ? BRAND.primary : DARK.textMute} stroke={2}/>
+              : icon}
           </div>
         )}
         
