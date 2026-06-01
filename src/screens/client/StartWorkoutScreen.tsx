@@ -51,6 +51,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [loading,    setLoading]    = React.useState<boolean>(false);
   const [error,      setError]      = React.useState<string | null>(null);
+  const [otherPending, setOtherPending] = React.useState<Array<{id: string; sentAt: string | null; exerciseCount: number}>>([]);
+  const [showPendingList, setShowPendingList] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
 
   // Derive current cycle phase — only for female users with cycle tracking data
@@ -142,7 +144,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
           .maybeSingle();
 
         if (sentPlan?.plan_exercises?.length) {
-          // Use the trainer's plan — mark it as active
+          // Use the trainer's plan — do NOT change status yet; only mark active when workout actually starts
           const planExercises = sentPlan.plan_exercises as Array<{
             id: string; exercise_name: string; muscle_group?: string;
             sets?: number; reps?: number; load_kg?: number;
@@ -171,7 +173,25 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
                 if (trainerProfile?.avatar_url) setTrainerAvatarUrl(trainerProfile.avatar_url);
               });
           }
-          void supabase.from('workout_plans').update({ status: 'active' }).eq('id', sentPlan.id);
+
+          // Count other pending trainer plans (not the one being shown)
+          supabase.from('workout_plans')
+            .select('id, created_at, plan_exercises(id)')
+            .eq('assigned_to', user.id)
+            .eq('source', 'manual')
+            .eq('status', 'sent')
+            .neq('id', sentPlan.id)
+            .order('created_at', { ascending: false })
+            .then(({ data: others }) => {
+              if (others?.length) {
+                setOtherPending(others.map(p => ({
+                  id: p.id,
+                  sentAt: p.created_at,
+                  exerciseCount: (p.plan_exercises as { id: string }[])?.length ?? 0,
+                })));
+              }
+            });
+
           setLoading(false);
           return;
         }
@@ -314,6 +334,58 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
         </div>
       </div>
 
+      {/* Pending plans badge */}
+      {otherPending.length > 0 && !showPendingList && (
+        <div style={{ padding: '0 22px 10px' }}>
+          <button onClick={() => setShowPendingList(true)} style={{
+            width: '100%', padding: '9px 14px', borderRadius: 10, border: 'none',
+            background: `${t.primary}18`, color: t.primary,
+            fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <Icon name="history" size={13} color={t.primary} stroke={2}/>
+            +{otherPending.length} more plan{otherPending.length > 1 ? 's' : ''} pending from your trainer
+          </button>
+        </div>
+      )}
+
+      {/* Pending plans list */}
+      {showPendingList && otherPending.length > 0 && (
+        <div style={{ margin: '0 22px 14px', borderRadius: 12, overflow: 'hidden', border: `1px solid ${t.primary}33` }}>
+          <div style={{
+            padding: '8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: `${t.primary}14`,
+          }}>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
+              Other pending plans
+            </span>
+            <button onClick={() => setShowPendingList(false)} style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px',
+              fontSize: 12, color: t.primary, fontFamily: 'inherit',
+            }}>✕</button>
+          </div>
+          {otherPending.map((p, i) => (
+            <div key={p.id} style={{
+              padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              borderTop: i > 0 ? `1px solid ${t.primary}22` : undefined,
+              background: dark ? '#0F1E30' : '#f4f8fd',
+            }}>
+              <div>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: dark ? '#fff' : '#0E1A2B' }}>
+                  {p.sentAt ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Plan'}
+                </span>
+                <span style={{ fontSize: 11.5, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginLeft: 8 }}>
+                  {p.exerciseCount} exercise{p.exerciseCount !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 700, color: t.primary, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                Pending
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Today's AI plan */}
       <div style={{ padding: '4px 22px 0' }}>
         <SectionLabel dark={dark}>{planSource === 'trainer' ? 'From your trainer' : 'Today\'s AI plan'}</SectionLabel>
@@ -396,7 +468,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
 
       <div style={{ padding: '16px 22px 28px' }}>
         <button
-          onClick={() => nav('workoutMode', { planId, exercises: plan })}
+          onClick={() => {
+            // Mark as active only when the workout actually starts
+            if (planId && planSource === 'trainer') {
+              void supabase.from('workout_plans').update({ status: 'active' }).eq('id', planId);
+            }
+            nav('workoutMode', { planId, exercises: plan });
+          }}
           disabled={!plan || loading}
           style={{
             ...primaryBtn(t.primary),
