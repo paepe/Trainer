@@ -3,13 +3,14 @@ import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outli
 import type { SafetyGateResult } from '../../types/checkin-v2';
 
 interface CheckInResultProps {
-  dark:       boolean;
-  primary:    string;
-  accent:     string;
-  result:     SafetyGateResult;
-  onDone:     () => void;
-  onAlert:    () => void;
-  isTrainer?: boolean;
+  dark:              boolean;
+  primary:           string;
+  accent:            string;
+  result:            SafetyGateResult;
+  onDone:            () => void;
+  onAlert:           () => void;
+  isTrainerContext?: boolean; // true when trainer is doing check-in on behalf of client
+  linkedTrainerId?:  string;  // non-empty = client has an active trainer
 }
 
 // ── Readiness gauge (SVG arc) ─────────────────────────────────────────────────
@@ -74,9 +75,10 @@ function StatCell({ label, value, color }: { label: string; value: string; color
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export function CheckInResult({ dark, primary, accent, result, onDone, onAlert, isTrainer }: CheckInResultProps) {
-  const meta      = STATUS_META[result.status];
-  const isBlocked = result.ai_led_blocked;
+export function CheckInResult({ dark, primary, accent, result, onDone, onAlert, isTrainerContext, linkedTrainerId }: CheckInResultProps) {
+  const meta         = STATUS_META[result.status];
+  const isBlocked    = result.ai_led_blocked;
+  const hasTrainer   = !!linkedTrainerId;  // client with an active trainer
 
   return (
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -156,16 +158,21 @@ export function CheckInResult({ dark, primary, accent, result, onDone, onAlert, 
 
       <div style={{ flex: 1 }}/>
 
-      {/* CTAs */}
-      <button
-        onClick={onDone}
-        style={{ ...primaryBtn(isBlocked ? accent : primary), marginBottom: !isTrainer ? 0 : undefined }}
-      >
-        {isBlocked ? 'View caution options' : isTrainer ? 'Build plan →' : 'Start workout →'}
-      </button>
-      {!isTrainer && (
-        <button onClick={onAlert} style={{ ...outlineBtn(primary), marginTop: 10 }}>
-          Notify trainer
+      {/* CTAs — 3-way matrix */}
+      {isTrainerContext ? (
+        /* Trainer doing check-in for a client */
+        <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
+          {isBlocked ? 'Review safety alert →' : 'Build plan →'}
+        </button>
+      ) : hasTrainer ? (
+        /* Client WITH an active trainer — trainer controls the plan */
+        <button onClick={onAlert} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
+          {isBlocked ? '⚠ Notify trainer — caution today' : '✦ Notify trainer — I\'m ready'}
+        </button>
+      ) : (
+        /* Client WITHOUT a trainer — full autonomy */
+        <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
+          {isBlocked ? 'View caution options' : 'Start workout →'}
         </button>
       )}
     </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { supabase } from './supabase';
 import { BRAND, TRAINER_BRAND, setVizProfile } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { useProfileData }  from './hooks/useProfileData';
@@ -99,6 +100,8 @@ export default function App() {
 
   const [screen, setScreen] = React.useState('welcome');
   const [menuOpen, setMenuOpen] = React.useState(false);
+  // Null = not yet resolved; empty string = client has no active trainer
+  const [linkedTrainerId, setLinkedTrainerId] = React.useState<string | null>(null);
   const [selectedClient, setSelectedClient] = React.useState<ClientProfile | null>(null);
   const [checkin, setCheckin] = React.useState<CheckIn>({
     energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
@@ -189,6 +192,18 @@ export default function App() {
       setScreen('welcome');
     }
   }, [session, loading, screen]);
+
+  // Resolve trainer link for client accounts (drives check-in CTA logic)
+  React.useEffect(() => {
+    if (!profile?.id || isTrainer) { setLinkedTrainerId(''); return; }
+    supabase
+      .from('trainer_clients')
+      .select('trainer_id')
+      .eq('client_id', profile.id)
+      .eq('status', 'active')
+      .maybeSingle()
+      .then(({ data }) => setLinkedTrainerId((data as { trainer_id: string } | null)?.trainer_id ?? ''));
+  }, [profile?.id, isTrainer]);
 
   // Role-based navigation after login (only when both session and profile are loaded)
   React.useEffect(() => {
@@ -376,7 +391,7 @@ export default function App() {
       case 'checkin':          return (
         <>
           {(noClient && !screenPayload?.clientUserId) && noClientBanner}
-          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} user={user} userName={profile?.name ?? undefined} biologicalSex={profile?.gender ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>
+          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} user={user} userName={profile?.name ?? undefined} biologicalSex={profile?.gender ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} linkedTrainerId={linkedTrainerId ?? ''} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>
         </>
       );
       case 'workout':            return <StartWorkoutScreen      {...common}/>;

@@ -25,30 +25,20 @@ type SaveCheckinV2Fn = (data: {
 }) => Promise<{ error: unknown }>;
 
 interface CheckInProntidaoScreenProps {
-  nav:                  NavFn;
-  t:                    Theme;
-  dark:                 boolean;
-  userName?:            string | undefined;
-  clientUserId?:        string;
-  clientName?:          string;
-  saveCheckinV2?:       SaveCheckinV2Fn;
+  nav:                   NavFn;
+  t:                     Theme;
+  dark:                  boolean;
+  user:                  { id: string | null };
+  userName?:             string | undefined;
+  clientUserId?:         string;
+  clientName?:           string;
+  biologicalSex?:        string | undefined;
+  linkedTrainerId?:      string; // '' = no trainer, non-empty = has trainer
+  saveCheckinV2?:        SaveCheckinV2Fn;
   updatePainRecurrence?: (region: string) => Promise<{ error: unknown }>;
 }
 
-interface CheckInProntidaoScreenProps {
-  nav:                  NavFn;
-  t:                    Theme;
-  dark:                 boolean;
-  user:                 { id: string | null };
-  userName?:            string | undefined;
-  clientUserId?:        string;
-  clientName?:          string;
-  biologicalSex?:       string | undefined;
-  saveCheckinV2?:       SaveCheckinV2Fn;
-  updatePainRecurrence?: (region: string) => Promise<{ error: unknown }>;
-}
-
-export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
+export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, linkedTrainerId = '', saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
   const last = useLatestCheckin(clientUserId ?? user?.id);
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
@@ -159,9 +149,10 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
         <CheckInResult
           dark={dark} primary={primary} accent={accent}
           result={result}
-          isTrainer={!!clientUserId}
-          onDone={() => nav(clientUserId ? 'workoutPlanEditor' : 'profile')}
-          onAlert={() => nav(clientUserId ? 'trainerDashboard' : 'profile')}
+          isTrainerContext={!!clientUserId}
+          linkedTrainerId={linkedTrainerId}
+          onDone={() => nav(clientUserId ? 'workoutPlanEditor' : linkedTrainerId ? 'checkin' : 'workout')}
+          onAlert={() => nav(clientUserId ? 'trainerDashboard' : 'checkin')}
         />
       ) : null;
 
