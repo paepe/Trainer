@@ -39,43 +39,69 @@ export function TrainerAlertsScreen({ nav, user }: { nav: NavFn; user: { id: str
   const [busy,     setBusy]     = React.useState<string | null>(null);
   const [expanded, setExpanded] = React.useState<string | null>(null);
 
-  const load = React.useCallback(async () => {
-    if (!user?.id) return;
-    setLoading(true);
+  // Resolve a profile name by id (cached in closure)
+  const nameCache = React.useRef<Record<string, string>>({});
+  const resolveName = React.useCallback(async (fromId: string | null): Promise<string | null> => {
+    if (!fromId) return null;
+    if (nameCache.current[fromId]) return nameCache.current[fromId];
+    const { data } = await supabase.from('profiles').select('name').eq('id', fromId).maybeSingle();
+    const name = (data as { name: string } | null)?.name ?? null;
+    if (name) nameCache.current[fromId] = name;
+    return name;
+  }, []);
 
-    console.log('[TrainerAlerts] loading for user.id:', user.id);
-    const { data, error } = await supabase
+  const enrichItem = React.useCallback(async (raw: Omit<InboxItem, 'client_name'>): Promise<InboxItem> => {
+    const name = await resolveName(raw.from_user_id);
+    return { ...raw, ...(name ? { client_name: name } : {}) };
+  }, [resolveName]);
+
+  // ── Initial load + Realtime subscription ─────────────────────────────────
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+
+    // 1 — Initial fetch
+    setLoading(true);
+    supabase
       .from('notification_log')
       .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at')
       .eq('to_user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(50)
+      .then(async ({ data, error }) => {
+        if (error) console.error('[TrainerAlerts] initial load failed:', error.message);
+        if (data) {
+          const enriched = await Promise.all(data.map(d => enrichItem(d as Omit<InboxItem, 'client_name'>)));
+          setItems(enriched);
+        }
+        setLoading(false);
+      });
 
-    if (error) console.error('[TrainerAlerts] select failed:', error.message, error.code);
-    console.log('[TrainerAlerts] rows returned:', data?.length ?? 'null');
-    if (!data) { setLoading(false); return; }
+    // 2 — Realtime: new notification arrives (INSERT) → prepend to list
+    //             trainer responds or expiry recorded (UPDATE) → update in place
+    const channel = supabase
+      .channel(`alerts:${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${user.id}` },
+        async (payload) => {
+          const enriched = await enrichItem(payload.new as Omit<InboxItem, 'client_name'>);
+          setItems(prev => [enriched, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${user.id}` },
+        (payload) => {
+          setItems(prev => prev.map(i =>
+            i.id === (payload.new as InboxItem).id ? { ...i, ...(payload.new as Partial<InboxItem>) } : i
+          ));
+        }
+      )
+      .subscribe();
 
-    // Resolve client names for workout_ready items
-    const clientIds = [...new Set(data.map(d => d.from_user_id).filter(Boolean))] as string[];
-    let nameMap: Record<string, string> = {};
-    if (clientIds.length) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', clientIds);
-      if (profiles) {
-        nameMap = Object.fromEntries(profiles.map(p => [p.id, p.name ?? 'Client']));
-      }
-    }
-
-    setItems(data.map(d => {
-      const name = d.from_user_id ? nameMap[d.from_user_id] : null;
-      return { ...d, ...(name ? { client_name: name } : {}) };
-    }));
-    setLoading(false);
-  }, [user?.id]);
-
-  React.useEffect(() => { void load(); }, [load]);
+    return () => { void supabase.removeChannel(channel); };
+  }, [user?.id, enrichItem]);
 
   // ── Approve / Reject ───────────────────────────────────────────────────────
 

@@ -103,6 +103,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = React.useState(false);
   // Null = not yet resolved; empty string = client has no active trainer
   const [linkedTrainerId, setLinkedTrainerId] = React.useState<string | null>(null);
+  const [pendingAlerts, setPendingAlerts] = React.useState(0);
   const [selectedClient, setSelectedClient] = React.useState<ClientProfile | null>(null);
   const [checkin, setCheckin] = React.useState<CheckIn>({
     energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
@@ -205,6 +206,35 @@ export default function App() {
       .maybeSingle()
       .then(({ data }) => setLinkedTrainerId((data as { trainer_id: string } | null)?.trainer_id ?? ''));
   }, [profile?.id, isTrainer]);
+
+  // Trainer: subscribe to pending alert count via Realtime
+  React.useEffect(() => {
+    if (!isTrainer || !profile?.id) return;
+
+    // Initial count of unresponded workout_ready notifications
+    supabase
+      .from('notification_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('to_user_id', profile.id)
+      .eq('type', 'workout_ready')
+      .is('response', null)
+      .then(({ count }) => setPendingAlerts(count ?? 0));
+
+    // Realtime: increment on new insert, re-count on update (response set)
+    const ch = supabase
+      .channel(`alerts_badge:${profile.id}`)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
+        (p) => { if ((p.new as any).type === 'workout_ready') setPendingAlerts(n => n + 1); }
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
+        (p) => { if ((p.new as any).response != null) setPendingAlerts(n => Math.max(0, n - 1)); }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(ch); };
+  }, [isTrainer, profile?.id]);
 
   // Role-based navigation after login (only when both session and profile are loaded)
   React.useEffect(() => {
@@ -460,6 +490,7 @@ export default function App() {
     setMenuOpen,
     handleSetUser,
     profile,
+    tabBadges: isTrainer && pendingAlerts > 0 ? { alerts: pendingAlerts } : {},
   };
 
   return (

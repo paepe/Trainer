@@ -10,9 +10,10 @@ interface BottomTabsProps {
   onTap:   NavFn;
   primary: string;
   dark:    boolean;
+  badges?: Record<string, number>; // key → pending count
 }
 
-export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, primary, dark }) => (
+export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, primary, dark, badges = {} }) => (
   <div style={{
     flexShrink: 0,
     padding: '8px 4px',
@@ -23,7 +24,8 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, pri
     display: 'flex', alignItems: 'center', justifyContent: 'space-around',
   }}>
     {tabs.map(([key, ic, lbl]) => {
-      const on = active === key;
+      const on    = active === key;
+      const count = badges[key] ?? 0;
       return (
         <button key={key} onClick={() => onTap(key)} style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
@@ -31,7 +33,21 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, pri
           padding: '6px 10px', borderRadius: 12, fontFamily: 'inherit',
           color: on ? primary : (dark ? 'rgba(255,255,255,.5)' : '#7a8694'),
         }}>
-          <Icon name={ic} size={20} color={on ? primary : (dark ? 'rgba(255,255,255,.5)' : '#7a8694')} stroke={on ? 2.4 : 2}/>
+          <div style={{ position: 'relative' }}>
+            <Icon name={ic} size={20} color={on ? primary : (dark ? 'rgba(255,255,255,.5)' : '#7a8694')} stroke={on ? 2.4 : 2}/>
+            {count > 0 && (
+              <div style={{
+                position: 'absolute', top: -4, right: -6,
+                minWidth: 16, height: 16, borderRadius: 999,
+                background: '#EF5B3C', color: '#fff',
+                fontSize: 9, fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '0 3px', lineHeight: 1,
+              }}>
+                {count > 9 ? '9+' : count}
+              </div>
+            )}
+          </div>
           <span style={{ fontSize: 10.5, fontWeight: on ? 600 : 500 }}>{lbl}</span>
         </button>
       );
