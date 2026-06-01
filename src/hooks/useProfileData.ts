@@ -88,9 +88,10 @@ export function useProfileData(userId: string | undefined) {
 
       // Include profile section columns only when the caller actually provided them.
       const SECTIONS = [
-        'basic_data', 'objectives', 'movement_history', 'functional_capacity',
-        'environment', 'availability', 'preferences', 'habits', 'comorbidities',
-        'declared_health', 'sensitive_factors', 'body_rhythm', 'consent', 'risk',
+        'basic_data', 'objectives', 'movement_history', 'abandon_history',
+        'functional_capacity', 'environment', 'availability', 'preferences',
+        'habits', 'comorbidities', 'declared_health', 'sensitive_factors',
+        'body_rhythm', 'consent', 'risk',
       ] as const;
 
       for (const key of SECTIONS) {
