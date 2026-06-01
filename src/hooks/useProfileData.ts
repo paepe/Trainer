@@ -74,31 +74,33 @@ export function useProfileData(userId: string | undefined) {
   ): Promise<MutateResult> {
     if (!userId) return { error: null };
     try {
+      // Build payload with only the fields that are actually present in `data`.
+      // Omitting a key means Supabase upsert will NOT touch that column in the DB,
+      // preventing partial edits from wiping sections that belong to other steps.
+      const payload: Record<string, unknown> = {
+        user_id:      userId,
+        current_step: step,
+        updated_at:   new Date().toISOString(),
+      };
+
+      // Only stamp completed_at when finishing the wizard — never clear it on partial edits.
+      if (step === 'completed') payload.completed_at = new Date().toISOString();
+
+      // Include profile section columns only when the caller actually provided them.
+      const SECTIONS = [
+        'basic_data', 'objectives', 'movement_history', 'functional_capacity',
+        'environment', 'availability', 'preferences', 'habits', 'comorbidities',
+        'declared_health', 'sensitive_factors', 'body_rhythm', 'consent', 'risk',
+      ] as const;
+
+      for (const key of SECTIONS) {
+        if (data[key] !== undefined) payload[key] = toJson(data[key]);
+      }
+
       const { error } = await supabase
         .from('profile_v2')
-        .upsert(
-          {
-            user_id:             userId,
-            current_step:        step,
-            completed_at:        step === 'completed' ? new Date().toISOString() : null,
-            basic_data:          toJson(data.basic_data),
-            objectives:          toJson(data.objectives),
-            movement_history:    toJson(data.movement_history),
-            functional_capacity: toJson(data.functional_capacity),
-            environment:         toJson(data.environment),
-            availability:        toJson(data.availability),
-            preferences:         toJson(data.preferences),
-            habits:              toJson(data.habits),
-            comorbidities:       toJson(data.comorbidities),
-            declared_health:     toJson(data.declared_health),
-            sensitive_factors:   toJson(data.sensitive_factors),
-            body_rhythm:         toJson(data.body_rhythm),
-            consent:             toJson(data.consent),
-            risk:                toJson(data.risk),
-            updated_at:          new Date().toISOString(),
-          },
-          { onConflict: 'user_id' }
-        );
+        .upsert(payload as any, { onConflict: 'user_id' });
+
       if (error) {
         console.error('[useProfileData] saveProfileV2:', error);
         return { error: error.message || error };
