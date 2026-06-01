@@ -1,16 +1,19 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type { SafetyGateResult } from '../../types/checkin-v2';
+import type { RiskClassification } from '../../types/profile-v2';
+import { RiskCard } from '../../components/RiskCard';
 
 interface CheckInResultProps {
   dark:              boolean;
   primary:           string;
   accent:            string;
   result:            SafetyGateResult;
+  risk?:             RiskClassification;
   onDone:            () => void;
   onAlert:           () => void;
-  isTrainerContext?: boolean; // true when trainer is doing check-in on behalf of client
-  linkedTrainerId?:  string;  // non-empty = client has an active trainer
+  isTrainerContext?: boolean;
+  linkedTrainerId?:  string;
 }
 
 // ── Readiness gauge (SVG arc) ─────────────────────────────────────────────────
@@ -75,7 +78,7 @@ function StatCell({ label, value, color }: { label: string; value: string; color
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export function CheckInResult({ dark, primary, accent, result, onDone, onAlert, isTrainerContext, linkedTrainerId }: CheckInResultProps) {
+export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, isTrainerContext, linkedTrainerId }: CheckInResultProps) {
   const meta         = STATUS_META[result.status];
   const isBlocked    = result.ai_led_blocked;
   const hasTrainer   = !!linkedTrainerId;  // client with an active trainer
@@ -156,7 +159,14 @@ export function CheckInResult({ dark, primary, accent, result, onDone, onAlert, 
         )}
       </div>
 
-      <div style={{ flex: 1 }}/>
+      {/* Risk classification card — reuses RiskCard from profile wizard */}
+      {risk ? (
+        <div style={{ marginBottom: 24 }}>
+          <RiskCard risk={risk} dark={dark} primary={primary} />
+        </div>
+      ) : (
+        <div style={{ flex: 1 }}/>
+      )}
 
       {/* CTAs — 3-way matrix */}
       {isTrainerContext ? (
