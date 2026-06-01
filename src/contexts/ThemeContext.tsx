@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { BRAND } from '../theme/tokens';
 import type { UserRole } from '../types';
 
@@ -22,8 +22,9 @@ export function ThemeProvider({
   dark,
   isTrainer,
 }: { children: React.ReactNode } & ThemeContextValue) {
+  const value = useMemo(() => ({ t, dark, isTrainer }), [t, dark, isTrainer]);
   return (
-    <ThemeContext.Provider value={{ t, dark, isTrainer }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
