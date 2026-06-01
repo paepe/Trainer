@@ -21,15 +21,19 @@ function normalizeRegion(r: string): string {
 }
 
 // ── Colour helpers ────────────────────────────────────────────────────────────
+// `cyan`/`cyanDeep` are the profile SIGNATURE slots: they resolve to cyan for a
+// client and coral for a trainer via runtimeProfile (set in App.tsx). The hex
+// concatenation pattern (`${C.cyan}22`) keeps working because getters return hex.
+import { vizSignature, vizSignatureDeep } from '../../../theme/runtimeProfile';
 
 export const C = {
-  cyan:     '#2DD4E0',
-  cyanDeep: '#0F8C85',
+  get cyan()     { return vizSignature(); },     // profile signature: cyan (client) / coral (trainer)
+  get cyanDeep() { return vizSignatureDeep(); },
   coral:    '#EF5B3C',
   amber:    '#F5B45A',
   green:    '#4ADE80',
   lavender: '#A78BFA',
-} as const;
+};
 
 export function band(score: number): string {
   if (score >= 75) return 'low';

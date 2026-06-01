@@ -126,7 +126,7 @@ export function StatsScreen({ nav, t, dark, user }: StatsScreenProps) {
       <div style={{ padding: '0 22px 28px' }}>
         <div style={{
           padding: '14px 16px', borderRadius: 14,
-          background: dark ? 'rgba(45,212,224,.08)' : `${t.primary}10`,
+          background: `${t.primary}${dark ? '14' : '10'}`,
           border: `1px solid ${t.primary}55`,
           display: 'flex', gap: 10, alignItems: 'flex-start',
         }}>

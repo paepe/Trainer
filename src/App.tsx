@@ -1,5 +1,5 @@
 import React from 'react';
-import { BRAND, TRAINER_BRAND } from './theme';
+import { BRAND, TRAINER_BRAND, setVizProfile } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { useProfileData }  from './hooks/useProfileData';
 import { useCheckinData }  from './hooks/useCheckinData';
@@ -87,6 +87,9 @@ export default function App() {
   const [cycleEnabled] = React.useState(true);
 
   const isTrainer = profile?.role != null && (TRAINER_ROLES as readonly string[]).includes(profile.role);
+  // Single profile switch: drives `t.primary` (all screens) and the static
+  // data-viz signature (Performance Dashboard) from one place.
+  setVizProfile(isTrainer);
   const t = {
     ...(isTrainer ? TRAINER_BRAND : BRAND),
     dark,
