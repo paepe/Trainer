@@ -624,9 +624,12 @@ export type Database = {
           created_at: string
           entity_id: string | null
           entity_type: string | null
+          expires_at: string | null
           from_user_id: string | null
           id: string
           read_at: string | null
+          response: string | null
+          response_at: string | null
           title: string
           to_user_id: string
           type: string | null
@@ -636,9 +639,12 @@ export type Database = {
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
+          expires_at?: string | null
           from_user_id?: string | null
           id?: string
           read_at?: string | null
+          response?: string | null
+          response_at?: string | null
           title: string
           to_user_id: string
           type?: string | null
@@ -648,9 +654,12 @@ export type Database = {
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
+          expires_at?: string | null
           from_user_id?: string | null
           id?: string
           read_at?: string | null
+          response?: string | null
+          response_at?: string | null
           title?: string
           to_user_id?: string
           type?: string | null

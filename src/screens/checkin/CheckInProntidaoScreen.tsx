@@ -5,6 +5,7 @@ import type { RiskClassification } from '../../types/profile-v2';
 import { computeSafetyGate } from './safetyGate';
 import { useLatestCheckin, type LatestCheckinData } from '../../hooks/useLatestCheckin';
 import { supabase } from '../../supabase';
+import { notify }   from '../../lib/notify';
 import { CheckInHub }        from './CheckInHub';
 import { CheckInVoice as VoiceScreen }   from './CheckInVoice';
 import { CheckInQuick as QuickScreen }   from './CheckInQuick';
@@ -167,7 +168,28 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           isTrainerContext={!!clientUserId}
           linkedTrainerId={linkedTrainerId}
           onDone={() => nav(clientUserId ? 'workoutPlanEditor' : linkedTrainerId ? 'checkin' : 'workout')}
-          onAlert={() => nav(clientUserId ? 'trainerDashboard' : 'checkin')}
+          onAlert={() => {
+            if (clientUserId) {
+              // Trainer context — go back to dashboard
+              nav('trainerDashboard');
+            } else if (linkedTrainerId) {
+              // Client notifies trainer they're ready (Model A — 30-min window)
+              const score = result?.readiness_score ?? '?';
+              const name  = userName ?? 'Your client';
+              notify(
+                linkedTrainerId,
+                `${name} is ready to train`,
+                `Readiness ${score}/100 · Approve or reject their workout request.`,
+                undefined,
+                {
+                  type:         'workout_ready',
+                  expiresInMin: 30,
+                  ...(user?.id ? { fromUserId: user.id } : {}),
+                }
+              );
+              nav('checkin');
+            }
+          }}
         />
       ) : null;
 

@@ -7,10 +7,11 @@ const isNative =
 const API_BASE = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
 
 interface NotifyOptions {
-  type?:       string; // plan_sent | plan_cancelled | plan_postponed | plan_expired | workout_completed | checkin_alert | safety_gate | custom
-  entityType?: string; // workout_plan | workout_session | checkin
-  entityId?:   string;
-  fromUserId?: string;
+  type?:         string; // workout_ready | plan_sent | plan_cancelled | plan_postponed | plan_expired | workout_completed | checkin_alert | safety_gate | custom
+  entityType?:   string; // workout_plan | workout_session | checkin
+  entityId?:     string;
+  fromUserId?:   string;
+  expiresInMin?: number; // if set, sets expires_at = now + N minutes (Model A approval window)
 }
 
 export function notify(
@@ -20,15 +21,20 @@ export function notify(
   url?:    string,
   opts:    NotifyOptions = {}
 ) {
-  // 1 — Persist to DB (fire-and-forget, do not block callers)
+  const expiresAt = opts.expiresInMin
+    ? new Date(Date.now() + opts.expiresInMin * 60_000).toISOString()
+    : null;
+
+  // 1 — Persist to DB
   void supabase.from('notification_log').insert({
     to_user_id:   userId,
     from_user_id: opts.fromUserId ?? null,
     title,
     body,
-    type:         opts.type        ?? null,
-    entity_type:  opts.entityType  ?? null,
-    entity_id:    opts.entityId    ?? null,
+    type:         opts.type       ?? null,
+    entity_type:  opts.entityType ?? null,
+    entity_id:    opts.entityId   ?? null,
+    ...(expiresAt ? { expires_at: expiresAt } : {}),
   });
 
   // 2 — FCM push

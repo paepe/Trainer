@@ -28,6 +28,7 @@ const TrainerClientDetailScreen  = React.lazy(() => import('./screens/trainer/Tr
 const WorkoutPlanEditorScreen    = React.lazy(() => import('./screens/trainer/WorkoutPlanEditorScreen').then(m => ({ default: m.WorkoutPlanEditorScreen })));
 const TrainerLibraryExercisesScreen = React.lazy(() => import('./screens/trainer/TrainerLibraryExercisesScreen').then(m => ({ default: m.TrainerLibraryExercisesScreen })));
 const CoachDNAScreen             = React.lazy(() => import('./coach-dna/CoachDNAScreen').then(m => ({ default: m.CoachDNAScreen })));
+const TrainerAlertsScreen        = React.lazy(() => import('./screens/trainer/TrainerAlertsScreen').then(m => ({ default: m.TrainerAlertsScreen })));
 
 const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
 
@@ -327,7 +328,7 @@ export default function App() {
     ? ['workout','workoutMode','goal','stats','history',
        'settings','targets','checkin','cycle','studio',
        'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
-       'workoutSummary','coachDNA']
+       'workoutSummary','coachDNA','alerts']
     : ['profile','workout','workoutMode','goal','stats','history',
        'settings','targets','checkin','cycle','studio',
        'workoutSummary']
@@ -337,7 +338,7 @@ export default function App() {
     ? [
         ['trainerDashboard', 'user',    'Clients'],
         ['checkin',          'sparkle', 'Check-in'],
-        ['stats',            'chart',   'Progress'],
+        ['alerts',           'bell',    'Alerts'],
         ['history',          'history', 'History'],
         ['menu',             'menu',    'Menu'],
       ]
@@ -440,6 +441,7 @@ export default function App() {
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient}/>;
       case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen nav={nav} user={trainerUser}/>;
       case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser}/>;
+      case 'alerts':              return <TrainerAlertsScreen nav={nav} user={trainerUser}/>;
       default:                   return <WelcomeScreen           {...common}/>;
     }
   })();
