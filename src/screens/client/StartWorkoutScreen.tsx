@@ -7,6 +7,8 @@ import type { Json } from '../../types/supabase';
 import { requestWorkoutPlan } from '../../lib/workoutGeneration';
 import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import { computeCyclePhases } from './CycleScreen';
+import { autoExpirePlans }   from '../../lib/autoExpirePlans';
+import { notify }            from '../../lib/notify';
 
 interface Theme {
   primary:     string;
@@ -134,6 +136,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
     setLoading(true);
     setError(null);
     setPlan(null);
+    // Auto-cancel stale plans (>10 days); notify trainer
+    if (user?.id) void autoExpirePlans(user.id, 'client');
     setPlanId(null);
     try {
       let physicalProfile: Json | null = null;
@@ -411,6 +415,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
                       void supabase.from('workout_plans').update({ status: 'cancelled' }).eq('id', p.id);
                       setOtherPending(prev => prev.filter(x => x.id !== p.id));
                       if (isOpen) setExpandedPending(null);
+                      // Notify trainer: client cancelled a plan
+                      if (user?.id) {
+                        void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
+                          .then(({ data: tc }) => {
+                            if (tc?.trainer_id) notify(tc.trainer_id, 'Plan cancelled by client', `${user.name || 'Your client'} cancelled a workout plan.`, undefined, { type: 'plan_cancelled', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
+                          });
+                      }
                     }}
                     style={{
                       flexShrink: 0, padding: '3px 9px', borderRadius: 999,
@@ -461,6 +472,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
                           void supabase.from('workout_plans').update({ status: 'postponed' }).eq('id', p.id);
                           setOtherPending(prev => prev.map(x => x.id === p.id ? { ...x, status: 'postponed' } : x));
                           setExpandedPending(null);
+                          // Notify trainer: client postponed a plan
+                          if (user?.id) {
+                            void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
+                              .then(({ data: tc }) => {
+                                if (tc?.trainer_id) notify(tc.trainer_id, 'Plan postponed by client', `${user.name || 'Your client'} postponed a workout plan.`, undefined, { type: 'plan_postponed', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
+                              });
+                          }
                         }}
                         style={{
                           flex: 1, padding: '10px 0', borderRadius: 10, border: `1.5px solid #F5B45A55`,

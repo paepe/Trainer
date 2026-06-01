@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { borderSubtle, textPri, textMute } from '../../theme';
 import type { NavFn } from '../../types';
+import { autoExpirePlans } from '../../lib/autoExpirePlans';
 
 interface Theme {
   primary: string;
@@ -42,6 +43,8 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient }: HistoryScr
 
   React.useEffect(() => {
     if (!targetUserId) { setLoading(false); return; }
+    // Auto-cancel stale plans (>10 days) for this user; notify trainer
+    void autoExpirePlans(targetUserId, 'client');
     supabase
       .from('workout_sessions')
       .select('id, started_at, completed_at, total_duration_min, plan_id')

@@ -14,6 +14,49 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_context: {
+        Row: {
+          active_role: string
+          studio_id: string | null
+          switched_at: string
+          user_id: string
+        }
+        Insert: {
+          active_role: string
+          studio_id?: string | null
+          switched_at?: string
+          user_id: string
+        }
+        Update: {
+          active_role?: string
+          studio_id?: string | null
+          switched_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_context_active_role_fkey"
+            columns: ["active_role"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "active_context_studio_id_fkey"
+            columns: ["studio_id"]
+            isOneToOne: false
+            referencedRelation: "studios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "active_context_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_suggestions: {
         Row: {
           accepted: boolean | null
@@ -72,72 +115,146 @@ export type Database = {
           },
         ]
       }
-      checkin_prontidao: {
+      audit_log: {
         Row: {
-          ai_led_blocked:    boolean | null
-          available_minutes: number | null
-          created_at:        string | null
-          detailed_data:     Json | null
-          energy_level:      number | null
-          fatigue_level:     number | null
-          id:                string
-          input_source:      string
-          occurred_at:       string | null
-          pain_intensity:    number | null
-          pain_present:      boolean | null
-          post_workout_data: Json | null
-          quick_data:        Json | null
-          readiness_score:   number | null
-          safety_gate:       Json | null
-          sleep_quality:     string | null
-          training_location: string | null
-          user_id:           string
-          variant:           string
-          voice_data:        Json | null
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
         }
         Insert: {
-          ai_led_blocked?:    boolean | null
-          available_minutes?: number | null
-          created_at?:        string | null
-          detailed_data?:     Json | null
-          energy_level?:      number | null
-          fatigue_level?:     number | null
-          id?:                string
-          input_source?:      string
-          occurred_at?:       string | null
-          pain_intensity?:    number | null
-          pain_present?:      boolean | null
-          post_workout_data?: Json | null
-          quick_data?:        Json | null
-          readiness_score?:   number | null
-          safety_gate?:       Json | null
-          sleep_quality?:     string | null
-          training_location?: string | null
-          user_id:            string
-          variant:            string
-          voice_data?:        Json | null
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
         }
         Update: {
-          ai_led_blocked?:    boolean | null
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          actor_role: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          record_id: string | null
+          table_name: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          actor_role: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          record_id?: string | null
+          table_name: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          actor_role?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          record_id?: string | null
+          table_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkin_prontidao: {
+        Row: {
+          ai_led_blocked: boolean | null
+          available_minutes: number | null
+          created_at: string | null
+          detailed_data: Json | null
+          energy_level: number | null
+          fatigue_level: number | null
+          id: string
+          input_source: string
+          occurred_at: string | null
+          pain_intensity: number | null
+          pain_present: boolean | null
+          post_workout_data: Json | null
+          quick_data: Json | null
+          readiness_score: number | null
+          safety_gate: Json | null
+          sleep_quality: string | null
+          training_location: string | null
+          user_id: string
+          variant: string
+          voice_data: Json | null
+        }
+        Insert: {
+          ai_led_blocked?: boolean | null
           available_minutes?: number | null
-          created_at?:        string | null
-          detailed_data?:     Json | null
-          energy_level?:      number | null
-          fatigue_level?:     number | null
-          id?:                string
-          input_source?:      string
-          occurred_at?:       string | null
-          pain_intensity?:    number | null
-          pain_present?:      boolean | null
+          created_at?: string | null
+          detailed_data?: Json | null
+          energy_level?: number | null
+          fatigue_level?: number | null
+          id?: string
+          input_source?: string
+          occurred_at?: string | null
+          pain_intensity?: number | null
+          pain_present?: boolean | null
           post_workout_data?: Json | null
-          quick_data?:        Json | null
-          readiness_score?:   number | null
-          safety_gate?:       Json | null
-          sleep_quality?:     string | null
+          quick_data?: Json | null
+          readiness_score?: number | null
+          safety_gate?: Json | null
+          sleep_quality?: string | null
           training_location?: string | null
-          user_id?:           string
-          variant?:           string
-          voice_data?:        Json | null
+          user_id: string
+          variant: string
+          voice_data?: Json | null
+        }
+        Update: {
+          ai_led_blocked?: boolean | null
+          available_minutes?: number | null
+          created_at?: string | null
+          detailed_data?: Json | null
+          energy_level?: number | null
+          fatigue_level?: number | null
+          id?: string
+          input_source?: string
+          occurred_at?: string | null
+          pain_intensity?: number | null
+          pain_present?: boolean | null
+          post_workout_data?: Json | null
+          quick_data?: Json | null
+          readiness_score?: number | null
+          safety_gate?: Json | null
+          sleep_quality?: string | null
+          training_location?: string | null
+          user_id?: string
+          variant?: string
+          voice_data?: Json | null
         }
         Relationships: [
           {
@@ -234,6 +351,83 @@ export type Database = {
           },
         ]
       }
+      coach_dna: {
+        Row: {
+          archetype: string | null
+          audience: Json | null
+          background: Json | null
+          completed_at: string | null
+          created_at: string
+          current_step: string
+          design: Json | null
+          dna_active: boolean
+          dna_principles: Json | null
+          dna_style: Json | null
+          exercises: Json | null
+          fitness: Json | null
+          focus: Json | null
+          id: string
+          identity: Json | null
+          philosophy: Json | null
+          structure: Json | null
+          trainer_id: string
+          training: Json | null
+          updated_at: string
+        }
+        Insert: {
+          archetype?: string | null
+          audience?: Json | null
+          background?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string
+          design?: Json | null
+          dna_active?: boolean
+          dna_principles?: Json | null
+          dna_style?: Json | null
+          exercises?: Json | null
+          fitness?: Json | null
+          focus?: Json | null
+          id?: string
+          identity?: Json | null
+          philosophy?: Json | null
+          structure?: Json | null
+          trainer_id: string
+          training?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          archetype?: string | null
+          audience?: Json | null
+          background?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string
+          design?: Json | null
+          dna_active?: boolean
+          dna_principles?: Json | null
+          dna_style?: Json | null
+          exercises?: Json | null
+          fitness?: Json | null
+          focus?: Json | null
+          id?: string
+          identity?: Json | null
+          philosophy?: Json | null
+          structure?: Json | null
+          trainer_id?: string
+          training?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_dna_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cycle_config: {
         Row: {
           cycle_length: number | null
@@ -264,6 +458,41 @@ export type Database = {
             foreignKeyName: "cycle_config_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_tokens: {
+        Row: {
+          created_at: string | null
+          id: string
+          platform: string
+          token: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          platform?: string
+          token: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          platform?: string
+          token?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -344,6 +573,153 @@ export type Database = {
           },
         ]
       }
+      masked_operational_contexts: {
+        Row: {
+          context_token: string
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          requested_by: string
+          resolved_user_id: string
+        }
+        Insert: {
+          context_token?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose: string
+          requested_by: string
+          resolved_user_id: string
+        }
+        Update: {
+          context_token?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          requested_by?: string
+          resolved_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "masked_operational_contexts_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "masked_operational_contexts_resolved_user_id_fkey"
+            columns: ["resolved_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_log: {
+        Row: {
+          body: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          from_user_id: string | null
+          id: string
+          read_at: string | null
+          title: string
+          to_user_id: string
+          type: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          from_user_id?: string | null
+          id?: string
+          read_at?: string | null
+          title: string
+          to_user_id: string
+          type?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          from_user_id?: string | null
+          id?: string
+          read_at?: string | null
+          title?: string
+          to_user_id?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
+      operational_tasks: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          related_alert_id: string | null
+          related_session_id: string | null
+          status: string
+          task_type: string
+          title: string
+          trainer_id: string
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          related_alert_id?: string | null
+          related_session_id?: string | null
+          status?: string
+          task_type: string
+          title: string
+          trainer_id: string
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          related_alert_id?: string | null
+          related_session_id?: string | null
+          status?: string
+          task_type?: string
+          title?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operational_tasks_related_alert_id_fkey"
+            columns: ["related_alert_id"]
+            isOneToOne: false
+            referencedRelation: "trainer_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operational_tasks_related_session_id_fkey"
+            columns: ["related_session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pain_recurrence_signals: {
         Row: {
           alert_triggered: boolean | null
@@ -387,6 +763,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      permissions: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          privacy_tier: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description: string
+          privacy_tier?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          privacy_tier?: string
+        }
+        Relationships: []
       }
       physical_profiles: {
         Row: {
@@ -511,6 +908,54 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "workout_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_workout_feedback: {
+        Row: {
+          created_at: string | null
+          energy_after: number | null
+          id: string
+          notes: string | null
+          overall_feeling: number
+          session_id: string
+          submitted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          energy_after?: number | null
+          id?: string
+          notes?: string | null
+          overall_feeling: number
+          session_id: string
+          submitted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          energy_after?: number | null
+          id?: string
+          notes?: string | null
+          overall_feeling?: number
+          session_id?: string
+          submitted_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_workout_feedback_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_workout_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -746,6 +1191,63 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          granted_at: string
+          permission_code: string
+          role_code: string
+        }
+        Insert: {
+          granted_at?: string
+          permission_code: string
+          role_code: string
+        }
+        Update: {
+          granted_at?: string
+          permission_code?: string
+          role_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_code_fkey"
+            columns: ["permission_code"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_code_fkey"
+            columns: ["role_code"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          is_system: boolean
+          label: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          is_system?: boolean
+          label: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          is_system?: boolean
+          label?: string
+        }
+        Relationships: []
+      }
       safety_gate_events: {
         Row: {
           ai_led_blocked: boolean | null
@@ -887,6 +1389,96 @@ export type Database = {
           },
         ]
       }
+      system_events: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          event_type: string
+          id: string
+          payload: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trainer_alerts: {
+        Row: {
+          alert_type: string
+          body: string | null
+          client_id: string
+          created_at: string
+          event_id: string | null
+          id: string
+          resolved_at: string | null
+          session_id: string | null
+          severity: string
+          status: string
+          title: string
+          trainer_id: string
+        }
+        Insert: {
+          alert_type: string
+          body?: string | null
+          client_id: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          resolved_at?: string | null
+          session_id?: string | null
+          severity?: string
+          status?: string
+          title: string
+          trainer_id: string
+        }
+        Update: {
+          alert_type?: string
+          body?: string | null
+          client_id?: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          resolved_at?: string | null
+          session_id?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_alerts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "system_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_alerts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainer_clients: {
         Row: {
           client_id: string | null
@@ -938,6 +1530,64 @@ export type Database = {
             columns: ["trainer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_pain_events: {
+        Row: {
+          body_region: string
+          created_at: string | null
+          exercise_id: string | null
+          id: string
+          intensity: number
+          reported_at: string | null
+          session_exercise_id: string | null
+          session_id: string
+          trainer_notified: boolean | null
+        }
+        Insert: {
+          body_region: string
+          created_at?: string | null
+          exercise_id?: string | null
+          id?: string
+          intensity: number
+          reported_at?: string | null
+          session_exercise_id?: string | null
+          session_id: string
+          trainer_notified?: boolean | null
+        }
+        Update: {
+          body_region?: string
+          created_at?: string | null
+          exercise_id?: string | null
+          id?: string
+          intensity?: number
+          reported_at?: string | null
+          session_exercise_id?: string | null
+          session_id?: string
+          trainer_notified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_pain_events_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_pain_events_session_exercise_id_fkey"
+            columns: ["session_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "workout_session_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_pain_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -1076,51 +1726,137 @@ export type Database = {
           },
         ]
       }
-      workout_sessions: {
+      workout_session_exercises: {
         Row: {
-          completed_at:       string | null
-          created_at:         string | null
-          duration_minutes:   number | null
-          feedback_energy:    number | null
-          feedback_notes:     string | null
-          id:                 string
-          notes:              string | null
-          performance_score:  number | null
-          plan_id:            string | null
-          started_at:         string | null
-          status:             string | null
-          total_duration_min: number | null
-          user_id:            string
+          created_at: string | null
+          exercise_id: string | null
+          exercise_name: string
+          id: string
+          load_kg_prescribed: number | null
+          muscle_group: string | null
+          notes: string | null
+          order_index: number
+          plan_exercise_id: string | null
+          reps_prescribed: number | null
+          rest_seconds: number | null
+          session_id: string
+          sets_prescribed: number | null
+          skipped_reason: string | null
+          status: string
+          substituted_from_id: string | null
         }
         Insert: {
-          completed_at?:       string | null
-          created_at?:         string | null
-          duration_minutes?:   number | null
-          feedback_energy?:    number | null
-          feedback_notes?:     string | null
-          id?:                 string
-          notes?:              string | null
-          performance_score?:  number | null
-          plan_id?:            string | null
-          started_at?:         string | null
-          status?:             string | null
-          total_duration_min?: number | null
-          user_id:             string
+          created_at?: string | null
+          exercise_id?: string | null
+          exercise_name: string
+          id?: string
+          load_kg_prescribed?: number | null
+          muscle_group?: string | null
+          notes?: string | null
+          order_index?: number
+          plan_exercise_id?: string | null
+          reps_prescribed?: number | null
+          rest_seconds?: number | null
+          session_id: string
+          sets_prescribed?: number | null
+          skipped_reason?: string | null
+          status?: string
+          substituted_from_id?: string | null
         }
         Update: {
-          completed_at?:       string | null
-          created_at?:         string | null
-          duration_minutes?:   number | null
-          feedback_energy?:    number | null
-          feedback_notes?:     string | null
-          id?:                 string
-          notes?:              string | null
-          performance_score?:  number | null
-          plan_id?:            string | null
-          started_at?:         string | null
-          status?:             string | null
+          created_at?: string | null
+          exercise_id?: string | null
+          exercise_name?: string
+          id?: string
+          load_kg_prescribed?: number | null
+          muscle_group?: string | null
+          notes?: string | null
+          order_index?: number
+          plan_exercise_id?: string | null
+          reps_prescribed?: number | null
+          rest_seconds?: number | null
+          session_id?: string
+          sets_prescribed?: number | null
+          skipped_reason?: string | null
+          status?: string
+          substituted_from_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_session_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_session_exercises_plan_exercise_id_fkey"
+            columns: ["plan_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "plan_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_session_exercises_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_session_exercises_substituted_from_id_fkey"
+            columns: ["substituted_from_id"]
+            isOneToOne: false
+            referencedRelation: "workout_session_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          feedback_energy: number | null
+          feedback_notes: string | null
+          id: string
+          notes: string | null
+          performance_score: number | null
+          plan_id: string | null
+          started_at: string | null
+          status: string
+          total_duration_min: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          feedback_energy?: number | null
+          feedback_notes?: string | null
+          id?: string
+          notes?: string | null
+          performance_score?: number | null
+          plan_id?: string | null
+          started_at?: string | null
+          status?: string
           total_duration_min?: number | null
-          user_id?:            string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          feedback_energy?: number | null
+          feedback_notes?: string | null
+          id?: string
+          notes?: string | null
+          performance_score?: number | null
+          plan_id?: string | null
+          started_at?: string | null
+          status?: string
+          total_duration_min?: number | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -1139,296 +1875,59 @@ export type Database = {
           },
         ]
       }
-      workout_session_exercises: {
-        Row: {
-          created_at:          string | null
-          exercise_id:         string | null
-          exercise_name:       string
-          id:                  string
-          load_kg_prescribed:  number | null
-          muscle_group:        string | null
-          notes:               string | null
-          order_index:         number
-          plan_exercise_id:    string | null
-          reps_prescribed:     number | null
-          rest_seconds:        number | null
-          session_id:          string
-          sets_prescribed:     number | null
-          status:              string
-          substituted_from_id: string | null
-          skipped_reason:      string | null
-        }
-        Insert: {
-          created_at?:          string | null
-          exercise_id?:         string | null
-          exercise_name:        string
-          id?:                  string
-          load_kg_prescribed?:  number | null
-          muscle_group?:        string | null
-          notes?:               string | null
-          order_index?:         number
-          plan_exercise_id?:    string | null
-          reps_prescribed?:     number | null
-          rest_seconds?:        number | null
-          session_id:           string
-          sets_prescribed?:     number | null
-          status?:              string
-          substituted_from_id?: string | null
-          skipped_reason?:      string | null
-        }
-        Update: {
-          created_at?:          string | null
-          exercise_id?:         string | null
-          exercise_name?:       string
-          id?:                  string
-          load_kg_prescribed?:  number | null
-          muscle_group?:        string | null
-          notes?:               string | null
-          order_index?:         number
-          plan_exercise_id?:    string | null
-          reps_prescribed?:     number | null
-          rest_seconds?:        number | null
-          session_id?:          string
-          sets_prescribed?:     number | null
-          status?:              string
-          substituted_from_id?: string | null
-          skipped_reason?:      string | null
-        }
-        Relationships: []
-      }
       workout_set_logs: {
         Row: {
-          completed_at:        string | null
-          created_at:          string | null
-          duration_seconds:    number | null
-          id:                  string
-          load_kg:             number | null
-          rpe:                 number | null
-          reps_done:           number | null
+          completed_at: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          id: string
+          load_kg: number | null
+          reps_done: number | null
+          rpe: number | null
           session_exercise_id: string
-          session_id:          string
-          set_number:          number
+          session_id: string
+          set_number: number
         }
         Insert: {
-          completed_at?:        string | null
-          created_at?:          string | null
-          duration_seconds?:    number | null
-          id?:                  string
-          load_kg?:             number | null
-          rpe?:                 number | null
-          reps_done?:           number | null
-          session_exercise_id:  string
-          session_id:           string
-          set_number:           number
+          completed_at?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          load_kg?: number | null
+          reps_done?: number | null
+          rpe?: number | null
+          session_exercise_id: string
+          session_id: string
+          set_number: number
         }
         Update: {
-          completed_at?:        string | null
-          created_at?:          string | null
-          duration_seconds?:    number | null
-          id?:                  string
-          load_kg?:             number | null
-          rpe?:                 number | null
-          reps_done?:           number | null
+          completed_at?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          load_kg?: number | null
+          reps_done?: number | null
+          rpe?: number | null
           session_exercise_id?: string
-          session_id?:          string
-          set_number?:          number
+          session_id?: string
+          set_number?: number
         }
-        Relationships: []
-      }
-      workout_pain_events: {
-        Row: {
-          body_region:          string
-          created_at:           string | null
-          exercise_id:          string | null
-          id:                   string
-          intensity:            number
-          reported_at:          string | null
-          session_exercise_id:  string | null
-          session_id:           string
-          trainer_notified:     boolean | null
-        }
-        Insert: {
-          body_region:          string
-          created_at?:          string | null
-          exercise_id?:         string | null
-          id?:                  string
-          intensity:            number
-          reported_at?:         string | null
-          session_exercise_id?: string | null
-          session_id:           string
-          trainer_notified?:    boolean | null
-        }
-        Update: {
-          body_region?:         string
-          created_at?:          string | null
-          exercise_id?:         string | null
-          id?:                  string
-          intensity?:           number
-          reported_at?:         string | null
-          session_exercise_id?: string | null
-          session_id?:          string
-          trainer_notified?:    boolean | null
-        }
-        Relationships: []
-      }
-      post_workout_feedback: {
-        Row: {
-          created_at:      string | null
-          energy_after:    number | null
-          id:              string
-          notes:           string | null
-          overall_feeling: number
-          session_id:      string
-          submitted_at:    string | null
-          user_id:         string
-        }
-        Insert: {
-          created_at?:      string | null
-          energy_after?:    number | null
-          id?:              string
-          notes?:           string | null
-          overall_feeling:  number
-          session_id:       string
-          submitted_at?:    string | null
-          user_id:          string
-        }
-        Update: {
-          created_at?:      string | null
-          energy_after?:    number | null
-          id?:              string
-          notes?:           string | null
-          overall_feeling?: number
-          session_id?:      string
-          submitted_at?:    string | null
-          user_id?:         string
-        }
-        Relationships: []
-      }
-      active_context: {
-        Row: {
-          user_id:     string
-          active_role: string
-          studio_id:   string | null
-          switched_at: string
-        }
-        Insert: {
-          user_id:     string
-          active_role: string
-          studio_id?:  string | null
-          switched_at?: string
-        }
-        Update: {
-          user_id?:    string
-          active_role?: string
-          studio_id?:  string | null
-          switched_at?: string
-        }
-        Relationships: []
-      }
-      audit_logs: {
-        Row: {
-          id:         string
-          actor_id:   string
-          actor_role: string
-          table_name: string
-          record_id:  string | null
-          action:     string
-          metadata:   Json | null
-          created_at: string
-        }
-        Insert: {
-          id?:        string
-          actor_id:   string
-          actor_role: string
-          table_name: string
-          record_id?: string | null
-          action:     string
-          metadata?:  Json | null
-          created_at?: string
-        }
-        Update: {
-          id?:        string
-          actor_id?:  string
-          actor_role?: string
-          table_name?: string
-          record_id?: string | null
-          action?:    string
-          metadata?:  Json | null
-          created_at?: string
-        }
-        Relationships: []
-      }
-      masked_operational_contexts: {
-        Row: {
-          id:               string
-          context_token:    string
-          resolved_user_id: string
-          purpose:          string
-          requested_by:     string
-          expires_at:       string
-          created_at:       string
-        }
-        Insert: {
-          id?:               string
-          context_token?:    string
-          resolved_user_id:  string
-          purpose:           string
-          requested_by:      string
-          expires_at?:       string
-          created_at?:       string
-        }
-        Update: {
-          id?:               string
-          context_token?:    string
-          resolved_user_id?: string
-          purpose?:          string
-          requested_by?:     string
-          expires_at?:       string
-          created_at?:       string
-        }
-        Relationships: []
-      }
-      role_permissions: {
-        Row: {
-          role_code:       string
-          permission_code: string
-          granted_at:      string
-        }
-        Insert: {
-          role_code:       string
-          permission_code: string
-          granted_at?:     string
-        }
-        Update: {
-          role_code?:       string
-          permission_code?: string
-          granted_at?:      string
-        }
-        Relationships: []
-      }
-      roles: {
-        Row: {
-          code:        string
-          label:       string
-          description: string | null
-          is_system:   boolean
-          created_at:  string
-        }
-        Insert: {
-          code:         string
-          label:        string
-          description?: string | null
-          is_system?:   boolean
-          created_at?:  string
-        }
-        Update: {
-          code?:        string
-          label?:       string
-          description?: string | null
-          is_system?:   boolean
-          created_at?:  string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "workout_set_logs_session_exercise_id_fkey"
+            columns: ["session_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "workout_session_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workouts: {
         Row: {
@@ -1474,170 +1973,20 @@ export type Database = {
           },
         ]
       }
-      system_events: {
-        Row: {
-          id:          string
-          user_id:     string
-          event_type:  string
-          entity_type: string | null
-          entity_id:   string | null
-          payload:     Json
-          created_at:  string
-        }
-        Insert: {
-          id?:          string
-          user_id:      string
-          event_type:   string
-          entity_type?: string | null
-          entity_id?:   string | null
-          payload?:     Json
-          created_at?:  string
-        }
-        Update: {
-          id?:          string
-          user_id?:     string
-          event_type?:  string
-          entity_type?: string | null
-          entity_id?:   string | null
-          payload?:     Json
-          created_at?:  string
-        }
-        Relationships: []
-      }
-      trainer_alerts: {
-        Row: {
-          id:          string
-          trainer_id:  string
-          client_id:   string
-          alert_type:  string
-          severity:    string
-          title:       string
-          body:        string | null
-          status:      string
-          session_id:  string | null
-          event_id:    string | null
-          created_at:  string
-          resolved_at: string | null
-        }
-        Insert: {
-          id?:          string
-          trainer_id:   string
-          client_id:    string
-          alert_type:   string
-          severity?:    string
-          title:        string
-          body?:        string | null
-          status?:      string
-          session_id?:  string | null
-          event_id?:    string | null
-          created_at?:  string
-          resolved_at?: string | null
-        }
-        Update: {
-          id?:          string
-          trainer_id?:  string
-          client_id?:   string
-          alert_type?:  string
-          severity?:    string
-          title?:       string
-          body?:        string | null
-          status?:      string
-          session_id?:  string | null
-          event_id?:    string | null
-          created_at?:  string
-          resolved_at?: string | null
-        }
-        Relationships: []
-      }
-      operational_tasks: {
-        Row: {
-          id:                 string
-          trainer_id:         string
-          client_id:          string
-          task_type:          string
-          title:              string
-          description:        string | null
-          priority:           string
-          status:             string
-          due_date:           string | null
-          related_session_id: string | null
-          related_alert_id:   string | null
-          created_at:         string
-          completed_at:       string | null
-        }
-        Insert: {
-          id?:                 string
-          trainer_id:          string
-          client_id:           string
-          task_type:           string
-          title:               string
-          description?:        string | null
-          priority?:           string
-          status?:             string
-          due_date?:           string | null
-          related_session_id?: string | null
-          related_alert_id?:   string | null
-          created_at?:         string
-          completed_at?:       string | null
-        }
-        Update: {
-          id?:                 string
-          trainer_id?:         string
-          client_id?:          string
-          task_type?:          string
-          title?:              string
-          description?:        string | null
-          priority?:           string
-          status?:             string
-          due_date?:           string | null
-          related_session_id?: string | null
-          related_alert_id?:   string | null
-          created_at?:         string
-          completed_at?:       string | null
-        }
-        Relationships: []
-      }
-      audit_log: {
-        Row: {
-          id:          string
-          actor_id:    string | null
-          action:      string
-          entity_type: string | null
-          entity_id:   string | null
-          old_value:   Json | null
-          new_value:   Json | null
-          created_at:  string
-        }
-        Insert: {
-          id?:          string
-          actor_id?:    string | null
-          action:       string
-          entity_type?: string | null
-          entity_id?:   string | null
-          old_value?:   Json | null
-          new_value?:   Json | null
-          created_at?:  string
-        }
-        Update: {
-          id?:          string
-          actor_id?:    string | null
-          action?:      string
-          entity_type?: string | null
-          entity_id?:   string | null
-          old_value?:   Json | null
-          new_value?:   Json | null
-          created_at?:  string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      studio_has_trainer:  { Args: { trainer_uuid: string };           Returns: boolean }
-      get_active_role:     { Args: { uid?: string };                   Returns: string  }
-      has_permission:      { Args: { perm: string; uid?: string };     Returns: boolean }
+      get_active_role: { Args: { uid?: string }; Returns: string }
+      get_device_tokens: {
+        Args: { uid: string }
+        Returns: {
+          token: string
+        }[]
+      }
+      has_permission: { Args: { perm: string; uid?: string }; Returns: boolean }
+      studio_has_trainer: { Args: { trainer_uuid: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

@@ -12,7 +12,8 @@ import {
 } from '../../theme';
 import type { NavFn } from '../../types';
 import { DARK } from '../../theme/tokens';
-import { useTrainerTheme } from '../../hooks/useTrainerTheme';
+import { useTrainerTheme }  from '../../hooks/useTrainerTheme';
+import { autoExpirePlans } from '../../lib/autoExpirePlans';
 
 interface ClientProfile {
   id:    string;
@@ -108,6 +109,8 @@ export function TrainerClientDetailScreen({
   React.useEffect(() => {
     if (!selectedClient?.id) return;
     setLoading(true);
+    // Auto-cancel stale plans (>10 days) for this client; notify client
+    void autoExpirePlans(selectedClient.id, 'trainer');
     Promise.all([
       supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score,status').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(5),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', selectedClient.id).order('created_at', { ascending: false }).limit(10),
