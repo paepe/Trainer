@@ -5,7 +5,8 @@ import { DNASlider }   from '../components/DNASlider';
 import { ChoiceCard }  from '../components/ChoiceCard';
 import { FieldLabel }  from '../components/FieldLabel';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 import { CERTS }       from '../constants';
 import type { CoachDNABackground } from '../../types/coach-dna';
 
@@ -15,6 +16,7 @@ interface Step02Props {
 }
 
 export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
+  const { t } = useTheme();
   const toggleCert = (key: string) => {
     const certs = data.certs.includes(key)
       ? data.certs.filter(c => c !== key)
@@ -42,7 +44,7 @@ export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
           onChange={years => onChange({ years })}
           min={0} max={40}
           suffix=" yrs"
-          color={BRAND.accent}
+          color={t.accent}
         />
       </div>
 
@@ -55,7 +57,7 @@ export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
             onClick={() => toggleCert(cert.key)}
             icon={cert.icon}
             title={cert.label}
-            color={BRAND.accent}
+            color={t.accent}
           />
         ))}
       </div>

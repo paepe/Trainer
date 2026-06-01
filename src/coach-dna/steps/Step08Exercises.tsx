@@ -5,7 +5,8 @@ import { FieldLabel }  from '../components/FieldLabel';
 import { VoiceBar }    from '../components/VoiceBar';
 import { PrivacyNote } from '../components/PrivacyNote';
 import { Icon }        from '../../components/Icon';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 import type { CoachDNAExercises } from '../../types/coach-dna';
 
 interface Step08Props {
@@ -76,7 +77,9 @@ function TagInput({ tags, placeholder, onAdd, onRemove, color }: {
   );
 }
 
-export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) => (
+export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) => {
+  const { t } = useTheme();
+  return (
   <div>
     <StepHeader
       idx={8} total={12}
@@ -90,7 +93,7 @@ export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) 
     <TagInput
       tags={exercises.favorites}
       placeholder="e.g. Back Squat, Turkish Get-Up…"
-      color={BRAND.accent}
+      color={t.accent}
       onAdd={t  => onChange({ ...exercises, favorites: [...exercises.favorites, t] })}
       onRemove={t => onChange({ ...exercises, favorites: exercises.favorites.filter(x => x !== t) })}
     />
@@ -119,4 +122,5 @@ export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) 
       This repertoire feeds the automatic exercise selection by the AI Coach Engine.
     </PrivacyNote>
   </div>
-);
+  );
+};

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 import { supabase } from '../../supabase';
 
 interface PhotoSlotProps {
@@ -15,6 +16,7 @@ function initials(name: string): string {
 }
 
 export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = '', trainerId }) => {
+  const { t } = useTheme();
   const fileRef  = React.useRef<HTMLInputElement>(null);
   const [loading, setLoading] = React.useState(false);
   const [failed,  setFailed]  = React.useState(false);
@@ -49,7 +51,7 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
         style={{
           width: 92, height: 92, borderRadius: 24, flexShrink: 0,
           background:  hasImage ? 'transparent' : DARK.surface,
-          border:      `1.5px solid ${hasImage ? BRAND.accent : DARK.border}`,
+          border:      `1.5px solid ${hasImage ? t.accent : DARK.border}`,
           overflow:    'hidden', cursor: loading ? 'default' : 'pointer',
           display:     'flex', alignItems: 'center', justifyContent: 'center',
           position:    'relative',
@@ -75,11 +77,11 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
         ) : loading ? (
           <div style={{
             width: 20, height: 20, borderRadius: '50%',
-            border: `2px solid ${DARK.border}`, borderTopColor: BRAND.accent,
+            border: `2px solid ${DARK.border}`, borderTopColor: t.accent,
             animation: 'spin .7s linear infinite',
           }}/>
         ) : name ? (
-          <span style={{ fontSize: 26, fontWeight: 800, color: BRAND.accent }}>
+          <span style={{ fontSize: 26, fontWeight: 800, color: t.accent }}>
             {initials(name)}
           </span>
         ) : (

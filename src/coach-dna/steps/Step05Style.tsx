@@ -3,7 +3,8 @@ import { Icon }        from '../../components/Icon';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 import { STYLES }      from '../constants';
 
 interface Step05Props {
@@ -12,6 +13,7 @@ interface Step05Props {
 }
 
 export const Step05Style: React.FC<Step05Props> = ({ style, onChange }) => {
+  const { t } = useTheme();
   const toggle = (key: string) => {
     onChange(
       style.includes(key) ? style.filter(s => s !== key) : [...style, key],
@@ -41,18 +43,18 @@ export const Step05Style: React.FC<Step05Props> = ({ style, onChange }) => {
                 justifyContent: 'center', gap: 8,
                 padding:      '16px 10px',
                 borderRadius: 14,
-                border:       `1.5px solid ${active ? BRAND.accent : DARK.border}`,
-                background:   active ? `${BRAND.accent}1c` : DARK.surface,
+                border:       `1.5px solid ${active ? t.accent : DARK.border}`,
+                background:   active ? `${t.accent}1c` : DARK.surface,
                 cursor:       'pointer', fontFamily: 'inherit',
                 transition:   'background .15s, border-color .15s',
               }}
             >
               <div style={{
                 width: 36, height: 36, borderRadius: 10,
-                background: active ? `${BRAND.accent}22` : `${DARK.border}66`,
+                background: active ? `${t.accent}22` : `${DARK.border}66`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Icon name={s.icon} size={18} color={active ? BRAND.accent : DARK.textSec}/>
+                <Icon name={s.icon} size={18} color={active ? t.accent : DARK.textSec}/>
               </div>
               <span style={{
                 fontSize: 12, fontWeight: 600,

@@ -6,7 +6,8 @@ import { FieldLabel }  from '../components/FieldLabel';
 import { VoiceBar }    from '../components/VoiceBar';
 import { PrivacyNote } from '../components/PrivacyNote';
 import { MOTTO_EXAMPLES } from '../constants';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 import type { CoachDNAPhilosophy } from '../../types/coach-dna';
 
 interface Step12Props {
@@ -14,7 +15,9 @@ interface Step12Props {
   onChange:   (philosophy: CoachDNAPhilosophy) => void;
 }
 
-export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }) => (
+export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }) => {
+  const { t } = useTheme();
+  return (
   <div>
     <StepHeader
       idx={12} total={12}
@@ -37,9 +40,9 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
           onClick={() => onChange({ ...philosophy, motto: m })}
           style={{
             padding: '4px 10px', borderRadius: 20,
-            border: `1px solid ${philosophy.motto === m ? BRAND.accent : DARK.border}`,
-            background: philosophy.motto === m ? `${BRAND.accent}20` : 'transparent',
-            color: philosophy.motto === m ? BRAND.accent : DARK.textMute,
+            border: `1px solid ${philosophy.motto === m ? t.accent : DARK.border}`,
+            background: philosophy.motto === m ? `${t.accent}20` : 'transparent',
+            color: philosophy.motto === m ? t.accent : DARK.textMute,
             fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
             transition: 'border-color .15s, background .15s',
           }}
@@ -72,4 +75,5 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
       This prompt is the most powerful context in your DNA — the AI uses these words literally to capture your voice.
     </PrivacyNote>
   </div>
-);
+  );
+};

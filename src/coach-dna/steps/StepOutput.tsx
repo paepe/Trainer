@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icon }        from '../../components/Icon';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { BRAND, DARK } from '../../theme/tokens';
+import { TRAINER_BRAND, DARK } from '../../theme/tokens';
 import type { CoachArchetype } from '../../types/coach-dna';
 
 interface ArchetypeMeta {
@@ -18,42 +18,42 @@ const ARCHETYPE_META: Record<CoachArchetype, ArchetypeMeta> = {
     sub:   'High performance & measurable goals',
     desc:  'You train for results. Every session has metrics, every client has targets. Your DNA generates performance-oriented workouts focused on load progression and personal bests.',
     icon:  'zap',
-    color: BRAND.accent,
+    color: TRAINER_BRAND.accent,
   },
   technician: {
     title: 'The Technician',
     sub:   'Biomechanics & methodological precision',
     desc:  'You are obsessed with method. Every exercise has a reason, every phase has logic. Your DNA generates workouts with precise technical cuing and well-structured progressions.',
     icon:  'gauge',
-    color: BRAND.primarySoft,
+    color: TRAINER_BRAND.primarySoft,
   },
   motivator: {
     title: 'The Motivator',
     sub:   'Energy & memorable experiences',
     desc:  'You create environments that inspire. Your DNA generates workouts with energizing language, variety, and challenges that keep clients engaged and coming back.',
     icon:  'flame',
-    color: BRAND.amber,
+    color: TRAINER_BRAND.amber,
   },
   guide: {
     title: 'The Guide',
     sub:   'Empathy & sustainable progress',
     desc:  'You accompany each client at their own pace. Your DNA generates progressive workouts explained with empathy, focused on long-term health and client autonomy.',
     icon:  'heart',
-    color: BRAND.success,
+    color: TRAINER_BRAND.success,
   },
   drill: {
     title: 'Drill Master',
     sub:   'Discipline & progressive rigor',
     desc:  'You demand the best from every client. Your DNA generates challenging workouts with well-defined strength sequences and maximum execution standards in every rep.',
     icon:  'shieldCheck',
-    color: BRAND.primary,
+    color: TRAINER_BRAND.primary,
   },
   movement: {
     title: 'Movement Specialist',
     sub:   'Function, mobility & motor patterns',
     desc:  'You see the body as an integrated system. Your DNA generates workouts emphasizing movement quality, mobility, and functional patterns.',
     icon:  'wave',
-    color: BRAND.lavender,
+    color: TRAINER_BRAND.lavender,
   },
 };
 

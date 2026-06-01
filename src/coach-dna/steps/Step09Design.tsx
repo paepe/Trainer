@@ -5,7 +5,7 @@ import { FieldLabel } from '../components/FieldLabel';
 import { Chip }       from '../components/Chip';
 import { ChoiceCard } from '../components/ChoiceCard';
 import { FORMATS, CURVES } from '../constants';
-import { BRAND }      from '../../theme/tokens';
+import { useTheme }   from '../../contexts';
 import type { CoachDNADesign } from '../../types/coach-dna';
 
 interface Step09Props {
@@ -22,6 +22,7 @@ const CURVE_ICONS: Record<string, string> = {
 };
 
 export const Step09Design: React.FC<Step09Props> = ({ design, onChange }) => {
+  const { t } = useTheme();
   const toggleFormat = (f: string) => {
     const next = design.formats.includes(f)
       ? design.formats.filter(x => x !== f)
@@ -46,7 +47,7 @@ export const Step09Design: React.FC<Step09Props> = ({ design, onChange }) => {
             key={f}
             label={f}
             active={design.formats.includes(f)}
-            color={BRAND.accent}
+            color={t.accent}
             multi
             onClick={() => toggleFormat(f)}
           />
@@ -61,7 +62,7 @@ export const Step09Design: React.FC<Step09Props> = ({ design, onChange }) => {
             icon={CURVE_ICONS[c.key] ?? 'target'}
             title={c.label}
             sub={c.sub}
-            color={BRAND.accent}
+            color={t.accent}
             active={design.curve === c.key}
             onClick={() => onChange({ ...design, curve: c.key })}
           />

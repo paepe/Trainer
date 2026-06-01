@@ -1,7 +1,8 @@
 import React from 'react';
 import { Icon }          from '../components/Icon';
 import { useCoachDNA }   from '../hooks/useCoachDNA';
-import { BRAND, DARK }   from '../theme/tokens';
+import { DARK }          from '../theme/tokens';
+import { useTheme }      from '../contexts';
 import { TOTAL_STEPS }   from './constants';
 import { computeArchetype } from './computeArchetype';
 import {
@@ -37,6 +38,7 @@ interface CoachDNAScreenProps {
 
 export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNAScreenProps) {
   const trainerId = trainerIdProp ?? user.id;
+  const { t } = useTheme();
   const { fetchCoachDNA, saveCoachDNA } = useCoachDNA(trainerId);
 
   const [step,      setStep]      = React.useState(0);
@@ -178,7 +180,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
       }}>
         <div style={{
           width: 32, height: 32, borderRadius: '50%',
-          border: `3px solid ${DARK.border}`, borderTopColor: BRAND.accent,
+          border: `3px solid ${DARK.border}`, borderTopColor: t.accent,
           animation: 'spin .7s linear infinite',
         }}/>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -219,7 +221,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
             <div style={{
               fontFamily:    '"JetBrains Mono",ui-monospace,monospace',
               fontSize:      10.5, fontWeight: 700, letterSpacing: '.18em',
-              textTransform: 'uppercase', color: BRAND.accent,
+              textTransform: 'uppercase', color: t.accent,
             }}>
               TrAIner · Coach Studio
             </div>
@@ -240,7 +242,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               opacity: (step === 0 || step === OUTPUT_STEP) ? 0 : 1, flexShrink: 0,
             }}
           >
-            <Icon name="check" size={16} color={BRAND.accent}/>
+            <Icon name="check" size={16} color={t.accent}/>
           </button>
         </div>
 
@@ -248,7 +250,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
         <div style={{ height: 3, borderRadius: 2, background: DARK.border }}>
           <div style={{
             height: '100%', borderRadius: 2,
-            background: `linear-gradient(90deg,#C23B22,${BRAND.accent})`,
+            background: `linear-gradient(90deg,#C23B22,${t.accent})`,
             width: `${progressPct}%`,
             transition: 'width .35s ease',
           }}/>
@@ -281,10 +283,10 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
             style={{
               width: '100%', padding: '16px 20px',
               borderRadius: 14, border: 'none',
-              background: BRAND.accent, color: '#fff',
+              background: t.accent, color: '#fff',
               fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
               cursor: 'pointer',
-              boxShadow: `0 10px 30px ${BRAND.accent}44`,
+              boxShadow: `0 10px 30px ${t.accent}44`,
             }}
           >
             {dnaActive ? 'Edit Coach DNA' : 'Build my Coach DNA'}
@@ -296,10 +298,10 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
             style={{
               width: '100%', padding: '16px 20px',
               borderRadius: 14, border: 'none',
-              background: BRAND.accent, color: '#fff',
+              background: t.accent, color: '#fff',
               fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
               cursor: 'pointer', opacity: saving ? 0.6 : 1,
-              boxShadow: `0 10px 30px ${BRAND.accent}44`,
+              boxShadow: `0 10px 30px ${t.accent}44`,
             }}
           >
             {saving ? 'Saving…' : dnaActive ? 'Update Coach DNA' : 'Activate Coach DNA'}
@@ -311,8 +313,8 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               disabled={saving}
               style={{
                 flex: 1, padding: '15px 20px', borderRadius: 14,
-                border: `1.5px solid ${BRAND.accent}`,
-                background: 'transparent', color: BRAND.accent,
+                border: `1.5px solid ${t.accent}`,
+                background: 'transparent', color: t.accent,
                 fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
                 cursor: 'pointer', opacity: saving ? 0.6 : 1,
               }}
@@ -325,10 +327,10 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               style={{
                 flex: 2, padding: '15px 20px', borderRadius: 14,
                 border: 'none',
-                background: BRAND.accent, color: '#fff',
+                background: t.accent, color: '#fff',
                 fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
                 cursor: 'pointer', opacity: saving ? 0.6 : 1,
-                boxShadow: `0 8px 24px ${BRAND.accent}44`,
+                boxShadow: `0 8px 24px ${t.accent}44`,
               }}
             >
               {saving ? 'Saving…' : step < TOTAL_STEPS ? 'Continue' : 'Complete Coach DNA'}

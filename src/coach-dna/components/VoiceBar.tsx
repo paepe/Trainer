@@ -1,6 +1,7 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 
 interface VoiceBarProps {
   onTranscript: (text: string) => void;
@@ -51,6 +52,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
   onTranscript,
   hint = 'Dictate to AI',
 }) => {
+  const { t } = useTheme();
   const [active, setActive]   = React.useState(false);
   const [interim, setInterim] = React.useState('');
   const [error, setError]     = React.useState<string | null>(null);
@@ -119,8 +121,8 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
         gap:          12,
         padding:      '12px 14px',
         borderRadius: 12,
-        border:       `1.5px dashed ${active ? BRAND.accent : DARK.border}`,
-        background:   active ? `${BRAND.accent}08` : 'transparent',
+        border:       `1.5px dashed ${active ? t.accent : DARK.border}`,
+        background:   active ? `${t.accent}08` : 'transparent',
         marginBottom: 8,
         cursor:       active ? 'pointer' : 'default',
         transition:   'border-color .2s, background .2s',
@@ -132,7 +134,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
           <div style={{
             position:     'absolute', inset: -6,
             borderRadius: '50%',
-            border:       `2px solid ${BRAND.accent}`,
+            border:       `2px solid ${t.accent}`,
             animation:    'dna-pulse-ring 1.2s ease-out infinite',
             pointerEvents: 'none',
           }}/>
@@ -142,7 +144,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
           title={active ? 'Parar gravação' : 'Iniciar gravação'}
           style={{
             width: 36, height: 36, borderRadius: '50%', border: 'none',
-            background: active ? BRAND.accent : DARK.surface,
+            background: active ? t.accent : DARK.surface,
             color:      active ? '#fff' : DARK.textSec,
             display:    'flex', alignItems: 'center', justifyContent: 'center',
             cursor:     'pointer', flexShrink: 0,
@@ -163,7 +165,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} style={{
                 width: 3, borderRadius: 2,
-                background: BRAND.accent,
+                background: t.accent,
                 animation:  `dna-wave .8s ease-in-out ${i * 0.12}s infinite`,
                 height:     '60%',
               }}/>
@@ -190,18 +192,18 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
         <div style={{
           display:      'flex', alignItems: 'center', gap: 5,
           padding:      '4px 10px', borderRadius: 20,
-          background:   `${BRAND.accent}22`,
-          border:       `1px solid ${BRAND.accent}55`,
+          background:   `${t.accent}22`,
+          border:       `1px solid ${t.accent}55`,
           flexShrink:   0,
         }}>
           <div style={{
             width: 6, height: 6, borderRadius: '50%',
-            background: BRAND.accent,
+            background: t.accent,
             animation:  'dna-dot-blink .9s ease-in-out infinite',
           }}/>
           <span style={{
             fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em',
-            textTransform: 'uppercase', color: BRAND.accent,
+            textTransform: 'uppercase', color: t.accent,
             whiteSpace: 'nowrap',
           }}>
             Stop

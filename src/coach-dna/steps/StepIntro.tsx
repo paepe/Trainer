@@ -1,7 +1,8 @@
 import React from 'react';
 import { Icon }        from '../../components/Icon';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 
 const FEATURES = [
   { icon: 'fingerprint', label: 'Professional identity and background'    },
@@ -11,15 +12,17 @@ const FEATURES = [
   { icon: 'brain',       label: 'Philosophy and AI personality'           },
 ] as const;
 
-export const StepIntro: React.FC = () => (
+export const StepIntro: React.FC = () => {
+  const { t } = useTheme();
+  return (
   <div>
     {/* hero icon */}
     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
       <div style={{
         width: 56, height: 56, borderRadius: 18,
-        background: `linear-gradient(135deg, ${BRAND.accent}, #C23B22)`,
+        background: `linear-gradient(135deg, ${t.accent}, #C23B22)`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: `0 12px 30px ${BRAND.accent}44`,
+        boxShadow: `0 12px 30px ${t.accent}44`,
       }}>
         <Icon name="fingerprint" size={28} color="#fff" stroke={1.5}/>
       </div>
@@ -31,7 +34,7 @@ export const StepIntro: React.FC = () => (
         margin: '0 0 4px',
         fontFamily: '"JetBrains Mono",ui-monospace,monospace',
         fontSize: 10.5, fontWeight: 700, letterSpacing: '.18em',
-        textTransform: 'uppercase', color: BRAND.accent,
+        textTransform: 'uppercase', color: t.accent,
       }}>
         COACH STUDIO · FEED THE AI
       </p>
@@ -62,10 +65,10 @@ export const StepIntro: React.FC = () => (
         }}>
           <div style={{
             width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-            background: `${BRAND.accent}22`,
+            background: `${t.accent}22`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Icon name={icon} size={14} color={BRAND.accent}/>
+            <Icon name={icon} size={14} color={t.accent}/>
           </div>
           <span style={{ fontSize: 13, color: DARK.textSec }}>{label}</span>
         </div>
@@ -84,4 +87,5 @@ export const StepIntro: React.FC = () => (
       ≈ 5–8 min · 12 blocks · powers the AI Coach Engine
     </p>
   </div>
-);
+  );
+};

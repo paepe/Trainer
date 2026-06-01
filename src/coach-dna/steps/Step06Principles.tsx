@@ -2,7 +2,8 @@ import React from 'react';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 import { PRINCIPLES }  from '../constants';
 
 const MAX = 3;
@@ -13,6 +14,7 @@ interface Step06Props {
 }
 
 export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }) => {
+  const { t } = useTheme();
   const toggle = (key: string) => {
     if (principles.includes(key)) {
       onChange(principles.filter(p => p !== key));
@@ -38,7 +40,7 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
         display: 'flex', justifyContent: 'flex-end',
         marginBottom: 12,
         fontFamily: '"JetBrains Mono",ui-monospace,monospace',
-        fontSize: 11, color: atMax ? BRAND.accent : DARK.textMute,
+        fontSize: 11, color: atMax ? t.accent : DARK.textMute,
       }}>
         {principles.length}/{MAX}
       </div>
@@ -57,8 +59,8 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
               style={{
                 display:      'flex', alignItems: 'center', gap: 12,
                 padding:      '13px 14px', borderRadius: 12,
-                border:       `1.5px solid ${active ? BRAND.accent : DARK.border}`,
-                background:   active ? `${BRAND.accent}14` : DARK.surface,
+                border:       `1.5px solid ${active ? t.accent : DARK.border}`,
+                background:   active ? `${t.accent}14` : DARK.surface,
                 cursor:       dimmed ? 'not-allowed' : 'pointer',
                 opacity:      dimmed ? 0.4 : 1,
                 fontFamily:   'inherit', textAlign: 'left',
@@ -67,8 +69,8 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
             >
               <div style={{
                 width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                border:     `1.5px solid ${active ? BRAND.accent : DARK.border}`,
-                background: active ? BRAND.accent : 'transparent',
+                border:     `1.5px solid ${active ? t.accent : DARK.border}`,
+                background: active ? t.accent : 'transparent',
                 display:    'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: '"Plus Jakarta Sans","Inter",sans-serif',
                 fontSize:   12, fontWeight: 800,

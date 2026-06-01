@@ -4,7 +4,7 @@ import { Hint }       from '../components/Hint';
 import { FieldLabel } from '../components/FieldLabel';
 import { Chip }       from '../components/Chip';
 import { TONES, CLIENTS } from '../constants';
-import { BRAND }      from '../../theme/tokens';
+import { useTheme }   from '../../contexts';
 import type { CoachDNAAudience } from '../../types/coach-dna';
 
 interface Step11Props {
@@ -13,10 +13,11 @@ interface Step11Props {
 }
 
 export const Step11Audience: React.FC<Step11Props> = ({ audience, onChange }) => {
-  const toggleTone = (t: string) => {
-    const next = audience.tone.includes(t)
-      ? audience.tone.filter(x => x !== t)
-      : [...audience.tone, t];
+  const { t } = useTheme();
+  const toggleTone = (tone: string) => {
+    const next = audience.tone.includes(tone)
+      ? audience.tone.filter(x => x !== tone)
+      : [...audience.tone, tone];
     onChange({ ...audience, tone: next });
   };
   const toggleClient = (c: string) => {
@@ -38,14 +39,14 @@ export const Step11Audience: React.FC<Step11Props> = ({ audience, onChange }) =>
 
       <FieldLabel hint="multi">Communication tone</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
-        {TONES.map(t => (
+        {TONES.map(tone => (
           <Chip
-            key={t}
-            label={t}
-            active={audience.tone.includes(t)}
-            color={BRAND.accent}
+            key={tone}
+            label={tone}
+            active={audience.tone.includes(tone)}
+            color={t.accent}
             multi
-            onClick={() => toggleTone(t)}
+            onClick={() => toggleTone(tone)}
           />
         ))}
       </div>
@@ -57,7 +58,7 @@ export const Step11Audience: React.FC<Step11Props> = ({ audience, onChange }) =>
             key={c}
             label={c}
             active={audience.clients.includes(c)}
-            color={BRAND.primarySoft}
+            color={t.primarySoft}
             multi
             onClick={() => toggleClient(c)}
           />

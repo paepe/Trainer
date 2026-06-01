@@ -4,7 +4,7 @@ import { Hint }        from '../components/Hint';
 import { Chip }        from '../components/Chip';
 import { FieldLabel }  from '../components/FieldLabel';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { BRAND }       from '../../theme/tokens';
+import { useTheme }    from '../../contexts';
 import { METHODS, ENVIRONMENTS, INTENSITY } from '../constants';
 import type { CoachDNATraining } from '../../types/coach-dna';
 
@@ -14,6 +14,7 @@ interface Step04Props {
 }
 
 export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
+  const { t } = useTheme();
   const toggleMethod = (m: string) => {
     const methods = data.methods.includes(m)
       ? data.methods.filter(x => x !== m)
@@ -44,7 +45,7 @@ export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
             key={m} label={m} multi
             active={data.methods.includes(m)}
             onClick={() => toggleMethod(m)}
-            color={BRAND.accent}
+            color={t.accent}
           />
         ))}
       </div>
@@ -56,7 +57,7 @@ export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
             key={e} label={e} multi
             active={data.envs.includes(e)}
             onClick={() => toggleEnv(e)}
-            color={BRAND.primarySoft}
+            color={t.primarySoft}
           />
         ))}
       </div>
@@ -68,7 +69,7 @@ export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
             key={i} label={i}
             active={data.intensity === i}
             onClick={() => onChange({ intensity: i })}
-            color={BRAND.accent}
+            color={t.accent}
           />
         ))}
       </div>

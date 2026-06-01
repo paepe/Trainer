@@ -6,7 +6,7 @@ import { Chip }        from '../components/Chip';
 import { VoiceBar }    from '../components/VoiceBar';
 import { PhotoSlot }   from '../components/PhotoSlot';
 import { FieldLabel }  from '../components/FieldLabel';
-import { BRAND }       from '../../theme/tokens';
+import { useTheme }    from '../../contexts';
 import type { CoachDNAIdentity } from '../../types/coach-dna';
 
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'] as const;
@@ -17,7 +17,9 @@ interface Step01Props {
   trainerId: string;
 }
 
-export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerId }) => (
+export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerId }) => {
+  const { t } = useTheme();
+  return (
   <div>
     <StepHeader
       idx={1} total={12}
@@ -54,7 +56,7 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
             label={g}
             active={data.gender === g}
             onClick={() => onChange({ gender: g })}
-            color={BRAND.accent}
+            color={t.accent}
           />
         ))}
       </div>
@@ -70,4 +72,5 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
       optional
     />
   </div>
-);
+  );
+};

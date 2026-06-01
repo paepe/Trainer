@@ -1,4 +1,4 @@
-import { BRAND } from '../theme/tokens';
+import { TRAINER_BRAND } from '../theme/tokens';
 
 // ─── Block 2 — Certifications ─────────────────────────────────────────────────
 
@@ -74,12 +74,12 @@ export const PRINCIPLES = [
 // ─── Phase 2 constants ────────────────────────────────────────────────────────
 
 export const FOCUS_ITEMS = [
-  { key: 'strength',  label: 'Strength',              color: BRAND.primary     },
-  { key: 'endurance', label: 'Endurance',              color: BRAND.accent      },
-  { key: 'mobility',  label: 'Mobility',               color: BRAND.lavender    },
-  { key: 'athletic',  label: 'Athletic performance',   color: BRAND.amber       },
-  { key: 'coord',     label: 'Coordination',           color: BRAND.primarySoft },
-  { key: 'balance',   label: 'Stability / Balance',    color: BRAND.success     },
+  { key: 'strength',  label: 'Strength',              color: TRAINER_BRAND.primary     },
+  { key: 'endurance', label: 'Endurance',              color: TRAINER_BRAND.accent      },
+  { key: 'mobility',  label: 'Mobility',               color: TRAINER_BRAND.lavender    },
+  { key: 'athletic',  label: 'Athletic performance',   color: TRAINER_BRAND.amber       },
+  { key: 'coord',     label: 'Coordination',           color: TRAINER_BRAND.primarySoft },
+  { key: 'balance',   label: 'Stability / Balance',    color: TRAINER_BRAND.success     },
 ] as const;
 
 export const FORMATS = [
@@ -88,12 +88,12 @@ export const FORMATS = [
 ] as const;
 
 export const STRUCTURE_BLOCKS = [
-  { key: 'mobility',      label: 'Mobility',          sub: 'Joint activation',         icon: 'wave',    color: BRAND.lavender    },
-  { key: 'warmup',        label: 'Warm-up',            sub: 'Temperature increase',     icon: 'flame',   color: BRAND.amber       },
-  { key: 'technique',     label: 'Technique',          sub: 'Motor pattern focus',      icon: 'target',  color: BRAND.primarySoft },
-  { key: 'strength',      label: 'Strength',           sub: 'Main block',               icon: 'dumbbell',color: BRAND.primary     },
-  { key: 'conditioning',  label: 'Conditioning / WOD', sub: 'Metabolism & endurance',   icon: 'run',     color: BRAND.accent      },
-  { key: 'cooldown',      label: 'Cool-down',          sub: 'Recovery & flexibility',   icon: 'heart',   color: BRAND.success     },
+  { key: 'mobility',      label: 'Mobility',          sub: 'Joint activation',         icon: 'wave',    color: TRAINER_BRAND.lavender    },
+  { key: 'warmup',        label: 'Warm-up',            sub: 'Temperature increase',     icon: 'flame',   color: TRAINER_BRAND.amber       },
+  { key: 'technique',     label: 'Technique',          sub: 'Motor pattern focus',      icon: 'target',  color: TRAINER_BRAND.primarySoft },
+  { key: 'strength',      label: 'Strength',           sub: 'Main block',               icon: 'dumbbell',color: TRAINER_BRAND.primary     },
+  { key: 'conditioning',  label: 'Conditioning / WOD', sub: 'Metabolism & endurance',   icon: 'run',     color: TRAINER_BRAND.accent      },
+  { key: 'cooldown',      label: 'Cool-down',          sub: 'Recovery & flexibility',   icon: 'heart',   color: TRAINER_BRAND.success     },
 ] as const;
 
 export const CURVES = [

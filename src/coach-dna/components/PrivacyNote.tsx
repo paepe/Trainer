@@ -1,14 +1,9 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
-import { BRAND, DARK } from '../../theme/tokens';
+import { DARK } from '../../theme/tokens';
+import { useTheme } from '../../contexts';
 
 type Tone = 'default' | 'coach' | 'optional';
-
-const CONFIG: Record<Tone, { color: string; icon: string }> = {
-  default:  { color: BRAND.primary,  icon: 'sparkle'      },
-  coach:    { color: BRAND.accent,   icon: 'fingerprint'  },
-  optional: { color: BRAND.lavender, icon: 'brain'        },
-};
 
 interface PrivacyNoteProps {
   tone?:     Tone;
@@ -16,6 +11,12 @@ interface PrivacyNoteProps {
 }
 
 export const PrivacyNote: React.FC<PrivacyNoteProps> = ({ tone = 'default', children }) => {
+  const { t } = useTheme();
+  const CONFIG: Record<Tone, { color: string; icon: string }> = {
+    default:  { color: t.primary,  icon: 'sparkle'     },
+    coach:    { color: t.accent,   icon: 'fingerprint' },
+    optional: { color: t.lavender, icon: 'brain'       },
+  };
   const { color, icon } = CONFIG[tone];
   return (
     <div style={{

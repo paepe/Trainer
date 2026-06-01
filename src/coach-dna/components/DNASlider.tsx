@@ -1,5 +1,5 @@
 import React from 'react';
-import { BRAND, DARK } from '../../theme/tokens';
+import { TRAINER_BRAND, DARK } from '../../theme/tokens';
 import { FieldLabel } from './FieldLabel';
 
 interface DNASliderProps {
@@ -14,7 +14,7 @@ interface DNASliderProps {
 }
 
 export const DNASlider: React.FC<DNASliderProps> = ({
-  label, value, onChange, min, max, step = 1, suffix = '', color = BRAND.primary,
+  label, value, onChange, min, max, step = 1, suffix = '', color = TRAINER_BRAND.primary,
 }) => (
   <div style={{ marginBottom: 4 }}>
     {label && (
