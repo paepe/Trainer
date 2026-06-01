@@ -542,13 +542,14 @@ export function WorkoutPlanEditorScreen({
       <div style={{ padding: '12px 22px 32px' }}>
         <button onClick={startSessionNow} disabled={saving || exercises.length === 0} style={{
           width: '100%', padding: '15px 0', borderRadius: 14,
-          background: exercises.length === 0 ? DARK.surface : '#10B981',
-          color: '#fff', border: 'none',
+          background: '#10B98118',
+          color: exercises.length === 0 ? 'rgba(255,255,255,.3)' : '#10B981',
+          border: `1.5px solid ${exercises.length === 0 ? 'transparent' : '#10B98155'}`,
           fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           opacity: saving ? 0.7 : 1,
         }}>
-          <Icon name="play" size={16} color="#fff"/> Start Live Session
+          <Icon name="play" size={16} color={exercises.length === 0 ? 'rgba(255,255,255,.3)' : '#10B981'}/> Start Live Session
         </button>
         <div style={{ marginTop: 8, textAlign: 'center', fontSize: 11, color: textSec(dark) }}>
           Train {selectedClient?.name?.split(' ')[0] || 'client'} now — opens workout mode directly

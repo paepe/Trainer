@@ -321,7 +321,7 @@ const GENDER_IMG: Record<string, string> = {
   prefer_not_to_say: bodyBorderlineImg,
 };
 function resolveBodyImg(gender?: string | null): string {
-  return (gender && GENDER_IMG[gender]) ?? bodyMaleImg;
+  return (gender && GENDER_IMG[gender]) || bodyMaleImg;
 }
 
 interface BodyDiagramProps {
