@@ -21,14 +21,28 @@ interface ClientProfile {
   email: string;
 }
 
+interface SessionExercise {
+  id:                  string;
+  exercise_name:       string;
+  muscle_group?:       string | null;
+  sets_prescribed?:    number | null;
+  reps_prescribed?:    number | null;
+  load_kg_prescribed?: number | null;
+  rest_seconds?:       number | null;
+  notes?:              string | null;
+  status:              string;
+  order_index:         number;
+}
+
 interface WorkoutSession {
-  id:                 string;
-  started_at?:        string | null;
-  created_at?:        string | null;
-  completed_at?:      string | null;
-  duration_minutes?:  number | null;
-  performance_score?: number | null;
-  status?:            string | null;
+  id:                  string;
+  started_at?:         string | null;
+  created_at?:         string | null;
+  completed_at?:       string | null;
+  duration_minutes?:   number | null;
+  performance_score?:  number | null;
+  status?:             string | null;
+  session_exercises?:  SessionExercise[];
 }
 
 interface PlanExercise {
@@ -104,7 +118,8 @@ export function TrainerClientDetailScreen({
   const [profileV2, setProfileV2]   = React.useState<ProfileV2Row | null>(null);
   const [readiness, setReadiness]   = React.useState<CheckInReadiness[]>([]);
   const [loading, setLoading]       = React.useState(true);
-  const [expandedPlan, setExpandedPlan] = React.useState<string | null>(null);
+  const [expandedPlan,    setExpandedPlan]    = React.useState<string | null>(null);
+  const [expandedSession, setExpandedSession] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!selectedClient?.id) return;
@@ -112,7 +127,7 @@ export function TrainerClientDetailScreen({
     // Auto-cancel stale plans (>10 days) for this client; notify client
     void autoExpirePlans(selectedClient.id, 'trainer');
     Promise.all([
-      supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score,status').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(5),
+      supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index)').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(10),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', selectedClient.id).order('created_at', { ascending: false }).limit(10),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', selectedClient.id).maybeSingle(),
       supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', selectedClient.id).order('occurred_at', { ascending: false }).limit(7),
@@ -512,44 +527,102 @@ export function TrainerClientDetailScreen({
             })}
           </div>
 
-          {/* Workout sessions */}
+          {/* Workout sessions — expandable cards */}
           {sessions.length > 0 && (
-            <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
+            <div style={{ borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px 10px', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
                 Workout Sessions
               </div>
-              {sessions.map((s, i) => (
-                <div key={s.id} style={{
-                  padding: '10px 0',
-                  borderBottom: i < sessions.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
-                  display: 'flex', alignItems: 'center', gap: 12
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: textPri(dark) }}>
-                      {new Date(s.started_at || s.created_at || '').toLocaleDateString()}
-                    </div>
-                    {s.duration_minutes && (
-                      <div style={{ fontSize: 11, color: textSec(dark), marginTop: 2 }}>
-                        {s.duration_minutes} min{s.performance_score != null ? ` · score ${s.performance_score}%` : ''}
+              {sessions.map((s, i) => {
+                const open = expandedSession === s.id;
+                const exs  = [...(s.session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index);
+                const date = new Date(s.started_at || s.created_at || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const statusBadge = (s.status === 'completed' || s.completed_at)
+                  ? <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>Done ✓</span>
+                  : s.status === 'active'
+                  ? <span style={{ fontSize: 10, fontWeight: 700, color: t.primary, background: `${t.primary}18`, borderRadius: 999, padding: '2px 8px' }}>Active</span>
+                  : s.status === 'incomplete'
+                  ? <span style={{ fontSize: 10, fontWeight: 700, color: '#F5A623', background: '#F5A62318', borderRadius: 999, padding: '2px 8px' }}>Incomplete</span>
+                  : s.status === 'paused'
+                  ? <span style={{ fontSize: 11, color: '#F5A623', fontWeight: 600 }}>Paused</span>
+                  : s.status === 'abandoned'
+                  ? <span style={{ fontSize: 11, color: t.accent, fontWeight: 600 }}>Abandoned</span>
+                  : <span style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>—</span>;
+
+                return (
+                  <div key={s.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
+                    {/* Card header */}
+                    <button
+                      onClick={() => setExpandedSession(open ? null : s.id)}
+                      style={{
+                        width: '100%', padding: '11px 16px', display: 'flex',
+                        alignItems: 'center', gap: 10,
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        textAlign: 'left', fontFamily: 'inherit',
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark) }}>{date}</div>
+                        <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
+                          {exs.length > 0 ? `${exs.length} exercise${exs.length !== 1 ? 's' : ''}` : 'No exercise data'}
+                          {s.duration_minutes ? ` · ${s.duration_minutes} min` : ''}
+                          {s.performance_score != null ? ` · score ${s.performance_score}%` : ''}
+                        </div>
+                      </div>
+                      <div style={{ flexShrink: 0 }}>{statusBadge}</div>
+                      <span style={{ fontSize: 11, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
+                    </button>
+
+                    {/* Exercise detail drawer */}
+                    {open && (
+                      <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
+                        {exs.length === 0 ? (
+                          <div style={{ fontSize: 11, color: textMute(dark) }}>No exercise data recorded for this session.</div>
+                        ) : exs.map((ex, ei) => {
+                          const skipped   = ex.status === 'skipped';
+                          const completed = ex.status === 'completed';
+                          const exColor   = skipped ? textMute(dark) : textPri(dark);
+                          const numColor  = skipped ? textMute(dark) : completed ? '#10B981' : t.primary;
+                          return (
+                            <div key={ex.id} style={{
+                              padding: '8px 12px', borderRadius: 10, marginBottom: 6,
+                              background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+                              display: 'flex', alignItems: 'center', gap: 10,
+                              opacity: skipped ? 0.55 : 1,
+                            }}>
+                              <div style={{
+                                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                                background: `${numColor}22`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 10, fontWeight: 700, color: numColor,
+                              }}>{ei + 1}</div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 12.5, fontWeight: 700, color: exColor }}>
+                                  {ex.exercise_name}
+                                  {skipped && <span style={{ fontSize: 10, marginLeft: 6, color: textMute(dark) }}>skipped</span>}
+                                  {completed && <span style={{ fontSize: 10, marginLeft: 6, color: '#10B981' }}>✓</span>}
+                                </div>
+                                <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
+                                  {[
+                                    ex.sets_prescribed    ? `${ex.sets_prescribed} sets`           : null,
+                                    ex.reps_prescribed    ? `${ex.reps_prescribed} reps`           : null,
+                                    ex.load_kg_prescribed ? `${ex.load_kg_prescribed} kg`          : null,
+                                    ex.rest_seconds       ? `${ex.rest_seconds}s rest`             : null,
+                                  ].filter(Boolean).join(' · ')}
+                                  {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
+                                </div>
+                                {ex.notes && (
+                                  <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 2, fontStyle: 'italic' }}>{ex.notes}</div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
-                  {(s.status === 'completed' || s.completed_at) ? (
-                    <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>Done ✓</span>
-                  ) : s.status === 'active' ? (
-                    <span style={{
-                      fontSize: 10, fontWeight: 700, color: t.primary,
-                      background: `${t.primary}18`, borderRadius: 999, padding: '2px 8px',
-                    }}>Active</span>
-                  ) : s.status === 'paused' ? (
-                    <span style={{ fontSize: 11, color: '#F5A623', fontWeight: 600 }}>Paused</span>
-                  ) : s.status === 'abandoned' ? (
-                    <span style={{ fontSize: 11, color: t.accent, fontWeight: 600 }}>Abandoned</span>
-                  ) : (
-                    <span style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>—</span>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
