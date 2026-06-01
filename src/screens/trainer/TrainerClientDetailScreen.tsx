@@ -35,14 +35,14 @@ interface SessionExercise {
 }
 
 interface WorkoutSession {
-  id:                  string;
-  started_at?:         string | null;
-  created_at?:         string | null;
-  completed_at?:       string | null;
-  duration_minutes?:   number | null;
-  performance_score?:  number | null;
-  status?:             string | null;
-  session_exercises?:  SessionExercise[];
+  id:                           string;
+  started_at?:                  string | null;
+  created_at?:                  string | null;
+  completed_at?:                string | null;
+  duration_minutes?:            number | null;
+  performance_score?:           number | null;
+  status?:                      string | null;
+  workout_session_exercises?:   SessionExercise[];  // matches Supabase nested select key
 }
 
 interface PlanExercise {
@@ -535,7 +535,7 @@ export function TrainerClientDetailScreen({
               </div>
               {sessions.map((s, i) => {
                 const open = expandedSession === s.id;
-                const exs  = [...(s.session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index);
+                const exs  = [...(s.workout_session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index);
                 const date = new Date(s.started_at || s.created_at || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const statusBadge = (s.status === 'completed' || s.completed_at)
                   ? <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>Done ✓</span>
