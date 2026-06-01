@@ -30,13 +30,25 @@ interface WorkoutSession {
   status?:            string | null;
 }
 
+interface PlanExercise {
+  id:            string;
+  exercise_name: string;
+  muscle_group?: string | null;
+  sets?:         number | null;
+  reps?:         number | null;
+  load_kg?:      number | null;
+  rest_seconds?: number | null;
+  notes?:        string | null;
+  order_index?:  number | null;
+}
+
 interface WorkoutPlan {
   id:              string;
   status:          string | null;
   scheduled_date?: string | null;
   created_at:      string | null;
   trainer_notes?:  string | null;
-  plan_exercises?: { id: string }[];
+  plan_exercises?: PlanExercise[];
 }
 
 interface ProfileV2Row {
@@ -91,13 +103,14 @@ export function TrainerClientDetailScreen({
   const [profileV2, setProfileV2]   = React.useState<ProfileV2Row | null>(null);
   const [readiness, setReadiness]   = React.useState<CheckInReadiness[]>([]);
   const [loading, setLoading]       = React.useState(true);
+  const [expandedPlan, setExpandedPlan] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!selectedClient?.id) return;
     setLoading(true);
     Promise.all([
       supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score,status').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(5),
-      supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id)').eq('assigned_to', selectedClient.id).order('created_at', { ascending: false }).limit(5),
+      supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', selectedClient.id).order('created_at', { ascending: false }).limit(10),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', selectedClient.id).maybeSingle(),
       supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', selectedClient.id).order('occurred_at', { ascending: false }).limit(7),
     ]).then(([sessionsRes, plansRes, profV2Res, readinessRes]) => {
@@ -124,10 +137,12 @@ export function TrainerClientDetailScreen({
   }
 
   const PLAN_STATUS_COLOR: Record<string, string> = {
-    sent: t.primary,
-    active: '#10B981',
-    completed: '#7B5CFF',
-    draft: textMute(dark),
+    sent:       t.primary,
+    active:     '#10B981',
+    completed:  '#7B5CFF',
+    draft:      textMute(dark),
+    cancelled:  '#FF4D4D',
+    postponed:  '#F5B45A',
   };
 
   const fmtKey = (k: string) =>
@@ -410,36 +425,85 @@ export function TrainerClientDetailScreen({
             ))}
           </div>
 
-          {/* Recent plans */}
-          <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
+          {/* Plans Sent — expandable cards */}
+          <div style={{ borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden' }}>
+            <div style={{ padding: '12px 16px 10px', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
               Plans Sent
             </div>
             {plans.length === 0 ? (
-              <div style={{ color: textMute(dark), fontSize: 12 }}>No plans sent yet.</div>
+              <div style={{ padding: '0 16px 14px', color: textMute(dark), fontSize: 12 }}>No plans sent yet.</div>
             ) : plans.map((p, i) => {
-              const sc = (p.status ? PLAN_STATUS_COLOR[p.status] : null) || textMute(dark);
+              const sc   = (p.status ? PLAN_STATUS_COLOR[p.status] : null) || textMute(dark);
+              const open = expandedPlan === p.id;
+              const exs  = [...(p.plan_exercises ?? [])].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+              const dateLabel = p.scheduled_date
+                ? new Date(p.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : p.created_at ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
               return (
-                <div key={p.id} style={{
-                  padding: '10px 0',
-                  borderBottom: i < plans.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
-                  display: 'flex', alignItems: 'center', gap: 12
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: textPri(dark) }}>
-                      {p.scheduled_date || (p.created_at ? new Date(p.created_at).toLocaleDateString() : '—')}
+                <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
+                  {/* Card header — always visible */}
+                  <button
+                    onClick={() => setExpandedPlan(open ? null : p.id)}
+                    style={{
+                      width: '100%', padding: '11px 16px', display: 'flex', alignItems: 'center',
+                      gap: 10, background: 'transparent', border: 'none', cursor: 'pointer',
+                      textAlign: 'left', fontFamily: 'inherit',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark) }}>{dateLabel}</div>
+                      <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
+                        {exs.length} exercise{exs.length !== 1 ? 's' : ''}
+                        {p.trainer_notes ? ` · ${p.trainer_notes.slice(0, 30)}${p.trainer_notes.length > 30 ? '…' : ''}` : ''}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 11, color: textSec(dark), marginTop: 2 }}>
-                      {p.plan_exercises?.length || 0} exercises
-                      {p.trainer_notes ? ` · "${p.trainer_notes.slice(0, 35)}…"` : ''}
+                    <span style={{
+                      padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                      background: `${sc}22`, color: sc, letterSpacing: '.04em', textTransform: 'uppercase',
+                      flexShrink: 0,
+                    }}>
+                      {p.status}
+                    </span>
+                    <span style={{ fontSize: 11, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
+                  </button>
+
+                  {/* Exercise detail drawer */}
+                  {open && (
+                    <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
+                      {exs.length === 0 ? (
+                        <div style={{ fontSize: 11, color: textMute(dark) }}>No exercises recorded.</div>
+                      ) : exs.map((ex, ei) => (
+                        <div key={ex.id} style={{
+                          padding: '8px 12px', borderRadius: 10, marginBottom: 6,
+                          background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+                          display: 'flex', alignItems: 'center', gap: 10,
+                        }}>
+                          <div style={{
+                            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                            background: `${t.primary}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 10, fontWeight: 700, color: t.primary,
+                          }}>{ei + 1}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, color: textPri(dark) }}>{ex.exercise_name}</div>
+                            <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
+                              {[
+                                ex.sets  ? `${ex.sets} sets`          : null,
+                                ex.reps  ? `${ex.reps} reps`          : null,
+                                ex.load_kg ? `${ex.load_kg} kg`       : null,
+                                ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
+                              ].filter(Boolean).join(' · ')}
+                              {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
+                            </div>
+                            {ex.notes && (
+                              <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 2, fontStyle: 'italic' }}>
+                                {ex.notes}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  <span style={{
-                    padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700,
-                    background: `${sc}22`, color: sc, letterSpacing: '.04em', textTransform: 'uppercase'
-                  }}>
-                    {p.status}
-                  </span>
+                  )}
                 </div>
               );
             })}

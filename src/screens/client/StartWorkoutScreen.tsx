@@ -51,8 +51,15 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [loading,    setLoading]    = React.useState<boolean>(false);
   const [error,      setError]      = React.useState<string | null>(null);
-  const [otherPending, setOtherPending] = React.useState<Array<{id: string; sentAt: string | null; exerciseCount: number}>>([]);
+  interface PendingPlan {
+    id:            string;
+    sentAt:        string | null;
+    status:        string;
+    exercises:     Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null}>;
+  }
+  const [otherPending, setOtherPending] = React.useState<PendingPlan[]>([]);
   const [showPendingList, setShowPendingList] = React.useState(false);
+  const [expandedPending, setExpandedPending] = React.useState<string | null>(null);
   const activeCheckin = latestCheckin ?? checkin;
 
   // Derive current cycle phase — only for female users with cycle tracking data
@@ -174,20 +181,22 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
               });
           }
 
-          // Count other pending trainer plans (not the one being shown)
+          // Load other pending trainer plans (sent or postponed, not the one being shown)
           supabase.from('workout_plans')
-            .select('id, created_at, plan_exercises(id)')
+            .select('id, created_at, status, plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)')
             .eq('assigned_to', user.id)
             .eq('source', 'manual')
-            .eq('status', 'sent')
+            .in('status', ['sent', 'postponed'])
             .neq('id', sentPlan.id)
             .order('created_at', { ascending: false })
             .then(({ data: others }) => {
               if (others?.length) {
                 setOtherPending(others.map(p => ({
-                  id: p.id,
-                  sentAt: p.created_at,
-                  exerciseCount: (p.plan_exercises as { id: string }[])?.length ?? 0,
+                  id:        p.id,
+                  sentAt:    p.created_at,
+                  status:    p.status ?? 'sent',
+                  exercises: ([...(p.plan_exercises ?? [])] as PendingPlan['exercises'])
+                    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)),
                 })));
               }
             });
@@ -364,25 +373,134 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
               fontSize: 12, color: t.primary, fontFamily: 'inherit',
             }}>✕</button>
           </div>
-          {otherPending.map((p, i) => (
-            <div key={p.id} style={{
-              padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              borderTop: i > 0 ? `1px solid ${t.primary}22` : undefined,
-              background: dark ? '#0F1E30' : '#f4f8fd',
-            }}>
-              <div>
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: dark ? '#fff' : '#0E1A2B' }}>
-                  {p.sentAt ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Plan'}
-                </span>
-                <span style={{ fontSize: 11.5, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginLeft: 8 }}>
-                  {p.exerciseCount} exercise{p.exerciseCount !== 1 ? 's' : ''}
-                </span>
+          {otherPending.map((p, i) => {
+            const isOpen = expandedPending === p.id;
+            const dateLabel = p.sentAt
+              ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              : 'Plan';
+            const statusColor = p.status === 'postponed' ? '#F5B45A' : t.primary;
+            return (
+              <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${t.primary}22` : undefined }}>
+
+                {/* Row — cancel badge inline, click row to expand */}
+                <div style={{
+                  padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8,
+                  background: dark ? '#0F1E30' : '#f4f8fd',
+                }}>
+                  {/* Clickable main area */}
+                  <button onClick={() => setExpandedPending(isOpen ? null : p.id)} style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: dark ? '#fff' : '#0E1A2B' }}>{dateLabel}</span>
+                      <span style={{ fontSize: 11.5, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginLeft: 8 }}>
+                        {p.exercises.length} exercise{p.exercises.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: statusColor, letterSpacing: '.06em', textTransform: 'uppercase', flexShrink: 0 }}>
+                      {p.status === 'postponed' ? 'Postponed' : 'Pending'}
+                    </span>
+                    <span style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.4)' : '#aab' }}>{isOpen ? '▲' : '▼'}</span>
+                  </button>
+
+                  {/* Cancel badge — no need to open card */}
+                  <button
+                    title="Cancel this plan"
+                    onClick={() => {
+                      void supabase.from('workout_plans').update({ status: 'cancelled' }).eq('id', p.id);
+                      setOtherPending(prev => prev.filter(x => x.id !== p.id));
+                      if (isOpen) setExpandedPending(null);
+                    }}
+                    style={{
+                      flexShrink: 0, padding: '3px 9px', borderRadius: 999,
+                      background: '#FF4D4D22', color: '#FF4D4D',
+                      border: '1px solid #FF4D4D44', fontSize: 10, fontWeight: 700,
+                      cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '.04em',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {/* Expanded: exercise list + Postpone / Start */}
+                {isOpen && (
+                  <div style={{ padding: '0 14px 12px', background: dark ? '#0a1626' : '#eef1f8' }}>
+                    {p.exercises.map((ex, ei) => (
+                      <div key={ex.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '7px 10px', borderRadius: 9, marginBottom: 5,
+                        background: dark ? '#0F1E30' : '#f4f8fd',
+                        border: `1px solid ${t.primary}22`,
+                      }}>
+                        <div style={{
+                          width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                          background: `${t.primary}22`, fontSize: 9, fontWeight: 700,
+                          color: t.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>{ei + 1}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B' }}>{ex.exercise_name}</div>
+                          <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
+                            {[
+                              ex.sets        ? `${ex.sets} sets`         : null,
+                              ex.reps        ? `${ex.reps} reps`         : null,
+                              ex.load_kg     ? `${ex.load_kg} kg`        : null,
+                              ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
+                            ].filter(Boolean).join(' · ')}
+                            {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
+                          </div>
+                          {ex.notes && <div style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.35)' : '#9aa', marginTop: 1, fontStyle: 'italic' }}>{ex.notes}</div>}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                      <button
+                        onClick={() => {
+                          void supabase.from('workout_plans').update({ status: 'postponed' }).eq('id', p.id);
+                          setOtherPending(prev => prev.map(x => x.id === p.id ? { ...x, status: 'postponed' } : x));
+                          setExpandedPending(null);
+                        }}
+                        style={{
+                          flex: 1, padding: '10px 0', borderRadius: 10, border: `1.5px solid #F5B45A55`,
+                          background: '#F5B45A18', color: '#F5B45A', fontSize: 12, fontWeight: 700,
+                          cursor: 'pointer', fontFamily: 'inherit',
+                        }}
+                      >
+                        Postpone
+                      </button>
+                      <button
+                        onClick={() => {
+                          void supabase.from('workout_plans').update({ status: 'active' }).eq('id', p.id);
+                          nav('workoutMode', {
+                            planId:    p.id,
+                            exercises: p.exercises.map(ex => ({
+                              exercise_name: ex.exercise_name,
+                              muscle_group:  ex.muscle_group  ?? '',
+                              sets:          ex.sets          ?? null,
+                              reps:          ex.reps          ?? null,
+                              load_kg:       ex.load_kg       ?? null,
+                              rest_seconds:  ex.rest_seconds  ?? null,
+                              notes:         ex.notes         ?? null,
+                            })),
+                          });
+                        }}
+                        style={{
+                          flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
+                          background: t.primary, color: '#0E1A2B', fontSize: 12, fontWeight: 700,
+                          cursor: 'pointer', fontFamily: 'inherit',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        }}
+                      >
+                        ▶ Start
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <span style={{ fontSize: 10, fontWeight: 700, color: t.primary, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                Pending
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
