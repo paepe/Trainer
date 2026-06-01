@@ -351,7 +351,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
         {plan && !loading && (
           <div style={{
             padding: 14, borderRadius: 14,
-            background: dark ? 'rgba(45,212,224,.08)' : `${t.primary}10`,
+            background: `${t.primary}${dark ? '14' : '10'}`,
             border: `1px solid ${t.primary}55`,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: cycleCtx ? 6 : 8 }}>

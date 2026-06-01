@@ -230,7 +230,7 @@ export function CycleScreen({
         <SectionLabel dark={dark}>Today&rsquo;s recommendation</SectionLabel>
         <div style={{
           padding: '14px 16px', borderRadius: 14,
-          background: dark ? 'rgba(45,212,224,.08)' : `${t.primary}10`,
+          background: `${t.primary}${dark ? '14' : '10'}`,
           border: `1px solid ${t.primary}55`,
         }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>

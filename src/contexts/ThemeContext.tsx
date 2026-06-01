@@ -2,7 +2,9 @@ import React, { createContext, useContext, useMemo } from 'react';
 import { BRAND } from '../theme/tokens';
 import type { UserRole } from '../types';
 
-export type AppTheme = typeof BRAND & {
+// Widen the palette to `string` so BRAND (cyan) and TRAINER_BRAND (coral) — which
+// carry different colour literals — are both assignable to the active theme.
+export type AppTheme = { -readonly [K in keyof typeof BRAND]: string } & {
   dark:          boolean;
   cycleEnabled:  boolean;
   role:          UserRole | 'client';

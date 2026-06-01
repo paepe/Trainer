@@ -124,7 +124,7 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
       <div style={{ padding: '8px 22px 12px' }}>
         <div style={{
           padding: '14px 16px', borderRadius: 14,
-          background: dark ? 'rgba(45,212,224,.08)' : `${t.primary}10`,
+          background: `${t.primary}${dark ? '14' : '10'}`,
           border: `1px solid ${t.primary}55`,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
