@@ -397,7 +397,7 @@ export function TrainerDashboardScreen({
                   onClick={() => tc.client && selectClient && selectClient(tc.client)}
                   style={{
                     padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                    background: `${t.primary}22`, color: t.primary,
+                    background: `${t.accent}22`, color: t.accent,
                     border: 'none', fontFamily: 'inherit', cursor: 'pointer',
                   }}
                 >
@@ -612,7 +612,7 @@ function TasksSection({
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
           Tasks
         </div>
-        <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: t.primary, color: '#0E1A2B' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: t.accent, color: '#fff' }}>
           {tasks.length}
         </div>
       </div>

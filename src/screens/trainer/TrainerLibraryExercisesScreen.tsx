@@ -166,7 +166,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
           onClick={() => setActiveTab('exercises')}
           style={{
             flex: 1, padding: '12px', borderRadius: 12, border: 'none',
-            background: activeTab === 'exercises' ? t.primary : surfRaised(dark),
+            background: activeTab === 'exercises' ? t.accent : surfRaised(dark),
             color: activeTab === 'exercises' ? '#0E1A2B' : textPri(dark),
             fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
             fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
@@ -179,7 +179,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
           onClick={() => setActiveTab('protocols')}
           style={{
             flex: 1, padding: '12px', borderRadius: 12, border: 'none',
-            background: activeTab === 'protocols' ? t.primary : surfRaised(dark),
+            background: activeTab === 'protocols' ? t.accent : surfRaised(dark),
             color: activeTab === 'protocols' ? '#0E1A2B' : textPri(dark),
             fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
             fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
@@ -229,7 +229,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
               onClick={() => setShowFilters(!showFilters)}
               style={{
                 padding: '12px', borderRadius: 12, border: `1px solid ${borderSubtle(dark)}`,
-                background: showFilters ? t.primary : surfRaised(dark),
+                background: showFilters ? t.accent : surfRaised(dark),
                 color: showFilters ? '#0E1A2B' : textPri(dark),
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}
@@ -765,7 +765,7 @@ function ExerciseDetailModal({
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
               <button onClick={onCancelEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
-              <button onClick={onSave} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.primary, color: '#0E1A2B', cursor: 'pointer', fontWeight: 700 }}>Save Changes</button>
+              <button onClick={onSave} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.accent, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>Save Changes</button>
             </div>
           </div>
         ) : (
@@ -809,7 +809,7 @@ function ExerciseDetailModal({
             )}
             {isTrainerOrAdmin && (
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                <button onClick={onStartEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.primary, color: '#0E1A2B', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <button onClick={onStartEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.accent, color: '#fff', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Icon name="edit" size={16} color="#0E1A2B" /> Edit exercise
                 </button>
               </div>

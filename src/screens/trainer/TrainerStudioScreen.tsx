@@ -63,7 +63,7 @@ export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
         <SectionLabel dark={dark}>Feed the AI</SectionLabel>
         <div style={{
           padding: 16, borderRadius: 16,
-          background: `linear-gradient(135deg, ${t.primaryDeep} 0%, ${t.primary}cc 100%)`,
+          background: `linear-gradient(135deg, #C23B22 0%, ${t.accent}cc 100%)`,
           color: '#0E1A2B',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -77,7 +77,7 @@ export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button style={{
               padding: '9px 14px', borderRadius: 999, border: 'none',
-              background: '#0E1A2B', color: t.primary, fontSize: 12, fontWeight: 700, fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer',
+              background: '#0E1A2B', color: t.accent, fontSize: 12, fontWeight: 700, fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer',
             }}>+ Add workout</button>
             <button onClick={() => nav('trainerLibraryExercises')} style={{
               padding: '9px 14px', borderRadius: 999, border: '1.5px solid rgba(14,26,43,.4)',
@@ -120,7 +120,7 @@ export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
       </div>
 
       <div style={{ padding: '0 22px 28px' }}>
-        <button onClick={() => alert('Invite link copied: trainer.app/coach/frances')} style={{ ...outlineBtn(t.primary), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <button onClick={() => alert('Invite link copied: trainer.app/coach/frances')} style={{ ...outlineBtn(t.accent), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <Icon name="plus" size={16} color={t.primary} stroke={2.4}/> Invite client
         </button>
       </div>

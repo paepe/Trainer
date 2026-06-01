@@ -235,7 +235,7 @@ export function TrainerClientDetailScreen({
                 {profileV2.completed_at && (
                   <span style={{
                     fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-                    background: `${t.primary}20`, color: t.primary, letterSpacing: '.04em',
+                    background: `${t.accent}20`, color: t.accent, letterSpacing: '.04em',
                   }}>
                     COMPLETE
                   </span>
@@ -500,11 +500,11 @@ export function TrainerClientDetailScreen({
       {selectedClient && (
         <button onClick={() => nav('checkin', { clientUserId: selectedClient.id, clientName: selectedClient.name })} style={{
           width: '100%', padding: '12px 0', borderRadius: 14, marginBottom: 8,
-          background: 'transparent', border: `1.5px solid ${t.primary}55`, color: t.primary,
+          background: 'transparent', border: `1.5px solid ${t.accent}55`, color: t.accent,
           fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 13, fontWeight: 600, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
-          <Icon name="sparkle" size={14} color={t.primary}/> Readiness Check-in for {selectedClient.name?.split(' ')[0] || 'client'}
+          <Icon name="sparkle" size={14} color={t.accent}/> Readiness Check-in for {selectedClient.name?.split(' ')[0] || 'client'}
         </button>
       )}
       <button onClick={() => nav('workoutPlanEditor')} style={{

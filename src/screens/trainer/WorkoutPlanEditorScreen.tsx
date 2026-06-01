@@ -362,7 +362,7 @@ export function WorkoutPlanEditorScreen({
           </div>
           <button onClick={() => setShowAddForm(v => !v)} style={{
             padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
-            background: `${t.primary}22`, color: t.primary, border: 'none',
+            background: `${t.accent}22`, color: t.accent, border: 'none',
             fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
           }}>
             <Icon name="plus" size={12} color={t.primary} /> Add
@@ -424,8 +424,8 @@ export function WorkoutPlanEditorScreen({
                 return (
                   <button key={mg} onClick={() => setDraft({ ...draft, muscle_group: on ? '' : mg })} style={{
                     padding: '5px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                    background: on ? t.primary : DARK.surface,
-                    color: on ? '#0E1A2B' : textSec(dark),
+                    background: on ? t.accent : DARK.surface,
+                    color: on ? '#fff' : textSec(dark),
                     border: 'none', fontFamily: 'inherit', cursor: 'pointer',
                   }}>{mg}</button>
                 );
@@ -472,7 +472,7 @@ export function WorkoutPlanEditorScreen({
               <button onClick={() => setShowAddForm(false)} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
                 Cancel
               </button>
-              <button onClick={addExercise} style={{ flex: 2, padding: '12px 0', borderRadius: 14, background: t.primary, color: '#0E1A2B', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={addExercise} style={{ flex: 2, padding: '12px 0', borderRadius: 14, background: t.accent, color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Add exercise
               </button>
             </div>
