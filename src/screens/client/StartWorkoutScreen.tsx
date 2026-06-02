@@ -419,7 +419,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
                       if (user?.id) {
                         void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
                           .then(({ data: tc }) => {
-                            if (tc?.trainer_id) notify(tc.trainer_id, 'Plan cancelled by client', `${user.name || 'Your client'} cancelled a workout plan.`, undefined, { type: 'plan_cancelled', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
+                            if (tc?.trainer_id) {
+                              const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'unknown date';
+                              notify(tc.trainer_id, 'Plan cancelled by client', `${user.name || 'Your client'} cancelled the workout plan from ${planDate}.`, undefined, { type: 'plan_cancelled', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
+                            }
                           });
                       }
                     }}
@@ -476,7 +479,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
                           if (user?.id) {
                             void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
                               .then(({ data: tc }) => {
-                                if (tc?.trainer_id) notify(tc.trainer_id, 'Plan postponed by client', `${user.name || 'Your client'} postponed a workout plan.`, undefined, { type: 'plan_postponed', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
+                                if (tc?.trainer_id) {
+                                  const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'unknown date';
+                                  notify(tc.trainer_id, 'Plan postponed by client', `${user.name || 'Your client'} postponed the workout plan from ${planDate}.`, undefined, { type: 'plan_postponed', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
+                                }
                               });
                           }
                         }}
