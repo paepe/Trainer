@@ -380,6 +380,7 @@ export default function App() {
     signIn, signUp,
     selectedClient,
     selectClient,
+    linkedTrainerId: linkedTrainerId ?? '',
   };
 
   const showTabs = (isTrainer

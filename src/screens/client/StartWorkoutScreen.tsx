@@ -4,11 +4,25 @@ import { Icon, AvatarImage, PhotoSlot, ScreenTitle, SectionLabel } from '../../c
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn } from '../../types';
 import type { Json } from '../../types/supabase';
-import { requestWorkoutPlan } from '../../lib/workoutGeneration';
-import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
+import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGeneration';
+import type { CycleContext, GeneratedWorkoutExercise, SmartWorkoutResult } from '../../lib/workoutGeneration';
+import { buildClientContext, buildTodayContext, buildLibraryContext } from '../../ai/buildAIContext';
+import type { TrainerContext, TaskContext } from '../../ai/types';
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { notify }            from '../../lib/notify';
+
+// Default AI trainer used when client has no linked trainer
+const DEFAULT_AI_TRAINER: TrainerContext = {
+  id: 'ai-coach', name: 'AI Coach', archetype: 'performance',
+  coachingStyles: ['functional', 'science_based'], coreValues: ['safety', 'progression'],
+  coachVoice: 'Encouraging and evidence-based', motto: 'Train smart, progress safely',
+  methods: ['compound_movements', 'periodization'], environments: ['gym', 'home', 'outdoor'],
+  intensity: 'moderate', focus: { strength:5, endurance:5, mobility:5, athletic:4, coord:3, balance:3 },
+  preferredFormats: ['circuit', 'straight_sets'], intensityCurve: 'pyramid',
+  sessionOrder: ['warmup', 'main', 'cooldown'], communicationTone: ['encouraging', 'clear'],
+  clientProfiles: ['general_population'], favoriteExercises: [], avoidExercises: [],
+};
 
 interface Theme {
   primary:     string;
@@ -34,15 +48,16 @@ interface AppCycleConfig {
 export type Exercise = GeneratedWorkoutExercise;
 
 interface StartWorkoutScreenProps {
-  nav:          NavFn;
-  t:            Theme;
-  dark: boolean;
-  checkin:      CheckIn;
-  user:         AppUser;
-  cycleConfig:  AppCycleConfig | null;
+  nav:              NavFn;
+  t:                Theme;
+  dark:             boolean;
+  checkin:          CheckIn;
+  user:             AppUser;
+  cycleConfig:      AppCycleConfig | null;
+  linkedTrainerId?: string; // non-empty = client has active trainer
 }
 
-export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }: StartWorkoutScreenProps) {
+export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '' }: StartWorkoutScreenProps) {
   const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);
   const [planId,     setPlanId]     = React.useState<string | null>(null);
   const [planSource, setPlanSource] = React.useState<string | null>(null);
@@ -53,6 +68,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [loading,    setLoading]    = React.useState<boolean>(false);
   const [error,      setError]      = React.useState<string | null>(null);
+  const [safetyBlocked,  setSafetyBlocked]  = React.useState(false);
+  const [safetyTitle,    setSafetyTitle]    = React.useState<string | null>(null);
+  const [safetyMessage,  setSafetyMessage]  = React.useState<string | null>(null);
+  const [readinessScore, setReadinessScore] = React.useState<number | null>(null);
+  const [adaptations,    setAdaptations]    = React.useState<string[]>([]);
   interface PendingPlan {
     id:            string;
     sentAt:        string | null;
@@ -210,74 +230,145 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
         }
       }
       if (user?.id) {
-        const [profileRes, checkinRes] = await Promise.allSettled([
-          supabase
-            .from('profile_v2')
-            .select('objectives, movement_history, environment, availability')
-            .eq('user_id', user.id)
-            .maybeSingle(),
-          supabase
-            .from('checkin_prontidao')
-            .select('energy_level, sleep_quality, available_minutes, training_location, quick_data')
-            .eq('user_id', user.id)
-            .order('occurred_at', { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-        ]);
+        // ── Fetch all data in parallel ──────────────────────────────────────
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString();
+        const sevenDaysAgo  = new Date(Date.now() -  7 * 86_400_000).toISOString();
 
-        if (profileRes.status === 'fulfilled') {
-          if (profileRes.value.error) {
-            console.error('[start-workout] failed to load profile_v2', profileRes.value.error);
-          } else if (profileRes.value.data) {
-            const pv2 = profileRes.value.data as {
-              objectives?:       { primary_goal?: string } | null;
-              movement_history?: { fitness_level?: string } | null;
-              environment?:      { equipment?: string[] }   | null;
-              availability?:     { session_duration_min?: number } | null;
-            };
-            physicalProfile = {
-              primary_goal:      pv2.objectives?.primary_goal      ?? null,
-              fitness_level:     pv2.movement_history?.fitness_level ?? null,
-              available_minutes: pv2.availability?.session_duration_min ?? null,
-              equipment:         pv2.environment?.equipment         ?? [],
-            } as unknown as Json;
-          }
-        } else {
-          console.error('[start-workout] profile_v2 request crashed', profileRes.reason);
+        const [profileRes, checkinRes, sessionsRes, checkinHistRes, trainerRes] =
+          await Promise.allSettled([
+            // Full profile_v2 — ALL sections for safety context
+            supabase.from('profile_v2').select('*').eq('user_id', user.id).maybeSingle(),
+            // Latest check-in with safety gate
+            supabase.from('checkin_prontidao')
+              .select('occurred_at, variant, readiness_score, energy_level, fatigue_level, pain_present, pain_intensity, sleep_quality, available_minutes, training_location, ai_led_blocked, safety_gate, quick_data, detailed_data')
+              .eq('user_id', user.id)
+              .order('occurred_at', { ascending: false })
+              .limit(1).maybeSingle(),
+            // Recent sessions for stats
+            supabase.from('workout_sessions')
+              .select('started_at, status')
+              .eq('user_id', user.id)
+              .gte('started_at', thirtyDaysAgo),
+            // Recent check-ins for avg energy / readiness
+            supabase.from('checkin_prontidao')
+              .select('energy_level, readiness_score')
+              .eq('user_id', user.id)
+              .gte('occurred_at', sevenDaysAgo)
+              .order('occurred_at', { ascending: false }).limit(7),
+            // Trainer Coach DNA (if linked)
+            linkedTrainerId
+              ? supabase.from('coach_dna').select('*').eq('trainer_id', linkedTrainerId).maybeSingle()
+              : Promise.resolve({ data: null, error: null }),
+          ]);
+
+        // ── Build SmartWorkoutRequest ───────────────────────────────────────
+
+        // 1. ClientContext from full profile_v2
+        const profileData = profileRes.status === 'fulfilled' ? profileRes.value.data : null;
+        // Also build legacy resolvedCheckin for UI display and persist
+        const ciData = checkinRes.status === 'fulfilled' ? checkinRes.value.data : null;
+        if (ciData) {
+          const qd = ciData.quick_data as { pain?: { present?: boolean; region?: string }; fatigue?: number } | null;
+          resolvedCheckin = {
+            energy:        ciData.energy_level       ?? checkin.energy,
+            soreness:      qd?.pain?.present && qd.pain.region ? [qd.pain.region] : checkin.soreness,
+            minutes:       ciData.available_minutes  ?? checkin.minutes,
+            goal:          checkin.goal,
+            location:      (ciData.training_location ?? checkin.location) as typeof checkin.location,
+            sleep_quality: (ciData.sleep_quality     ?? checkin.sleep_quality) as typeof checkin.sleep_quality,
+            equipment:     checkin.equipment,
+          };
+        }
+        setLatestCheckin(resolvedCheckin);
+
+        // 2. Cycle context
+        const cycleContext = getCycleContext();
+        setCycleCtx(cycleContext);
+
+        // If no profile, fall back to legacy endpoint
+        if (!profileData) {
+          console.warn('[start-workout] no profile_v2 — using legacy endpoint');
+          const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext });
+          setPlan(exercises);
+          void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile);
+          return;
         }
 
-        if (checkinRes.status === 'fulfilled') {
-          if (checkinRes.value.error) {
-            console.error('[start-workout] failed to load latest check-in', checkinRes.value.error);
-          } else if (checkinRes.value.data) {
-            const ci  = checkinRes.value.data;
-            const qd  = ci.quick_data as { pain?: { present?: boolean; region?: string }; fatigue?: number } | null;
-            resolvedCheckin = {
-              energy:        ci.energy_level        ?? checkin.energy,
-              soreness:      qd?.pain?.present && qd.pain.region ? [qd.pain.region] : checkin.soreness,
-              minutes:       ci.available_minutes   ?? checkin.minutes,
-              goal:          checkin.goal,
-              location:      (ci.training_location  ?? checkin.location) as typeof checkin.location,
-              sleep_quality: (ci.sleep_quality      ?? checkin.sleep_quality) as typeof checkin.sleep_quality,
-              equipment:     checkin.equipment,
+        const clientCtx = buildClientContext(profileData as any);
+
+        // 3. TodayContext from full check-in
+        const todayCtx = ciData
+          ? buildTodayContext(ciData as any)
+          : {
+              checkinAt: new Date().toISOString(), variant: 'quick',
+              readinessScore: 60, energyLevel: checkin.energy, sleepQuality: checkin.sleep_quality ?? 'regular',
+              fatigueLevel: 3, painPresent: false, painIntensity: 0, painRegions: [],
+              safetyStatus: 'clear', aiLedBlocked: false, safetySignals: [],
+              availableMinutes: checkin.minutes, location: checkin.location ?? 'gym',
+              ...(cycleContext ? { cycleActive: true, cyclePhase: cycleContext.phase } : {}),
             };
-          }
-        } else {
-          console.error('[start-workout] latest check-in request crashed', checkinRes.reason);
+
+        // 4. StatsContext from fetched data
+        const sessions = sessionsRes.status === 'fulfilled' ? (sessionsRes.value.data ?? []) : [];
+        const checkinHist = checkinHistRes.status === 'fulfilled' ? (checkinHistRes.value.data ?? []) : [];
+        const avgEnergy = checkinHist.length
+          ? Math.round(checkinHist.reduce((s, c) => s + (c.energy_level ?? 0), 0) / checkinHist.length * 10) / 10 : 0;
+        const avgReadiness = checkinHist.length
+          ? Math.round(checkinHist.reduce((s, c) => s + (c.readiness_score ?? 0), 0) / checkinHist.length) : 60;
+        const completed = sessions.filter((s: any) => s.status === 'completed').length;
+        const statsCtx = {
+          adherenceRate: sessions.length > 0 ? completed / sessions.length : 0,
+          workoutStreak: 0, sessionsLast30d: sessions.length,
+          avgEnergy7d: avgEnergy, avgReadiness7d: avgReadiness, avgRPELast3: 0,
+          painEvents14d: 0, painRecurrenceAlert: false,
+          predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70 },
+        };
+
+        // 5. TrainerContext — Coach DNA if available, else AI default
+        let trainerCtx: TrainerContext = DEFAULT_AI_TRAINER;
+        const coachDNA = trainerRes.status === 'fulfilled' ? (trainerRes.value as any).data : null;
+        if (coachDNA) {
+          const { buildTrainerContext } = await import('../../ai/buildAIContext');
+          trainerCtx = buildTrainerContext(coachDNA);
         }
-      }
 
-      setLatestCheckin(resolvedCheckin);
+        // 6. LibraryContext
+        const libraryCtx = buildLibraryContext({
+          excludedRegions:  resolvedCheckin.soreness ?? [],
+          clientEquipment:  resolvedCheckin.equipment ?? [],
+          trainerFavorites: trainerCtx.favoriteExercises,
+          trainerAvoid:     trainerCtx.avoidExercises,
+        });
 
-      const cycleContext = getCycleContext();
-      setCycleCtx(cycleContext);
-      const exercises = await requestWorkoutPlan({
-        checkin: resolvedCheckin,
-        physicalProfile,
-        cycleContext,
-      });
-      setPlan(exercises);
-      void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile);
+        // 7. TaskContext
+        const taskCtx: TaskContext = {
+          type: 'generate_workout',
+          durationMin: resolvedCheckin.minutes ?? clientCtx.sessionDuration,
+        };
+
+        // ── Call smart endpoint ─────────────────────────────────────────────
+        const result = await requestSmartWorkout({
+          trainer: trainerCtx, client: clientCtx,
+          today: todayCtx as any, stats: statsCtx,
+          library: libraryCtx, task: taskCtx,
+        });
+
+        // Update readiness/safety display
+        setReadinessScore(result.readinessScore);
+        setAdaptations(result.adaptations);
+
+        if (result.blocked) {
+          setSafetyBlocked(true);
+          setSafetyTitle(result.safetyTitle ?? 'Safety Gate Active');
+          setSafetyMessage(result.safetyMessage ?? 'Your check-in indicates this is not a safe moment for an AI-led session.');
+          setLoading(false);
+          return;
+        }
+
+        setPlan(result.exercises);
+        setPlanSource('ai');
+        void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile);
+      } // end if (user?.id)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -528,6 +619,32 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
         </div>
       )}
 
+      {/* Safety Gate block — shown when ai_led_blocked */}
+      {safetyBlocked && (
+        <div style={{ margin: '0 22px 16px', padding: '18px 18px', borderRadius: 16, background: '#EF5B3C12', border: '1.5px solid #EF5B3C44' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#EF5B3C22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="heart" size={18} color="#EF5B3C" stroke={2.2}/>
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#EF5B3C' }}>{safetyTitle}</div>
+          </div>
+          <p style={{ margin: '0 0 12px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6 }}>{safetyMessage}</p>
+          {readinessScore !== null && (
+            <div style={{ fontSize: 11, color: '#EF5B3C', fontWeight: 600 }}>
+              Readiness score: {readinessScore}/100
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Adaptations banner — shown when smart endpoint provides adjustments */}
+      {!safetyBlocked && adaptations.length > 0 && (
+        <div style={{ margin: '0 22px 10px', padding: '8px 12px', borderRadius: 10, background: `${t.primary}14`, border: `1px solid ${t.primary}33` }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: t.primary, marginBottom: 4 }}>Session adapted</div>
+          {adaptations.map((a, i) => <div key={i} style={{ fontSize: 11.5, color: textSec(dark) }}>· {a}</div>)}
+        </div>
+      )}
+
       {/* Today's AI plan */}
       <div style={{ padding: '4px 22px 0' }}>
         <SectionLabel dark={dark}>{planSource === 'trainer' ? 'From your trainer' : 'Today\'s AI plan'}</SectionLabel>
@@ -617,7 +734,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
             }
             nav('workoutMode', { planId, exercises: plan });
           }}
-          disabled={!plan || loading}
+          disabled={!plan || loading || safetyBlocked}
           style={{
             ...primaryBtn(t.primary),
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
