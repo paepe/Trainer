@@ -329,6 +329,7 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
   if (item.type === 'workout_ready' && isTrainer)                        return badge('Pending', t.primary);
   if (item.type === 'plan_sent')                                          return badge('New Plan', t.primary);
   if (item.type === 'plan_cancelled')                                     return badge('Cancelled', t.accent);
+  if (item.type === 'plan_postponed')                                     return badge('Postponed', '#F5B45A');
   if (item.type === 'plan_expired')                                       return badge('Expired', textMute(dark));
   if (item.type === 'checkin_alert' || item.type === 'safety_gate')      return badge('Alert', '#F5A623');
   if (item.type === 'workout_completed')                                  return badge('Done ✓', '#4ade80');
