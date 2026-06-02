@@ -7,3 +7,13 @@ CREATE POLICY "assigned client updates own plan status" ON workout_plans
   FOR UPDATE
   USING  (auth.uid() = assigned_to)
   WITH CHECK (auth.uid() = assigned_to);
+
+-- workout_plans status CHECK constraint did not include 'cancelled' or 'postponed'.
+-- Every client-side UPDATE to these statuses was silently rejected by PostgreSQL.
+ALTER TABLE workout_plans DROP CONSTRAINT workout_plans_status_check;
+ALTER TABLE workout_plans
+  ADD CONSTRAINT workout_plans_status_check
+  CHECK (status = ANY (ARRAY[
+    'draft', 'pending_review', 'approved', 'sent', 'active', 'completed',
+    'cancelled', 'postponed'
+  ]));
