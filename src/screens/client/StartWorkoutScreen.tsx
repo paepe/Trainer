@@ -412,7 +412,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
                   <button
                     title="Cancel this plan"
                     onClick={() => {
-                      void supabase.from('workout_plans').update({ status: 'cancelled' }).eq('id', p.id);
+                      supabase.from('workout_plans').update({ status: 'cancelled' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan cancel]', error); });
                       setOtherPending(prev => prev.filter(x => x.id !== p.id));
                       if (isOpen) setExpandedPending(null);
                       // Notify trainer: client cancelled a plan
@@ -472,7 +472,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                       <button
                         onClick={() => {
-                          void supabase.from('workout_plans').update({ status: 'postponed' }).eq('id', p.id);
+                          supabase.from('workout_plans').update({ status: 'postponed' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan postpone]', error); });
                           setOtherPending(prev => prev.map(x => x.id === p.id ? { ...x, status: 'postponed' } : x));
                           setExpandedPending(null);
                           // Notify trainer: client postponed a plan
@@ -496,7 +496,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
                       </button>
                       <button
                         onClick={() => {
-                          void supabase.from('workout_plans').update({ status: 'active' }).eq('id', p.id);
+                          supabase.from('workout_plans').update({ status: 'active' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan start]', error); });
                           nav('workoutMode', {
                             planId:    p.id,
                             exercises: p.exercises.map(ex => ({
@@ -613,7 +613,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig }:
           onClick={() => {
             // Mark as active only when the workout actually starts
             if (planId && planSource === 'trainer') {
-              void supabase.from('workout_plans').update({ status: 'active' }).eq('id', planId);
+              supabase.from('workout_plans').update({ status: 'active' }).eq('id', planId).then(({ error }) => { if (error) console.error('[plan active]', error); });
             }
             nav('workoutMode', { planId, exercises: plan });
           }}
