@@ -19,7 +19,6 @@ const MENU_ITEMS: [string, string, string][] = [
   ['Smart Student Profile', 'profile',                  'brain'],
   ['Check-in',             'checkin',                  'sparkle'],
   ['Workout',              'workout',                  'play'],
-  ['Targets',              'goal',                     'target'],
   ['History',              'history',                  'history'],
   ['Progress',             'stats',                    'chart'],
   ['Cycle',                'cycle',                    'moon'],

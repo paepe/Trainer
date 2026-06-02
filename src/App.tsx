@@ -385,11 +385,11 @@ export default function App() {
 
   const showTabs = (isTrainer
     ? ['workout','workoutMode','goal','stats','history',
-       'settings','targets','checkin','cycle','studio',
+       'settings','checkin','cycle','studio',
        'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
        'workoutSummary','coachDNA','alerts']
     : ['profile','workout','workoutMode','goal','stats','history',
-       'settings','targets','checkin','cycle','studio',
+       'settings','checkin','cycle','studio',
        'workoutSummary','inbox']
   ).includes(screen);
 
@@ -494,7 +494,6 @@ export default function App() {
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} setDark={setDark}/>;
-      case 'targets':            return <GoalAchievedScreen      {...common}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} user={trainerUser} selectedClient={selectedClient}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient}/>;

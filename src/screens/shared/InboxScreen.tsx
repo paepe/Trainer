@@ -79,7 +79,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
     supabase
       .from('notification_log')
-      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at')
+      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at, read_at')
       .eq('to_user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
@@ -88,6 +88,16 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
         if (data) {
           const enriched = await Promise.all(data.map(d => enrich(d as Omit<InboxItem, 'peer_name'>)));
           setItems(enriched);
+
+          // Mark unread messages as read — opening the inbox = seen.
+          // The Realtime UPDATE handler in App.tsx decrements the tab badge.
+          const unreadIds = data.filter(d => (d as { read_at?: string | null }).read_at == null).map(d => d.id);
+          if (unreadIds.length) {
+            supabase.from('notification_log')
+              .update({ read_at: new Date().toISOString() })
+              .in('id', unreadIds)
+              .then(({ error: uErr }) => { if (uErr) console.error('[Inbox] mark-read failed:', uErr.message); });
+          }
         }
         setLoading(false);
       });
