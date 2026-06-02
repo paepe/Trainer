@@ -37,8 +37,9 @@ export function useLatestCheckin(userId: string | null | undefined) {
     streak: 0,
     lastCheckin: '-',
   }));
+  const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
 
-  React.useEffect(() => {
+  const reload = React.useCallback(() => {
     if (!userId) return;
     const uid = userId; // narrowed to string
 
@@ -102,10 +103,13 @@ export function useLatestCheckin(userId: string | null | undefined) {
       };
       if (pr) result.pain_region = pr;
       setData(result);
+      setLastUpdated(new Date());
     }
 
     load().catch(() => {});
   }, [userId]);
 
-  return data;
+  React.useEffect(() => { reload(); }, [reload]);
+
+  return { ...data, reload, lastUpdated };
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
+import { RefreshChip } from '../../components/RefreshChip';
 import {
   surfRaised,
   borderSubtle,
@@ -14,6 +15,14 @@ import type { NavFn } from '../../types';
 import { DARK } from '../../theme/tokens';
 import { useTrainerTheme }  from '../../hooks/useTrainerTheme';
 import { autoExpirePlans } from '../../lib/autoExpirePlans';
+
+interface ReadinessDecision {
+  id:          string;
+  response:    string;        // 'approved' | 'rejected'
+  response_at: string | null;
+  created_at:  string;
+  body:        string;
+}
 
 interface ClientProfile {
   id:    string;
@@ -117,28 +126,49 @@ export function TrainerClientDetailScreen({
   const [plans, setPlans]           = React.useState<WorkoutPlan[]>([]);
   const [profileV2, setProfileV2]   = React.useState<ProfileV2Row | null>(null);
   const [readiness, setReadiness]   = React.useState<CheckInReadiness[]>([]);
+  const [decisions, setDecisions]   = React.useState<ReadinessDecision[]>([]);
   const [loading, setLoading]       = React.useState(true);
+  const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const [expandedPlan,    setExpandedPlan]    = React.useState<string | null>(null);
   const [expandedSession, setExpandedSession] = React.useState<string | null>(null);
 
+  const clientId = selectedClient?.id;
+
+  const load = React.useCallback(async (showSpinner = true) => {
+    if (!clientId) return;
+    if (showSpinner) setLoading(true);
+    void autoExpirePlans(clientId, 'trainer');
+    const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes] = await Promise.all([
+      supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index)').eq('user_id', clientId).order('started_at', { ascending: false }).limit(10),
+      supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(10),
+      supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', clientId).maybeSingle(),
+      supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(7),
+      // C — trainer's past approve/reject decisions for this client (RLS scopes to_user_id = this trainer)
+      supabase.from('notification_log').select('id,response,response_at,created_at,body').eq('from_user_id', clientId).eq('type', 'workout_ready').not('response', 'is', null).order('response_at', { ascending: false }).limit(8),
+    ]);
+    setSessions(sessionsRes.data || []);
+    setPlans(plansRes.data || []);
+    setProfileV2(profV2Res.data as unknown as ProfileV2Row | null);
+    setReadiness((readinessRes.data || []) as CheckInReadiness[]);
+    setDecisions((decisionsRes.data || []) as ReadinessDecision[]);
+    setLastUpdated(new Date());
+    setLoading(false);
+  }, [clientId]);
+
+  // Initial load + Realtime: client check-ins and sessions update the screen live
   React.useEffect(() => {
-    if (!selectedClient?.id) return;
-    setLoading(true);
-    // Auto-cancel stale plans (>10 days) for this client; notify client
-    void autoExpirePlans(selectedClient.id, 'trainer');
-    Promise.all([
-      supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index)').eq('user_id', selectedClient.id).order('started_at', { ascending: false }).limit(10),
-      supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', selectedClient.id).order('created_at', { ascending: false }).limit(10),
-      supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', selectedClient.id).maybeSingle(),
-      supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', selectedClient.id).order('occurred_at', { ascending: false }).limit(7),
-    ]).then(([sessionsRes, plansRes, profV2Res, readinessRes]) => {
-      setSessions(sessionsRes.data || []);
-      setPlans(plansRes.data || []);
-      setProfileV2(profV2Res.data as unknown as ProfileV2Row | null);
-      setReadiness((readinessRes.data || []) as CheckInReadiness[]);
-      setLoading(false);
-    });
-  }, [selectedClient?.id]);
+    if (!clientId) return;
+    void load();
+
+    const channel = supabase
+      .channel(`client-detail:${clientId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'checkin_prontidao', filter: `user_id=eq.${clientId}` }, () => void load(false))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_sessions',  filter: `user_id=eq.${clientId}` }, () => void load(false))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_plans',      filter: `assigned_to=eq.${clientId}` }, () => void load(false))
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [clientId, load]);
 
   if (!selectedClient) {
     return (
@@ -220,7 +250,7 @@ export function TrainerClientDetailScreen({
         <button onClick={() => nav('trainerDashboard')} style={{ ...iconBtn(dark), marginLeft: -4 }}>
           <Icon name="chevL" size={22} color={textPri(dark)} />
         </button>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
             Client Profile
           </div>
@@ -228,6 +258,7 @@ export function TrainerClientDetailScreen({
             {selectedClient.name || 'Client'}
           </div>
         </div>
+        <RefreshChip onRefresh={() => void load()} loading={loading} lastUpdated={lastUpdated} live color={t.primary} dark={dark} />
       </div>
 
       {loading ? (
@@ -393,6 +424,39 @@ export function TrainerClientDetailScreen({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* C — Readiness decisions log (trainer's past approve/reject for this client) */}
+          {decisions.length > 0 && (
+            <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
+                Readiness Decisions
+              </div>
+              {decisions.map((d, i) => {
+                const approved = d.response === 'approved';
+                const color    = approved ? '#4ade80' : '#EF5B3C';
+                const when     = d.response_at ?? d.created_at;
+                return (
+                  <div key={d.id} style={{
+                    padding: '9px 0', display: 'flex', alignItems: 'center', gap: 10,
+                    borderBottom: i < decisions.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
+                  }}>
+                    <div style={{
+                      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                      background: `${color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Icon name={approved ? 'check' : 'close'} size={13} color={color} stroke={2.6} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color }}>{approved ? 'Approved' : 'Rejected'}</span>
+                      <span style={{ fontSize: 11, color: textMute(dark), marginLeft: 8 }}>
+                        {when ? new Date(when).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 

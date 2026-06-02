@@ -5,4 +5,5 @@ export { SideMenu }    from './SideMenu';
 export { BottomTabs }  from './BottomTabs';
 export { SectionLabel } from './SectionLabel';
 export { ScreenTitle }  from './ScreenTitle';
+export { RefreshChip }  from './RefreshChip';
 

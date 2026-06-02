@@ -307,20 +307,20 @@ export function useM5Data(userId: string | null) {
   const [data,    setData]    = React.useState<M5Data | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const staleRef = React.useRef<M5Data | null>(null);
-  const loadingRef = React.useRef<string | null>(null);
 
-  React.useEffect(() => {
+  const reload = React.useCallback(() => {
     if (!userId) { setLoading(false); return; }
-    if (loadingRef.current === userId) return;
-    loadingRef.current = userId;
     setLoading(true);
     fetchM5Data(userId)
-      .then(d  => { staleRef.current = d; setData(d); setLoading(false); loadingRef.current = null; })
-      .catch(e => { setError(String(e)); setLoading(false); loadingRef.current = null; });
+      .then(d  => { staleRef.current = d; setData(d); setLastUpdated(new Date()); setLoading(false); })
+      .catch(e => { setError(String(e)); setLoading(false); });
   }, [userId]);
 
-  return { data: data ?? staleRef.current, loading, error };
+  React.useEffect(() => { reload(); }, [reload]);
+
+  return { data: data ?? staleRef.current, loading, error, lastUpdated, reload };
 }
 
 // ── Data fetching ─────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../theme';
 import { Icon } from '../../components/Icon';
+import { RefreshChip } from '../../components/RefreshChip';
 
 type Variant = 'voice' | 'quick' | 'detailed' | 'post_workout';
 
@@ -14,6 +15,8 @@ interface CheckInHubProps {
   onBack:      () => void;
   streak?:     number;
   lastCheckin?: string;
+  onRefresh?:   () => void;
+  lastUpdated?: Date | null;
 }
 
 function greeting() {
@@ -53,7 +56,7 @@ const OPTIONS: {
   },
 ];
 
-export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin }: CheckInHubProps) {
+export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin, onRefresh, lastUpdated }: CheckInHubProps) {
   return (
     <div style={{ padding: '0 0 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
@@ -75,6 +78,9 @@ export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect
           </div>
           <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>Readiness Check-in</div>
         </div>
+        {onRefresh && (
+          <RefreshChip onRefresh={onRefresh} loading={false} lastUpdated={lastUpdated ?? null} color={primary} dark={dark} />
+        )}
         {streak != null && (
           <div style={{
             background: `${primary}20`, border: `1px solid ${primary}44`,

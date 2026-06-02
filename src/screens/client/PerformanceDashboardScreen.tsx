@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
+import { RefreshChip } from '../../components/RefreshChip';
 import type { NavFn } from '../../types';
 import { useM5Data, C, scoreColor, goodScoreColor, band } from './performance/perf-engines';
 import {
@@ -52,7 +53,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
   const targetName   = selectedClient?.name ?? user.name;
   const targetGender = user.gender;
   const [activeScreen, setActiveScreen] = React.useState<ScreenId>('overview');
-  const { data, loading } = useM5Data(targetUserId);
+  const { data, loading, lastUpdated, reload } = useM5Data(targetUserId);
 
   const tabBarRef = React.useRef<HTMLDivElement>(null);
 
@@ -113,6 +114,11 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
           </span>
         </div>
       )}
+
+      {/* Refresh row */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 18px 0', background: T.navy }}>
+        <RefreshChip onRefresh={reload} loading={loading} lastUpdated={lastUpdated} color={t.primary} dark={dark} />
+      </div>
 
       {/* Internal tab bar */}
       <div
