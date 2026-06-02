@@ -145,7 +145,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
   // ── Render ─────────────────────────────────────────────────────────────────
 
   const pendingCount = items.filter(i => i.type === 'workout_ready' && !i.response && !isExpired(i)).length;
-  const title        = isTrainer ? 'Alerts' : 'Inbox';
+  const title        = 'Inbox';
 
   return (
     <>

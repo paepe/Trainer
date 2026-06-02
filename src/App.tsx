@@ -396,7 +396,7 @@ export default function App() {
     ? [
         ['trainerDashboard', 'user',    'Clients'],
         ['checkin',          'sparkle', 'Check-in'],
-        ['alerts',           'bell',    'Alerts'],
+        ['alerts',           'bell',    'Inbox'],
         ['history',          'history', 'History'],
         ['menu',             'menu',    'Menu'],
       ]
