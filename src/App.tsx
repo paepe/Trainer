@@ -29,6 +29,7 @@ const WorkoutPlanEditorScreen    = React.lazy(() => import('./screens/trainer/Wo
 const TrainerLibraryExercisesScreen = React.lazy(() => import('./screens/trainer/TrainerLibraryExercisesScreen').then(m => ({ default: m.TrainerLibraryExercisesScreen })));
 const CoachDNAScreen             = React.lazy(() => import('./coach-dna/CoachDNAScreen').then(m => ({ default: m.CoachDNAScreen })));
 const TrainerAlertsScreen        = React.lazy(() => import('./screens/trainer/TrainerAlertsScreen').then(m => ({ default: m.TrainerAlertsScreen })));
+const ClientInboxScreen          = React.lazy(() => import('./screens/client/ClientInboxScreen').then(m => ({ default: m.ClientInboxScreen })));
 
 const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
 
@@ -104,6 +105,7 @@ export default function App() {
   // Null = not yet resolved; empty string = client has no active trainer
   const [linkedTrainerId, setLinkedTrainerId] = React.useState<string | null>(null);
   const [pendingAlerts, setPendingAlerts] = React.useState(0);
+  const [pendingInbox,  setPendingInbox]  = React.useState(0);
   const [selectedClient, setSelectedClient] = React.useState<ClientProfile | null>(null);
   const [checkin, setCheckin] = React.useState<CheckIn>({
     energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
@@ -236,6 +238,32 @@ export default function App() {
     return () => { void supabase.removeChannel(ch); };
   }, [isTrainer, profile?.id]);
 
+  // Client: badge count for unread inbox messages (any INSERT not yet read)
+  React.useEffect(() => {
+    if (isTrainer || !profile?.id) return;
+
+    supabase
+      .from('notification_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('to_user_id', profile.id)
+      .is('read_at', null)
+      .then(({ count }) => setPendingInbox(count ?? 0));
+
+    const ch = supabase
+      .channel(`inbox_badge:${profile.id}`)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
+        () => setPendingInbox(n => n + 1)
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
+        (p) => { if ((p.new as any).read_at != null) setPendingInbox(n => Math.max(0, n - 1)); }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(ch); };
+  }, [isTrainer, profile?.id]);
+
   // Role-based navigation after login (only when both session and profile are loaded)
   React.useEffect(() => {
     if (!session || !profile || !['welcome', 'login'].includes(screen)) return;
@@ -361,7 +389,7 @@ export default function App() {
        'workoutSummary','coachDNA','alerts']
     : ['profile','workout','workoutMode','goal','stats','history',
        'settings','targets','checkin','cycle','studio',
-       'workoutSummary']
+       'workoutSummary','inbox']
   ).includes(screen);
 
   const tabs: [string, string, string][] = isTrainer
@@ -376,7 +404,7 @@ export default function App() {
         ['checkin',  'sparkle', 'Check-in'],
         ['workout',  'play',    'Workout'],
         ['stats',    'chart',   'Progress'],
-        ['history',  'history', 'History'],
+        ['inbox',    'bell',    'Inbox'],
         ['menu',     'menu',    'Menu'],
       ];
 
@@ -472,6 +500,7 @@ export default function App() {
       case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen nav={nav} user={trainerUser}/>;
       case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser}/>;
       case 'alerts':              return <TrainerAlertsScreen nav={nav} user={trainerUser}/>;
+      case 'inbox':               return <ClientInboxScreen   nav={nav} user={user}/> ;
       default:                   return <WelcomeScreen           {...common}/>;
     }
   })();
@@ -490,7 +519,9 @@ export default function App() {
     setMenuOpen,
     handleSetUser,
     profile,
-    tabBadges: isTrainer && pendingAlerts > 0 ? { alerts: pendingAlerts } : {},
+    tabBadges: isTrainer
+      ? (pendingAlerts > 0 ? { alerts: pendingAlerts } : {})
+      : (pendingInbox  > 0 ? { inbox:  pendingInbox  } : {}),
   };
 
   return (
