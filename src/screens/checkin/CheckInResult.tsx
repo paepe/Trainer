@@ -201,16 +201,11 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           {isBlocked ? 'Review safety alert →' : 'Build plan →'}
         </button>
       ) : hasTrainer ? (
-        /* Client WITH an active trainer — check-in is already saved and shared
-           live with the trainer. "Done" just closes; notifying is OPTIONAL. */
-        <>
-          <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary), marginBottom: 10 }}>
-            Done
-          </button>
-          <button onClick={onAlert} style={{ ...outlineBtn(isBlocked ? accent : primary) }}>
-            {isBlocked ? '⚠ Notify trainer — caution today' : '✦ Notify trainer — I\'m ready'}
-          </button>
-        </>
+        /* Client WITH an active trainer — data is already live with the trainer.
+           The only meaningful action is an explicit notification. Back handles navigation. */
+        <button onClick={onAlert} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
+          {isBlocked ? '⚠ Notify trainer — caution today' : '✦ Notify trainer — I\'m ready'}
+        </button>
       ) : (
         /* Client WITHOUT a trainer — full autonomy */
         <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
