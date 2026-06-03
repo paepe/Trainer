@@ -1,4 +1,5 @@
 import React from 'react';
+import { supabase } from '../../supabase';
 import { Icon } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, primaryBtn } from '../../theme';
 import type { NavFn } from '../../types';
@@ -41,6 +42,22 @@ export function PostWorkoutSummaryScreen({
   const [submitted, setSubmitted] = React.useState(false);
 
   const isTrainerView = Boolean(forClientName);
+
+  // Pre-populate with previously saved feedback (handles re-submission without overwriting good data)
+  React.useEffect(() => {
+    if (!sessionId || isTrainerView) return;
+    supabase
+      .from('post_workout_feedback')
+      .select('overall_feeling, energy_after, notes')
+      .eq('session_id', sessionId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        if (data.overall_feeling != null) setFeeling(data.overall_feeling);
+        if (data.energy_after   != null) setEnergy(data.energy_after);
+        if (data.notes          != null) setNotes(data.notes);
+      });
+  }, [sessionId, isTrainerView]);
 
   const handleSubmit = async () => {
     if (isTrainerView) { nav('trainerDashboard'); return; }
