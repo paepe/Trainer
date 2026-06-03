@@ -459,6 +459,7 @@ export default function App() {
           nav={nav} t={t} dark={dark} user={user}
           planId={(screenPayload?.planId as string | null) ?? null}
           exercises={(screenPayload?.exercises as Exercise[] | null) ?? null}
+          plannedDurationMin={(screenPayload?.plannedDurationMin as number) ?? undefined}
           clientUserId={(screenPayload?.clientUserId as string) ?? undefined}
           clientName={(screenPayload?.clientName as string) ?? undefined}
           startWorkoutSession={startWorkoutSession}
@@ -476,6 +477,8 @@ export default function App() {
           completedCount={(screenPayload?.completedCount as number) ?? 0}
           total={(screenPayload?.total as number) ?? 0}
           totalSets={(screenPayload?.totalSets as number) ?? 0}
+          startedAt={(screenPayload?.startedAt as string) ?? undefined}
+          forClientName={(screenPayload?.forClientName as string) ?? undefined}
           savePostWorkoutFeedback={savePostWorkoutFeedback}
         />;
       case 'goal':               return <GoalAchievedScreen      {...common} sessionData={screenPayload}/>;

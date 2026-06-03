@@ -26,9 +26,10 @@ interface WorkoutModeScreenProps {
   user:                        AppUser;
   planId:                      string | null;
   exercises:                   GeneratedWorkoutExercise[] | null;
-  clientUserId?:               string;   // trainer acting on behalf of client
-  clientName?:                 string;   // for the workout header
-  startWorkoutSession:         (input: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string }) => Promise<{ data: { sessionId: string; sessionExercises: WorkoutSessionExercise[] } | null; error: unknown }>;
+  plannedDurationMin?:         number;
+  clientUserId?:               string;
+  clientName?:                 string;
+  startWorkoutSession:         (input: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number }) => Promise<{ data: { sessionId: string; sessionExercises: WorkoutSessionExercise[] } | null; error: unknown }>;
   logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null }) => Promise<{ error: unknown }>;
   updateSessionExerciseStatus: (sessionExerciseId: string, status: SessionExerciseStatus, skippedReason?: string) => Promise<{ error: unknown }>;
   reportWorkoutPain:           (data: { session_id: string; session_exercise_id: string | null; body_region: string; intensity: number }) => Promise<{ error: unknown }>;
@@ -47,7 +48,7 @@ const PAIN_REGIONS: { value: string; label: string }[] = [
 const SKIP_OPTIONS = ['Pain / Injury', 'Lack of Equipment', 'Fatigue / Energy', 'Time Constraint', 'Other'];
 
 export function WorkoutModeScreen({
-  nav, t, dark, user, planId, exercises, clientUserId, clientName,
+  nav, t, dark, user, planId, exercises, plannedDurationMin, clientUserId, clientName,
   startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
   reportWorkoutPain, completeWorkoutSession, updatePainRecurrence,
   sounds = false,
@@ -83,8 +84,9 @@ export function WorkoutModeScreen({
   React.useEffect(() => {
     if (!exercises?.length) { setPhase('active'); return; }
 
-    const sessionInput: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string } = { planId, exercises };
-    if (clientUserId) sessionInput.forUserId = clientUserId;
+    const sessionInput: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number } = { planId, exercises };
+    if (clientUserId)        sessionInput.forUserId            = clientUserId;
+    if (plannedDurationMin)  sessionInput.planned_duration_min = plannedDurationMin;
     startWorkoutSession(sessionInput).then(({ data, error }) => {
       if (error || !data) {
         setInitErr('Session saved locally — online sync failed.');
@@ -239,16 +241,38 @@ export function WorkoutModeScreen({
     const totalSets    = exStates.reduce((n, e) => n + e.setsLogged, 0);
     const completedCnt = exStates.filter(e => e.status === 'completed').length;
 
-    if (sessionId) {
+    let resolvedSessionId = sessionId;
+
+    if (!resolvedSessionId) {
+      // Session was never synced (no exercises or creation failed) — create minimal rescue session
+      const rescueInput: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number } = {
+        planId,
+        exercises: [],
+        planned_duration_min: durationMin,
+      };
+      if (clientUserId) rescueInput.forUserId = clientUserId;
+      const { data } = await startWorkoutSession(rescueInput);
+      resolvedSessionId = data?.sessionId ?? null;
+    }
+
+    if (resolvedSessionId) {
       await completeWorkoutSession({
-        sessionId,
+        sessionId:          resolvedSessionId,
         completed_at:       completedAt.toISOString(),
         total_duration_min: durationMin,
       });
     }
 
     if (soundsRef.current) { soundWorkoutDone(); vibrate('workout_done'); }
-    nav('workoutSummary', { sessionId, durationMin, completedCount: completedCnt, total: exStates.length, totalSets, startedAt: startedAt.toISOString() });
+    nav('workoutSummary', {
+      sessionId:     resolvedSessionId,
+      durationMin,
+      completedCount: completedCnt,
+      total:          exStates.length,
+      totalSets,
+      startedAt:      startedAt.toISOString(),
+      forClientName:  clientName ?? undefined,
+    });
   };
 
   // ── Render ────────────────────────────────────────────────────────────────────

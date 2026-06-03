@@ -20,6 +20,8 @@ interface PostWorkoutSummaryScreenProps {
   completedCount:          number;
   total:                   number;
   totalSets:               number;
+  startedAt?:              string;
+  forClientName?:          string;
   savePostWorkoutFeedback: (data: { session_id: string; overall_feeling: number; energy_after: number | null; notes: string | null }) => Promise<{ error: unknown }>;
 }
 
@@ -29,6 +31,7 @@ const FEELING_ICONS  = ['😩',       '😕',  '😐',    '😊',   '🤩'];
 export function PostWorkoutSummaryScreen({
   nav, t, dark, sessionId,
   durationMin, completedCount, total, totalSets,
+  startedAt, forClientName,
   savePostWorkoutFeedback,
 }: PostWorkoutSummaryScreenProps) {
   const [feeling,   setFeeling]   = React.useState(4);
@@ -37,7 +40,10 @@ export function PostWorkoutSummaryScreen({
   const [saving,    setSaving]    = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
 
+  const isTrainerView = Boolean(forClientName);
+
   const handleSubmit = async () => {
+    if (isTrainerView) { nav('trainerDashboard'); return; }
     setSaving(true);
     if (sessionId) {
       await savePostWorkoutFeedback({
@@ -64,6 +70,12 @@ export function PostWorkoutSummaryScreen({
         }}>Workout Complete!</div>
         <div style={{ fontSize: 13, color: textSec(dark), marginTop: 4 }}>
           Great effort — here&rsquo;s your session summary
+          {startedAt && (
+            <span style={{ color: textMute(dark) }}>
+              {' · '}{new Date(startedAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              {' · '}{new Date(startedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
+          )}
         </div>
       </div>
 
@@ -83,80 +95,111 @@ export function PostWorkoutSummaryScreen({
         </div>
       </div>
 
-      {/* How did you feel? */}
-      <div style={{ padding: '0 22px 18px' }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-          How did you feel?
+      {isTrainerView ? (
+        /* ── Trainer view: read-only notice ─────────────────────────── */
+        <div style={{ padding: '0 22px 32px' }}>
+          <div style={{
+            padding: '16px 18px', borderRadius: 14,
+            background: `${t.primary}12`, border: `1.5px solid ${t.primary}33`,
+            marginBottom: 20,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: t.primary, marginBottom: 4 }}>
+              Session feedback is for {forClientName?.split(' ')[0] ?? 'the client'}
+            </div>
+            <div style={{ fontSize: 12, color: textSec(dark) }}>
+              Ask {forClientName?.split(' ')[0] ?? 'your client'} to open the app and rate their session. Trainer cannot submit client feedback.
+            </div>
+          </div>
+          <button
+            onClick={() => void handleSubmit()}
+            style={{
+              ...primaryBtn(t.primary),
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+          >
+            <Icon name="check" size={15} color="#0E1A2B" stroke={2.5}/>
+            Back to Dashboard
+          </button>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
-          {[1,2,3,4,5].map(n => (
-            <button key={n} onClick={() => setFeeling(n)} style={{
-              flex: 1, padding: '10px 0', borderRadius: 12, border: 'none',
-              background: feeling === n ? `${t.primary}22` : surfRaised(dark),
-              outline: `1.5px solid ${feeling === n ? t.primary : borderSubtle(dark)}`,
-              cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-            }}>
-              <span style={{ fontSize: 20 }}>{FEELING_ICONS[n - 1]}</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: feeling === n ? t.primary : textMute(dark) }}>
-                {FEELING_LABELS[n - 1]}
-              </span>
+      ) : (
+        /* ── Client view: editable feedback form ────────────────────── */
+        <>
+          {/* How did you feel? */}
+          <div style={{ padding: '0 22px 18px' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
+              How did you feel?
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+              {[1,2,3,4,5].map(n => (
+                <button key={n} onClick={() => setFeeling(n)} style={{
+                  flex: 1, padding: '10px 0', borderRadius: 12, border: 'none',
+                  background: feeling === n ? `${t.primary}22` : surfRaised(dark),
+                  outline: `1.5px solid ${feeling === n ? t.primary : borderSubtle(dark)}`,
+                  cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                }}>
+                  <span style={{ fontSize: 20 }}>{FEELING_ICONS[n - 1]}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: feeling === n ? t.primary : textMute(dark) }}>
+                    {FEELING_LABELS[n - 1]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Energy after */}
+          <div style={{ padding: '0 22px 18px' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
+              Energy level after — {energy ?? '—'}/10
+            </div>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                <button key={n} onClick={() => setEnergy(n)} style={{
+                  width: 34, height: 34, borderRadius: 8, border: 'none',
+                  background: energy === n ? t.primary : surfRaised(dark),
+                  color: energy === n ? '#0E1A2B' : textPri(dark),
+                  fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  outline: `1.5px solid ${energy === n ? t.primary : borderSubtle(dark)}`,
+                }}>{n}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div style={{ padding: '0 22px 18px' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
+              Notes (optional)
+            </div>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="How was the session?"
+              rows={3}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '10px 14px', borderRadius: 12,
+                border: `1.5px solid ${borderSubtle(dark)}`,
+                background: surfRaised(dark), color: textPri(dark),
+                fontFamily: 'inherit', fontSize: 14, resize: 'none', outline: 'none',
+              }}
+            />
+          </div>
+
+          <div style={{ padding: '0 22px 32px' }}>
+            <button
+              onClick={() => void handleSubmit()}
+              disabled={saving || submitted}
+              style={{
+                ...primaryBtn(t.primary),
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                opacity: (saving || submitted) ? 0.65 : 1,
+              }}
+            >
+              <Icon name="check" size={15} color="#0E1A2B" stroke={2.5}/>
+              {saving ? 'Saving…' : 'Save & Continue'}
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Energy after */}
-      <div style={{ padding: '0 22px 18px' }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
-          Energy level after — {energy ?? '—'}/10
-        </div>
-        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-          {[1,2,3,4,5,6,7,8,9,10].map(n => (
-            <button key={n} onClick={() => setEnergy(n)} style={{
-              width: 34, height: 34, borderRadius: 8, border: 'none',
-              background: energy === n ? t.primary : surfRaised(dark),
-              color: energy === n ? '#0E1A2B' : textPri(dark),
-              fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              outline: `1.5px solid ${energy === n ? t.primary : borderSubtle(dark)}`,
-            }}>{n}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* Notes */}
-      <div style={{ padding: '0 22px 18px' }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
-          Notes (optional)
-        </div>
-        <textarea
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder="How was the session?"
-          rows={3}
-          style={{
-            width: '100%', boxSizing: 'border-box',
-            padding: '10px 14px', borderRadius: 12,
-            border: `1.5px solid ${borderSubtle(dark)}`,
-            background: surfRaised(dark), color: textPri(dark),
-            fontFamily: 'inherit', fontSize: 14, resize: 'none', outline: 'none',
-          }}
-        />
-      </div>
-
-      <div style={{ padding: '0 22px 32px' }}>
-        <button
-          onClick={() => void handleSubmit()}
-          disabled={saving || submitted}
-          style={{
-            ...primaryBtn(t.primary),
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            opacity: (saving || submitted) ? 0.65 : 1,
-          }}
-        >
-          <Icon name="check" size={15} color="#0E1A2B" stroke={2.5}/>
-          {saving ? 'Saving…' : 'Save & Continue'}
-        </button>
-      </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

@@ -10,9 +10,10 @@ interface MutateResult   { error: unknown }
 export function useWorkoutData(userId: string | undefined) {
 
   async function startWorkoutSession(input: {
-    planId:    string | null;
-    exercises: GeneratedWorkoutExercise[];
-    forUserId?: string;   // trainer acting on behalf of client
+    planId:               string | null;
+    exercises:            GeneratedWorkoutExercise[];
+    forUserId?:           string;
+    planned_duration_min?: number;
   }): Promise<DataResult<{ sessionId: string; sessionExercises: WorkoutSessionExercise[] }>> {
     const effectiveUserId = input.forUserId ?? userId;
     if (!effectiveUserId) return { data: null, error: 'no user' };
@@ -20,10 +21,11 @@ export function useWorkoutData(userId: string | undefined) {
     const { data: session, error: sessionError } = await supabase
       .from('workout_sessions')
       .insert({
-        user_id:    effectiveUserId,
-        plan_id:    input.planId,
-        status:     'active',
-        started_at: new Date().toISOString(),
+        user_id:            effectiveUserId,
+        plan_id:            input.planId,
+        status:             'active',
+        started_at:         new Date().toISOString(),
+        total_duration_min: input.planned_duration_min ?? null,
       })
       .select('id')
       .single();
@@ -46,6 +48,11 @@ export function useWorkoutData(userId: string | undefined) {
       notes:              ex.notes              ?? null,
       status:             'pending',
     }));
+
+    if (exerciseRows.length === 0) {
+      void emitEvent(effectiveUserId, 'workout_started', 'workout_session', sessionId);
+      return { data: { sessionId, sessionExercises: [] }, error: null };
+    }
 
     const { data: inserted, error: exError } = await supabase
       .from('workout_session_exercises')
@@ -143,7 +150,10 @@ export function useWorkoutData(userId: string | undefined) {
     if (!userId) return { error: null };
     const { error } = await supabase
       .from('post_workout_feedback')
-      .insert({ ...data, user_id: userId, submitted_at: new Date().toISOString() });
+      .upsert(
+        { ...data, user_id: userId, submitted_at: new Date().toISOString() },
+        { onConflict: 'session_id' },
+      );
     if (error) console.error('[useWorkoutData] savePostWorkoutFeedback:', error);
     return { error };
   }

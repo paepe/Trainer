@@ -768,7 +768,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             if (planId && planSource === 'trainer') {
               supabase.from('workout_plans').update({ status: 'active' }).eq('id', planId).then(({ error }) => { if (error) console.error('[plan active]', error); });
             }
-            nav('workoutMode', { planId, exercises: plan });
+            nav('workoutMode', { planId, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined });
           }}
           disabled={!plan || loading || safetyBlocked}
           style={{
