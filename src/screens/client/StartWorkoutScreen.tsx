@@ -82,6 +82,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [otherPending, setOtherPending] = React.useState<PendingPlan[]>([]);
   const [showPendingList, setShowPendingList] = React.useState(false);
   const [expandedPending, setExpandedPending] = React.useState<string | null>(null);
+  const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
 
   // Derive current cycle phase — only for female users with cycle tracking data
@@ -386,11 +387,46 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     return () => { cancelled = true; };
   }, []);
 
+  // Live: a new plan sent by the trainer while this screen is open
+  React.useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`workout-incoming:${user.id}`)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'workout_plans', filter: `assigned_to=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as { status?: string; source?: string };
+          if (row?.status === 'sent' && row?.source === 'manual') setNewPlanArrived(true);
+        }
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [user?.id]);
+
   const sore = (activeCheckin.soreness || []).filter(s => s !== 'None');
 
   return (
     <>
       <ScreenTitle dark={dark}>Start Workout</ScreenTitle>
+
+      {/* Live: new plan arrived from the trainer while on this screen */}
+      {newPlanArrived && (
+        <div style={{ padding: '0 22px 12px' }}>
+          <button
+            onClick={() => { setNewPlanArrived(false); void fetchPlan(); }}
+            style={{
+              width: '100%', padding: '12px 16px', borderRadius: 12,
+              background: '#10B981', color: '#fff', border: 'none',
+              fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              boxShadow: '0 6px 18px #10B98155',
+            }}
+          >
+            <Icon name="sparkle" size={15} color="#fff" stroke={2.4}/>
+            New plan from your trainer — tap to load
+          </button>
+        </div>
+      )}
 
       <div style={{ padding: '0 22px 16px' }}>
         <div style={{
