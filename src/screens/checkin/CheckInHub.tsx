@@ -1,22 +1,19 @@
 import React from 'react';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../theme';
 import { Icon } from '../../components/Icon';
-import { RefreshChip } from '../../components/RefreshChip';
 
 type Variant = 'voice' | 'quick' | 'detailed' | 'post_workout';
 
 interface CheckInHubProps {
-  dark:        boolean;
-  primary:     string;
-  accent:      string;
-  userName?:   string | undefined;
-  isClient?:   boolean;
-  onSelect:    (v: Variant) => void;
-  onBack:      () => void;
-  streak?:     number;
+  dark:         boolean;
+  primary:      string;
+  accent:       string;
+  userName?:    string | undefined;
+  isClient?:    boolean;
+  onSelect:     (v: Variant) => void;
+  onBack:       () => void;
+  streak?:      number;
   lastCheckin?: string;
-  onRefresh?:   () => void;
-  lastUpdated?: Date | null;
 }
 
 function greeting() {
@@ -56,9 +53,10 @@ const OPTIONS: {
   },
 ];
 
-export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin, onRefresh, lastUpdated }: CheckInHubProps) {
+export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin }: CheckInHubProps) {
   return (
     <div style={{ padding: '0 0 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      <style>{`@keyframes livePulse { 0%, 100% { opacity: 1; box-shadow: 0 0 6px #4ade80; } 50% { opacity: 0.6; box-shadow: 0 0 2px #4ade80; } }`}</style>
 
       {/* Header */}
       <div style={{
@@ -78,9 +76,21 @@ export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect
           </div>
           <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>Readiness Check-in</div>
         </div>
-        {onRefresh && (
-          <RefreshChip onRefresh={onRefresh} loading={false} lastUpdated={lastUpdated ?? null} color={primary} dark={dark} />
-        )}
+        {/* LIVE badge — data is always live via Supabase Realtime */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 5,
+          background: '#4ade8018', border: '1px solid #4ade8044',
+          borderRadius: 999, padding: '3px 9px',
+        }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: '#4ade80',
+            boxShadow: '0 0 6px #4ade80',
+            display: 'inline-block',
+            animation: 'livePulse 2s ease-in-out infinite',
+          }}/>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#4ade80' }}>LIVE</span>
+        </div>
         {streak != null && (
           <div style={{
             background: `${primary}20`, border: `1px solid ${primary}44`,

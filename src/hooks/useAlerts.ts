@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
+import { useRealtimeTable } from './useRealtimeTable';
 import type { TrainerAlert, OperationalTask } from '../types/workout';
 
 interface UseAlertsResult {
@@ -45,6 +46,20 @@ export function useAlerts(trainerId: string | undefined): UseAlertsResult {
   }, [trainerId]);
 
   useEffect(() => { void load(); }, [load]);
+
+  // Live subscriptions — auto-reload when alerts or tasks change for this trainer
+  useRealtimeTable(
+    'trainer_alerts',
+    trainerId ? { column: 'trainer_id', value: trainerId } : null,
+    () => { void load(); },
+    !!trainerId,
+  );
+  useRealtimeTable(
+    'operational_tasks',
+    trainerId ? { column: 'trainer_id', value: trainerId } : null,
+    () => { void load(); },
+    !!trainerId,
+  );
 
   async function acknowledgeAlert(id: string): Promise<void> {
     const { error } = await supabase

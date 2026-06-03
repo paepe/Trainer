@@ -115,6 +115,24 @@ export function TrainerDashboardScreen({
       .then(({ data }) => setPendingReviews((data || []) as SafetyGateEvent[]));
   }, []);
 
+  // Realtime subscription for check-in submissions — re-fetch safety gate queue
+  React.useEffect(() => {
+    if (!user?.id || clients.length === 0) return;
+    const clientIds = clients.filter(c => c.status === 'active' && c.client?.id).map(c => c.client!.id);
+    if (clientIds.length === 0) return;
+
+    const channel = supabase
+      .channel('trainer-checkins')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'checkin_prontidao' },
+        () => { fetchSafetyGate(clientIds); }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [user?.id, clients, fetchSafetyGate]);
+
+
   async function fetchClients() {
     if (!user?.id) return;
     setLoading(true);
@@ -228,7 +246,10 @@ export function TrainerDashboardScreen({
           </div>
         )}
 
-        <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }`}</style>
+        <style>{`
+          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+          @keyframes livePulse { 0%, 100% { opacity: 1; box-shadow: 0 0 6px #4ade80; } 50% { opacity: 0.6; box-shadow: 0 0 2px #4ade80; } }
+        `}</style>
 
         {/* Safety Gate review queue */}
         {!loading && pendingReviews.length > 0 && (

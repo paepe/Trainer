@@ -12,6 +12,7 @@ interface CheckInResultProps {
   risk?:             RiskClassification;
   onDone:            () => void;
   onAlert:           () => void;
+  onBack?:           () => void;
   isTrainerContext?: boolean;
   linkedTrainerId?:  string;
 }
@@ -78,7 +79,7 @@ function StatCell({ label, value, color }: { label: string; value: string; color
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, isTrainerContext, linkedTrainerId }: CheckInResultProps) {
+export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, onBack, isTrainerContext, linkedTrainerId }: CheckInResultProps) {
   const meta         = STATUS_META[result.status];
   const isBlocked    = result.ai_led_blocked;
   const hasTrainer   = !!linkedTrainerId;  // client with an active trainer
@@ -86,8 +87,33 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
   return (
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
-      <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
-        SCREEN 04 · READINESS REPORT · CONTEXTUAL
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>
+          SCREEN 04 · READINESS REPORT · CONTEXTUAL
+        </div>
+        {onBack && (
+          <button
+            onClick={onBack}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: textMute(dark),
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 8px',
+              borderRadius: 6,
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#ffffff08'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            ← Back
+          </button>
+        )}
       </div>
 
       <h2 style={{
@@ -189,6 +215,12 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         /* Client WITHOUT a trainer — full autonomy */
         <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
           {isBlocked ? 'View caution options' : 'Start workout →'}
+        </button>
+      )}
+
+      {onBack && (
+        <button onClick={onBack} style={{ ...outlineBtn(primary), marginTop: 10 }}>
+          ← Back
         </button>
       )}
     </div>

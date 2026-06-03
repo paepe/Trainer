@@ -1,5 +1,6 @@
 import React from 'react';
 import { supabase } from '../supabase';
+import { useRealtimeTable } from './useRealtimeTable';
 
 export interface LatestCheckinData {
   energy?:            number;
@@ -110,6 +111,14 @@ export function useLatestCheckin(userId: string | null | undefined) {
   }, [userId]);
 
   React.useEffect(() => { reload(); }, [reload]);
+
+  // Live subscription — auto-reload whenever a new row lands for this user
+  useRealtimeTable(
+    'checkin_prontidao',
+    userId ? { column: 'user_id', value: userId } : null,
+    reload,
+    !!userId,
+  );
 
   return { ...data, reload, lastUpdated };
 }

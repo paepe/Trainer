@@ -114,8 +114,6 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           onBack={() => nav(clientUserId ? 'trainerDashboard' : 'profile')}
           streak={last.streak}
           lastCheckin={last.lastCheckin}
-          onRefresh={last.reload}
-          lastUpdated={last.lastUpdated}
         />
       );
 
@@ -193,6 +191,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
               nav('checkin');
             }
           }}
+          onBack={goHub}
         />
       ) : null;
 
