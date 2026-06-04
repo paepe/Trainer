@@ -9,15 +9,16 @@
 import { supabase } from '../supabase';
 import { notify }   from './notify';
 
-const EXPIRE_DAYS = 10;
+const DEFAULT_EXPIRE_DAYS = 10;
 
 export async function autoExpirePlans(
   clientId: string,
-  trigger: 'trainer' | 'client'
+  trigger: 'trainer' | 'client',
+  expiryDays: number = DEFAULT_EXPIRE_DAYS,
 ): Promise<number> {
   if (!clientId) return 0;
 
-  const cutoff = new Date(Date.now() - EXPIRE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const cutoff = new Date(Date.now() - expiryDays * 24 * 60 * 60 * 1000).toISOString();
 
   const { data: stale } = await supabase
     .from('workout_plans')
@@ -42,7 +43,7 @@ export async function autoExpirePlans(
     void notify(
       clientId,
       'Plans auto-cancelled',
-      `${count} plan${count > 1 ? 's' : ''} older than ${EXPIRE_DAYS} days were automatically cancelled.`,
+      `${count} plan${count > 1 ? 's' : ''} older than ${expiryDays} days were automatically cancelled.`,
       undefined,
       { type: 'plan_expired', entityType: 'workout_plan' }
     );
@@ -59,7 +60,7 @@ export async function autoExpirePlans(
       void notify(
         tc.trainer_id,
         'Plans expired',
-        `${count} pending plan${count > 1 ? 's' : ''} for a client were auto-cancelled after ${EXPIRE_DAYS} days.`,
+        `${count} pending plan${count > 1 ? 's' : ''} for a client were auto-cancelled after ${expiryDays} days.`,
         undefined,
         { type: 'plan_expired', entityType: 'workout_plan' }
       );

@@ -117,11 +117,13 @@ interface CheckInReadiness {
 interface TrainerClientDetailScreenProps {
   nav:             NavFn;
   selectedClient?: ClientProfile | null;
+  planExpiryDays?: number;
 }
 
 export function TrainerClientDetailScreen({
   nav,
   selectedClient,
+  planExpiryDays = 10,
 }: TrainerClientDetailScreenProps) {
   const { t, dark } = useTrainerTheme();
   const [sessions, setSessions]     = React.useState<WorkoutSession[]>([]);
@@ -138,7 +140,7 @@ export function TrainerClientDetailScreen({
   const load = React.useCallback(async (showSpinner = true) => {
     if (!clientId) return;
     if (showSpinner) setLoading(true);
-    void autoExpirePlans(clientId, 'trainer');
+    void autoExpirePlans(clientId, 'trainer', planExpiryDays);
     const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes] = await Promise.all([
       supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(10),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(10),
@@ -154,7 +156,7 @@ export function TrainerClientDetailScreen({
     setDecisions((decisionsRes.data || []) as ReadinessDecision[]);
     setLastUpdated(new Date());
     setLoading(false);
-  }, [clientId]);
+  }, [clientId, planExpiryDays]);
 
   // Initial load + Realtime: client check-ins and sessions update the screen live
   React.useEffect(() => {

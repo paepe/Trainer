@@ -3,7 +3,14 @@
 // fields (language, defaultLocation, preferredIntensity, planExpiryDays, …) —
 // the interface is intentionally explicit (no index signature) so those
 // additions are type-checked rather than silently accepted as booleans.
+export type TrainingLocation = 'gym' | 'home' | 'outdoor';
+export type SessionDuration  = 30 | 45 | 60 | 75 | 90;
+export type TrainingIntensity = 'light' | 'moderate' | 'hard';
+export type PlanExpiryDays   = 7 | 10 | 14 | 21 | 30;
+export type WorkoutReadyExpiryMin = 15 | 30 | 60 | 120;
+
 export interface AppPreferences {
+  // Boolean toggles
   notifications:     boolean;
   goals:             boolean;
   alerts:            boolean;
@@ -14,11 +21,18 @@ export interface AppPreferences {
   aiPersonalization: boolean;
   whiteLabel:        boolean;
   darkMode:          boolean;
+
+  // Tier 1 — typed value preferences
+  defaultLocation:        TrainingLocation;
+  defaultDurationMin:     SessionDuration;
+  preferredIntensity:     TrainingIntensity;
+  planExpiryDays:         PlanExpiryDays;          // trainer
+  workoutReadyExpiryMin:  WorkoutReadyExpiryMin;   // client-with-trainer
 }
 
 // Keys whose value is a boolean — used by the Settings toggle list for
-// type-safe dynamic access (prefs[key]). Once non-boolean prefs are added,
-// this narrows to only the boolean subset.
+// type-safe dynamic access (prefs[key]). Narrows to only the boolean subset
+// now that non-boolean (Tier 1) prefs exist.
 export type BooleanPrefKey = {
   [K in keyof AppPreferences]: AppPreferences[K] extends boolean ? K : never;
 }[keyof AppPreferences];

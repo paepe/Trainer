@@ -37,11 +37,12 @@ interface CheckInProntidaoScreenProps {
   clientName?:           string;
   biologicalSex?:        string | undefined;
   linkedTrainerId?:      string; // '' = no trainer, non-empty = has trainer
+  workoutReadyExpiryMin?: number; // how long the "I'm ready" alert stays live
   saveCheckinV2?:        SaveCheckinV2Fn;
   updatePainRecurrence?: (region: string) => Promise<{ error: unknown }>;
 }
 
-export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, linkedTrainerId = '', saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
+export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, linkedTrainerId = '', workoutReadyExpiryMin = 30, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
   const last = useLatestCheckin(clientUserId ?? user?.id);
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
@@ -183,7 +184,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
                 undefined,
                 {
                   type:         'workout_ready',
-                  expiresInMin: 30,
+                  expiresInMin: workoutReadyExpiryMin,
                   ...(user?.id ? { fromUserId: user.id } : {}),
                 }
               );

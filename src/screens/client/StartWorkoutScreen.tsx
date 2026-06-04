@@ -55,9 +55,10 @@ interface StartWorkoutScreenProps {
   user:             AppUser;
   cycleConfig:      AppCycleConfig | null;
   linkedTrainerId?: string; // non-empty = client has active trainer
+  prefs?:           { preferredIntensity?: TrainerContext['intensity'] };
 }
 
-export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '' }: StartWorkoutScreenProps) {
+export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', prefs }: StartWorkoutScreenProps) {
   const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);  // AI-generated plan only
   const [planId,     setPlanId]     = React.useState<string | null>(null);
   const [planSource, setPlanSource] = React.useState<string | null>(null);
@@ -310,8 +311,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70 },
         };
 
-        // 5. TrainerContext — Coach DNA if available, else AI default
-        let trainerCtx: TrainerContext = DEFAULT_AI_TRAINER;
+        // 5. TrainerContext — Coach DNA if available, else AI default with the
+        //    client's preferred intensity applied (Settings → preferredIntensity)
+        let trainerCtx: TrainerContext = {
+          ...DEFAULT_AI_TRAINER,
+          intensity: prefs?.preferredIntensity ?? DEFAULT_AI_TRAINER.intensity,
+        };
         const coachDNA = trainerRes.status === 'fulfilled' ? (trainerRes.value as any).data : null;
         if (coachDNA) {
           const { buildTrainerContext } = await import('../../ai/buildAIContext');

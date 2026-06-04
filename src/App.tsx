@@ -60,6 +60,8 @@ export default function App() {
     analysis: true, behaviour: true, sounds: false,
     cycle: false, aiPersonalization: true, whiteLabel: false,
     darkMode: true,
+    defaultLocation: 'gym', defaultDurationMin: 45, preferredIntensity: 'moderate',
+    planExpiryDays: 10, workoutReadyExpiryMin: 30,
   });
 
   const {
@@ -175,7 +177,16 @@ export default function App() {
         aiPersonalization: (data.ai_personalization as boolean | undefined) ?? true,
         whiteLabel:        false,
         darkMode:          (data.dark_mode          as boolean | undefined) ?? true,
+        defaultLocation:       (data.default_location        as AppPreferences['defaultLocation']       | undefined) ?? 'gym',
+        defaultDurationMin:    (data.default_duration_min     as AppPreferences['defaultDurationMin']    | undefined) ?? 45,
+        preferredIntensity:    (data.preferred_intensity      as AppPreferences['preferredIntensity']    | undefined) ?? 'moderate',
+        planExpiryDays:        (data.plan_expiry_days         as AppPreferences['planExpiryDays']        | undefined) ?? 10,
+        workoutReadyExpiryMin: (data.workout_ready_expiry_min as AppPreferences['workoutReadyExpiryMin'] | undefined) ?? 30,
       });
+      // Seed the check-in defaults from saved training preferences (pre-fill)
+      const loc = (data.default_location     as CheckIn['location'] | undefined) ?? 'gym';
+      const dur = (data.default_duration_min as number             | undefined) ?? 45;
+      setCheckin(prev => ({ ...prev, location: loc, minutes: dur }));
     }
   }, [profile?.id, fetchCycleConfig, fetchPreferences, saveProfileV2, fetchProfileV2]);
 
@@ -307,6 +318,11 @@ export default function App() {
       cycle_tracking:    newPrefs.cycle,
       ai_personalization: newPrefs.aiPersonalization,
       dark_mode:         newPrefs.darkMode,
+      default_location:         newPrefs.defaultLocation,
+      default_duration_min:     newPrefs.defaultDurationMin,
+      preferred_intensity:      newPrefs.preferredIntensity,
+      plan_expiry_days:         newPrefs.planExpiryDays,
+      workout_ready_expiry_min: newPrefs.workoutReadyExpiryMin,
     });
   };
 
@@ -381,6 +397,7 @@ export default function App() {
     selectedClient,
     selectClient,
     linkedTrainerId: linkedTrainerId ?? '',
+    prefs,
   };
 
   const showTabs = (isTrainer
@@ -450,7 +467,7 @@ export default function App() {
       case 'checkin':          return (
         <>
           {(noClient && !screenPayload?.clientUserId) && noClientBanner}
-          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} user={user} userName={profile?.name ?? undefined} biologicalSex={profile?.gender ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} linkedTrainerId={linkedTrainerId ?? ''} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>
+          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} user={user} userName={profile?.name ?? undefined} biologicalSex={profile?.gender ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} linkedTrainerId={linkedTrainerId ?? ''} workoutReadyExpiryMin={prefs.workoutReadyExpiryMin} saveCheckinV2={saveCheckinV2} updatePainRecurrence={updatePainRecurrence}/>
         </>
       );
       case 'workout':            return <StartWorkoutScreen      {...common}/>;
@@ -496,9 +513,9 @@ export default function App() {
       );
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
-      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })}/>;
+      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient}/>;
-      case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient}/>;
+      case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient}/>;
       case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen nav={nav} user={trainerUser}/>;
       case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser}/>;
