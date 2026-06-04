@@ -56,7 +56,7 @@ export function CycleScreen({
         <div style={{ padding: '40px 22px', textAlign: 'center' }}>
           <div style={{
             width: 64, height: 64, borderRadius: 20, margin: '0 auto 16px',
-            background: dark ? '#1A2A40' : '#eef1f6',
+            background: 'var(--surface-3)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 28,
           }}>
@@ -175,7 +175,7 @@ export function CycleScreen({
             })}
             {/* invisible larger hit ring */}
             <circle cx="130" cy="130" r={R} fill="none" stroke="transparent" strokeWidth={36}/>
-            <circle cx={dotX} cy={dotY} r="11" fill={dark ? '#0E1A2B' : '#fff'} stroke={c} strokeWidth="3"/>
+            <circle cx={dotX} cy={dotY} r="11" fill="var(--bg)" stroke={c} strokeWidth="3"/>
             <circle cx={dotX} cy={dotY} r="4" fill={c}/>
           </svg>
 

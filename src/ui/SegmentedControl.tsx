@@ -1,5 +1,5 @@
 import React from 'react';
-import { DARK, BRAND } from '../theme/tokens';
+import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { HStack } from './Layout';
 
 export interface SegmentedControlOption {

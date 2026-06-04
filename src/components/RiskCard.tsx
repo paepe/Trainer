@@ -59,7 +59,7 @@ export function RiskCard({ risk, dark, primary, showScale = false }: RiskCardPro
         {/* Operational flags */}
         <div style={{
           padding: '10px 12px', borderRadius: 10,
-          background: dark ? '#0E1A2B' : '#F4F6FA',
+          background: 'var(--sunken)',
           fontFamily: 'monospace', fontSize: 11, color: primary, lineHeight: 1.7,
         }}>
           {Object.entries(risk.flags).map(([k, v]) => (

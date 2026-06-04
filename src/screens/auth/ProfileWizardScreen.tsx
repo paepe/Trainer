@@ -316,8 +316,9 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   ) : saving ? (
     <div style={{
       margin: '0 20px 12px', padding: '8px 14px', borderRadius: 10,
-      background: '#2DD4E022', border: '1px solid #2DD4E044',
-      fontSize: 12, color: '#2DD4E0', fontFamily: 'inherit',
+      background: 'color-mix(in srgb, var(--signature) 13%, transparent)',
+      border: '1px solid color-mix(in srgb, var(--signature) 27%, transparent)',
+      fontSize: 12, color: 'var(--signature)', fontFamily: 'inherit',
     }}>
       Saving…
     </div>
@@ -328,7 +329,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     <button onClick={() => setMode('view')} style={{
       display: 'flex', alignItems: 'center', gap: 8,
       padding: '12px 20px', width: '100%', border: 'none',
-      background: dark ? 'rgba(45,212,224,.08)' : '#f0fafb',
+      background: 'color-mix(in srgb, var(--signature) 8%, transparent)',
       color: t.primary, fontFamily: 'inherit', fontSize: 13,
       fontWeight: 700, cursor: 'pointer', textAlign: 'left',
       borderBottom: `1px solid ${borderSubtle(dark)}`,
@@ -409,7 +410,7 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
               width: 26, height: 26, borderRadius: '50%',
               background: primary, color: '#0E1A2B',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: `2px solid ${dark ? '#0E1A2B' : '#fff'}`,
+              border: '2px solid var(--bg)',
               cursor: 'pointer', padding: 0,
             }}
           >

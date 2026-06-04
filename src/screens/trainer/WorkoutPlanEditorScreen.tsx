@@ -492,7 +492,7 @@ export function WorkoutPlanEditorScreen({
           rows={2}
           style={{
             width: '100%', padding: '12px 14px', borderRadius: 12, boxSizing: 'border-box',
-            background: '#142233',
+            background: 'var(--surface)',
             border: `1.5px solid ${borderSubtle(dark)}`,
             color: textPri(dark), fontFamily: 'inherit', fontSize: 13,
             resize: 'none', outline: 'none',
@@ -536,7 +536,7 @@ export function WorkoutPlanEditorScreen({
         <button onClick={startSessionNow} disabled={saving || exercises.length === 0} style={{
           width: '100%', padding: '15px 0', borderRadius: 14,
           background: '#10B98118',
-          color: exercises.length === 0 ? 'rgba(255,255,255,.3)' : '#10B981',
+          color: exercises.length === 0 ? 'var(--text-mute)' : '#10B981',
           border: `1.5px solid ${exercises.length === 0 ? 'transparent' : '#10B98155'}`,
           fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

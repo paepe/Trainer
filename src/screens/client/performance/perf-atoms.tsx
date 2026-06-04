@@ -5,17 +5,21 @@ import bodyMaleImg      from '../../../assets/body-male.png';
 import bodyBorderlineImg from '../../../assets/body-borderline.png';
 
 // ── Design tokens (M5 spec §2) ────────────────────────────────────────────────
+// Surface/text tokens read the active theme palette (theme/themes.css) via CSS
+// custom properties. The dashboard re-themes with the rest of the app through
+// the single data-theme attribute on <html> — no runtime dark flag needed.
+// (Signature colours stay in `C` from perf-engines, which is role-aware and used
+// with alpha concatenation that CSS vars can't express.)
 
 export const T = {
-  navy:       '#0E1A2B',
-  navyDeep:   '#08111E',
-  surf:       '#142233',
-  surf2:      '#1A2A40',
-  border:     '#1F2E45',
-  borderSoft: '#243650',
-  text:       '#FFFFFF',
-  textSec:    'rgba(255,255,255,.65)',
-  textMute:   'rgba(255,255,255,.40)',
+  navy:       'var(--bg)',
+  surf:       'var(--surface)',
+  surf2:      'var(--surface-3)',
+  border:     'var(--border)',
+  borderSoft: 'var(--border-soft)',
+  text:       'var(--text-pri)',
+  textSec:    'var(--text-sec)',
+  textMute:   'var(--text-mute)',
 } as const;
 
 export const FF_DISPLAY = '"Plus Jakarta Sans","Inter",system-ui,sans-serif';

@@ -467,7 +467,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       <div style={{ padding: '0 22px 16px' }}>
         <div style={{
           borderRadius: 18, padding: '22px 18px',
-          background: dark ? '#0F1E30' : '#f4f8fd',
+          background: 'var(--sunken)',
           border: `1.5px solid ${t.primary}33`,
           display: 'flex', alignItems: 'center', gap: 14,
           minHeight: 100,
@@ -528,7 +528,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                   {/* Row — cancel badge inline, click row to expand */}
                   <div style={{
                     padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8,
-                    background: dark ? '#0F1E30' : '#f4f8fd',
+                    background: 'var(--sunken)',
                   }}>
                     <button onClick={() => setExpandedPlan(isOpen ? null : p.id)} style={{
                       flex: 1, display: 'flex', alignItems: 'center', gap: 8,
@@ -562,12 +562,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
                   {/* Expanded: exercise list + contextual actions */}
                   {isOpen && (
-                    <div style={{ padding: '0 14px 12px', background: dark ? '#0a1626' : '#eef1f8' }}>
+                    <div style={{ padding: '0 14px 12px', background: 'var(--sunken)' }}>
                       {p.exercises.map((ex, ei) => (
                         <div key={ex.id} style={{
                           display: 'flex', alignItems: 'center', gap: 8,
                           padding: '7px 10px', borderRadius: 9, marginBottom: 5,
-                          background: dark ? '#0F1E30' : '#f4f8fd',
+                          background: 'var(--sunken)',
                           border: `1px solid ${t.primary}22`,
                         }}>
                           <div style={{
@@ -761,7 +761,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             onClick={e => e.stopPropagation()}
             style={{
               width: '100%', maxWidth: 480,
-              background: dark ? '#0F1E30' : '#fff',
+              background: 'var(--surface)',
               borderRadius: '20px 20px 0 0',
               padding: '24px 22px calc(28px + env(safe-area-inset-bottom, 0px))',
               border: `1px solid ${borderSubtle(dark)}`,

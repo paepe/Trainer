@@ -644,7 +644,7 @@ export function TrainerClientDetailScreen({
                         </button>
 
                         {open && (
-                          <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
+                          <div style={{ padding: '0 16px 14px', background: 'var(--sunken)' }}>
                             {sessionExs ? (
                               sessionExs.length === 0
                                 ? <div style={{ fontSize: 11, color: textMute(dark) }}>No exercise data recorded.</div>
@@ -725,7 +725,7 @@ export function TrainerClientDetailScreen({
                             <span style={{ fontSize: 11, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
                           </button>
                           {open && (
-                            <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
+                            <div style={{ padding: '0 16px 14px', background: 'var(--sunken)' }}>
                               {exs.length === 0
                                 ? <div style={{ fontSize: 11, color: textMute(dark) }}>No exercise data recorded.</div>
                                 : renderSessionExercises(exs, sc)
@@ -747,7 +747,7 @@ export function TrainerClientDetailScreen({
       <div style={{
         position: 'sticky', bottom: 0,
         padding: '12px 22px calc(12px + env(safe-area-inset-bottom, 0px))',
-        background: 'rgba(14,26,43,.95)',
+        background: 'color-mix(in srgb, var(--bg) 95%, transparent)',
         backdropFilter: 'blur(12px)',
         borderTop: `1px solid ${borderSubtle(dark)}`,
       }}>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DARK, BRAND } from '../theme/tokens';
+import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { Icon } from '../components/Icon';
 
 export interface VoiceOptionProps {

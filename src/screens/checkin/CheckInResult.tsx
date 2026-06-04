@@ -19,7 +19,7 @@ interface CheckInResultProps {
 
 // ── Readiness gauge (SVG arc) ─────────────────────────────────────────────────
 
-function ReadinessGauge({ score, color }: { score: number; color: string }) {
+function ReadinessGauge({ score, color, dark }: { score: number; color: string; dark: boolean }) {
   const r    = 50;
   const cx   = 60;
   const cy   = 60;
@@ -28,7 +28,7 @@ function ReadinessGauge({ score, color }: { score: number; color: string }) {
 
   return (
     <svg width={120} height={120} viewBox="0 0 120 120" style={{ overflow: 'visible' }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#ffffff10" strokeWidth={10}/>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={dark ? '#ffffff10' : '#0000000d'} strokeWidth={10}/>
       <circle
         cx={cx} cy={cy} r={r} fill="none"
         stroke={color} strokeWidth={10}
@@ -42,7 +42,7 @@ function ReadinessGauge({ score, color }: { score: number; color: string }) {
         {score}
       </text>
       <text x={cx} y={cy + 16} textAnchor="middle"
-        fill="#ffffff55" fontSize={11}
+        fill={textMute(dark)} fontSize={11}
         fontFamily='"Plus Jakarta Sans",sans-serif'>
         /100
       </text>
@@ -61,16 +61,16 @@ const STATUS_META = {
 const PAIN_LABEL = { low: 'low',    moderate: 'moderate', high: 'high'   };
 const REC_LABEL  = { stable: 'stable', recovering: 'recovering', at_risk: 'at_risk' };
 
-function StatCell({ label, value, color }: { label: string; value: string; color?: string }) {
+function StatCell({ label, value, color, dark }: { label: string; value: string; color?: string; dark: boolean }) {
   return (
     <div style={{
       padding: '12px 14px', borderRadius: 10,
-      background: '#ffffff08', border: '1px solid #ffffff12',
+      background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
     }}>
-      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#ffffff55', marginBottom: 4 }}>
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 4 }}>
         {label}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: color ?? '#fff' }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: color ?? textPri(dark) }}>
         {value}
       </div>
     </div>
@@ -108,7 +108,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
               borderRadius: 6,
               transition: 'background 0.2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#ffffff08'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = dark ? '#ffffff08' : '#00000008'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
           >
             ← Back
@@ -118,7 +118,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
 
       <h2 style={{
         margin: '0 0 24px', fontFamily: '"Plus Jakarta Sans",sans-serif',
-        fontSize: 26, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em',
+        fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
         {meta.heading}
       </h2>
@@ -132,7 +132,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: meta.color, marginBottom: 16 }}>
           READINESS
         </div>
-        <ReadinessGauge score={result.readiness_score} color={meta.color}/>
+        <ReadinessGauge score={result.readiness_score} color={meta.color} dark={dark}/>
       </div>
 
       {/* Safety Gate card */}
@@ -168,18 +168,18 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 28 }}>
         {result.session_completion_pct != null && (
-          <StatCell label="SESSION_COMPLETION" value={`${result.session_completion_pct}%`}/>
+          <StatCell label="SESSION_COMPLETION" value={`${result.session_completion_pct}%`} dark={dark}/>
         )}
         {result.passage_risk_pct != null && (
-          <StatCell label="FATIGUE_RISK" value={`${result.passage_risk_pct}%`}/>
+          <StatCell label="FATIGUE_RISK" value={`${result.passage_risk_pct}%`} dark={dark}/>
         )}
         {result.pain_alert_level && (
-          <StatCell label="PAIN_ALERT" value={PAIN_LABEL[result.pain_alert_level]} color={
+          <StatCell label="PAIN_ALERT" value={PAIN_LABEL[result.pain_alert_level]} dark={dark} color={
             result.pain_alert_level === 'high' ? accent : result.pain_alert_level === 'moderate' ? '#F5A623' : '#4ade80'
           }/>
         )}
         {result.recovery_status && (
-          <StatCell label="RECOVERY" value={REC_LABEL[result.recovery_status]} color={
+          <StatCell label="RECOVERY" value={REC_LABEL[result.recovery_status]} dark={dark} color={
             result.recovery_status === 'stable' ? '#4ade80' : result.recovery_status === 'recovering' ? '#F5A623' : accent
           }/>
         )}

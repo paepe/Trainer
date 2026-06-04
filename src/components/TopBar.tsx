@@ -27,7 +27,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenu, dark, accent, badge }) =
         <div style={{
           position: 'absolute', top: 8, right: 8,
           width: 7, height: 7, borderRadius: '50%', background: accent,
-          border: `1.5px solid ${dark ? '#0E1A2B' : '#fff'}`,
+          border: '1.5px solid var(--bg)',
         }}/>
       </button>
     </div>

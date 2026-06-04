@@ -1,0 +1,64 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Theme palettes — single source of truth for surface/text colours.
+   Consumed via CSS custom properties (var(--…)) so the whole app re-themes by
+   swapping ONE attribute on <html>: document.documentElement.dataset.theme.
+
+   Governance: TRAINER is always-dark (coach_dna_system_design.md §8).
+   CLIENT respects the dark_mode toggle → client-dark | client-light (Arctic).
+
+   The premium DARK values are preserved EXACTLY from theme/tokens.ts (DARK):
+   they are now referenced, not hardcoded — enabling white-label (a studio can
+   ship its own [data-theme] block with its brand surfaces + signature).
+
+   `--signature` / `--signature-deep` are the profile/brand accent slots
+   (cyan for client, coral for trainer). Opacity tints must use color-mix(),
+   e.g. color-mix(in srgb, var(--signature) 13%, transparent) — hex+alpha
+   concatenation (`${c}22`) does not work with var().
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Default before App sets data-theme — matches client-dark to avoid any flash */
+:root,
+[data-theme="client-dark"] {
+  --bg:              #0E1A2B;
+  --surface:         #142233;
+  --surface-3:       #1A2A40;
+  --sunken:          #0E1A2B;
+  --border:          #1F2E45;
+  --border-soft:     #243650;
+  --text-pri:        #FFFFFF;
+  --text-sec:        rgba(255, 255, 255, 0.65);
+  --text-mute:       rgba(255, 255, 255, 0.40);
+  --signature:       #2DD4E0;
+  --signature-deep:  #0F8C85;
+}
+
+/* Arctic — premium light for the CLIENT. Cool off-white, never pure white,
+   with a cyan undertone pulled into the neutrals. */
+[data-theme="client-light"] {
+  --bg:              #F5F9FB;
+  --surface:         #FFFFFF;
+  --surface-3:       #EEF4F6;
+  --sunken:          #E9F1F4;
+  --border:          #D5E3E8;
+  --border-soft:     #E2ECEF;
+  --text-pri:        #0C2A33;
+  --text-sec:        #46606A;
+  --text-mute:       #849AA1;
+  --signature:       #2DD4E0;
+  --signature-deep:  #0F8C85;
+}
+
+/* TRAINER — same premium dark surfaces, coral signature. Always-dark per §8. */
+[data-theme="trainer-dark"] {
+  --bg:              #0E1A2B;
+  --surface:         #142233;
+  --surface-3:       #1A2A40;
+  --sunken:          #0E1A2B;
+  --border:          #1F2E45;
+  --border-soft:     #243650;
+  --text-pri:        #FFFFFF;
+  --text-sec:        rgba(255, 255, 255, 0.65);
+  --text-mute:       rgba(255, 255, 255, 0.40);
+  --signature:       #EF5B3C;
+  --signature-deep:  #C23B22;
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DARK, BRAND } from '../theme/tokens';
+import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 
 export interface TypographyProps extends React.HTMLAttributes<HTMLDivElement | HTMLHeadingElement | HTMLParagraphElement | HTMLSpanElement> {
   variant?: 'h1' | 'h2' | 'h3' | 'subtitle' | 'body' | 'caption' | 'overline';

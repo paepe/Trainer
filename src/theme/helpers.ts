@@ -1,18 +1,26 @@
 import type { CSSProperties } from 'react';
-import { BRAND, DARK, LIGHT } from './tokens';
+import { BRAND } from './tokens';
 
-export const surfRaised   = (dark: boolean): string => dark ? DARK.surface  : LIGHT.surface;
-export const surfSunken   = (dark: boolean): string => dark ? DARK.bg       : LIGHT.surface2;
-export const borderSubtle = (dark: boolean): string => dark ? DARK.border   : LIGHT.border;
-export const textPri      = (dark: boolean): string => dark ? DARK.textPri  : LIGHT.textPri;
-export const textSec      = (dark: boolean): string => dark ? DARK.textSec  : LIGHT.textSec;
-export const textMute     = (dark: boolean): string => dark ? DARK.textMute : LIGHT.textMute;
+// ── Theme bridge ─────────────────────────────────────────────────────────────
+// These return CSS custom properties (defined in theme/themes.css) instead of
+// resolving hex by the `dark` flag. The active palette is chosen once on <html>
+// via data-theme (App.tsx). The `dark` param is kept so the hundreds of existing
+// call sites compile unchanged; it is intentionally ignored — the root theme
+// decides. (Trainer is always-dark §8; client toggles client-dark|client-light.)
+/* eslint-disable @typescript-eslint/no-unused-vars */
+export const surfRaised   = (_dark?: boolean): string => 'var(--surface)';
+export const surfSunken   = (_dark?: boolean): string => 'var(--sunken)';
+export const borderSubtle = (_dark?: boolean): string => 'var(--border)';
+export const textPri      = (_dark?: boolean): string => 'var(--text-pri)';
+export const textSec      = (_dark?: boolean): string => 'var(--text-sec)';
+export const textMute     = (_dark?: boolean): string => 'var(--text-mute)';
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
-export const iconBtn = (dark: boolean): CSSProperties => ({
+export const iconBtn = (_dark?: boolean): CSSProperties => ({
   background:   'none',
   border:       'none',
   cursor:       'pointer',
-  color:        dark ? DARK.textPri : LIGHT.textPri,
+  color:        'var(--text-pri)',
   padding:      '8px',
   borderRadius: '8px',
   display:      'flex',
@@ -20,11 +28,11 @@ export const iconBtn = (dark: boolean): CSSProperties => ({
   justifyContent: 'center',
 });
 
-export const ghostBtn = (dark: boolean): CSSProperties => ({
+export const ghostBtn = (_dark?: boolean): CSSProperties => ({
   background:   'transparent',
-  border:       `1px solid ${dark ? DARK.border : LIGHT.border}`,
+  border:       '1px solid var(--border)',
   cursor:       'pointer',
-  color:        dark ? DARK.textPri : LIGHT.textPri,
+  color:        'var(--text-pri)',
   padding:      '10px 18px',
   borderRadius: '10px',
   fontSize:     '14px',
@@ -60,11 +68,11 @@ export const outlineBtn = (primary: string = BRAND.primary): CSSProperties => ({
   border:       `1.5px solid ${primary}`,
 });
 
-export const textBtn = (dark: boolean): CSSProperties => ({
+export const textBtn = (_dark?: boolean): CSSProperties => ({
   background:   'transparent',
   border:       'none',
   cursor:       'pointer',
-  color:        dark ? DARK.textSec : LIGHT.textSec,
+  color:        'var(--text-sec)',
   fontSize:     '13px',
   fontFamily:   'inherit',
   padding:      '12px',

@@ -4,6 +4,7 @@ import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
 import { surfRaised, borderSubtle, textPri, textMute } from '../../theme';
 import type { NavFn } from '../../types';
+import type { AppPreferences, BooleanPrefKey } from '../../types/preferences';
 
 interface Theme {
   primary: string;
@@ -13,19 +14,21 @@ interface Theme {
 interface SettingsScreenProps {
   nav:      NavFn;
   t:        Theme;
-  prefs:    Record<string, boolean>;
-  setPrefs: (p: Record<string, boolean>) => void;
+  prefs:    AppPreferences;
+  setPrefs: (p: Partial<AppPreferences>) => void;
   dark:     boolean;
-  setDark?: (dark: boolean) => void;
 }
 
 export function SettingsScreen({ nav, t, prefs, setPrefs, dark }: SettingsScreenProps) {
-  const groups: { title: string; items: [string, string, string][] }[] = [
+  const groups: { title: string; items: [BooleanPrefKey, string, string][] }[] = [
     { title: 'AI personalization', items: [
       ['aiPersonalization', 'AI workouts',     'Daily plan from your trainer + AI'],
       ['analysis',          'Workout Analysis','Post-session AI summary'],
       ['cycle',             'Cycle tracking',  'Adapt intensity to your phase'],
       ['behaviour',         'Behavior Track', 'Learn from completion + feedback'],
+    ]},
+    { title: 'Appearance', items: [
+      ['darkMode', 'Dark mode', 'Use the dark theme across the app'],
     ]},
     { title: 'Notifications', items: [
       ['notifications', 'Push notifications', 'All app alerts'],

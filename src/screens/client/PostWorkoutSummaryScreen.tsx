@@ -180,7 +180,7 @@ export function PostWorkoutSummaryScreen({
         <div style={{ padding: '0 22px 32px' }}>
           <div style={{
             padding: '14px 16px', borderRadius: 14, marginBottom: 16,
-            background: `${borderSubtle(dark)}88`, border: `1px solid ${borderSubtle(dark)}`,
+            background: 'color-mix(in srgb, var(--border) 53%, transparent)', border: `1px solid ${borderSubtle(dark)}`,
             fontSize: 13, color: textSec(dark), lineHeight: 1.55,
           }}>
             Feedback is only available for completed sessions.

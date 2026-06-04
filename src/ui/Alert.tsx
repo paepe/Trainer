@@ -1,5 +1,5 @@
 import React from 'react';
-import { DARK, BRAND } from '../theme/tokens';
+import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { Icon } from '../components/Icon';
 import { Typography } from './Typography';
 import { HStack, VStack } from './Layout';

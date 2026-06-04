@@ -13,11 +13,9 @@ const NotificationContext = createContext<NotificationContextValue | null>(null)
 interface NotificationProviderProps {
   children: React.ReactNode;
   t: any;
-  dark: boolean;
-  isTrainer: boolean;
 }
 
-export function NotificationProvider({ children, t, dark, isTrainer }: NotificationProviderProps) {
+export function NotificationProvider({ children, t }: NotificationProviderProps) {
   const [notif, setNotif] = useState<{ title: string; body: string } | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -33,10 +31,10 @@ export function NotificationProvider({ children, t, dark, isTrainer }: Notificat
     if (timerRef.current) clearTimeout(timerRef.current);
   }, []);
 
-  const notifBg = isTrainer ? '#1A2A40' : (dark ? '#1A2A40' : '#fff');
-  const notifColor = isTrainer ? '#FFFFFF' : (dark ? '#fff' : '#102236');
-  const notifSubColor = isTrainer ? 'rgba(255,255,255,.65)' : (dark ? 'rgba(255,255,255,.65)' : '#546a7e');
-  const closeBtnColor = isTrainer ? 'rgba(255,255,255,.40)' : (dark ? 'rgba(255,255,255,.4)' : '#9aacbc');
+  const notifBg = 'var(--surface-3)';
+  const notifColor = 'var(--text-pri)';
+  const notifSubColor = 'var(--text-sec)';
+  const closeBtnColor = 'var(--text-mute)';
 
   const value = useMemo(() => ({ showNotification, hideNotification }), [showNotification, hideNotification]);
 

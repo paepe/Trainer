@@ -10,6 +10,7 @@ import { WelcomeScreen, LoginScreen, RegisterScreen } from './screens/auth';
 import { AppLayout } from './layouts';
 import { NotificationProvider, useNotification, ThemeProvider } from './contexts';
 import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './types';
+import type { AppPreferences } from './types/preferences';
 import { TRAINER_ROLES } from './types/auth';
 
 const ProfileWizardScreen        = React.lazy(() => import('./screens/auth/ProfileWizardScreen').then(m => ({ default: m.ProfileWizardScreen })));
@@ -32,19 +33,6 @@ const TrainerAlertsScreen        = React.lazy(() => import('./screens/trainer/Tr
 const ClientInboxScreen          = React.lazy(() => import('./screens/client/ClientInboxScreen').then(m => ({ default: m.ClientInboxScreen })));
 
 const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
-
-interface AppPreferences {
-  notifications: boolean;
-  goals: boolean;
-  alerts: boolean;
-  analysis: boolean;
-  behaviour: boolean;
-  sounds: boolean;
-  cycle: boolean;
-  aiPersonalization: boolean;
-  whiteLabel: boolean;
-  [key: string]: boolean;
-}
 
 interface AppCycleConfig {
   length: number;
@@ -71,6 +59,7 @@ export default function App() {
     notifications: true, goals: true, alerts: true,
     analysis: true, behaviour: true, sounds: false,
     cycle: false, aiPersonalization: true, whiteLabel: false,
+    darkMode: true,
   });
 
   const {
@@ -86,13 +75,22 @@ export default function App() {
     reportWorkoutPain, completeWorkoutSession, savePostWorkoutFeedback,
   } = useWorkoutData(session?.user?.id);
 
-  const [dark, setDark] = React.useState(true);
   const [cycleEnabled] = React.useState(true);
 
   const isTrainer = profile?.role != null && (TRAINER_ROLES as readonly string[]).includes(profile.role);
+  // Trainer is always dark per coach_dna_system_design.md §8; only the client
+  // respects the persisted dark_mode preference.
+  const dark = isTrainer ? true : prefs.darkMode;
   // Single profile switch: drives `t.primary` (all screens) and the static
   // data-viz signature (Performance Dashboard) from one place.
   setVizProfile(isTrainer);
+
+  // Active theme palette (theme/themes.css) — one attribute drives all CSS vars.
+  // Trainer always-dark (§8); client toggles client-dark|client-light (Arctic).
+  React.useEffect(() => {
+    document.documentElement.dataset.theme =
+      isTrainer ? 'trainer-dark' : (dark ? 'client-dark' : 'client-light');
+  }, [isTrainer, dark]);
   const t = {
     ...(isTrainer ? TRAINER_BRAND : BRAND),
     dark,
@@ -176,6 +174,7 @@ export default function App() {
         cycle:             (data.cycle_tracking     as boolean | undefined) ?? cyDefault,
         aiPersonalization: (data.ai_personalization as boolean | undefined) ?? true,
         whiteLabel:        false,
+        darkMode:          (data.dark_mode          as boolean | undefined) ?? true,
       });
     }
   }, [profile?.id, fetchCycleConfig, fetchPreferences, saveProfileV2, fetchProfileV2]);
@@ -307,6 +306,7 @@ export default function App() {
       sounds:            newPrefs.sounds,
       cycle_tracking:    newPrefs.cycle,
       ai_personalization: newPrefs.aiPersonalization,
+      dark_mode:         newPrefs.darkMode,
     });
   };
 
@@ -342,9 +342,9 @@ export default function App() {
     id: user.id || '',
   };
 
-  // Trainer is always dark (DARK.bg) per coach_dna_system_design.md §8.
-  // Client respects the user's dark preference toggle.
-  const surfaceBg = isTrainer ? '#0E1A2B' : (dark ? '#0E1A2B' : '#FFFFFF');
+  // App background reads the active theme palette (theme/themes.css). The
+  // data-theme attribute (set above) already encodes role + dark per §8.
+  const surfaceBg = 'var(--bg)';
   // Unified cycle save: writes to profile_v2.body_rhythm (primary) + cycle_config (legacy)
   const saveCycleUnified = React.useCallback(async (params: { cycleLength: number; periodLength: number; lastStartDate: string }) => {
     // Update local state immediately
@@ -409,16 +409,15 @@ export default function App() {
         ['menu',     'menu',    'Menu'],
       ];
 
-  if (loading) return <LoadingScreen dark={dark} primary={t.primary} />;
+  if (loading) return <LoadingScreen primary={t.primary} />;
 
   const screenContent = (() => {
     const noClient = isTrainer && !selectedClient;
     const noClientBanner = noClient ? (
       <div style={{
         margin: '12px 22px', padding: '16px 18px', borderRadius: 14,
-        // Trainer is always dark; use DARK tokens directly
-        background: '#1A2A40',
-        border: '1px solid #1F2E45',
+        background: 'var(--surface-3)',
+        border: '1px solid var(--border)',
         textAlign: 'center',
       }}>
         <div style={{
@@ -428,7 +427,7 @@ export default function App() {
           ⚠ No client selected
         </div>
         <p style={{
-          margin: '0 0 14px', fontSize: 12.5, color: 'rgba(255,255,255,.55)',
+          margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-sec)',
           lineHeight: 1.5,
         }}>
           Select a client from My Clients first to load their data.
@@ -497,7 +496,7 @@ export default function App() {
       );
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
-      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} setDark={setDark}/>;
+      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient}/>;
@@ -530,10 +529,10 @@ export default function App() {
 
   return (
     <ThemeProvider t={t} dark={dark} isTrainer={isTrainer}>
-      <NotificationProvider t={t} dark={dark} isTrainer={isTrainer}>
+      <NotificationProvider t={t}>
         <PushListener push={push} />
         <AppLayout role={isTrainer ? "trainer" : "client"} {...layoutProps}>
-          <React.Suspense fallback={<LoadingScreen dark={dark} primary={t.primary} />}>
+          <React.Suspense fallback={<LoadingScreen primary={t.primary} />}>
             {screenContent}
           </React.Suspense>
         </AppLayout>
@@ -554,16 +553,16 @@ function PushListener({ push }: { push: any }) {
   return null;
 }
 
-function LoadingScreen({ dark, primary }: { dark: boolean; primary: string }) {
+function LoadingScreen({ primary }: { primary: string }) {
   return (
     <div style={{
       height: '100dvh', width: '100%',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: dark ? '#0E1A2B' : '#fff',
+      background: 'var(--bg)',
     }}>
       <div style={{
         width: 36, height: 36, borderRadius: '50%',
-        border: `3px solid ${dark ? '#1F2E45' : '#E5EAF1'}`,
+        border: '3px solid var(--border)',
         borderTopColor: primary,
         animation: 'spin 0.7s linear infinite',
       }}/>

@@ -238,7 +238,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
                 {/* Expanded body */}
                 {open && (
-                  <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
+                  <div style={{ padding: '0 16px 14px', background: 'var(--sunken)' }}>
                     <p style={{ margin: '0 0 14px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6 }}>
                       {item.body}
                     </p>

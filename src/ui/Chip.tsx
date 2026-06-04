@@ -1,6 +1,6 @@
 import React, { CSSProperties } from 'react';
 import { Icon } from '../components/Icon';
-import { DARK, BRAND } from '../theme/tokens';
+import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { HStack } from './Layout';
 
 export interface ChipProps {

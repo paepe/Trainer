@@ -38,7 +38,7 @@ function OAuthButton({ provider, onClick, dark, primary }: {
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
         width: '100%', padding: '14px 18px', borderRadius: 14,
-        background: hover ? (dark ? '#1a2c43' : '#EDF1F7') : (dark ? '#142233' : '#F4F6FA'),
+        background: hover ? 'var(--surface-3)' : 'var(--surface)',
         color: textPri(dark),
         border: `1px solid ${hover ? primary : borderSubtle(dark)}`,
         fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',

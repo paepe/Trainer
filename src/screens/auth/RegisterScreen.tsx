@@ -44,7 +44,7 @@ function OAuthButton({ provider, onClick, dark, primary }: {
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
         width: '100%', padding: '14px 18px', borderRadius: 14,
-        background: hover ? (dark ? '#1a2c43' : '#EDF1F7') : (dark ? '#142233' : '#F4F6FA'),
+        background: hover ? 'var(--surface-3)' : 'var(--surface)',
         color: textPri(dark),
         border: `1px solid ${hover ? primary : borderSubtle(dark)}`,
         fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
@@ -133,8 +133,8 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
           return (
             <button key={r.key} onClick={() => setRole(r.key)} style={{
               flex: 1, padding: '10px 4px', borderRadius: 14,
-              border: `1.5px solid ${on ? t.primary : (dark ? '#1F2E45' : '#E7ECF3')}`,
-              background: on ? `${t.primary}1A` : (dark ? '#142233' : '#F4F6FA'),
+              border: `1.5px solid ${on ? t.primary : 'var(--border)'}`,
+              background: on ? `${t.primary}1A` : 'var(--surface)',
               color: on ? t.primary : textSec(dark),
               fontFamily: 'inherit', cursor: 'pointer',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,

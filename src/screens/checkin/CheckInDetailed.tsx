@@ -311,7 +311,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
                 placeholder="e.g.: squat, lift weight"
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 8, boxSizing: 'border-box',
-                  background: dark ? '#0E1A2B' : '#F4F6FA',
+                  background: 'var(--sunken)',
                   border: `1px solid ${borderSubtle(dark)}`,
                   color: textPri(dark), fontFamily: 'inherit', fontSize: 13, outline: 'none',
                 }}
