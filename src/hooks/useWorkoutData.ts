@@ -120,6 +120,7 @@ export function useWorkoutData(userId: string | undefined) {
     completed_at:       string;
     total_duration_min: number;
     notes?:             string | null;
+    planId?:            string | null;
   }): Promise<MutateResult> {
     const { error } = await supabase
       .from('workout_sessions')
@@ -131,6 +132,10 @@ export function useWorkoutData(userId: string | undefined) {
       })
       .eq('id', data.sessionId);
     if (error) { console.error('[useWorkoutData] completeWorkoutSession:', error); return { error }; }
+    if (data.planId) {
+      void supabase.from('workout_plans').update({ status: 'completed' }).eq('id', data.planId)
+        .then(({ error: planErr }) => { if (planErr) console.error('[useWorkoutData] plan complete:', planErr); });
+    }
     if (userId) {
       void emitEvent(userId, 'workout_completed', 'workout_session', data.sessionId, { duration_min: data.total_duration_min });
       void supabase.from('trainer_clients').select('trainer_id').eq('client_id', userId).eq('status', 'active').maybeSingle()

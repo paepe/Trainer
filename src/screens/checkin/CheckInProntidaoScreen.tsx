@@ -176,7 +176,6 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
               // Client notifies trainer they're ready (Model A — 30-min window)
               const score = result?.readiness_score ?? '?';
               const name  = userName ?? 'Your client';
-              console.log('[CheckIn/onAlert] notifying trainer:', linkedTrainerId, 'from client:', user?.id, 'score:', score);
               notify(
                 linkedTrainerId,
                 `${name} is ready to train`,

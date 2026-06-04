@@ -30,6 +30,13 @@ interface ClientProfile {
   email: string;
 }
 
+interface SetLog {
+  set_number: number;
+  reps_done:  number | null;
+  load_kg:    number | null;
+  rpe:        number | null;
+}
+
 interface SessionExercise {
   id:                  string;
   exercise_name:       string;
@@ -41,17 +48,19 @@ interface SessionExercise {
   notes?:              string | null;
   status:              string;
   order_index:         number;
+  workout_set_logs?:   SetLog[];
 }
 
 interface WorkoutSession {
   id:                           string;
+  plan_id?:                     string | null;
   started_at?:                  string | null;
   created_at?:                  string | null;
   completed_at?:                string | null;
   duration_minutes?:            number | null;
   performance_score?:           number | null;
   status?:                      string | null;
-  workout_session_exercises?:   SessionExercise[];  // matches Supabase nested select key
+  workout_session_exercises?:   SessionExercise[];
 }
 
 interface PlanExercise {
@@ -105,15 +114,8 @@ interface CheckInReadiness {
   variant:           string;
 }
 
-interface TrainerDashboardUser {
-  id:    string;
-  name?: string;
-  email?: string;
-}
-
 interface TrainerClientDetailScreenProps {
   nav:             NavFn;
-  user:            TrainerDashboardUser | null;
   selectedClient?: ClientProfile | null;
 }
 
@@ -129,8 +131,7 @@ export function TrainerClientDetailScreen({
   const [decisions, setDecisions]   = React.useState<ReadinessDecision[]>([]);
   const [loading, setLoading]       = React.useState(true);
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
-  const [expandedPlan,    setExpandedPlan]    = React.useState<string | null>(null);
-  const [expandedSession, setExpandedSession] = React.useState<string | null>(null);
+  const [expandedPlan, setExpandedPlan] = React.useState<string | null>(null);
 
   const clientId = selectedClient?.id;
 
@@ -139,7 +140,7 @@ export function TrainerClientDetailScreen({
     if (showSpinner) setLoading(true);
     void autoExpirePlans(clientId, 'trainer');
     const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes] = await Promise.all([
-      supabase.from('workout_sessions').select('id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index)').eq('user_id', clientId).order('started_at', { ascending: false }).limit(10),
+      supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(10),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(10),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', clientId).maybeSingle(),
       supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(7),
@@ -184,14 +185,6 @@ export function TrainerClientDetailScreen({
     );
   }
 
-  const PLAN_STATUS_COLOR: Record<string, string> = {
-    sent:       t.primary,
-    active:     '#10B981',
-    completed:  '#7B5CFF',
-    draft:      textMute(dark),
-    cancelled:  '#FF4D4D',
-    postponed:  '#F5B45A',
-  };
 
   const fmtKey = (k: string) =>
     k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -507,188 +500,246 @@ export function TrainerClientDetailScreen({
             ))}
           </div>
 
-          {/* Plans Sent — expandable cards */}
-          <div style={{ borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden' }}>
-            <div style={{ padding: '12px 16px 10px', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
-              Plans Sent
-            </div>
-            {plans.length === 0 ? (
-              <div style={{ padding: '0 16px 14px', color: textMute(dark), fontSize: 12 }}>No plans sent yet.</div>
-            ) : plans.map((p, i) => {
-              const sc   = (p.status ? PLAN_STATUS_COLOR[p.status] : null) || textMute(dark);
-              const open = expandedPlan === p.id;
-              const exs  = [...(p.plan_exercises ?? [])].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
-              const dateLabel = p.scheduled_date
-                ? new Date(p.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                : p.created_at ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-              return (
-                <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
-                  {/* Card header — always visible */}
-                  <button
-                    onClick={() => setExpandedPlan(open ? null : p.id)}
-                    style={{
-                      width: '100%', padding: '11px 16px', display: 'flex', alignItems: 'center',
-                      gap: 10, background: 'transparent', border: 'none', cursor: 'pointer',
-                      textAlign: 'left', fontFamily: 'inherit',
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark) }}>{dateLabel}</div>
-                      <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
-                        {exs.length} exercise{exs.length !== 1 ? 's' : ''}
-                        {p.trainer_notes ? ` · ${p.trainer_notes.slice(0, 30)}${p.trainer_notes.length > 30 ? '…' : ''}` : ''}
-                      </div>
-                    </div>
-                    <span style={{
-                      padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700,
-                      background: `${sc}22`, color: sc, letterSpacing: '.04em', textTransform: 'uppercase',
-                      flexShrink: 0,
-                    }}>
-                      {p.status}
-                    </span>
-                    <span style={{ fontSize: 11, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
-                  </button>
+          {/* Plan & Workout — unified timeline */}
+          {(() => {
+            const freeSessions = sessions.filter(s => !s.plan_id);
 
-                  {/* Exercise detail drawer */}
-                  {open && (
-                    <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
-                      {exs.length === 0 ? (
-                        <div style={{ fontSize: 11, color: textMute(dark) }}>No exercises recorded.</div>
-                      ) : exs.map((ex, ei) => (
-                        <div key={ex.id} style={{
-                          padding: '8px 12px', borderRadius: 10, marginBottom: 6,
-                          background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
-                          display: 'flex', alignItems: 'center', gap: 10,
-                        }}>
-                          <div style={{
-                            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                            background: `${t.primary}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 10, fontWeight: 700, color: t.primary,
-                          }}>{ei + 1}</div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12.5, fontWeight: 700, color: textPri(dark) }}>{ex.exercise_name}</div>
-                            <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
-                              {[
-                                ex.sets  ? `${ex.sets} sets`          : null,
-                                ex.reps  ? `${ex.reps} reps`          : null,
-                                ex.load_kg ? `${ex.load_kg} kg`       : null,
-                                ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
-                              ].filter(Boolean).join(' · ')}
-                              {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
-                            </div>
-                            {ex.notes && (
-                              <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 2, fontStyle: 'italic' }}>
-                                {ex.notes}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+            const unifiedStatus = (p: WorkoutPlan, s: WorkoutSession | null): { label: string; color: string } => {
+              if (s) {
+                if (s.status === 'completed' || s.completed_at) return { label: 'DONE',        color: '#10B981' };
+                if (s.status === 'active')                       return { label: 'IN PROGRESS', color: t.primary };
+                if (s.status === 'paused')                       return { label: 'PAUSED',      color: '#F5A623' };
+                if (s.status === 'incomplete')                   return { label: 'INCOMPLETE',  color: '#F5A623' };
+                if (s.status === 'abandoned')                    return { label: 'ABANDONED',   color: t.accent  };
+              }
+              if (p.status === 'completed') return { label: 'DONE',        color: '#10B981' };
+              if (p.status === 'active')    return { label: 'IN PROGRESS', color: t.primary };
+              if (p.status === 'postponed') return { label: 'POSTPONED',   color: '#F5B45A' };
+              if (p.status === 'cancelled') return { label: 'CANCELLED',   color: '#FF4D4D' };
+              return { label: 'SENT', color: t.primary };
+            };
 
-          {/* Workout sessions — expandable cards */}
-          {sessions.length > 0 && (
-            <div style={{ borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden' }}>
-              <div style={{ padding: '12px 16px 10px', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
-                Workout Sessions
-              </div>
-              {sessions.map((s, i) => {
-                const open = expandedSession === s.id;
-                const exs  = [...(s.workout_session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index);
-                const date = new Date(s.started_at || s.created_at || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                const statusBadge = (s.status === 'completed' || s.completed_at)
-                  ? <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>Done ✓</span>
-                  : s.status === 'active'
-                  ? <span style={{ fontSize: 10, fontWeight: 700, color: t.primary, background: `${t.primary}18`, borderRadius: 999, padding: '2px 8px' }}>Active</span>
-                  : s.status === 'incomplete'
-                  ? <span style={{ fontSize: 10, fontWeight: 700, color: '#F5A623', background: '#F5A62318', borderRadius: 999, padding: '2px 8px' }}>Incomplete</span>
-                  : s.status === 'paused'
-                  ? <span style={{ fontSize: 11, color: '#F5A623', fontWeight: 600 }}>Paused</span>
-                  : s.status === 'abandoned'
-                  ? <span style={{ fontSize: 11, color: t.accent, fontWeight: 600 }}>Abandoned</span>
-                  : <span style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>—</span>;
-
+            const renderSessionExercises = (exs: SessionExercise[], sessionColor: string) =>
+              exs.map((ex, ei) => {
+                const skipped   = ex.status === 'skipped';
+                const completed = ex.status === 'completed';
+                const exColor  = skipped ? textMute(dark) : textPri(dark);
+                const numColor = skipped ? textMute(dark) : completed ? '#10B981' : sessionColor;
                 return (
-                  <div key={s.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
-                    {/* Card header */}
-                    <button
-                      onClick={() => setExpandedSession(open ? null : s.id)}
-                      style={{
-                        width: '100%', padding: '11px 16px', display: 'flex',
-                        alignItems: 'center', gap: 10,
-                        background: 'transparent', border: 'none', cursor: 'pointer',
-                        textAlign: 'left', fontFamily: 'inherit',
-                      }}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark) }}>{date}</div>
-                        <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
-                          {exs.length > 0 ? `${exs.length} exercise${exs.length !== 1 ? 's' : ''}` : 'No exercise data'}
-                          {s.duration_minutes ? ` · ${s.duration_minutes} min` : ''}
-                          {s.performance_score != null ? ` · score ${s.performance_score}%` : ''}
-                        </div>
+                  <div key={ex.id} style={{
+                    padding: '8px 12px', borderRadius: 10, marginBottom: 6,
+                    background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    opacity: skipped ? 0.55 : 1,
+                  }}>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                      background: `${numColor}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 10, fontWeight: 700, color: numColor,
+                    }}>{ei + 1}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: exColor }}>
+                        {ex.exercise_name}
+                        {skipped   && <span style={{ fontSize: 10, marginLeft: 6, color: textMute(dark) }}>skipped</span>}
+                        {completed && <span style={{ fontSize: 10, marginLeft: 6, color: '#10B981' }}>✓</span>}
                       </div>
-                      <div style={{ flexShrink: 0 }}>{statusBadge}</div>
-                      <span style={{ fontSize: 11, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
-                    </button>
-
-                    {/* Exercise detail drawer */}
-                    {open && (
-                      <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
-                        {exs.length === 0 ? (
-                          <div style={{ fontSize: 11, color: textMute(dark) }}>No exercise data recorded for this session.</div>
-                        ) : exs.map((ex, ei) => {
-                          const skipped   = ex.status === 'skipped';
-                          const completed = ex.status === 'completed';
-                          const exColor   = skipped ? textMute(dark) : textPri(dark);
-                          const numColor  = skipped ? textMute(dark) : completed ? '#10B981' : t.primary;
-                          return (
-                            <div key={ex.id} style={{
-                              padding: '8px 12px', borderRadius: 10, marginBottom: 6,
-                              background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
-                              display: 'flex', alignItems: 'center', gap: 10,
-                              opacity: skipped ? 0.55 : 1,
-                            }}>
-                              <div style={{
-                                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                                background: `${numColor}22`,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: 10, fontWeight: 700, color: numColor,
-                              }}>{ei + 1}</div>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: 12.5, fontWeight: 700, color: exColor }}>
-                                  {ex.exercise_name}
-                                  {skipped && <span style={{ fontSize: 10, marginLeft: 6, color: textMute(dark) }}>skipped</span>}
-                                  {completed && <span style={{ fontSize: 10, marginLeft: 6, color: '#10B981' }}>✓</span>}
-                                </div>
-                                <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
-                                  {[
-                                    ex.sets_prescribed    ? `${ex.sets_prescribed} sets`           : null,
-                                    ex.reps_prescribed    ? `${ex.reps_prescribed} reps`           : null,
-                                    ex.load_kg_prescribed ? `${ex.load_kg_prescribed} kg`          : null,
-                                    ex.rest_seconds       ? `${ex.rest_seconds}s rest`             : null,
-                                  ].filter(Boolean).join(' · ')}
-                                  {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
-                                </div>
-                                {ex.notes && (
-                                  <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 2, fontStyle: 'italic' }}>{ex.notes}</div>
-                                )}
-                              </div>
+                      <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
+                        {[
+                          ex.sets_prescribed    ? `${ex.sets_prescribed} sets`    : null,
+                          ex.reps_prescribed    ? `${ex.reps_prescribed} reps`    : null,
+                          ex.load_kg_prescribed ? `${ex.load_kg_prescribed} kg`   : null,
+                          ex.rest_seconds       ? `${ex.rest_seconds}s rest`      : null,
+                        ].filter(Boolean).join(' · ')}
+                        {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
+                      </div>
+                      {ex.notes && (
+                        <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 2, fontStyle: 'italic' }}>{ex.notes}</div>
+                      )}
+                      {(ex.workout_set_logs?.length ?? 0) > 0 && (
+                        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          {[...(ex.workout_set_logs ?? [])].sort((a, b) => a.set_number - b.set_number).map(log => (
+                            <div key={log.set_number} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, color: textSec(dark) }}>
+                              <span style={{ fontWeight: 700, color: numColor, minWidth: 28 }}>S{log.set_number}</span>
+                              {log.reps_done != null && (
+                                <span>
+                                  <b style={{ color: textPri(dark) }}>{log.reps_done}</b>
+                                  {ex.reps_prescribed != null && log.reps_done !== ex.reps_prescribed && (
+                                    <span style={{ color: textMute(dark) }}>/{ex.reps_prescribed}</span>
+                                  )} reps
+                                </span>
+                              )}
+                              {log.load_kg != null && (
+                                <span>
+                                  <b style={{ color: textPri(dark) }}>{log.load_kg}</b>
+                                  {ex.load_kg_prescribed != null && log.load_kg !== ex.load_kg_prescribed && (
+                                    <span style={{ color: textMute(dark) }}>/{ex.load_kg_prescribed}</span>
+                                  )} kg
+                                </span>
+                              )}
+                              {log.rpe != null && <span style={{ color: textMute(dark) }}>RPE {log.rpe}</span>}
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
-              })}
-            </div>
-          )}
+              });
+
+            return (
+              <>
+                {/* Plan-linked cards */}
+                <div style={{ borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden' }}>
+                  <div style={{ padding: '12px 16px 10px', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
+                    Plan & Workout
+                  </div>
+                  {plans.length === 0 ? (
+                    <div style={{ padding: '0 16px 14px', color: textMute(dark), fontSize: 12 }}>No plans sent yet.</div>
+                  ) : plans.map((p, i) => {
+                    const linkedSessions = sessions
+                      .filter(s => s.plan_id === p.id)
+                      .sort((a, b) => new Date(b.started_at ?? b.created_at ?? '').getTime() - new Date(a.started_at ?? a.created_at ?? '').getTime());
+                    const session  = linkedSessions[0] ?? null;
+                    const { label: stLabel, color: stColor } = unifiedStatus(p, session);
+                    const open     = expandedPlan === p.id;
+
+                    const dateLabel = session?.started_at
+                      ? new Date(session.started_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : p.scheduled_date
+                      ? new Date(p.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : p.created_at ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
+                    const sessionExs = session
+                      ? [...(session.workout_session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index)
+                      : null;
+                    const planExs = [...(p.plan_exercises ?? [])].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+                    const exCount  = sessionExs ? sessionExs.length : planExs.length;
+
+                    return (
+                      <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
+                        <button
+                          onClick={() => setExpandedPlan(open ? null : p.id)}
+                          style={{
+                            width: '100%', padding: '11px 16px', display: 'flex', alignItems: 'center',
+                            gap: 10, background: 'transparent', border: 'none', cursor: 'pointer',
+                            textAlign: 'left', fontFamily: 'inherit',
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark) }}>{dateLabel}</div>
+                            <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
+                              {exCount} exercise{exCount !== 1 ? 's' : ''}
+                              {session?.duration_minutes ? ` · ${session.duration_minutes} min` : ''}
+                              {session?.performance_score != null ? ` · score ${session.performance_score}%` : ''}
+                              {!session && p.trainer_notes ? ` · ${p.trainer_notes.slice(0, 30)}${p.trainer_notes.length > 30 ? '…' : ''}` : ''}
+                              {linkedSessions.length > 1 ? ` · ${linkedSessions.length} sessions` : ''}
+                            </div>
+                          </div>
+                          <span style={{
+                            padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                            background: `${stColor}22`, color: stColor, letterSpacing: '.04em', textTransform: 'uppercase',
+                            flexShrink: 0,
+                          }}>{stLabel}</span>
+                          <span style={{ fontSize: 11, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
+                        </button>
+
+                        {open && (
+                          <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
+                            {sessionExs ? (
+                              sessionExs.length === 0
+                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>No exercise data recorded.</div>
+                                : renderSessionExercises(sessionExs, stColor)
+                            ) : (
+                              planExs.length === 0
+                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>No exercises in this plan.</div>
+                                : planExs.map((ex, ei) => (
+                                  <div key={ex.id} style={{
+                                    padding: '8px 12px', borderRadius: 10, marginBottom: 6,
+                                    background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+                                    display: 'flex', alignItems: 'center', gap: 10,
+                                  }}>
+                                    <div style={{
+                                      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                                      background: `${t.primary}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      fontSize: 10, fontWeight: 700, color: t.primary,
+                                    }}>{ei + 1}</div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: 12.5, fontWeight: 700, color: textPri(dark) }}>{ex.exercise_name}</div>
+                                      <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
+                                        {[
+                                          ex.sets       ? `${ex.sets} sets`             : null,
+                                          ex.reps       ? `${ex.reps} reps`             : null,
+                                          ex.load_kg    ? `${ex.load_kg} kg`            : null,
+                                          ex.rest_seconds ? `${ex.rest_seconds}s rest`  : null,
+                                        ].filter(Boolean).join(' · ')}
+                                        {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
+                                      </div>
+                                      {ex.notes && (
+                                        <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 2, fontStyle: 'italic' }}>{ex.notes}</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Free sessions (no plan) */}
+                {freeSessions.length > 0 && (
+                  <div style={{ borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden' }}>
+                    <div style={{ padding: '12px 16px 10px', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
+                      Free Sessions
+                    </div>
+                    {freeSessions.map((s, i) => {
+                      const open = expandedPlan === s.id;
+                      const exs  = [...(s.workout_session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index);
+                      const date = new Date(s.started_at || s.created_at || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                      const isDone = s.status === 'completed' || !!s.completed_at;
+                      const sc   = isDone ? '#10B981' : t.primary;
+                      const slabel = isDone ? 'DONE' : (s.status ?? '—').toUpperCase();
+                      return (
+                        <div key={s.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
+                          <button
+                            onClick={() => setExpandedPlan(open ? null : s.id)}
+                            style={{
+                              width: '100%', padding: '11px 16px', display: 'flex', alignItems: 'center',
+                              gap: 10, background: 'transparent', border: 'none', cursor: 'pointer',
+                              textAlign: 'left', fontFamily: 'inherit',
+                            }}
+                          >
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark) }}>{date}</div>
+                              <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
+                                {exs.length > 0 ? `${exs.length} exercise${exs.length !== 1 ? 's' : ''}` : 'No exercise data'}
+                                {s.duration_minutes ? ` · ${s.duration_minutes} min` : ''}
+                              </div>
+                            </div>
+                            <span style={{
+                              padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                              background: `${sc}22`, color: sc, letterSpacing: '.04em', textTransform: 'uppercase', flexShrink: 0,
+                            }}>{slabel}</span>
+                            <span style={{ fontSize: 11, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
+                          </button>
+                          {open && (
+                            <div style={{ padding: '0 16px 14px', background: dark ? '#0E1A2B' : '#f4f8fd' }}>
+                              {exs.length === 0
+                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>No exercise data recorded.</div>
+                                : renderSessionExercises(exs, sc)
+                              }
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 

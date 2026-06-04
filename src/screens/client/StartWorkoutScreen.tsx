@@ -1,11 +1,11 @@
 import React from 'react';
 import { supabase } from '../../supabase';
-import { Icon, AvatarImage, PhotoSlot, ScreenTitle, SectionLabel } from '../../components';
+import { Icon, AvatarImage, ScreenTitle, SectionLabel } from '../../components';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn } from '../../types';
 import type { Json } from '../../types/supabase';
 import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGeneration';
-import type { CycleContext, GeneratedWorkoutExercise, SmartWorkoutResult } from '../../lib/workoutGeneration';
+import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import { buildClientContext, buildTodayContext, buildLibraryContext } from '../../ai/buildAIContext';
 import type { TrainerContext, TaskContext } from '../../ai/types';
 import { computeCyclePhases } from './CycleScreen';
@@ -58,12 +58,11 @@ interface StartWorkoutScreenProps {
 }
 
 export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '' }: StartWorkoutScreenProps) {
-  const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);
+  const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);  // AI-generated plan only
   const [planId,     setPlanId]     = React.useState<string | null>(null);
   const [planSource, setPlanSource] = React.useState<string | null>(null);
   const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
   const [trainerAvatarUrl, setTrainerAvatarUrl] = React.useState<string | null>(null);
-  const [planSentAt, setPlanSentAt] = React.useState<string | null>(null);
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [loading,    setLoading]    = React.useState<boolean>(false);
@@ -73,17 +72,17 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [safetyMessage,  setSafetyMessage]  = React.useState<string | null>(null);
   const [readinessScore, setReadinessScore] = React.useState<number | null>(null);
   const [adaptations,    setAdaptations]    = React.useState<string[]>([]);
-  interface PendingPlan {
-    id:            string;
-    sentAt:        string | null;
-    status:        string;
-    exercises:     Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null}>;
+  interface PlanCard {
+    id:        string;
+    sentAt:    string | null;
+    status:    string;  // 'sent' | 'active' | 'postponed'
+    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null}>;
   }
-  const [otherPending, setOtherPending] = React.useState<PendingPlan[]>([]);
-  const [showPendingList, setShowPendingList] = React.useState(false);
-  const [expandedPending, setExpandedPending] = React.useState<string | null>(null);
+  const [trainerPlans, setTrainerPlans] = React.useState<PlanCard[]>([]);
+  const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
+  const hasTrainerPlans = trainerPlans.length > 0;
 
   // Derive current cycle phase — only for female users with cycle tracking data
   const getCycleContext = () => {
@@ -157,76 +156,63 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     setLoading(true);
     setError(null);
     setPlan(null);
+    setPlanId(null);
+    setTrainerPlans([]);
     // Auto-cancel stale plans (>10 days); notify trainer
     if (user?.id) void autoExpirePlans(user.id, 'client');
-    setPlanId(null);
     try {
       let physicalProfile: Json | null = null;
       let resolvedCheckin = checkin;
       if (user?.id) {
-        // First check for a trainer-sent plan
-        const { data: sentPlan } = await supabase
+        // Load ALL actionable trainer plans (sent / active / postponed) into one unified list.
+        // Status is NOT mutated here — a plan only becomes 'active' when the workout actually starts.
+        const { data: planRows } = await supabase
           .from('workout_plans')
-          .select('id, created_at, created_by, plan_exercises(id, exercise_name, muscle_group, sets, reps, load_kg, rest_seconds, notes, order_index)')
+          .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, load_kg, rest_seconds, notes, order_index)')
           .eq('assigned_to', user.id)
           .eq('source', 'manual')
-          .eq('status', 'sent')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .in('status', ['sent', 'active', 'postponed'])
+          .order('created_at', { ascending: false });
 
-        if (sentPlan?.plan_exercises?.length) {
-          // Use the trainer's plan — do NOT change status yet; only mark active when workout actually starts
-          const planExercises = sentPlan.plan_exercises as Array<{
-            id: string; exercise_name: string; muscle_group?: string;
-            sets?: number; reps?: number; load_kg?: number;
-            rest_seconds?: number; notes?: string; order_index?: number;
-          }>;
-          const sorted = [...planExercises].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
-          const exercises = sorted.map(ex => ({
-            exercise_name: ex.exercise_name,
-            muscle_group:  ex.muscle_group ?? '',
-            sets:          ex.sets as number | null ?? null,
-            reps:          ex.reps as number | null ?? null,
-            load_kg:       ex.load_kg as number | null ?? null,
-            rest_seconds:  ex.rest_seconds as number | null ?? null,
-            notes:         ex.notes ?? null,
-          }));
-          setPlan(exercises);
-          setPlanId(sentPlan.id);
+        const actionable = (planRows ?? []).filter(p => (p.plan_exercises?.length ?? 0) > 0);
+
+        // Auto-heal: active plans whose session was actually completed (legacy data before lifecycle fix)
+        const activePlanIds = actionable.filter(p => p.status === 'active').map(p => p.id);
+        let completedPlanIds = new Set<string>();
+        if (activePlanIds.length) {
+          const { data: doneSessions } = await supabase
+            .from('workout_sessions')
+            .select('plan_id')
+            .in('plan_id', activePlanIds)
+            .eq('status', 'completed');
+          if (doneSessions?.length) {
+            completedPlanIds = new Set(doneSessions.map(s => s.plan_id as string));
+            void supabase.from('workout_plans').update({ status: 'completed' }).in('id', [...completedPlanIds]);
+          }
+        }
+
+        const stillActionable = actionable.filter(p => !completedPlanIds.has(p.id));
+
+        if (stillActionable.length) {
+          setTrainerPlans(stillActionable.map(p => ({
+            id:        p.id,
+            sentAt:    p.created_at,
+            status:    p.status ?? 'sent',
+            exercises: ([...(p.plan_exercises ?? [])] as PlanCard['exercises'])
+              .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)),
+          })));
           setPlanSource('trainer');
-          setPlanSentAt(sentPlan.created_at ?? null);
 
-          // Look up trainer name + avatar
-          if (sentPlan.created_by) {
-            supabase.from('profiles').select('name, avatar_url').eq('id', sentPlan.created_by).maybeSingle()
+          // Trainer name + avatar from the most recent plan
+          const newest = stillActionable[0];
+          if (newest?.created_by) {
+            supabase.from('profiles').select('name, avatar_url').eq('id', newest.created_by).maybeSingle()
               .then(({ data: trainerProfile }) => {
                 if (trainerProfile?.name) setTrainerName(trainerProfile.name.split(' ')[0] ?? null);
                 if (trainerProfile?.avatar_url) setTrainerAvatarUrl(trainerProfile.avatar_url);
               });
           }
 
-          // Load other pending trainer plans (sent or postponed, not the one being shown)
-          supabase.from('workout_plans')
-            .select('id, created_at, status, plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)')
-            .eq('assigned_to', user.id)
-            .eq('source', 'manual')
-            .in('status', ['sent', 'postponed'])
-            .neq('id', sentPlan.id)
-            .order('created_at', { ascending: false })
-            .then(({ data: others }) => {
-              if (others?.length) {
-                setOtherPending(others.map(p => ({
-                  id:        p.id,
-                  sentAt:    p.created_at,
-                  status:    p.status ?? 'sent',
-                  exercises: ([...(p.plan_exercises ?? [])] as PendingPlan['exercises'])
-                    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)),
-                })));
-              }
-            });
-
-          setLoading(false);
           return;
         }
       }
@@ -288,7 +274,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
         // If no profile, fall back to legacy endpoint
         if (!profileData) {
-          console.warn('[start-workout] no profile_v2 — using legacy endpoint');
           const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext });
           setPlan(exercises);
           void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile);
@@ -405,6 +390,57 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
   const sore = (activeCheckin.soreness || []).filter(s => s !== 'None');
 
+  const [confirmCancelPlan, setConfirmCancelPlan] = React.useState<PlanCard | null>(null);
+
+  // ── Unified plan-card actions ────────────────────────────────────────────────
+  const STATUS_META: Record<string, { label: string; color: string }> = {
+    sent:      { label: 'Sent',       color: t.primary },
+    active:    { label: 'Incomplete', color: '#F5A623' },
+    postponed: { label: 'Postponed',  color: '#F5B45A' },
+  };
+
+  const notifyTrainerAction = (p: PlanCard, kind: 'cancelled' | 'postponed') => {
+    if (!user?.id) return;
+    void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
+      .then(({ data: tc }) => {
+        if (!tc?.trainer_id) return;
+        const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'unknown date';
+        const title = kind === 'cancelled' ? 'Plan cancelled by client' : 'Plan postponed by client';
+        const body  = `${user.name || 'Your client'} ${kind} the workout plan from ${planDate}.`;
+        notify(tc.trainer_id, title, body, undefined, { type: kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
+      });
+  };
+
+  const startPlan = (p: PlanCard) => {
+    supabase.from('workout_plans').update({ status: 'active' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan start]', error); });
+    nav('workoutMode', {
+      planId:    p.id,
+      exercises: p.exercises.map(ex => ({
+        exercise_name: ex.exercise_name,
+        muscle_group:  ex.muscle_group  ?? '',
+        sets:          ex.sets          ?? null,
+        reps:          ex.reps          ?? null,
+        load_kg:       ex.load_kg       ?? null,
+        rest_seconds:  ex.rest_seconds  ?? null,
+        notes:         ex.notes         ?? null,
+      })),
+    });
+  };
+
+  const postponePlan = (p: PlanCard) => {
+    supabase.from('workout_plans').update({ status: 'postponed' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan postpone]', error); });
+    setTrainerPlans(prev => prev.map(x => x.id === p.id ? { ...x, status: 'postponed' } : x));
+    setExpandedPlan(null);
+    notifyTrainerAction(p, 'postponed');
+  };
+
+  const cancelPlan = (p: PlanCard) => {
+    supabase.from('workout_plans').update({ status: 'cancelled' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan cancel]', error); });
+    setTrainerPlans(prev => prev.filter(x => x.id !== p.id));
+    if (expandedPlan === p.id) setExpandedPlan(null);
+    notifyTrainerAction(p, 'cancelled');
+  };
+
   return (
     <>
       <ScreenTitle dark={dark}>Start Workout</ScreenTitle>
@@ -464,8 +500,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               {planSource === 'trainer' ? "Trainer's Plan" : 'AI-Powered Plan'}
             </div>
             <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.55)' : 'rgba(14,26,43,.5)', marginTop: 2 }}>
-              {planSource === 'trainer' && trainerName ? (
-                <>by {trainerName}{planSentAt ? ` · ${new Date(planSentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</>
+              {hasTrainerPlans ? (
+                <>{trainerName ? `by ${trainerName} · ` : ''}{trainerPlans.length} plan{trainerPlans.length !== 1 ? 's' : ''} waiting</>
               ) : (
                 <>{activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || 'gym'}</>
               )}
@@ -474,184 +510,119 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         </div>
       </div>
 
-      {/* Pending plans badge */}
-      {otherPending.length > 0 && !showPendingList && (
-        <div style={{ padding: '0 22px 10px' }}>
-          <button onClick={() => setShowPendingList(true)} style={{
-            width: '100%', padding: '9px 14px', borderRadius: 10, border: 'none',
-            background: `${t.primary}18`, color: t.primary,
-            fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-          }}>
-            <Icon name="history" size={13} color={t.primary} stroke={2}/>
-            +{otherPending.length} more plan{otherPending.length > 1 ? 's' : ''} pending from your trainer
-          </button>
-        </div>
-      )}
+      {/* Your Plans — unified trainer-plan list (sent / active / postponed) */}
+      {hasTrainerPlans && (
+        <div style={{ padding: '0 22px 14px' }}>
+          <SectionLabel dark={dark}>Your Plans</SectionLabel>
+          <div style={{ borderRadius: 14, overflow: 'hidden', border: `1px solid ${t.primary}33` }}>
+            {trainerPlans.map((p, i) => {
+              const isOpen = expandedPlan === p.id;
+              const meta = STATUS_META[p.status] ?? STATUS_META.sent!;
+              const dateLabel = p.sentAt
+                ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                : 'Plan';
+              const startLabel = p.status === 'sent' ? '▶ Start' : '▶ Resume';
+              return (
+                <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${t.primary}22` : undefined }}>
 
-      {/* Pending plans list */}
-      {showPendingList && otherPending.length > 0 && (
-        <div style={{ margin: '0 22px 14px', borderRadius: 12, overflow: 'hidden', border: `1px solid ${t.primary}33` }}>
-          <div style={{
-            padding: '8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: `${t.primary}14`,
-          }}>
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
-              Other pending plans
-            </span>
-            <button onClick={() => setShowPendingList(false)} style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px',
-              fontSize: 12, color: t.primary, fontFamily: 'inherit',
-            }}>✕</button>
-          </div>
-          {otherPending.map((p, i) => {
-            const isOpen = expandedPending === p.id;
-            const dateLabel = p.sentAt
-              ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-              : 'Plan';
-            const statusColor = p.status === 'postponed' ? '#F5B45A' : t.primary;
-            return (
-              <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${t.primary}22` : undefined }}>
-
-                {/* Row — cancel badge inline, click row to expand */}
-                <div style={{
-                  padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8,
-                  background: dark ? '#0F1E30' : '#f4f8fd',
-                }}>
-                  {/* Clickable main area */}
-                  <button onClick={() => setExpandedPending(isOpen ? null : p.id)} style={{
-                    flex: 1, display: 'flex', alignItems: 'center', gap: 8,
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
+                  {/* Row — cancel badge inline, click row to expand */}
+                  <div style={{
+                    padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8,
+                    background: dark ? '#0F1E30' : '#f4f8fd',
                   }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 600, color: dark ? '#fff' : '#0E1A2B' }}>{dateLabel}</span>
-                      <span style={{ fontSize: 11.5, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginLeft: 8 }}>
-                        {p.exercises.length} exercise{p.exercises.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: statusColor, letterSpacing: '.06em', textTransform: 'uppercase', flexShrink: 0 }}>
-                      {p.status === 'postponed' ? 'Postponed' : 'Pending'}
-                    </span>
-                    <span style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.4)' : '#aab' }}>{isOpen ? '▲' : '▼'}</span>
-                  </button>
-
-                  {/* Cancel badge — no need to open card */}
-                  <button
-                    title="Cancel this plan"
-                    onClick={() => {
-                      supabase.from('workout_plans').update({ status: 'cancelled' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan cancel]', error); });
-                      setOtherPending(prev => prev.filter(x => x.id !== p.id));
-                      if (isOpen) setExpandedPending(null);
-                      // Notify trainer: client cancelled a plan
-                      if (user?.id) {
-                        void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
-                          .then(({ data: tc }) => {
-                            if (tc?.trainer_id) {
-                              const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'unknown date';
-                              notify(tc.trainer_id, 'Plan cancelled by client', `${user.name || 'Your client'} cancelled the workout plan from ${planDate}.`, undefined, { type: 'plan_cancelled', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
-                            }
-                          });
-                      }
-                    }}
-                    style={{
-                      flexShrink: 0, padding: '3px 9px', borderRadius: 999,
-                      background: '#FF4D4D22', color: '#FF4D4D',
-                      border: '1px solid #FF4D4D44', fontSize: 10, fontWeight: 700,
-                      cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '.04em',
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-
-                {/* Expanded: exercise list + Postpone / Start */}
-                {isOpen && (
-                  <div style={{ padding: '0 14px 12px', background: dark ? '#0a1626' : '#eef1f8' }}>
-                    {p.exercises.map((ex, ei) => (
-                      <div key={ex.id} style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '7px 10px', borderRadius: 9, marginBottom: 5,
-                        background: dark ? '#0F1E30' : '#f4f8fd',
-                        border: `1px solid ${t.primary}22`,
-                      }}>
-                        <div style={{
-                          width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                          background: `${t.primary}22`, fontSize: 9, fontWeight: 700,
-                          color: t.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>{ei + 1}</div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B' }}>{ex.exercise_name}</div>
-                          <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
-                            {[
-                              ex.sets        ? `${ex.sets} sets`         : null,
-                              ex.reps        ? `${ex.reps} reps`         : null,
-                              ex.load_kg     ? `${ex.load_kg} kg`        : null,
-                              ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
-                            ].filter(Boolean).join(' · ')}
-                            {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
-                          </div>
-                          {ex.notes && <div style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.35)' : '#9aa', marginTop: 1, fontStyle: 'italic' }}>{ex.notes}</div>}
-                        </div>
+                    <button onClick={() => setExpandedPlan(isOpen ? null : p.id)} style={{
+                      flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                      background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 600, color: dark ? '#fff' : '#0E1A2B' }}>{dateLabel}</span>
+                        <span style={{ fontSize: 11.5, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginLeft: 8 }}>
+                          {p.exercises.length} exercise{p.exercises.length !== 1 ? 's' : ''}
+                        </span>
                       </div>
-                    ))}
+                      <span style={{ fontSize: 10, fontWeight: 700, color: meta.color, letterSpacing: '.06em', textTransform: 'uppercase', flexShrink: 0 }}>
+                        {meta.label}
+                      </span>
+                      <span style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.4)' : '#aab' }}>{isOpen ? '▲' : '▼'}</span>
+                    </button>
 
-                    {/* Actions */}
-                    <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                      <button
-                        onClick={() => {
-                          supabase.from('workout_plans').update({ status: 'postponed' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan postpone]', error); });
-                          setOtherPending(prev => prev.map(x => x.id === p.id ? { ...x, status: 'postponed' } : x));
-                          setExpandedPending(null);
-                          // Notify trainer: client postponed a plan
-                          if (user?.id) {
-                            void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
-                              .then(({ data: tc }) => {
-                                if (tc?.trainer_id) {
-                                  const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'unknown date';
-                                  notify(tc.trainer_id, 'Plan postponed by client', `${user.name || 'Your client'} postponed the workout plan from ${planDate}.`, undefined, { type: 'plan_postponed', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
-                                }
-                              });
-                          }
-                        }}
-                        style={{
-                          flex: 1, padding: '10px 0', borderRadius: 10, border: `1.5px solid #F5B45A55`,
-                          background: '#F5B45A18', color: '#F5B45A', fontSize: 12, fontWeight: 700,
-                          cursor: 'pointer', fontFamily: 'inherit',
-                        }}
-                      >
-                        Postpone
-                      </button>
-                      <button
-                        onClick={() => {
-                          supabase.from('workout_plans').update({ status: 'active' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan start]', error); });
-                          nav('workoutMode', {
-                            planId:    p.id,
-                            exercises: p.exercises.map(ex => ({
-                              exercise_name: ex.exercise_name,
-                              muscle_group:  ex.muscle_group  ?? '',
-                              sets:          ex.sets          ?? null,
-                              reps:          ex.reps          ?? null,
-                              load_kg:       ex.load_kg       ?? null,
-                              rest_seconds:  ex.rest_seconds  ?? null,
-                              notes:         ex.notes         ?? null,
-                            })),
-                          });
-                        }}
-                        style={{
-                          flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
-                          background: t.primary, color: '#0E1A2B', fontSize: 12, fontWeight: 700,
-                          cursor: 'pointer', fontFamily: 'inherit',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                        }}
-                      >
-                        ▶ Start
-                      </button>
-                    </div>
+                    <button
+                      title="Cancel this plan"
+                      onClick={() => setConfirmCancelPlan(p)}
+                      style={{
+                        flexShrink: 0, padding: '3px 9px', borderRadius: 999,
+                        background: '#FF4D4D22', color: '#FF4D4D',
+                        border: '1px solid #FF4D4D44', fontSize: 10, fontWeight: 700,
+                        cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '.04em',
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </div>
-                )}
-              </div>
-            );
-          })}
+
+                  {/* Expanded: exercise list + contextual actions */}
+                  {isOpen && (
+                    <div style={{ padding: '0 14px 12px', background: dark ? '#0a1626' : '#eef1f8' }}>
+                      {p.exercises.map((ex, ei) => (
+                        <div key={ex.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '7px 10px', borderRadius: 9, marginBottom: 5,
+                          background: dark ? '#0F1E30' : '#f4f8fd',
+                          border: `1px solid ${t.primary}22`,
+                        }}>
+                          <div style={{
+                            width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                            background: `${t.primary}22`, fontSize: 9, fontWeight: 700,
+                            color: t.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>{ei + 1}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B' }}>{ex.exercise_name}</div>
+                            <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
+                              {[
+                                ex.sets        ? `${ex.sets} sets`         : null,
+                                ex.reps        ? `${ex.reps} reps`         : null,
+                                ex.load_kg     ? `${ex.load_kg} kg`        : null,
+                                ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
+                              ].filter(Boolean).join(' · ')}
+                              {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
+                            </div>
+                            {ex.notes && <div style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.35)' : '#9aa', marginTop: 1, fontStyle: 'italic' }}>{ex.notes}</div>}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Actions — Postpone only offered while the plan is still 'sent' */}
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                        {p.status === 'sent' && (
+                          <button
+                            onClick={() => postponePlan(p)}
+                            style={{
+                              flex: 1, padding: '10px 0', borderRadius: 10, border: `1.5px solid #F5B45A55`,
+                              background: '#F5B45A18', color: '#F5B45A', fontSize: 12, fontWeight: 700,
+                              cursor: 'pointer', fontFamily: 'inherit',
+                            }}
+                          >
+                            Postpone
+                          </button>
+                        )}
+                        <button
+                          onClick={() => startPlan(p)}
+                          style={{
+                            flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
+                            background: t.primary, color: '#0E1A2B', fontSize: 12, fontWeight: 700,
+                            cursor: 'pointer', fontFamily: 'inherit',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          }}
+                        >
+                          {startLabel}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -681,9 +652,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         </div>
       )}
 
-      {/* Today's AI plan */}
+      {/* Today's AI plan — only when no actionable trainer plan exists */}
+      {!hasTrainerPlans && (
       <div style={{ padding: '4px 22px 0' }}>
-        <SectionLabel dark={dark}>{planSource === 'trainer' ? 'From your trainer' : 'Today\'s AI plan'}</SectionLabel>
+        <SectionLabel dark={dark}>Today&apos;s AI plan</SectionLabel>
 
         {loading && (
           <div style={{
@@ -760,26 +732,81 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           </div>
         )}
       </div>
+      )}
 
-      <div style={{ padding: '16px 22px 28px' }}>
-        <button
-          onClick={() => {
-            // Mark as active only when the workout actually starts
-            if (planId && planSource === 'trainer') {
-              supabase.from('workout_plans').update({ status: 'active' }).eq('id', planId).then(({ error }) => { if (error) console.error('[plan active]', error); });
-            }
-            nav('workoutMode', { planId, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined });
-          }}
-          disabled={!plan || loading || safetyBlocked}
-          style={{
-            ...primaryBtn(t.primary),
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            opacity: (!plan || loading) ? 0.5 : 1,
-          }}
-        >
-          <Icon name="play" size={14} color="#0E1A2B"/> Start Workout
-        </button>
-      </div>
+      {/* Bottom CTA — drives the AI plan only; trainer plans start from their own card */}
+      {!hasTrainerPlans && (
+        <div style={{ padding: '16px 22px 28px' }}>
+          <button
+            onClick={() => nav('workoutMode', { planId, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined })}
+            disabled={!plan || loading || safetyBlocked}
+            style={{
+              ...primaryBtn(t.primary),
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              opacity: (!plan || loading) ? 0.5 : 1,
+            }}
+          >
+            <Icon name="play" size={14} color="#0E1A2B"/> Start Workout
+          </button>
+        </div>
+      )}
+      {/* Cancel confirmation modal */}
+      {confirmCancelPlan && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 999,
+          background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }} onClick={() => setConfirmCancelPlan(null)}>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: 480,
+              background: dark ? '#0F1E30' : '#fff',
+              borderRadius: '20px 20px 0 0',
+              padding: '24px 22px calc(28px + env(safe-area-inset-bottom, 0px))',
+              border: `1px solid ${borderSubtle(dark)}`,
+            }}
+          >
+            <div style={{ fontSize: 17, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B', marginBottom: 8, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>
+              Cancel this plan?
+            </div>
+            <div style={{ fontSize: 13, color: textSec(dark), lineHeight: 1.55, marginBottom: 22 }}>
+              The plan from{' '}
+              <b style={{ color: dark ? '#fff' : '#0E1A2B' }}>
+                {confirmCancelPlan.sentAt
+                  ? new Date(confirmCancelPlan.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  : 'your trainer'}
+              </b>
+              {' '}will be cancelled and your trainer will be notified.
+              This action cannot be undone.
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setConfirmCancelPlan(null)}
+                style={{
+                  flex: 1, padding: '13px 0', borderRadius: 14,
+                  background: 'transparent', border: `1.5px solid ${borderSubtle(dark)}`,
+                  color: dark ? '#fff' : '#0E1A2B', fontSize: 14, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                Keep it
+              </button>
+              <button
+                onClick={() => { cancelPlan(confirmCancelPlan); setConfirmCancelPlan(null); }}
+                style={{
+                  flex: 1, padding: '13px 0', borderRadius: 14,
+                  background: '#FF4D4D', border: 'none',
+                  color: '#fff', fontSize: 14, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                Yes, cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

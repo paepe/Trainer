@@ -32,8 +32,9 @@ const FEELING_ICONS  = ['😩',       '😕',  '😐',    '😊',   '🤩'];
 
 export function PostWorkoutSummaryScreen({
   nav, t, dark, sessionId,
-  durationMin, completedCount, total, totalSets,
-  startedAt, forClientName, forClientId,
+  durationMin: durationMinProp, completedCount: completedCountProp,
+  total: totalProp, totalSets: totalSetsProp,
+  startedAt: startedAtProp, forClientName, forClientId,
   savePostWorkoutFeedback,
 }: PostWorkoutSummaryScreenProps) {
   const [feeling,   setFeeling]   = React.useState(4);
@@ -42,7 +43,48 @@ export function PostWorkoutSummaryScreen({
   const [saving,    setSaving]    = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
 
+  // Stats — use nav props when available, otherwise load from DB (History → "View Progress")
+  const [durationMin,    setDurationMin]    = React.useState(durationMinProp);
+  const [completedCount, setCompletedCount] = React.useState(completedCountProp);
+  const [total,          setTotal]          = React.useState(totalProp);
+  const [totalSets,      setTotalSets]      = React.useState(totalSetsProp);
+  const [startedAt,      setStartedAt]      = React.useState(startedAtProp);
+  // null = unknown (loading), 'completed' = done, anything else = not completed
+  const [sessionStatus, setSessionStatus] = React.useState<string | null>(
+    totalProp > 0 ? 'completed' : null
+  );
+
   const isTrainerSession = Boolean(forClientName);
+
+  // Load stats + status from DB when not provided via nav (History → "View Progress" path)
+  React.useEffect(() => {
+    if (!sessionId || totalProp > 0) return;
+    supabase
+      .from('workout_sessions')
+      .select('status, completed_at, total_duration_min, started_at')
+      .eq('id', sessionId)
+      .maybeSingle()
+      .then(({ data: s }) => {
+        if (!s) { setSessionStatus('unknown'); return; }
+        setSessionStatus(s.completed_at ? 'completed' : (s.status ?? 'unknown'));
+        if (s.total_duration_min) setDurationMin(s.total_duration_min);
+        if (s.started_at && !startedAtProp) setStartedAt(s.started_at);
+      });
+    supabase
+      .from('workout_session_exercises')
+      .select('id, status')
+      .eq('session_id', sessionId)
+      .then(({ data: exs }) => {
+        if (!exs?.length) return;
+        setTotal(exs.length);
+        setCompletedCount(exs.filter(e => e.status === 'completed').length);
+      });
+    supabase
+      .from('workout_set_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', sessionId)
+      .then(({ count }) => { if (count) setTotalSets(count); });
+  }, [sessionId, totalProp, startedAtProp]);
 
   // Pre-populate with previously saved feedback so re-submissions don't overwrite stored data
   React.useEffect(() => {
@@ -60,6 +102,8 @@ export function PostWorkoutSummaryScreen({
       });
   }, [sessionId]);
 
+  const isCompleted = sessionStatus === 'completed';
+
   const handleSubmit = async () => {
     setSaving(true);
     if (sessionId) {
@@ -73,21 +117,39 @@ export function PostWorkoutSummaryScreen({
     }
     setSubmitted(true);
     setSaving(false);
-    nav(isTrainerSession ? 'trainerDashboard' : 'goal', { durationMinutes: durationMin, completedCount, total });
+    // Immediate post-workout → celebrate on GoalAchievedScreen
+    // History review path → back to History (no celebration for past sessions)
+    if (isTrainerSession) {
+      nav('trainerDashboard');
+    } else if (totalProp > 0) {
+      nav('goal', { durationMinutes: durationMin, completedCount, total });
+    } else {
+      nav('history');
+    }
   };
+
+  // Loading state while DB query resolves (History path only)
+  if (sessionStatus === null) {
+    return (
+      <div style={{ padding: '60px 22px', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
+        Loading session…
+      </div>
+    );
+  }
 
   return (
     <>
-
-      {/* Hero */}
+      {/* Hero — adapts to completion status */}
       <div style={{ padding: '16px 22px 20px', textAlign: 'center' }}>
-        <div style={{ fontSize: 42, marginBottom: 6 }}>🏆</div>
+        <div style={{ fontSize: 42, marginBottom: 6 }}>{isCompleted ? '🏆' : '📋'}</div>
         <div style={{
           fontFamily: '"Plus Jakarta Sans",sans-serif',
           fontSize: 22, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B',
-        }}>Workout Complete!</div>
+        }}>
+          {isCompleted ? 'Workout Complete!' : 'Session Summary'}
+        </div>
         <div style={{ fontSize: 13, color: textSec(dark), marginTop: 4 }}>
-          Great effort — here&rsquo;s your session summary
+          {isCompleted ? <>Great effort — here&rsquo;s your session summary</> : 'This session was not completed'}
           {startedAt && (
             <span style={{ color: textMute(dark) }}>
               {' · '}{new Date(startedAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -97,7 +159,7 @@ export function PostWorkoutSummaryScreen({
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — always visible */}
       <div style={{ padding: '0 22px 20px' }}>
         <div style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr',
@@ -106,100 +168,127 @@ export function PostWorkoutSummaryScreen({
           border: `1px solid ${borderSubtle(dark)}`,
           padding: 16,
         }}>
-          <StatTile label="Duration"  value={`${durationMin} min`}    icon="history" t={t} dark={dark}/>
-          <StatTile label="Exercises" value={`${completedCount}/${total}`} icon="play"  t={t} dark={dark}/>
-          <StatTile label="Sets done" value={String(totalSets)}         icon="chart"   t={t} dark={dark}/>
+          <StatTile label="Duration"  value={durationMin ? `${durationMin} min` : '—'} icon="history" t={t} dark={dark}/>
+          <StatTile label="Exercises" value={total > 0 ? `${completedCount}/${total}` : '—'} icon="play" t={t} dark={dark}/>
+          <StatTile label="Sets done" value={totalSets > 0 ? String(totalSets) : '—'} icon="chart" t={t} dark={dark}/>
           <StatTile label="Score"     value={total > 0 ? `${Math.round((completedCount / total) * 100)}%` : '—'} icon="target" t={t} dark={dark}/>
         </div>
       </div>
 
-      {/* Trainer context banner */}
-      {isTrainerSession && (
-        <div style={{ padding: '0 22px 14px' }}>
+      {/* Not completed — info banner + back, no feedback form */}
+      {!isCompleted && (
+        <div style={{ padding: '0 22px 32px' }}>
           <div style={{
-            padding: '10px 14px', borderRadius: 10,
-            background: `${t.primary}12`, border: `1px solid ${t.primary}33`,
-            fontSize: 11, color: t.primary, fontWeight: 600,
+            padding: '14px 16px', borderRadius: 14, marginBottom: 16,
+            background: `${borderSubtle(dark)}88`, border: `1px solid ${borderSubtle(dark)}`,
+            fontSize: 13, color: textSec(dark), lineHeight: 1.55,
           }}>
-            Recording on behalf of {forClientName ?? 'client'} · feedback saved under client's profile
+            Feedback is only available for completed sessions.
           </div>
+          <button
+            onClick={() => nav('history')}
+            style={{
+              ...primaryBtn(t.primary),
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+          >
+            ← Back to History
+          </button>
         </div>
       )}
 
-      {/* How did you feel? */}
-      <div style={{ padding: '0 22px 18px' }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-          How did you feel?
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
-          {[1,2,3,4,5].map(n => (
-            <button key={n} onClick={() => setFeeling(n)} style={{
-              flex: 1, padding: '10px 0', borderRadius: 12, border: 'none',
-              background: feeling === n ? `${t.primary}22` : surfRaised(dark),
-              outline: `1.5px solid ${feeling === n ? t.primary : borderSubtle(dark)}`,
-              cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-            }}>
-              <span style={{ fontSize: 20 }}>{FEELING_ICONS[n - 1]}</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: feeling === n ? t.primary : textMute(dark) }}>
-                {FEELING_LABELS[n - 1]}
-              </span>
+      {/* Completed — full feedback form */}
+      {isCompleted && (
+        <>
+          {/* Trainer context banner */}
+          {isTrainerSession && (
+            <div style={{ padding: '0 22px 14px' }}>
+              <div style={{
+                padding: '10px 14px', borderRadius: 10,
+                background: `${t.primary}12`, border: `1px solid ${t.primary}33`,
+                fontSize: 11, color: t.primary, fontWeight: 600,
+              }}>
+                Recording on behalf of {forClientName ?? 'client'} · feedback saved under client's profile
+              </div>
+            </div>
+          )}
+
+          {/* How did you feel? */}
+          <div style={{ padding: '0 22px 18px' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
+              How did you feel?
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+              {[1,2,3,4,5].map(n => (
+                <button key={n} onClick={() => setFeeling(n)} style={{
+                  flex: 1, padding: '10px 0', borderRadius: 12, border: 'none',
+                  background: feeling === n ? `${t.primary}22` : surfRaised(dark),
+                  outline: `1.5px solid ${feeling === n ? t.primary : borderSubtle(dark)}`,
+                  cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                }}>
+                  <span style={{ fontSize: 20 }}>{FEELING_ICONS[n - 1]}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: feeling === n ? t.primary : textMute(dark) }}>
+                    {FEELING_LABELS[n - 1]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Energy after */}
+          <div style={{ padding: '0 22px 18px' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
+              Energy level after — {energy ?? '—'}/10
+            </div>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                <button key={n} onClick={() => setEnergy(n)} style={{
+                  width: 34, height: 34, borderRadius: 8, border: 'none',
+                  background: energy === n ? t.primary : surfRaised(dark),
+                  color: energy === n ? '#0E1A2B' : textPri(dark),
+                  fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  outline: `1.5px solid ${energy === n ? t.primary : borderSubtle(dark)}`,
+                }}>{n}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div style={{ padding: '0 22px 18px' }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
+              Notes (optional)
+            </div>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="How was the session?"
+              rows={3}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '10px 14px', borderRadius: 12,
+                border: `1.5px solid ${borderSubtle(dark)}`,
+                background: surfRaised(dark), color: textPri(dark),
+                fontFamily: 'inherit', fontSize: 14, resize: 'none', outline: 'none',
+              }}
+            />
+          </div>
+
+          <div style={{ padding: '0 22px 32px' }}>
+            <button
+              onClick={() => void handleSubmit()}
+              disabled={saving || submitted}
+              style={{
+                ...primaryBtn(t.primary),
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                opacity: (saving || submitted) ? 0.65 : 1,
+              }}
+            >
+              <Icon name="check" size={15} color="#0E1A2B" stroke={2.5}/>
+              {saving ? 'Saving…' : isTrainerSession ? 'Save & Back to Dashboard' : 'Save & Continue'}
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Energy after */}
-      <div style={{ padding: '0 22px 18px' }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
-          Energy level after — {energy ?? '—'}/10
-        </div>
-        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-          {[1,2,3,4,5,6,7,8,9,10].map(n => (
-            <button key={n} onClick={() => setEnergy(n)} style={{
-              width: 34, height: 34, borderRadius: 8, border: 'none',
-              background: energy === n ? t.primary : surfRaised(dark),
-              color: energy === n ? '#0E1A2B' : textPri(dark),
-              fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              outline: `1.5px solid ${energy === n ? t.primary : borderSubtle(dark)}`,
-            }}>{n}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* Notes */}
-      <div style={{ padding: '0 22px 18px' }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
-          Notes (optional)
-        </div>
-        <textarea
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder="How was the session?"
-          rows={3}
-          style={{
-            width: '100%', boxSizing: 'border-box',
-            padding: '10px 14px', borderRadius: 12,
-            border: `1.5px solid ${borderSubtle(dark)}`,
-            background: surfRaised(dark), color: textPri(dark),
-            fontFamily: 'inherit', fontSize: 14, resize: 'none', outline: 'none',
-          }}
-        />
-      </div>
-
-      <div style={{ padding: '0 22px 32px' }}>
-        <button
-          onClick={() => void handleSubmit()}
-          disabled={saving || submitted}
-          style={{
-            ...primaryBtn(t.primary),
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            opacity: (saving || submitted) ? 0.65 : 1,
-          }}
-        >
-          <Icon name="check" size={15} color="#0E1A2B" stroke={2.5}/>
-          {saving ? 'Saving…' : isTrainerSession ? 'Save & Back to Dashboard' : 'Save & Continue'}
-        </button>
-      </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

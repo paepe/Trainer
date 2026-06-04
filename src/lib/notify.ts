@@ -34,14 +34,11 @@ export function notify(
   if (opts.fromUserId)         payload.fromUserId  = opts.fromUserId;
   if (expiresAt)               payload.expiresAt   = expiresAt;
 
-  console.log('[notify] →', userId, opts.type ?? '—');
-
   fetch(`${API_BASE}/api/send-notification`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify(payload),
   })
     .then(r => r.json())
-    .then(data => console.log('[notify] response:', data))
-    .catch(err => console.warn('[notify] failed:', err));
+    .catch(err => console.error('[notify] failed:', err));
 }

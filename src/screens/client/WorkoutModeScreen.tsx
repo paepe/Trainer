@@ -33,7 +33,7 @@ interface WorkoutModeScreenProps {
   logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null }) => Promise<{ error: unknown }>;
   updateSessionExerciseStatus: (sessionExerciseId: string, status: SessionExerciseStatus, skippedReason?: string) => Promise<{ error: unknown }>;
   reportWorkoutPain:           (data: { session_id: string; session_exercise_id: string | null; body_region: string; intensity: number }) => Promise<{ error: unknown }>;
-  completeWorkoutSession:      (data: { sessionId: string; completed_at: string; total_duration_min: number; notes?: string | null }) => Promise<{ error: unknown }>;
+  completeWorkoutSession:      (data: { sessionId: string; completed_at: string; total_duration_min: number; notes?: string | null; planId?: string | null }) => Promise<{ error: unknown }>;
   updatePainRecurrence:        (region: string) => Promise<{ error: unknown }>;
   sounds?:                     boolean;
 }
@@ -260,6 +260,7 @@ export function WorkoutModeScreen({
         sessionId:          resolvedSessionId,
         completed_at:       completedAt.toISOString(),
         total_duration_min: durationMin,
+        planId,
       });
     }
 

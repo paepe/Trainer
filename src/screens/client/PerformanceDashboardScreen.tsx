@@ -732,25 +732,26 @@ function TelaScores({ data }: { data: M5Data }) {
 // ── Voice query engine ────────────────────────────────────────────────────────
 
 function processVoiceQuery(q: string, data: M5Data): string {
-  const n = q.toLowerCase();
+  const n   = q.toLowerCase();
+  const adh = Math.round(data.adherenceRate * 100);
+  const fmt = (s: { score: number; desc: string; action: string }, label: string) =>
+    `${label}: ${Math.round(s.score)}/100. ${s.desc} ${s.action}`;
 
   if (n.includes('summary') || n.includes('monthly')) {
-    return `Summary: ${data.completedSessions} completed sessions of ${data.plannedSessions} planned — ${data.adherenceRate}% adherence. Current streak: ${data.workoutStreak} day(s). ${data.scores.fatigueRisk.desc}`;
+    return `Summary: ${data.completedSessions} completed sessions of ${data.plannedSessions} planned — ${adh}% adherence. Current streak: ${data.workoutStreak} day(s). ${data.scores.fatigueRisk.desc}`;
   }
   if (n.includes('fatigue') || n.includes('fatigued')) {
-    const s = data.scores.fatigueRisk;
-    return `Fatigue risk: ${s.score}/100. ${s.desc} ${s.action}`;
+    return fmt(data.scores.fatigueRisk, 'Fatigue risk');
   }
   if (n.includes('dropout') || n.includes('churn') || n.includes('quit')) {
-    const s = data.scores.churnRisk;
-    return `Churn risk: ${s.score}/100. ${s.desc} ${s.action}`;
+    return fmt(data.scores.churnRisk, 'Churn risk');
   }
   if (n.includes('load') || n.includes('increase') || n.includes('progression')) {
     const s = data.scores.progressionReadiness;
-    return `Progression readiness: ${s.score}/100. ${s.action}`;
+    return `Progression readiness: ${Math.round(s.score)}/100. ${s.action}`;
   }
   if (n.includes('sessions') || n.includes('completed') || n.includes('month')) {
-    return `You completed ${data.completedSessions} sessions of ${data.plannedSessions} planned — ${data.adherenceRate}% adherence. Current streak: ${data.workoutStreak} day(s).`;
+    return `You completed ${data.completedSessions} sessions of ${data.plannedSessions} planned — ${adh}% adherence. Current streak: ${data.workoutStreak} day(s).`;
   }
   if (n.includes('performance') || n.includes('week')) {
     const last = data.weeklyStats[data.weeklyStats.length - 1];
