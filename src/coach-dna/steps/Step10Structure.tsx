@@ -3,7 +3,7 @@ import { StepHeader }    from '../components/StepHeader';
 import { Hint }          from '../components/Hint';
 import { Icon }          from '../../components/Icon';
 import { STRUCTURE_BLOCKS } from '../constants';
-import { DARK }          from '../../theme/tokens';
+import { THEME_VARS as DARK }          from '../../theme/tokens';
 
 interface Step10Props {
   structure: string[];

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icon }        from '../../components/Icon';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTheme } from '../../contexts';
 
 const FEATURES = [

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icon }        from '../../components/Icon';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { TRAINER_BRAND, DARK } from '../../theme/tokens';
+import { TRAINER_BRAND, THEME_VARS as DARK } from '../../theme/tokens';
 import type { CoachArchetype } from '../../types/coach-dna';
 
 interface ArchetypeMeta {

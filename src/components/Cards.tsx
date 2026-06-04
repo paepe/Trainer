@@ -1,7 +1,7 @@
 import React from 'react';
 import { Typography } from '../ui/Typography';
 import { HStack, VStack } from '../ui/Layout';
-import { DARK } from '../theme/tokens';
+import { THEME_VARS as DARK } from '../theme/tokens';
 import { Badge } from '../ui/Badge';
 
 // Common colors from perf-atoms

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Badge, Typography, TextInput } from '@/ui';
 import { supabase } from '../../supabase';
-import { BRAND, DARK } from '../../theme/tokens';
+import { BRAND, THEME_VARS as DARK } from '../../theme/tokens';
 
 export const C = {
   primary:  BRAND.primary,

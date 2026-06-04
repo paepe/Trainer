@@ -1,7 +1,7 @@
 import React from 'react';
 import { Icon }          from '../components/Icon';
 import { useCoachDNA }   from '../hooks/useCoachDNA';
-import { DARK }          from '../theme/tokens';
+import { THEME_VARS as DARK }          from '../theme/tokens';
 import { useTheme }      from '../contexts';
 import { TOTAL_STEPS }   from './constants';
 import { computeArchetype } from './computeArchetype';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DARK } from '../theme/tokens';
+import { THEME_VARS as DARK } from '../theme/tokens';
 import { Typography } from '../ui/Typography';
 import { VStack } from '../ui/Layout';
 import bodyFemaleImg from '../assets/body-female.png';

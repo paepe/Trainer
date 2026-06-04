@@ -1,6 +1,6 @@
 import React from 'react';
 import { Icon } from '../../components/Icon';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTheme } from '../../contexts';
 
 interface VoiceBarProps {

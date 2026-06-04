@@ -3,7 +3,7 @@ import { Icon }        from '../../components/Icon';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTheme } from '../../contexts';
 import { STYLES }      from '../constants';
 

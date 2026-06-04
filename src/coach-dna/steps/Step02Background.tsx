@@ -5,7 +5,7 @@ import { DNASlider }   from '../components/DNASlider';
 import { ChoiceCard }  from '../components/ChoiceCard';
 import { FieldLabel }  from '../components/FieldLabel';
 import { PrivacyNote } from '../components/PrivacyNote';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTheme } from '../../contexts';
 import { CERTS }       from '../constants';
 import type { CoachDNABackground } from '../../types/coach-dna';

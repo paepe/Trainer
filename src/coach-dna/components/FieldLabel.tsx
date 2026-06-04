@@ -1,5 +1,5 @@
 import React from 'react';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 
 interface FieldLabelProps {
   children: React.ReactNode;

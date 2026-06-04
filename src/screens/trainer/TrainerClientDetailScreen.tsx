@@ -12,7 +12,7 @@ import {
   iconBtn,
 } from '../../theme';
 import type { NavFn } from '../../types';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme }  from '../../hooks/useTrainerTheme';
 import { autoExpirePlans } from '../../lib/autoExpirePlans';
 

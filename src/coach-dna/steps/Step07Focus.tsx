@@ -2,7 +2,7 @@ import React from 'react';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { FOCUS_ITEMS } from '../constants';
-import { DARK }        from '../../theme/tokens';
+import { THEME_VARS as DARK }        from '../../theme/tokens';
 import type { CoachDNAFocus } from '../../types/coach-dna';
 
 interface Step07Props {

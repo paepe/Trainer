@@ -1,5 +1,5 @@
 import React from 'react';
-import { TRAINER_BRAND, DARK } from '../../theme/tokens';
+import { TRAINER_BRAND, THEME_VARS as DARK } from '../../theme/tokens';
 import { FieldLabel } from './FieldLabel';
 
 interface DNASliderProps {

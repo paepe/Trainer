@@ -5,7 +5,7 @@ import { FieldLabel }  from '../components/FieldLabel';
 import { VoiceBar }    from '../components/VoiceBar';
 import { PrivacyNote } from '../components/PrivacyNote';
 import { Icon }        from '../../components/Icon';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTheme } from '../../contexts';
 import type { CoachDNAExercises } from '../../types/coach-dna';
 

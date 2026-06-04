@@ -7,7 +7,7 @@ import { ScreenTitle } from '../../components/ScreenTitle';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, ghostBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { TrainerAlert, OperationalTask } from '../../types/workout';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 
 interface ClientProfile {

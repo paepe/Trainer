@@ -4,7 +4,7 @@ import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
 import { useExerciseData } from '../../hooks/useExerciseData';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../theme';
-import { DARK } from '../../theme/tokens';
+import { THEME_VARS as DARK } from '../../theme/tokens';
 import type { NavFn, ExerciseCatalogItem } from '../../types';
 import { TRAINER_ROLES } from '../../types/auth';
 
