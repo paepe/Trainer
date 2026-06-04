@@ -52,6 +52,11 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
       options: [{ value: 15, label: '15m' }, { value: 30, label: '30m' }, { value: 60, label: '1h' }, { value: 120, label: '2h' }] },
   ];
 
+  const appearancePrefs: SelectorRow<keyof AppPreferences>[] = [
+    { key: 'lightPalette', label: 'Light palette', hint: 'Applied when dark mode is off',
+      options: [{ value: 'arctic', label: 'Arctic' }, { value: 'sand', label: 'Sand' }] },
+  ];
+
   // ── Boolean toggle groups ────────────────────────────────────────────────────
   const aiGroup: ToggleRow[] = [
     ['aiPersonalization', 'AI workouts',      'Daily plan from your trainer + AI'],
@@ -89,9 +94,14 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
         {/* AI personalization */}
         <ToggleSection title="AI personalization" rows={aiGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
 
-        {/* Appearance — dark toggle only for clients (trainer is always-dark §8) */}
+        {/* Appearance — dark toggle + light palette, clients only (trainer always-dark §8) */}
         {!isTrainer && (
-          <ToggleSection title="Appearance" rows={[['darkMode', 'Dark mode', 'Use the dark theme across the app']]} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <>
+            <ToggleSection title="Appearance" rows={[['darkMode', 'Dark mode', 'Use the dark theme across the app']]} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+            {!prefs.darkMode && (
+              <SelectorSection title="Light palette" rows={appearancePrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+            )}
+          </>
         )}
 
         {/* Notifications */}

@@ -48,6 +48,23 @@
   --signature-deep:  #0F8C85;
 }
 
+/* "Sand" — warm premium light variant for the CLIENT. Same structure as Arctic
+   but warm off-white neutrals; the cyan signature reads as teal-on-cream.
+   Selected via Settings → Appearance → Light palette (prefs.light_palette). */
+[data-theme="client-light-sand"] {
+  --bg:              #FAF8F4;
+  --surface:         #FFFFFF;
+  --surface-3:       #F5F0E8;
+  --sunken:          #F1ECE4;
+  --border:          #E5DCCF;
+  --border-soft:     #EFE8DD;
+  --text-pri:        #2B2620;
+  --text-sec:        #6B6155;
+  --text-mute:       #A39684;
+  --signature:       #2DD4E0;
+  --signature-deep:  #0F8C85;
+}
+
 /* TRAINER — same premium dark surfaces, coral signature. Always-dark per §8. */
 [data-theme="trainer-dark"] {
   --bg:              #0E1A2B;

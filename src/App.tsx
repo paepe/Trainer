@@ -62,6 +62,7 @@ export default function App() {
     darkMode: true,
     defaultLocation: 'gym', defaultDurationMin: 45, preferredIntensity: 'moderate',
     planExpiryDays: 10, workoutReadyExpiryMin: 30,
+    lightPalette: 'arctic',
   });
 
   const {
@@ -90,9 +91,10 @@ export default function App() {
   // Active theme palette (theme/themes.css) — one attribute drives all CSS vars.
   // Trainer always-dark (§8); client toggles client-dark|client-light (Arctic).
   React.useEffect(() => {
+    const clientLight = prefs.lightPalette === 'sand' ? 'client-light-sand' : 'client-light';
     document.documentElement.dataset.theme =
-      isTrainer ? 'trainer-dark' : (dark ? 'client-dark' : 'client-light');
-  }, [isTrainer, dark]);
+      isTrainer ? 'trainer-dark' : (dark ? 'client-dark' : clientLight);
+  }, [isTrainer, dark, prefs.lightPalette]);
   const t = {
     ...(isTrainer ? TRAINER_BRAND : BRAND),
     dark,
@@ -182,6 +184,7 @@ export default function App() {
         preferredIntensity:    (data.preferred_intensity      as AppPreferences['preferredIntensity']    | undefined) ?? 'moderate',
         planExpiryDays:        (data.plan_expiry_days         as AppPreferences['planExpiryDays']        | undefined) ?? 10,
         workoutReadyExpiryMin: (data.workout_ready_expiry_min as AppPreferences['workoutReadyExpiryMin'] | undefined) ?? 30,
+        lightPalette:          (data.light_palette            as AppPreferences['lightPalette']          | undefined) ?? 'arctic',
       });
       // Seed the check-in defaults from saved training preferences (pre-fill)
       const loc = (data.default_location     as CheckIn['location'] | undefined) ?? 'gym';
@@ -323,6 +326,7 @@ export default function App() {
       preferred_intensity:      newPrefs.preferredIntensity,
       plan_expiry_days:         newPrefs.planExpiryDays,
       workout_ready_expiry_min: newPrefs.workoutReadyExpiryMin,
+      light_palette:            newPrefs.lightPalette,
     });
   };
 

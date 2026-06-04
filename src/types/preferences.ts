@@ -3,6 +3,7 @@
 // fields (language, defaultLocation, preferredIntensity, planExpiryDays, …) —
 // the interface is intentionally explicit (no index signature) so those
 // additions are type-checked rather than silently accepted as booleans.
+export type LightPalette = 'arctic' | 'sand';
 export type TrainingLocation = 'gym' | 'home' | 'outdoor';
 export type SessionDuration  = 30 | 45 | 60 | 75 | 90;
 export type TrainingIntensity = 'light' | 'moderate' | 'hard';
@@ -28,6 +29,9 @@ export interface AppPreferences {
   preferredIntensity:     TrainingIntensity;
   planExpiryDays:         PlanExpiryDays;          // trainer
   workoutReadyExpiryMin:  WorkoutReadyExpiryMin;   // client-with-trainer
+
+  // Appearance
+  lightPalette:           LightPalette;            // client light variant
 }
 
 // Keys whose value is a boolean — used by the Settings toggle list for
