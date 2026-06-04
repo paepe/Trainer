@@ -271,7 +271,8 @@ export function WorkoutModeScreen({
       total:          exStates.length,
       totalSets,
       startedAt:      startedAt.toISOString(),
-      forClientName:  clientName ?? undefined,
+      forClientName:  clientName   ?? undefined,
+      forClientId:    clientUserId ?? undefined,
     });
   };
 

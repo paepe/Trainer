@@ -146,12 +146,21 @@ export function useWorkoutData(userId: string | undefined) {
     overall_feeling: number;
     energy_after:    number | null;
     notes:           string | null;
+    forUserId?:      string;   // trainer submitting on behalf of client
   }): Promise<MutateResult> {
-    if (!userId) return { error: null };
+    const effectiveUserId = data.forUserId ?? userId;
+    if (!effectiveUserId) return { error: null };
     const { error } = await supabase
       .from('post_workout_feedback')
       .upsert(
-        { ...data, user_id: userId, submitted_at: new Date().toISOString() },
+        {
+          session_id:      data.session_id,
+          overall_feeling: data.overall_feeling,
+          energy_after:    data.energy_after,
+          notes:           data.notes,
+          user_id:         effectiveUserId,
+          submitted_at:    new Date().toISOString(),
+        },
         { onConflict: 'session_id' },
       );
     if (error) console.error('[useWorkoutData] savePostWorkoutFeedback:', error);
