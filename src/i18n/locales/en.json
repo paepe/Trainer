@@ -12,6 +12,134 @@
     "workout": "Workout",
     "progress": "Progress"
   },
+  "client": {
+    "history": {
+      "title": "Workout History",
+      "viewProgress": "View Progress",
+      "days": ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+      "dayLabels": ["S","M","T","W","T","F","S"]
+    },
+    "stats": {
+      "title": "Workout Statistics",
+      "sessions": "Sessions",
+      "totalTime": "Total time",
+      "avgScore": "Avg score",
+      "empty": "Complete your first workout to see your performance trends here."
+    },
+    "goal": {
+      "title": "Goal Achieved",
+      "sessionDuration": "Session duration",
+      "completed": "Completed",
+      "duration": "Duration",
+      "exercises": "Exercises",
+      "workoutSession": "Workout session",
+      "sessionSummary": "Session summary",
+      "viewStats": "View statistics",
+      "exerciseOf": "{{done}} / {{total}} exercises"
+    },
+    "cycle": {
+      "title": "Cycle",
+      "sub": "Tap or drag the dial — your plan adapts to your current phase.",
+      "day": "Day",
+      "phaseLabel": {
+        "Menstrual": "Menstrual",
+        "Follicular": "Follicular",
+        "Ovulation": "Ovulation",
+        "Luteal": "Luteal"
+      },
+      "phaseNote": {
+        "Menstrual": "Energy may be low — we'll keep volume light with mobility & easy zone-2.",
+        "Follicular": "Estrogen is rising — your peak window for strength gains and high-intensity work.",
+        "Ovulation": "Peak performance window — push power and heavy lifts.",
+        "Luteal": "Recovery phase — moderate volume, more rest between sets."
+      },
+      "periodToday": "Period started today",
+      "setCurrentDay": "Set current day",
+      "cancel": "Cancel",
+      "save": "Save",
+      "disabledTitle": "Cycle tracking is disabled",
+      "disabledNote": "Enable cycle tracking in Settings to adapt your workout intensity based on your current phase.",
+      "editAriaLabel": "Edit current cycle day",
+      "peakWindow": "peak window"
+    },
+    "workout": {
+      "title": "Start Workout",
+      "yourTrainer": "Your Trainer",
+      "aiPlan": "AI Plan",
+      "trainerPlan": "Trainer's Plan",
+      "aiPoweredPlan": "AI-Powered Plan",
+      "yourPlans": "Your Plans",
+      "plan": "Plan",
+      "sessionAdapted": "Session adapted",
+      "cancelPlan": "Cancel this plan",
+      "retry": "Retry",
+      "safetyGateTitle": "Safety Gate Active",
+      "safetyGateMsg": "Your check-in indicates this is not a safe moment for an AI-led session.",
+      "planStatus": {
+        "sent": "Sent",
+        "active": "Incomplete",
+        "postponed": "Postponed"
+      }
+    },
+    "mode": {
+      "finishWorkout": "Finish Workout",
+      "saving": "Saving…",
+      "reps": "Reps",
+      "cancel": "Cancel",
+      "confirmSet": "Confirm Set",
+      "rest": "Rest",
+      "skipRest": "Skip Rest",
+      "reportPain": "Report Pain",
+      "report": "Report",
+      "skipReasons": ["Pain / Injury","Lack of Equipment","Fatigue / Energy","Time Constraint","Other"],
+      "specifyRequired": "Please specify (required)",
+      "commentsOptional": "Additional comments (optional)",
+      "typeReason": "Type reason...",
+      "typeComments": "Type comments...",
+      "bodyParts": {
+        "neck": "Neck", "shoulder": "Shoulder", "elbow": "Elbow", "wrist": "Wrist",
+        "upper_back": "Upper Back", "lower_back": "Lower Back", "hip": "Hip",
+        "knee": "Knee", "ankle": "Ankle", "other": "Other"
+      }
+    }
+  },
+  "checkin": {
+    "hub": {
+      "readinessCheckin": "Readiness Check-in",
+      "live": "LIVE",
+      "safetyGateActive": "Safety Gate ativo",
+      "greet": { "morning": "Good morning", "afternoon": "Good afternoon", "evening": "Good evening" },
+      "beforeStart": "Before starting, quickly tell us how you're feeling today.",
+      "safetyGateNote": "Pain, dizziness, or warning signs automatically pause AI-led.",
+      "postWorkoutLink": "Already trained today? Post-workout check-in →",
+      "lastCheckin": "Last check-in · {{date}}",
+      "streak": "streak · {{count}} days",
+      "options": {
+        "voice":    { "label": "Speak to the app",  "desc": "The fastest way. The AI structures your speech into fields.", "badge": "RECOMMENDED" },
+        "quick":    { "label": "Quick check-in",    "desc": "Five essential questions: sleep, energy, pain, fatigue, time." },
+        "detailed": { "label": "Detailed check-in", "desc": "Twelve blocks for greater plan precision." }
+      }
+    },
+    "voice": {
+      "viewing": "Viewing",
+      "recording": "⏺ RECORDING",
+      "waiting": "WAITING",
+      "tapStop": "Tap to stop",
+      "tapSpeak": "Tap to speak",
+      "errMicDenied": "Microphone permission denied.",
+      "errNoSpeech": "No speech detected. Try again.",
+      "errMic": "Microphone error. Try again.",
+      "errAnalyze": "Unable to analyze. Try speaking again."
+    },
+    "result": {
+      "viewCautionOptions": "View caution options",
+      "startWorkout": "Start workout →",
+      "recovery": "RECOVERY"
+    },
+    "postWorkout": {
+      "partially": "Partially"
+    }
+  },
   "auth": {
     "common": {
       "login": "Log In",

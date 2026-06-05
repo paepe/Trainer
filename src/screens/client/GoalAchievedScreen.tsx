@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../supabase';
 import { Icon, ScreenTitle, SectionLabel } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, outlineBtn } from '../../theme';
@@ -36,6 +37,7 @@ interface GoalAchievedScreenProps {
 }
 
 export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchievedScreenProps) {
+  const { t: tr } = useTranslation();
   const [duration,  setDuration]  = React.useState<number | null>(sessionData?.durationMinutes ?? null);
   const [completed, setCompleted] = React.useState<number | null>(sessionData?.completedCount  ?? null);
   const [total,     setTotal]     = React.useState<number | null>(sessionData?.total           ?? null);
@@ -84,7 +86,7 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
 
   return (
     <>
-      <ScreenTitle dark={dark}>Goal Achieved</ScreenTitle>
+      <ScreenTitle dark={dark}>{tr('client.goal.title')}</ScreenTitle>
 
       {/* Primary metric */}
       <div style={{ padding: '0 22px 6px', textAlign: 'center' }}>
@@ -94,7 +96,7 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
         }}>
           {loading ? '…' : duration ? fmtDuration(duration) : '—'}
         </div>
-        <div style={{ color: textSec(dark), fontSize: 12.5, marginTop: 2 }}>Session duration</div>
+        <div style={{ color: textSec(dark), fontSize: 12.5, marginTop: 2 }}>{tr('client.goal.sessionDuration')}</div>
       </div>
 
       {/* Completion rings */}
@@ -102,9 +104,9 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
         padding: '18px 22px 8px',
         display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, justifyItems: 'center',
       }}>
-        <RingStat label="Completed" pct={completePct ?? 0}  t={t} dark={dark} big/>
-        <RingStat label="Duration"  pct={Math.min(100, Math.round((duration ?? 0) / 60 * 100))} t={t} dark={dark}/>
-        <RingStat label="Exercises" pct={completePct ?? 0}  t={t} dark={dark}/>
+        <RingStat label={tr('client.goal.completed')} pct={completePct ?? 0}  t={t} dark={dark} big/>
+        <RingStat label={tr('client.goal.duration')}  pct={Math.min(100, Math.round((duration ?? 0) / 60 * 100))} t={t} dark={dark}/>
+        <RingStat label={tr('client.goal.exercises')} pct={completePct ?? 0}  t={t} dark={dark}/>
       </div>
 
       {/* Session summary row */}
@@ -112,8 +114,8 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
         <div style={{ padding: '14px 22px 8px' }}>
           <SectionDate label={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} dark={dark}/>
           <ActivityRow
-            title="Workout session"
-            sub={completed !== null && total !== null ? `${completed} / ${total} exercises` : 'Completed'}
+            title={tr('client.goal.workoutSession')}
+            sub={completed !== null && total !== null ? tr('client.goal.exerciseOf', { done: completed, total }) : tr('client.goal.completed')}
             right={duration ? fmtDuration(duration) || '' : ''}
             t={t} dark={dark}
           />
@@ -129,7 +131,7 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
-            <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>Session summary</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>{tr('client.goal.sessionSummary')}</div>
           </div>
           <div style={{ fontSize: 12.5, color: textSec(dark), lineHeight: 1.55 }}>
             {duration ? <>Your session lasted <b style={{ color: textPri(dark) }}>{fmtDuration(duration)}</b>. </> : null}
@@ -142,7 +144,7 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
       </div>
 
       <div style={{ padding: '0 22px 28px' }}>
-        <button onClick={() => nav('stats')} style={outlineBtn(t.primary)}>View statistics</button>
+        <button onClick={() => nav('stats')} style={outlineBtn(t.primary)}>{tr('client.goal.viewStats')}</button>
       </div>
     </>
   );

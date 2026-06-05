@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
@@ -49,10 +50,11 @@ export function computeCyclePhases(cycleLen: number, palette: Theme): Phase[] {
 export function CycleScreen({
   nav, t, dark, cycleConfig, cycleEnabled, setCycleConfig, saveCycleConfig,
 }: CycleScreenProps) {
+  const { t: tr } = useTranslation();
   if (cycleEnabled === false) {
     return (
       <>
-        <ScreenTitle dark={dark}>Cycle</ScreenTitle>
+        <ScreenTitle dark={dark}>{tr('client.cycle.title')}</ScreenTitle>
         <div style={{ padding: '40px 22px', textAlign: 'center' }}>
           <div style={{
             width: 64, height: 64, borderRadius: 20, margin: '0 auto 16px',
@@ -63,17 +65,17 @@ export function CycleScreen({
             🌙
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, color: textPri(dark), marginBottom: 8 }}>
-            Cycle tracking is disabled
+            {tr('client.cycle.disabledTitle')}
           </div>
           <p style={{ fontSize: 13, color: textSec(dark), lineHeight: 1.55, maxWidth: 280, margin: '0 auto 16px' }}>
-            Enable cycle tracking in Settings to adapt your workout intensity based on your current phase.
+            {tr('client.cycle.disabledNote')}
           </p>
           <button onClick={() => nav('settings')} style={{
             padding: '11px 24px', borderRadius: 999, border: 'none',
             background: t.primary, color: '#0E1A2B',
             fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
           }}>
-            Go to Settings
+            {tr('nav.menu')}
           </button>
         </div>
       </>
@@ -150,7 +152,7 @@ export function CycleScreen({
 
   return (
     <>
-      <ScreenTitle dark={dark} sub="Tap or drag the dial — your plan adapts to your current phase.">Cycle</ScreenTitle>
+      <ScreenTitle dark={dark} sub={tr('client.cycle.sub')}>{tr('client.cycle.title')}</ScreenTitle>
 
       <div style={{ padding: '0 22px 8px', display: 'flex', justifyContent: 'center' }}>
         <div style={{ position: 'relative', width: 260, height: 260 }}>
@@ -182,7 +184,7 @@ export function CycleScreen({
           {/* Tappable center to open the day editor */}
           <button
             onClick={() => { setDraftDay(day); setDraftLen(cycleLen); setEditing(true); }}
-            aria-label="Edit current cycle day"
+            aria-label={tr('client.cycle.editAriaLabel')}
             style={{
               position: 'absolute', left: '50%', top: '50%',
               transform: 'translate(-50%,-50%)',
@@ -193,9 +195,9 @@ export function CycleScreen({
               cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, color: textMute(dark), letterSpacing: '.1em', textTransform: 'uppercase' }}>Day</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: textMute(dark), letterSpacing: '.1em', textTransform: 'uppercase' }}>{tr('client.cycle.day')}</div>
             <div style={{ fontSize: 56, fontWeight: 700, color: textPri(dark), fontFamily: '"Plus Jakarta Sans",sans-serif', lineHeight: 1, letterSpacing: '-0.03em' }}>{day}</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: c, marginTop: 6 }}>{phase}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: c, marginTop: 6 }}>{tr(`client.cycle.phaseLabel.${phase}` as `client.cycle.phaseLabel.${string}`)}</div>
             <div style={{
               marginTop: 6, fontSize: 9.5, fontWeight: 700, letterSpacing: '.08em',
               color: textMute(dark), textTransform: 'uppercase',
@@ -220,7 +222,7 @@ export function CycleScreen({
             border: `1px solid ${p.name === phase ? p.color : borderSubtle(dark)}`,
           }}>
             <div style={{ width: 10, height: 10, borderRadius: 3, background: p.color }}/>
-            <div style={{ fontSize: 12, fontWeight: 600, color: textPri(dark) }}>{p.name}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: textPri(dark) }}>{tr(`client.cycle.phaseLabel.${p.name}` as `client.cycle.phaseLabel.${string}`)}</div>
             <div style={{ fontSize: 11, color: textMute(dark), marginLeft: 'auto' }}>{p.range[0]}–{p.range[1]}</div>
           </div>
         ))}
@@ -237,10 +239,7 @@ export function CycleScreen({
             <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
             <div style={{ fontSize: 12.5, color: textSec(dark), lineHeight: 1.55 }}>
               You&rsquo;re in <b style={{ color: c }}>{phase.toLowerCase()} phase</b>.{' '}
-              {phase === 'Menstrual' && <>Energy may be low — we&rsquo;ll keep volume light with mobility &amp; easy zone-2.</>}
-              {phase === 'Follicular' && <>Estrogen is rising — your <b style={{ color: textPri(dark) }}>peak window</b> for strength gains and high-intensity work.</>}
-              {phase === 'Ovulation' && <>Peak performance window — push power and heavy lifts.</>}
-              {phase === 'Luteal' && <>Recovery phase — moderate volume, more rest between sets.</>}
+              {tr(`client.cycle.phaseNote.${phase}` as `client.cycle.phaseNote.${string}`)}
             </div>
           </div>
         </div>
@@ -250,11 +249,11 @@ export function CycleScreen({
         <button onClick={() => setDay(1)} style={{
           flex: 1, padding: '12px', borderRadius: 999, border: `1.5px solid ${t.accent}`,
           background: 'transparent', color: t.accent, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-        }}>Period started today</button>
+        }}>{tr('client.cycle.periodToday')}</button>
         <button onClick={() => { setDraftDay(day); setDraftLen(cycleLen); setEditing(true); }} style={{
           flex: 1, padding: '12px', borderRadius: 999, border: `1.5px solid ${t.primary}`,
           background: t.primary, color: '#0E1A2B', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-        }}>Set current day</button>
+        }}>{tr('client.cycle.setCurrentDay')}</button>
       </div>
 
       {/* Day editor sheet */}
@@ -338,7 +337,7 @@ export function CycleScreen({
                 border: `1.5px solid ${borderSubtle(dark)}`,
                 background: 'transparent', color: textPri(dark),
                 fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              }}>Cancel</button>
+              }}>{tr('client.cycle.cancel')}</button>
               <button onClick={() => {
                 const newDay = Math.min(draftDay, draftLen);
                 setDay(newDay);
@@ -363,7 +362,7 @@ export function CycleScreen({
                 flex: 1, padding: '13px', borderRadius: 14, border: 'none',
                 background: t.primary, color: '#0E1A2B',
                 fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              }}>Save</button>
+              }}>{tr('client.cycle.save')}</button>
             </div>
           </div>
         </div>

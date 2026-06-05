@@ -12,6 +12,134 @@
     "workout": "Entreno",
     "progress": "Progreso"
   },
+  "client": {
+    "history": {
+      "title": "Historial de Entrenamientos",
+      "viewProgress": "Ver Progreso",
+      "days": ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],
+      "dayLabels": ["D","L","M","X","J","V","S"]
+    },
+    "stats": {
+      "title": "Estadísticas de Entrenamiento",
+      "sessions": "Sesiones",
+      "totalTime": "Tiempo total",
+      "avgScore": "Nota media",
+      "empty": "Completa tu primer entrenamiento para ver tus tendencias de rendimiento aquí."
+    },
+    "goal": {
+      "title": "¡Objetivo Conseguido!",
+      "sessionDuration": "Duración de la sesión",
+      "completed": "Completado",
+      "duration": "Duración",
+      "exercises": "Ejercicios",
+      "workoutSession": "Sesión de entrenamiento",
+      "sessionSummary": "Resumen de la sesión",
+      "viewStats": "Ver estadísticas",
+      "exerciseOf": "{{done}} / {{total}} ejercicios"
+    },
+    "cycle": {
+      "title": "Ciclo",
+      "sub": "Toca o arrastra el dial — tu plan se adapta a tu fase actual.",
+      "day": "Día",
+      "phaseLabel": {
+        "Menstrual": "Menstrual",
+        "Follicular": "Folicular",
+        "Ovulation": "Ovulación",
+        "Luteal": "Lútea"
+      },
+      "phaseNote": {
+        "Menstrual": "La energía puede estar baja — mantendremos el volumen ligero con movilidad y zona-2 suave.",
+        "Follicular": "El estrógeno está subiendo — tu ventana de pico para ganancias de fuerza y trabajo de alta intensidad.",
+        "Ovulation": "Ventana de máximo rendimiento — apuesta por potencia y cargas pesadas.",
+        "Luteal": "Fase de recuperación — volumen moderado, más descanso entre series."
+      },
+      "periodToday": "Menstruación empezó hoy",
+      "setCurrentDay": "Establecer día actual",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "disabledTitle": "Seguimiento del ciclo desactivado",
+      "disabledNote": "Activa el seguimiento del ciclo en Ajustes para adaptar la intensidad de tu entrenamiento a tu fase actual.",
+      "editAriaLabel": "Editar día actual del ciclo",
+      "peakWindow": "ventana de pico"
+    },
+    "workout": {
+      "title": "Iniciar Entrenamiento",
+      "yourTrainer": "Tu Entrenador",
+      "aiPlan": "Plan IA",
+      "trainerPlan": "Plan del Entrenador",
+      "aiPoweredPlan": "Plan con IA",
+      "yourPlans": "Tus Planes",
+      "plan": "Plan",
+      "sessionAdapted": "Sesión adaptada",
+      "cancelPlan": "Cancelar este plan",
+      "retry": "Reintentar",
+      "safetyGateTitle": "Safety Gate Activo",
+      "safetyGateMsg": "Tu check-in indica que este no es un momento seguro para una sesión dirigida por IA.",
+      "planStatus": {
+        "sent": "Enviado",
+        "active": "Incompleto",
+        "postponed": "Pospuesto"
+      }
+    },
+    "mode": {
+      "finishWorkout": "Finalizar Entrenamiento",
+      "saving": "Guardando…",
+      "reps": "Reps",
+      "cancel": "Cancelar",
+      "confirmSet": "Confirmar Serie",
+      "rest": "Descanso",
+      "skipRest": "Saltar Descanso",
+      "reportPain": "Reportar Dolor",
+      "report": "Reportar",
+      "skipReasons": ["Dolor / Lesión","Falta de Equipo","Fatiga / Energía","Restricción de Tiempo","Otro"],
+      "specifyRequired": "Por favor especifica (obligatorio)",
+      "commentsOptional": "Comentarios adicionales (opcional)",
+      "typeReason": "Escribe el motivo...",
+      "typeComments": "Escribe los comentarios...",
+      "bodyParts": {
+        "neck": "Cuello", "shoulder": "Hombro", "elbow": "Codo", "wrist": "Muñeca",
+        "upper_back": "Espalda alta", "lower_back": "Lumbar", "hip": "Cadera",
+        "knee": "Rodilla", "ankle": "Tobillo", "other": "Otro"
+      }
+    }
+  },
+  "checkin": {
+    "hub": {
+      "readinessCheckin": "Check-in de Preparación",
+      "live": "EN VIVO",
+      "safetyGateActive": "Safety Gate activo",
+      "greet": { "morning": "Buenos días", "afternoon": "Buenas tardes", "evening": "Buenas noches" },
+      "beforeStart": "Antes de empezar, dinos rápidamente cómo te sientes hoy.",
+      "safetyGateNote": "Dolor, mareos o señales de alerta pausan automáticamente la sesión dirigida por IA.",
+      "postWorkoutLink": "¿Ya entrenaste hoy? Check-in post-entrenamiento →",
+      "lastCheckin": "Último check-in · {{date}}",
+      "streak": "racha · {{count}} días",
+      "options": {
+        "voice":    { "label": "Habla con la app",       "desc": "La forma más rápida. La IA estructura tu voz en campos.", "badge": "RECOMENDADO" },
+        "quick":    { "label": "Check-in rápido",        "desc": "Cinco preguntas esenciales: sueño, energía, dolor, fatiga, tiempo." },
+        "detailed": { "label": "Check-in detallado",     "desc": "Doce bloques para mayor precisión del plan." }
+      }
+    },
+    "voice": {
+      "viewing": "Viendo",
+      "recording": "⏺ GRABANDO",
+      "waiting": "ESPERANDO",
+      "tapStop": "Toca para parar",
+      "tapSpeak": "Toca para hablar",
+      "errMicDenied": "Permiso de micrófono denegado.",
+      "errNoSpeech": "No se detectó voz. Inténtalo de nuevo.",
+      "errMic": "Error de micrófono. Inténtalo de nuevo.",
+      "errAnalyze": "No se puede analizar. Intenta hablar de nuevo."
+    },
+    "result": {
+      "viewCautionOptions": "Ver opciones de precaución",
+      "startWorkout": "Iniciar entrenamiento →",
+      "recovery": "RECUPERACIÓN"
+    },
+    "postWorkout": {
+      "partially": "Parcialmente"
+    }
+  },
   "auth": {
     "common": {
       "login": "Iniciar sesión",

@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { BCP47 } from '../../i18n';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type { CheckInVoice as CheckInVoiceData } from '../../types/checkin-v2';
 
@@ -34,6 +36,7 @@ function getSpeechRecognition(): RecognitionCtor | null {
 type ParseState = 'idle' | 'parsing' | 'done' | 'error';
 
 export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: CheckInVoiceProps) {
+  const { t: tr, i18n } = useTranslation();
   const [transcript, setTranscript] = React.useState('');
   const [interim, setInterim]       = React.useState('');
   const [listening, setListening]   = React.useState(false);
@@ -47,7 +50,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
     if (!SR) return;
 
     const rec = new SR();
-    rec.lang = 'en-US';
+    rec.lang = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
     rec.continuous = true;
     rec.interimResults = true;
 
@@ -67,9 +70,9 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
     rec.onerror = (e: Event) => {
       setListening(false);
       const errType = (e as any).error as string | undefined;
-      if (errType === 'not-allowed')  setParseError('Microphone permission denied.');
-      else if (errType === 'no-speech') setParseError('No speech detected. Try again.');
-      else setParseError('Microphone error. Try again.');
+      if (errType === 'not-allowed')  setParseError(tr('checkin.voice.errMicDenied'));
+      else if (errType === 'no-speech') setParseError(tr('checkin.voice.errNoSpeech'));
+      else setParseError(tr('checkin.voice.errMic'));
     };
     rec.onend   = () => { setListening(false); setInterim(''); };
 
@@ -117,7 +120,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
     } catch (err: unknown) {
       setParseState('error');
       const msg = err instanceof Error ? err.message : '';
-      setParseError(msg || 'Unable to analyze. Try speaking again.');
+      setParseError(msg || tr('checkin.voice.errAnalyze'));
     } finally {
       clearTimeout(timeout);
     }
@@ -131,7 +134,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
 
       {userName && (
         <div style={{ marginBottom: 12, padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>Viewing</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>{tr('checkin.voice.viewing')}</span>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
         </div>
       )}
@@ -166,7 +169,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
             fontSize: 9, fontWeight: 700, letterSpacing: '.08em',
             color: listening ? '#ef4444' : textMute(dark),
           }}>
-            {listening ? '⏺ RECORDING' : 'WAITING'}
+            {listening ? tr('checkin.voice.recording') : tr('checkin.voice.waiting')}
           </span>
         </div>
 
@@ -222,7 +225,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
         )}
         {supported && (
           <span style={{ fontSize: 11.5, color: textMute(dark) }}>
-            {listening ? 'Tap to stop' : 'Tap to speak'}
+            {listening ? tr('checkin.voice.tapStop') : tr('checkin.voice.tapSpeak')}
           </span>
         )}
       </div>

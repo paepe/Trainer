@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { TopBar } from '../../components/TopBar';
@@ -29,8 +30,9 @@ interface Session {
 }
 
 export function StatsScreen({ nav, t, dark, user }: StatsScreenProps) {
-  const days      = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const { t: tr } = useTranslation();
+  const days      = tr('client.history.days', { returnObjects: true }) as string[];
+  const dayLabels = tr('client.history.dayLabels', { returnObjects: true }) as string[];
   const todayDow  = new Date().getDay();
   const [selectedDow, setSelectedDow] = React.useState(todayDow);
   const [sessions,    setSessions]    = React.useState<Session[]>([]);
@@ -75,7 +77,7 @@ export function StatsScreen({ nav, t, dark, user }: StatsScreenProps) {
   return (
     <>
       <TopBar onMenu={() => nav('menu')} dark={dark} accent={t.accent}/>
-      <ScreenTitle dark={dark}>Workout Statistics</ScreenTitle>
+      <ScreenTitle dark={dark}>{tr('client.stats.title')}</ScreenTitle>
 
       {/* Summary metrics strip */}
       <div style={{
@@ -83,9 +85,9 @@ export function StatsScreen({ nav, t, dark, user }: StatsScreenProps) {
         display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10,
       }}>
         {[
-          { val: String(totalSessions),   lbl: 'Sessions' },
-          { val: fmtTotal || '0m',        lbl: 'Total time' },
-          { val: String(avgScore),        lbl: 'Avg score' },
+          { val: String(totalSessions),   lbl: tr('client.stats.sessions') },
+          { val: fmtTotal || '0m',        lbl: tr('client.stats.totalTime') },
+          { val: String(avgScore),        lbl: tr('client.stats.avgScore') },
         ].map(({ val, lbl }) => (
           <div key={lbl} style={{
             padding: '14px 12px', borderRadius: 14,
@@ -133,7 +135,7 @@ export function StatsScreen({ nav, t, dark, user }: StatsScreenProps) {
           <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
           <div style={{ fontSize: 12.5, color: textSec(dark), lineHeight: 1.55 }}>
             {totalSessions === 0
-              ? 'Complete your first workout to see your performance trends here.'
+              ? tr('client.stats.empty')
               : <>
                   <b style={{ color: textPri(dark) }}>{totalSessions}</b> session{totalSessions !== 1 ? 's' : ''} logged.
                   {' '}Strongest day: <b style={{ color: t.primary }}>{days[strongestDow]}</b>.

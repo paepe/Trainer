@@ -12,6 +12,134 @@
     "workout": "Training",
     "progress": "Fortschritt"
   },
+  "client": {
+    "history": {
+      "title": "Trainingsverlauf",
+      "viewProgress": "Fortschritt anzeigen",
+      "days": ["So","Mo","Di","Mi","Do","Fr","Sa"],
+      "dayLabels": ["S","M","D","M","D","F","S"]
+    },
+    "stats": {
+      "title": "Trainingsstatistiken",
+      "sessions": "Einheiten",
+      "totalTime": "Gesamtzeit",
+      "avgScore": "Ø Bewertung",
+      "empty": "Schließe dein erstes Training ab, um deine Leistungstrends hier zu sehen."
+    },
+    "goal": {
+      "title": "Ziel erreicht",
+      "sessionDuration": "Sitzungsdauer",
+      "completed": "Abgeschlossen",
+      "duration": "Dauer",
+      "exercises": "Übungen",
+      "workoutSession": "Trainingseinheit",
+      "sessionSummary": "Sitzungszusammenfassung",
+      "viewStats": "Statistiken anzeigen",
+      "exerciseOf": "{{done}} / {{total}} Übungen"
+    },
+    "cycle": {
+      "title": "Zyklus",
+      "sub": "Tippe oder ziehe den Regler — dein Plan passt sich deiner aktuellen Phase an.",
+      "day": "Tag",
+      "phaseLabel": {
+        "Menstrual": "Menstruation",
+        "Follicular": "Follikulär",
+        "Ovulation": "Ovulation",
+        "Luteal": "Luteal"
+      },
+      "phaseNote": {
+        "Menstrual": "Die Energie kann niedrig sein — wir halten das Volumen leicht mit Mobilität und einfacher Zone-2.",
+        "Follicular": "Östrogen steigt — dein Höchstfenster für Kraftzuwachs und intensive Einheiten.",
+        "Ovulation": "Höchstleistungsfenster — maximale Kraft und schwere Gewichte.",
+        "Luteal": "Erholungsphase — moderates Volumen, mehr Pause zwischen den Sätzen."
+      },
+      "periodToday": "Periode heute begonnen",
+      "setCurrentDay": "Aktuellen Tag setzen",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "disabledTitle": "Zyklus-Tracking deaktiviert",
+      "disabledNote": "Aktiviere das Zyklus-Tracking in den Einstellungen, um deine Trainingsintensität an deine aktuelle Phase anzupassen.",
+      "editAriaLabel": "Aktuellen Zyklustag bearbeiten",
+      "peakWindow": "Höchstfenster"
+    },
+    "workout": {
+      "title": "Training starten",
+      "yourTrainer": "Dein Trainer",
+      "aiPlan": "KI-Plan",
+      "trainerPlan": "Trainingsplan des Trainers",
+      "aiPoweredPlan": "KI-gestützter Plan",
+      "yourPlans": "Deine Pläne",
+      "plan": "Plan",
+      "sessionAdapted": "Einheit angepasst",
+      "cancelPlan": "Diesen Plan stornieren",
+      "retry": "Erneut versuchen",
+      "safetyGateTitle": "Safety Gate Aktiv",
+      "safetyGateMsg": "Dein Check-in zeigt, dass dies kein sicherer Moment für eine KI-geführte Einheit ist.",
+      "planStatus": {
+        "sent": "Gesendet",
+        "active": "Unvollständig",
+        "postponed": "Verschoben"
+      }
+    },
+    "mode": {
+      "finishWorkout": "Training beenden",
+      "saving": "Wird gespeichert…",
+      "reps": "Wdh.",
+      "cancel": "Abbrechen",
+      "confirmSet": "Satz bestätigen",
+      "rest": "Pause",
+      "skipRest": "Pause überspringen",
+      "reportPain": "Schmerz melden",
+      "report": "Melden",
+      "skipReasons": ["Schmerz / Verletzung","Fehlende Ausrüstung","Müdigkeit / Energie","Zeitdruck","Sonstiges"],
+      "specifyRequired": "Bitte angeben (erforderlich)",
+      "commentsOptional": "Weitere Kommentare (optional)",
+      "typeReason": "Grund eingeben...",
+      "typeComments": "Kommentare eingeben...",
+      "bodyParts": {
+        "neck": "Nacken", "shoulder": "Schulter", "elbow": "Ellbogen", "wrist": "Handgelenk",
+        "upper_back": "Oberer Rücken", "lower_back": "Lendenbereich", "hip": "Hüfte",
+        "knee": "Knie", "ankle": "Knöchel", "other": "Sonstiges"
+      }
+    }
+  },
+  "checkin": {
+    "hub": {
+      "readinessCheckin": "Bereitschafts-Check-in",
+      "live": "LIVE",
+      "safetyGateActive": "Safety Gate aktiv",
+      "greet": { "morning": "Guten Morgen", "afternoon": "Guten Tag", "evening": "Guten Abend" },
+      "beforeStart": "Bevor es losgeht, sag uns kurz, wie du dich heute fühlst.",
+      "safetyGateNote": "Schmerzen, Schwindel oder Warnsignale pausieren die KI-geführte Einheit automatisch.",
+      "postWorkoutLink": "Heute schon trainiert? Post-Workout-Check-in →",
+      "lastCheckin": "Letzter Check-in · {{date}}",
+      "streak": "Streak · {{count}} Tage",
+      "options": {
+        "voice":    { "label": "Mit der App sprechen",    "desc": "Der schnellste Weg. Die KI strukturiert deine Sprache in Felder.", "badge": "EMPFOHLEN" },
+        "quick":    { "label": "Schneller Check-in",      "desc": "Fünf wesentliche Fragen: Schlaf, Energie, Schmerz, Müdigkeit, Zeit." },
+        "detailed": { "label": "Detaillierter Check-in",  "desc": "Zwölf Blöcke für mehr Plangenauigkeit." }
+      }
+    },
+    "voice": {
+      "viewing": "Ansicht",
+      "recording": "⏺ AUFNAHME",
+      "waiting": "WARTEN",
+      "tapStop": "Tippen zum Stoppen",
+      "tapSpeak": "Tippen zum Sprechen",
+      "errMicDenied": "Mikrofonberechtigung verweigert.",
+      "errNoSpeech": "Keine Sprache erkannt. Erneut versuchen.",
+      "errMic": "Mikrofonfehler. Erneut versuchen.",
+      "errAnalyze": "Analyse nicht möglich. Versuche erneut zu sprechen."
+    },
+    "result": {
+      "viewCautionOptions": "Vorsichtsoptionen anzeigen",
+      "startWorkout": "Training starten →",
+      "recovery": "ERHOLUNG"
+    },
+    "postWorkout": {
+      "partially": "Teilweise"
+    }
+  },
   "auth": {
     "common": {
       "login": "Anmelden",

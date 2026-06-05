@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
@@ -33,11 +34,12 @@ interface Session {
 }
 
 export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: HistoryScreenProps) {
+  const { t: tr } = useTranslation();
   const historyLimit = prefs?.sessionHistoryLimit ?? 50;
   const targetUserId = selectedClient?.id ?? user.id;
   const targetName  = selectedClient?.name;
-  const days      = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const days      = tr('client.history.days', { returnObjects: true }) as string[];
+  const dayLabels = tr('client.history.dayLabels', { returnObjects: true }) as string[];
   const todayDow  = new Date().getDay();
   const [selectedDow, setSelectedDow] = React.useState(todayDow);
   const [sessions, setSessions]       = React.useState<Session[]>([]);
@@ -76,7 +78,7 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
 
   return (
     <>
-      <ScreenTitle dark={dark}>Workout History</ScreenTitle>
+      <ScreenTitle dark={dark}>{tr('client.history.title')}</ScreenTitle>
 
       {/* Client badge */}
       {targetName && (
@@ -119,7 +121,7 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
         )}
         {!loading && filtered.length === 0 && (
           <div style={{ padding: '32px 0', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
-            No sessions on {days[selectedDow]}s yet.
+            {`No sessions on ${days[selectedDow]}s yet.`}
           </div>
         )}
         {!loading && filtered.map((s, i) => (
@@ -138,7 +140,7 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
-                Workout session
+                {tr('client.goal.workoutSession')}
                 {s.total_duration_min ? ` · ${s.total_duration_min} min` : ''}
               </div>
               <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>
@@ -156,7 +158,7 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
               border: `1.5px solid ${t.primary}`, background: 'transparent',
               color: t.primary, fontSize: 12, fontWeight: 700,
               fontFamily: 'inherit', cursor: 'pointer',
-            }}>View Progress</button>
+            }}>{ tr('client.history.viewProgress')}</button>
           </div>
         ))}
       </div>
