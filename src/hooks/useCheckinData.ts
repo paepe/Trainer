@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import i18n from '../i18n';
 import { emitEvent } from '../lib/events';
 import { notify } from '../lib/notify';
 import type { CheckInVariant, CheckInQuick, CheckInDetailed, CheckInVoice, CheckInPostWorkout, SafetyGateResult } from '../types/checkin-v2';
@@ -51,10 +52,10 @@ export function useCheckinData(userId: string | undefined, alertsEnabled = true)
       const blocked = data.safety_gate.ai_led_blocked;
       const score   = data.safety_gate.readiness_score;
       if (alertsEnabled && (blocked || (typeof score === 'number' && score < 55))) {
-        const title = blocked ? 'Safety Gate blocked' : 'Low readiness alert';
+        const title = blocked ? i18n.t('inbox.notification.safetyGateBlockedTitle') : i18n.t('inbox.notification.lowReadinessTitle');
         const body  = blocked
-          ? 'A client check-in requires human review'
-          : `Client scored ${score}/100. Review recommended.`;
+          ? i18n.t('inbox.notification.safetyGateBlockedBody')
+          : i18n.t('inbox.notification.lowReadinessBody', { score });
         void supabase.from('trainer_clients').select('trainer_id').eq('client_id', effectiveUserId).eq('status', 'active').maybeSingle()
           .then(({ data: tc }) => {
             if (tc?.trainer_id) void notify(tc.trainer_id, title, body, '/dashboard');

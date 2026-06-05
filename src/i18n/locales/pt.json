@@ -17,8 +17,18 @@
     "approved": "Seu treinador avaliou sua prontidão e deu sinal verde. Inicie seu treino agora.",
     "rejected": "Seu treinador avaliou sua prontidão e recomenda pular a sessão de hoje.",
     "notification": {
-      "approved_title": "Pronto para treinar! ({{trainer}})",
-      "rejected_title": "Ajuste de sessão recomendado ({{trainer}})"
+      "newPlanTitle": "Novo plano de treino",
+      "newPlanBody": "{{trainer}} enviou um plano de treino para você",
+      "workoutCompletedTitle": "Treino concluído",
+      "workoutCompletedBody": "Seu cliente finalizou uma sessão de {{duration}}min",
+      "safetyGateBlockedTitle": "Safety Gate bloqueado",
+      "safetyGateBlockedBody": "Um check-in de cliente requer revisão humana",
+      "lowReadinessTitle": "Alerta de prontidão baixa",
+      "lowReadinessBody": "Cliente pontuou {{score}}/100. Revisão recomendada.",
+      "plansAutoCancelledTitle": "Planos cancelados automaticamente",
+      "plansAutoCancelledBody": "{{count}} plano(s) com mais de {{expiryDays}} dias foram cancelados automaticamente.",
+      "plansExpiredTitle": "Planos expirados",
+      "plansExpiredBody": "{{count}} plano(s) pendente(s) de um cliente foram cancelados automaticamente após {{expiryDays}} dias."
     },
     "pending_count_one": " ({{count}} pendente)",
     "pending_count_other": " ({{count}} pendentes)",
@@ -43,7 +53,8 @@
       "approved": "Aprovado",
       "rejected": "Rejeitado",
       "done": "Concluído"
-    }
+    },
+    "yourTrainerFallback": "Seu treinador"
   },
   "postWorkout": {
     "title": "Treino Completo!",

@@ -182,7 +182,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
       .update({ response, response_at: new Date().toISOString() })
       .eq('id', item.id);
 
-    const trainerFirst = userName?.split(' ')[0] ?? 'Your trainer';
+    const trainerFirst = userName?.split(' ')[0] || tr('inbox.yourTrainerFallback');
     if (response === 'approved') {
       notify(item.from_user_id, tr('inbox.notification.approved_title', { trainer: trainerFirst }),
         tr('inbox.approved'),

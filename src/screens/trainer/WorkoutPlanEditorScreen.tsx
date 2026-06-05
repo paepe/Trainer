@@ -245,7 +245,7 @@ export function WorkoutPlanEditorScreen({
 
     // Send push notification to client
     if (status === 'sent' && selectedClient?.id) {
-      void notify(selectedClient.id, 'New workout plan', `${user.name?.split(' ')[0] || 'Your trainer'} sent you a workout plan`);
+      void notify(selectedClient.id, tr('inbox.notification.newPlanTitle'), tr('inbox.notification.newPlanBody', { trainer: user.name?.split(' ')[0] || tr('inbox.yourTrainerFallback') }));
     }
 
     setTimeout(() => {

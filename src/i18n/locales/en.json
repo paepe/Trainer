@@ -17,8 +17,18 @@
     "approved": "Your trainer reviewed your readiness and gave the green light. Start your workout now.",
     "rejected": "Your trainer reviewed your readiness and recommends skipping today's session.",
     "notification": {
-      "approved_title": "Ready to train! ({{trainer}})",
-      "rejected_title": "Session adjustment recommended ({{trainer}})"
+      "newPlanTitle": "New workout plan",
+      "newPlanBody": "{{trainer}} sent you a workout plan",
+      "workoutCompletedTitle": "Workout completed",
+      "workoutCompletedBody": "Your client finished a {{duration}}min session",
+      "safetyGateBlockedTitle": "Safety Gate blocked",
+      "safetyGateBlockedBody": "A client check-in requires human review",
+      "lowReadinessTitle": "Low readiness alert",
+      "lowReadinessBody": "Client scored {{score}}/100. Review recommended.",
+      "plansAutoCancelledTitle": "Plans auto-cancelled",
+      "plansAutoCancelledBody": "{{count}} plan(s) older than {{expiryDays}} days were automatically cancelled.",
+      "plansExpiredTitle": "Plans expired",
+      "plansExpiredBody": "{{count}} pending plan(s) for a client were auto-cancelled after {{expiryDays}} days."
     },
     "pending_count_one": " ({{count}} pending)",
     "pending_count_other": " ({{count}} pending)",
@@ -43,7 +53,8 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "done": "Done"
-    }
+    },
+    "yourTrainerFallback": "Your trainer"
   },
   "postWorkout": {
     "title": "Workout Complete!",

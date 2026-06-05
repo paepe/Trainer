@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import i18n from '../i18n';
 import { emitEvent, handlePainReport } from '../lib/events';
 import { notify } from '../lib/notify';
 import type { WorkoutSessionExercise, SessionExerciseStatus } from '../types';
@@ -140,7 +141,7 @@ export function useWorkoutData(userId: string | undefined) {
       void emitEvent(userId, 'workout_completed', 'workout_session', data.sessionId, { duration_min: data.total_duration_min });
       void supabase.from('trainer_clients').select('trainer_id').eq('client_id', userId).eq('status', 'active').maybeSingle()
         .then(({ data: tc }) => {
-          if (tc?.trainer_id) void notify(tc.trainer_id, 'Workout completed', `Your client finished a ${data.total_duration_min}min session`);
+          if (tc?.trainer_id) void notify(tc.trainer_id, i18n.t('inbox.notification.workoutCompletedTitle'), i18n.t('inbox.notification.workoutCompletedBody', { duration: data.total_duration_min }));
         });
     }
     return { error };

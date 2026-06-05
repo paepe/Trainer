@@ -17,8 +17,18 @@
     "approved": "Dein Trainer hat deine Bereitschaft bewertet und grünes Licht gegeben. Starte jetzt dein Training.",
     "rejected": "Dein Trainer hat deine Bereitschaft bewertet und empfiehlt, die heutige Einheit zu überspringen.",
     "notification": {
-      "approved_title": "Bereit zum Training! ({{trainer}})",
-      "rejected_title": "Einheitsanpassung empfohlen ({{trainer}})"
+      "newPlanTitle": "Neuer Trainingsplan",
+      "newPlanBody": "{{trainer}} hat dir einen Trainingsplan gesendet",
+      "workoutCompletedTitle": "Training abgeschlossen",
+      "workoutCompletedBody": "Dein Kunde hat eine {{duration}}min Einheit absolviert",
+      "safetyGateBlockedTitle": "Safety Gate blockiert",
+      "safetyGateBlockedBody": "Ein Kunden-Check-in erfordert menschliche Überprüfung",
+      "lowReadinessTitle": "Niedrige Bereitschaftswarnung",
+      "lowReadinessBody": "Kunde erreichte {{score}}/100. Überprüfung empfohlen.",
+      "plansAutoCancelledTitle": "Pläne automatisch storniert",
+      "plansAutoCancelledBody": "{{count}} Plan/Pläne älter als {{expiryDays}} Tage wurden automatisch storniert.",
+      "plansExpiredTitle": "Pläne abgelaufen",
+      "plansExpiredBody": "{{count}} ausstehende(r) Plan/Pläne eines Kunden wurden nach {{expiryDays}} Tagen automatisch storniert."
     },
     "pending_count_one": " ({{count}} ausstehend)",
     "pending_count_other": " ({{count}} ausstehend)",
@@ -43,7 +53,8 @@
       "approved": "Genehmigt",
       "rejected": "Abgelehnt",
       "done": "Erledigt"
-    }
+    },
+    "yourTrainerFallback": "Dein Trainer"
   },
   "postWorkout": {
     "title": "Training abgeschlossen!",
