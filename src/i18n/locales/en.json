@@ -28,7 +28,10 @@
       "plansAutoCancelledTitle": "Plans auto-cancelled",
       "plansAutoCancelledBody": "{{count}} plan(s) older than {{expiryDays}} days were automatically cancelled.",
       "plansExpiredTitle": "Plans expired",
-      "plansExpiredBody": "{{count}} pending plan(s) for a client were auto-cancelled after {{expiryDays}} days."
+      "plansExpiredBody": "{{count}} pending plan(s) for a client were auto-cancelled after {{expiryDays}} days.",
+      "readyToTrainTitle": "{{name}} is ready to train",
+      "readyToTrainBody": "Readiness {{score}}/100 · Approve or reject their workout request.",
+      "yourClient": "Your client"
     },
     "pending_count_one": " ({{count}} pending)",
     "pending_count_other": " ({{count}} pending)",

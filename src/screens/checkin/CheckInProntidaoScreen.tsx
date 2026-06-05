@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { NavFn } from '../../types';
 import type { CheckInQuick, CheckInDetailed, CheckInVoice, CheckInPostWorkout, SafetyGateResult } from '../../types/checkin-v2';
 import type { RiskClassification } from '../../types/profile-v2';
@@ -43,6 +44,7 @@ interface CheckInProntidaoScreenProps {
 }
 
 export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, linkedTrainerId = '', workoutReadyExpiryMin = 30, saveCheckinV2, updatePainRecurrence }: CheckInProntidaoScreenProps) {
+  const { t: tr } = useTranslation();
   const last = useLatestCheckin(clientUserId ?? user?.id);
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
@@ -176,11 +178,11 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
             } else if (linkedTrainerId) {
               // Client notifies trainer they're ready (Model A — 30-min window)
               const score = result?.readiness_score ?? '?';
-              const name  = userName ?? 'Your client';
+              const name  = userName || tr('inbox.notification.yourClient');
               notify(
                 linkedTrainerId,
-                `${name} is ready to train`,
-                `Readiness ${score}/100 · Approve or reject their workout request.`,
+                tr('inbox.notification.readyToTrainTitle', { name }),
+                tr('inbox.notification.readyToTrainBody', { score }),
                 undefined,
                 {
                   type:         'workout_ready',

@@ -28,7 +28,10 @@
       "plansAutoCancelledTitle": "Pläne automatisch storniert",
       "plansAutoCancelledBody": "{{count}} Plan/Pläne älter als {{expiryDays}} Tage wurden automatisch storniert.",
       "plansExpiredTitle": "Pläne abgelaufen",
-      "plansExpiredBody": "{{count}} ausstehende(r) Plan/Pläne eines Kunden wurden nach {{expiryDays}} Tagen automatisch storniert."
+      "plansExpiredBody": "{{count}} ausstehende(r) Plan/Pläne eines Kunden wurden nach {{expiryDays}} Tagen automatisch storniert.",
+      "readyToTrainTitle": "{{name}} ist bereit zu trainieren",
+      "readyToTrainBody": "Bereitschaft {{score}}/100 · Trainingsanfrage genehmigen oder ablehnen.",
+      "yourClient": "Dein Kunde"
     },
     "pending_count_one": " ({{count}} ausstehend)",
     "pending_count_other": " ({{count}} ausstehend)",

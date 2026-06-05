@@ -28,7 +28,10 @@
       "plansAutoCancelledTitle": "Planos cancelados automaticamente",
       "plansAutoCancelledBody": "{{count}} plano(s) com mais de {{expiryDays}} dias foram cancelados automaticamente.",
       "plansExpiredTitle": "Planos expirados",
-      "plansExpiredBody": "{{count}} plano(s) pendente(s) de um cliente foram cancelados automaticamente após {{expiryDays}} dias."
+      "plansExpiredBody": "{{count}} plano(s) pendente(s) de um cliente foram cancelados automaticamente após {{expiryDays}} dias.",
+      "readyToTrainTitle": "{{name}} está pronto para treinar",
+      "readyToTrainBody": "Prontidão {{score}}/100 · Aprove ou rejeite a solicitação de treino.",
+      "yourClient": "Seu cliente"
     },
     "pending_count_one": " ({{count}} pendente)",
     "pending_count_other": " ({{count}} pendentes)",
