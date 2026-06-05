@@ -109,7 +109,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
             onMouseEnter={e => { e.currentTarget.style.background = dark ? '#ffffff08' : '#00000008'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
           >
-            ← Back
+            {tr('checkin.result.backButton')}
           </button>
         )}
       </div>
@@ -140,10 +140,10 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           background: `${accent}14`, border: `1.5px solid ${accent}55`,
         }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: accent, marginBottom: 4 }}>
-            SAFETY_GATE = AI-led blocked
+            {tr('checkin.result.safetyGateBlockedLabel')}
           </div>
           <p style={{ margin: 0, fontSize: 12.5, color: textSec(dark), lineHeight: 1.5 }}>
-            You reported a sign that may affect your safety. Consider professional guidance.
+            {tr('checkin.result.safetyGateBlockedBody')}
           </p>
         </div>
       )}
@@ -155,7 +155,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
         }}>
           <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 4 }}>
-            RECOMMENDED_ACTION
+            {tr('checkin.result.recommendedAction')}
           </div>
           <p style={{ margin: 0, fontSize: 12.5, color: textSec(dark), lineHeight: 1.5 }}>
             {result.recommended_action}
@@ -166,18 +166,18 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 28 }}>
         {result.session_completion_pct != null && (
-          <StatCell label="SESSION_COMPLETION" value={`${result.session_completion_pct}%`} dark={dark}/>
+          <StatCell label={tr('checkin.result.statSessionCompletion')} value={`${result.session_completion_pct}%`} dark={dark}/>
         )}
         {result.passage_risk_pct != null && (
-          <StatCell label="FATIGUE_RISK" value={`${result.passage_risk_pct}%`} dark={dark}/>
+          <StatCell label={tr('checkin.result.statFatigueRisk')} value={`${result.passage_risk_pct}%`} dark={dark}/>
         )}
         {result.pain_alert_level && (
-          <StatCell label="PAIN_ALERT" value={PAIN_LABEL[result.pain_alert_level] ?? ''} dark={dark} color={
+          <StatCell label={tr('checkin.result.statPainAlert')} value={PAIN_LABEL[result.pain_alert_level] ?? ''} dark={dark} color={
             result.pain_alert_level === 'high' ? accent : result.pain_alert_level === 'moderate' ? '#F5A623' : '#4ade80'
           }/>
         )}
         {result.recovery_status && (
-          <StatCell label="RECOVERY" value={REC_LABEL[result.recovery_status] ?? ''} dark={dark} color={
+          <StatCell label={tr('checkin.result.statRecovery')} value={REC_LABEL[result.recovery_status] ?? ''} dark={dark} color={
             result.recovery_status === 'stable' ? '#4ade80' : result.recovery_status === 'recovering' ? '#F5A623' : accent
           }/>
         )}
@@ -195,11 +195,11 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
       {/* CTAs */}
       {isTrainerContext ? (
         <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
-          {isBlocked ? 'Review safety alert →' : 'Build plan →'}
+          {isBlocked ? tr('checkin.result.reviewSafetyAlert') : tr('checkin.result.buildPlan')}
         </button>
       ) : hasTrainer ? (
         <button onClick={onAlert} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
-          {isBlocked ? '⚠ Notify trainer — caution today' : '✦ Notify trainer — I\'m ready'}
+          {isBlocked ? tr('checkin.result.notifyTrainerCaution') : tr('checkin.result.notifyTrainerReady')}
         </button>
       ) : (
         <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
@@ -209,7 +209,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
 
       {onBack && (
         <button onClick={onBack} style={{ ...outlineBtn(primary), marginTop: 10 }}>
-          ← Back
+          {tr('checkin.result.backButton')}
         </button>
       )}
     </div>

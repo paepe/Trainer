@@ -920,7 +920,19 @@
     "result": {
       "recovery": "Recovery",
       "viewCautionOptions": "Review caution options →",
-      "startWorkout": "Start adapted workout →"
+      "startWorkout": "Start adapted workout →",
+      "safetyGateBlockedLabel": "SAFETY_GATE = AI-led blocked",
+      "safetyGateBlockedBody": "You reported a sign that may affect your safety. Consider professional guidance.",
+      "recommendedAction": "RECOMMENDED_ACTION",
+      "statSessionCompletion": "SESSION_COMPLETION",
+      "statFatigueRisk": "FATIGUE_RISK",
+      "statPainAlert": "PAIN_ALERT",
+      "statRecovery": "RECOVERY",
+      "reviewSafetyAlert": "Review safety alert →",
+      "buildPlan": "Build plan →",
+      "notifyTrainerCaution": "⚠ Notify trainer — caution today",
+      "notifyTrainerReady": "✦ Notify trainer — I'm ready",
+      "backButton": "← Back"
     },
     "postWorkout": {
       "kicker": "CHECK-IN · POST-WORKOUT",

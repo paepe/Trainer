@@ -920,7 +920,19 @@
     "result": {
       "recovery": "Erholung",
       "viewCautionOptions": "Vorsichtsoptionen anzeigen →",
-      "startWorkout": "Angepasstes Training starten →"
+      "startWorkout": "Angepasstes Training starten →",
+      "safetyGateBlockedLabel": "SAFETY_GATE = KI blockiert",
+      "safetyGateBlockedBody": "Du hast ein Zeichen gemeldet, das deine Sicherheit beeinträchtigen könnte. Ziehe professionelle Beratung in Betracht.",
+      "recommendedAction": "EMPFOHLENE_MASSNAHME",
+      "statSessionCompletion": "EINHEIT_ABSCHLUSS",
+      "statFatigueRisk": "ERSCHÖPFUNGSRISIKO",
+      "statPainAlert": "SCHMERZALARM",
+      "statRecovery": "ERHOLUNG",
+      "reviewSafetyAlert": "Sicherheitswarnung prüfen →",
+      "buildPlan": "Plan erstellen →",
+      "notifyTrainerCaution": "⚠ Trainer benachrichtigen — Vorsicht heute",
+      "notifyTrainerReady": "✦ Trainer benachrichtigen — ich bin bereit",
+      "backButton": "← Zurück"
     },
     "postWorkout": {
       "kicker": "CHECK-IN · NACH DEM TRAINING",

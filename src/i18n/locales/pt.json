@@ -920,7 +920,19 @@
     "result": {
       "viewCautionOptions": "Ver opções de cautela",
       "startWorkout": "Iniciar treino →",
-      "recovery": "RECUPERAÇÃO"
+      "recovery": "RECUPERAÇÃO",
+      "safetyGateBlockedLabel": "SAFETY_GATE = IA bloqueada",
+      "safetyGateBlockedBody": "Você reportou um sinal que pode afetar sua segurança. Considere orientação profissional.",
+      "recommendedAction": "AÇÃO RECOMENDADA",
+      "statSessionCompletion": "CONCLUSÃO_SESSÃO",
+      "statFatigueRisk": "RISCO_FADIGA",
+      "statPainAlert": "ALERTA_DOR",
+      "statRecovery": "RECUPERAÇÃO",
+      "reviewSafetyAlert": "Revisar alerta de segurança →",
+      "buildPlan": "Criar plano →",
+      "notifyTrainerCaution": "⚠ Notificar treinador — cautela hoje",
+      "notifyTrainerReady": "✦ Notificar treinador — estou pronto",
+      "backButton": "← Voltar"
     },
     "postWorkout": {
       "kicker": "CHECK-IN · PÓS-TREINO",
