@@ -52,7 +52,7 @@ export function Alert({ title, text, body, variant = 'info', action, isAI = fals
         </div>
         <VStack gap={4} style={{ minWidth: 0, flex: 1 }}>
           <Typography variant="overline" style={{ color, letterSpacing: '0.12em' }}>
-            IA {title ? `· ${title}` : ''}
+            AI {title ? `· ${title}` : ''}
           </Typography>
           <Typography variant="body" color="secondary" style={{ fontSize: 13, lineHeight: 1.5 }}>
             {content}

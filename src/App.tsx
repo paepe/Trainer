@@ -63,6 +63,7 @@ export default function App() {
     defaultLocation: 'gym', defaultDurationMin: 45, preferredIntensity: 'moderate',
     planExpiryDays: 10, workoutReadyExpiryMin: 30,
     lightPalette: 'arctic',
+    aiFocusStrength: 5, aiFocusEndurance: 5, aiFocusMobility: 5,
   });
 
   const {
@@ -185,6 +186,9 @@ export default function App() {
         planExpiryDays:        (data.plan_expiry_days         as AppPreferences['planExpiryDays']        | undefined) ?? 10,
         workoutReadyExpiryMin: (data.workout_ready_expiry_min as AppPreferences['workoutReadyExpiryMin'] | undefined) ?? 30,
         lightPalette:          (data.light_palette            as AppPreferences['lightPalette']          | undefined) ?? 'arctic',
+        aiFocusStrength:       (data.ai_focus_strength        as number | undefined) ?? 5,
+        aiFocusEndurance:      (data.ai_focus_endurance       as number | undefined) ?? 5,
+        aiFocusMobility:       (data.ai_focus_mobility        as number | undefined) ?? 5,
       });
       // Seed the check-in defaults from saved training preferences (pre-fill)
       const loc = (data.default_location     as CheckIn['location'] | undefined) ?? 'gym';
@@ -327,6 +331,9 @@ export default function App() {
       plan_expiry_days:         newPrefs.planExpiryDays,
       workout_ready_expiry_min: newPrefs.workoutReadyExpiryMin,
       light_palette:            newPrefs.lightPalette,
+      ai_focus_strength:        newPrefs.aiFocusStrength,
+      ai_focus_endurance:       newPrefs.aiFocusEndurance,
+      ai_focus_mobility:        newPrefs.aiFocusMobility,
     });
   };
 

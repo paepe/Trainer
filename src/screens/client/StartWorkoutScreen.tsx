@@ -55,7 +55,12 @@ interface StartWorkoutScreenProps {
   user:             AppUser;
   cycleConfig:      AppCycleConfig | null;
   linkedTrainerId?: string; // non-empty = client has active trainer
-  prefs?:           { preferredIntensity?: TrainerContext['intensity'] };
+  prefs?: {
+    preferredIntensity?: TrainerContext['intensity'];
+    aiFocusStrength?:    number;
+    aiFocusEndurance?:   number;
+    aiFocusMobility?:    number;
+  };
 }
 
 export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', prefs }: StartWorkoutScreenProps) {
@@ -312,10 +317,16 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         };
 
         // 5. TrainerContext — Coach DNA if available, else AI default with the
-        //    client's preferred intensity applied (Settings → preferredIntensity)
+        //    client's Settings applied (preferredIntensity + AI focus sliders)
         let trainerCtx: TrainerContext = {
           ...DEFAULT_AI_TRAINER,
           intensity: prefs?.preferredIntensity ?? DEFAULT_AI_TRAINER.intensity,
+          focus: {
+            ...DEFAULT_AI_TRAINER.focus,
+            strength:  prefs?.aiFocusStrength  ?? DEFAULT_AI_TRAINER.focus.strength,
+            endurance: prefs?.aiFocusEndurance ?? DEFAULT_AI_TRAINER.focus.endurance,
+            mobility:  prefs?.aiFocusMobility  ?? DEFAULT_AI_TRAINER.focus.mobility,
+          },
         };
         const coachDNA = trainerRes.status === 'fulfilled' ? (trainerRes.value as any).data : null;
         if (coachDNA) {

@@ -57,6 +57,14 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
       options: [{ value: 'arctic', label: 'Arctic' }, { value: 'sand', label: 'Sand' }] },
   ];
 
+  // AI training focus — autonomous clients only (clients with a trainer inherit
+  // focus from the trainer's Coach DNA, so these sliders wouldn't apply).
+  const aiFocusRows: { key: 'aiFocusStrength' | 'aiFocusEndurance' | 'aiFocusMobility'; label: string }[] = [
+    { key: 'aiFocusStrength',  label: 'Strength' },
+    { key: 'aiFocusEndurance', label: 'Endurance' },
+    { key: 'aiFocusMobility',  label: 'Mobility' },
+  ];
+
   // ── Boolean toggle groups ────────────────────────────────────────────────────
   const aiGroup: ToggleRow[] = [
     ['aiPersonalization', 'AI workouts',      'Daily plan from your trainer + AI'],
@@ -93,6 +101,11 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
 
         {/* AI personalization */}
         <ToggleSection title="AI personalization" rows={aiGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+
+        {/* AI training focus — autonomous clients only */}
+        {isAutonomous && (
+          <SliderSection title="AI Training Focus" hint="How much your AI plans emphasise each area" rows={aiFocusRows} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+        )}
 
         {/* Appearance — dark toggle + light palette, clients only (trainer always-dark §8) */}
         {!isTrainer && (
@@ -193,6 +206,37 @@ function SelectorSection({ title, rows, prefs, setPrefs, t, dark }: {
                 );
               })}
             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SliderSection({ title, hint, rows, prefs, setPrefs, t, dark }: {
+  title: string; hint: string;
+  rows: { key: 'aiFocusStrength' | 'aiFocusEndurance' | 'aiFocusMobility'; label: string }[];
+  prefs: AppPreferences; setPrefs: (p: Partial<AppPreferences>) => void; t: Theme; dark: boolean;
+}) {
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <SectionLabel dark={dark}>{title}</SectionLabel>
+      <div style={{ background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, borderRadius: 16, overflow: 'hidden' }}>
+        <div style={{ fontSize: 11.5, color: textMute(dark), padding: '12px 16px 4px' }}>{hint}</div>
+        {rows.map((row, i) => (
+          <div key={row.key} style={{
+            padding: '10px 16px 14px',
+            borderBottom: i < rows.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 14, fontWeight: 500, color: textPri(dark) }}>{row.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: t.primary, fontVariantNumeric: 'tabular-nums' }}>{prefs[row.key]}/10</span>
+            </div>
+            <input
+              type="range" min={1} max={10} step={1} value={prefs[row.key]}
+              onChange={e => setPrefs({ [row.key]: Number(e.target.value) })}
+              style={{ width: '100%', accentColor: t.primary, cursor: 'pointer' }}
+            />
           </div>
         ))}
       </div>

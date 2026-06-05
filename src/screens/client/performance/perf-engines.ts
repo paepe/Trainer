@@ -437,7 +437,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
   for (let i = 5; i >= 0; i--) {
     const d   = new Date(Date.now() - i * 7 * 86_400_000);
     const key = startOfWeek(d);
-    const lbl = `S${6 - i}`;
+    const lbl = `W${6 - i}`;
     weekMap[key] = { label: lbl, volume: 0, rpe: 0, sessions: 0 };
     weekKeys.push(key);
   }

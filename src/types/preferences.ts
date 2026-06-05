@@ -32,6 +32,11 @@ export interface AppPreferences {
 
   // Appearance
   lightPalette:           LightPalette;            // client light variant
+
+  // Tier 2 — AI training focus (autonomous clients; 1–10 emphasis)
+  aiFocusStrength:        number;
+  aiFocusEndurance:       number;
+  aiFocusMobility:        number;
 }
 
 // Keys whose value is a boolean — used by the Settings toggle list for

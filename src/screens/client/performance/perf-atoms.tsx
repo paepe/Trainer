@@ -151,7 +151,7 @@ export function AIMessage({ title, body, tone = 'cyan', action }: AIMessageProps
           letterSpacing: '0.12em', textTransform: 'uppercase', color: c,
           marginBottom: 4,
         }}>
-          IA · {title}
+          AI · {title}
         </div>
         <div style={{ fontSize: 13, color: T.textSec, lineHeight: 1.5 }}>{body}</div>
         {action && (
