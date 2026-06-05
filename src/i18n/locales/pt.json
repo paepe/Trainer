@@ -3,6 +3,15 @@
     "about": "Sobre este app",
     "version": "Versão {{version}}"
   },
+  "nav": {
+    "clients": "Clientes",
+    "checkin": "Check-in",
+    "inbox": "Mensagens",
+    "history": "Histórico",
+    "menu": "Menu",
+    "workout": "Treino",
+    "progress": "Progresso"
+  },
   "settings": {
     "title": "Configurações",
     "aboutTagline": "TrAIner v1.1.0 · A experiência PT & ME",

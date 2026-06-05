@@ -13,6 +13,7 @@ import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './type
 import type { AppPreferences } from './types/preferences';
 import { TRAINER_ROLES } from './types/auth';
 import i18n, { detectDeviceLanguage } from './i18n';
+import { useTranslation } from 'react-i18next';
 
 const ProfileWizardScreen        = React.lazy(() => import('./screens/auth/ProfileWizardScreen').then(m => ({ default: m.ProfileWizardScreen })));
 const CheckInProntidaoScreen     = React.lazy(() => import('./screens/checkin/CheckInProntidaoScreen').then(m => ({ default: m.CheckInProntidaoScreen })));
@@ -55,6 +56,7 @@ interface AppUser {
 
 export default function App() {
   const { session, profile, loading, signIn, signUp, signOut, updateProfile } = useAuth();
+  const { t: tr } = useTranslation();  // i18n translate (distinct from theme `t`)
 
   const [prefs, setPrefs] = React.useState<AppPreferences>({
     notifications: true, goals: true, alerts: true,
@@ -435,18 +437,18 @@ export default function App() {
 
   const tabs: [string, string, string][] = isTrainer
     ? [
-        ['trainerDashboard', 'user',    'Clients'],
-        ['checkin',          'sparkle', 'Check-in'],
-        ['alerts',           'bell',    'Inbox'],
-        ['history',          'history', 'History'],
-        ['menu',             'menu',    'Menu'],
+        ['trainerDashboard', 'user',    tr('nav.clients')],
+        ['checkin',          'sparkle', tr('nav.checkin')],
+        ['alerts',           'bell',    tr('nav.inbox')],
+        ['history',          'history', tr('nav.history')],
+        ['menu',             'menu',    tr('nav.menu')],
       ]
     : [
-        ['checkin',  'sparkle', 'Check-in'],
-        ['workout',  'play',    'Workout'],
-        ['stats',    'chart',   'Progress'],
-        ['inbox',    'bell',    'Inbox'],
-        ['menu',     'menu',    'Menu'],
+        ['checkin',  'sparkle', tr('nav.checkin')],
+        ['workout',  'play',    tr('nav.workout')],
+        ['stats',    'chart',   tr('nav.progress')],
+        ['inbox',    'bell',    tr('nav.inbox')],
+        ['menu',     'menu',    tr('nav.menu')],
       ];
 
   if (loading) return <LoadingScreen primary={t.primary} />;

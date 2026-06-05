@@ -3,6 +3,15 @@
     "about": "About this app",
     "version": "Version {{version}}"
   },
+  "nav": {
+    "clients": "Clients",
+    "checkin": "Check-in",
+    "inbox": "Inbox",
+    "history": "History",
+    "menu": "Menu",
+    "workout": "Workout",
+    "progress": "Progress"
+  },
   "settings": {
     "title": "Settings",
     "aboutTagline": "TrAIner v1.1.0 · The PT & ME Experience",
