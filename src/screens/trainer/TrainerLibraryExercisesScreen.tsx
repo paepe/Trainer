@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
@@ -22,6 +23,7 @@ interface TrainerLibraryExercisesScreenProps {
 export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExercisesScreenProps) {
   const { fetchExercises, saveExercise, fetchProtocolsList, simulateVoiceAssistant } = useExerciseData();
   const { t, dark } = useTrainerTheme();
+  const { t: tr } = useTranslation();
 
   // State
   const [activeTab, setActiveTab] = useState<'exercises' | 'protocols'>('exercises');
@@ -99,11 +101,11 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
   // Save/Edit Action
   const handleSave = async () => {
     if (!selectedExercise?.name?.trim()) {
-      setFormError('Name is required.');
+      setFormError(tr('trainer.library.errNameRequired'));
       return;
     }
     if (!selectedExercise?.muscle_group?.trim()) {
-      setFormError('Muscle Group is required.');
+      setFormError(tr('trainer.library.errMuscleRequired'));
       return;
     }
     setFormError('');
@@ -111,14 +113,14 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
     try {
       const res = await saveExercise(selectedExercise);
       if (res.error) {
-        setFormError((res.error as any).message || 'Error saving exercise');
+        setFormError((res.error as any).message || tr('trainer.library.errSave'));
       } else {
         setSelectedExercise(null);
         setIsEditing(false);
         await loadData();
       }
     } catch (err: any) {
-      setFormError(err.message || 'Unknown error occurred');
+      setFormError(err.message || tr('trainer.library.errUnknown'));
     }
   };
 
@@ -156,8 +158,8 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
 
   return (
     <>
-      <ScreenTitle dark={dark} sub="Manage exercises catalog, accessibility variants, and workout protocols.">
-        Exercise Library
+      <ScreenTitle dark={dark} sub={tr('trainer.library.sub')}>
+        {tr('trainer.library.title')}
       </ScreenTitle>
 
       {/* Tabs Switcher */}
@@ -214,7 +216,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
             <div style={{ flex: 1, position: 'relative' }}>
               <input
                 type="text"
-                placeholder="Search exercises..."
+                placeholder={tr('trainer.library.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
@@ -273,7 +275,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
             }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Muscle Group</label>
+                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.muscleGroupLabel')}</label>
                   <select
                     value={filterMuscle}
                     onChange={(e) => setFilterMuscle(e.target.value)}
@@ -283,18 +285,13 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                       border: `1px solid ${borderSubtle(dark)}`
                     }}
                   >
-                    <option value="All">All Muscles</option>
-                    <option value="Chest">Chest</option>
-                    <option value="Back">Back</option>
-                    <option value="Shoulders">Shoulders</option>
-                    <option value="Legs">Legs</option>
-                    <option value="Arms">Arms</option>
-                    <option value="Core">Core</option>
+                    <option value="All">{tr('trainer.library.allMuscles')}</option>
+                    {(tr('trainer.planner.muscleGroups', { returnObjects: true }) as string[]).map(g => <option key={g} value={g}>{g}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Equipment</label>
+                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.equipmentLabel')}</label>
                   <select
                     value={filterEquipment}
                     onChange={(e) => setFilterEquipment(e.target.value)}
@@ -304,17 +301,13 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                       border: `1px solid ${borderSubtle(dark)}`
                     }}
                   >
-                    <option value="All">All Equipment</option>
-                    <option value="dumbbells">Dumbbells</option>
-                    <option value="barbell">Barbell</option>
-                    <option value="cables">Cables</option>
-                    <option value="machine">Machine</option>
-                    <option value="bodyweight">Bodyweight</option>
+                    <option value="All">{tr('trainer.library.allEquipment')}</option>
+                    {Object.entries(tr('trainer.library.equipmentOpts', { returnObjects: true }) as Record<string, string>).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Level</label>
+                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.levelLabel')}</label>
                   <select
                     value={filterLevel}
                     onChange={(e) => setFilterLevel(e.target.value)}
@@ -324,15 +317,13 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                       border: `1px solid ${borderSubtle(dark)}`
                     }}
                   >
-                    <option value="All">All Levels</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
+                    <option value="All">{tr('trainer.library.allLevels')}</option>
+                    {Object.entries(tr('trainer.library.levelOpts', { returnObjects: true }) as Record<string, string>).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Status</label>
+                  <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.statusLabel')}</label>
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
@@ -342,7 +333,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                       border: `1px solid ${borderSubtle(dark)}`
                     }}
                   >
-                    <option value="All">All Statuses</option>
+                    <option value="All">{tr('trainer.library.allStatuses')}</option>
                     <option value="active">Active</option>
                     <option value="blocked">Blocked</option>
                     <option value="restricted">Restricted</option>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { RefreshChip } from '../../components/RefreshChip';
@@ -128,6 +129,7 @@ export function TrainerClientDetailScreen({
   dashboardLimit = 10,
 }: TrainerClientDetailScreenProps) {
   const { t, dark } = useTrainerTheme();
+  const { t: tr } = useTranslation();
   const [sessions, setSessions]     = React.useState<WorkoutSession[]>([]);
   const [plans, setPlans]           = React.useState<WorkoutPlan[]>([]);
   const [profileV2, setProfileV2]   = React.useState<ProfileV2Row | null>(null);
@@ -222,20 +224,21 @@ export function TrainerClientDetailScreen({
     );
   };
 
+  const ps = tr('trainer.detail.profileSections', { returnObjects: true }) as Record<string, string | undefined>;
   const T1_SECTIONS: [string, Record<string, unknown> | null][] = [
-    ['Basic Data',         profileV2?.basic_data          ?? null],
-    ['Objectives',             profileV2?.objectives          ?? null],
-    ['Movement History',profileV2?.movement_history    ?? null],
-    ['Functional Capacity',  profileV2?.functional_capacity ?? null],
-    ['Environment',              profileV2?.environment         ?? null],
-    ['Availability',       profileV2?.availability        ?? null],
+    [ps.basic_data          ?? '', profileV2?.basic_data          ?? null],
+    [ps.objectives          ?? '', profileV2?.objectives          ?? null],
+    [ps.movement_history    ?? '', profileV2?.movement_history    ?? null],
+    [ps.functional_capacity ?? '', profileV2?.functional_capacity ?? null],
+    [ps.environment         ?? '', profileV2?.environment         ?? null],
+    [ps.availability        ?? '', profileV2?.availability        ?? null],
   ];
 
   const T2_SECTIONS: [string, Record<string, unknown> | null][] = [
-    ['Preferences',   profileV2?.preferences    ?? null],
-    ['Habits',        profileV2?.habits         ?? null],
-    ['Comorbidities', profileV2?.comorbidities  ?? null],
-    ['Declared Health',profileV2?.declared_health ?? null],
+    [ps.preferences    ?? '', profileV2?.preferences    ?? null],
+    [ps.habits         ?? '', profileV2?.habits         ?? null],
+    [ps.comorbidities  ?? '', profileV2?.comorbidities  ?? null],
+    [ps.declared_health ?? '', profileV2?.declared_health ?? null],
   ];
 
   const t3Count = [profileV2?.sensitive_factors, profileV2?.body_rhythm]
@@ -407,10 +410,10 @@ export function TrainerClientDetailScreen({
               {/* Legend */}
               <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
                 {[
-                  { color: '#EF5B3C', dot: true, label: 'Pain reported' },
-                  { color: '#4ade80', label: 'High energy' },
-                  { color: '#F5A623', label: 'Moderate energy' },
-                  { color: '#EF5B3C', label: 'Low energy' },
+                  { color: '#EF5B3C', dot: true, label: tr('trainer.detail.painReported') },
+                  { color: '#4ade80', label: tr('trainer.detail.highEnergy') },
+                  { color: '#F5A623', label: tr('trainer.detail.moderateEnergy') },
+                  { color: '#EF5B3C', label: tr('trainer.detail.lowEnergy') },
                 ].map(({ color, dot, label }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     {dot
@@ -446,7 +449,7 @@ export function TrainerClientDetailScreen({
                       <Icon name={approved ? 'check' : 'close'} size={13} color={color} stroke={2.6} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color }}>{approved ? 'Approved' : 'Rejected'}</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color }}>{approved ? tr('trainer.detail.approved') : tr('trainer.detail.rejected')}</span>
                       <span style={{ fontSize: 11, color: textMute(dark), marginLeft: 8 }}>
                         {when ? new Date(when).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                       </span>
@@ -463,7 +466,7 @@ export function TrainerClientDetailScreen({
               Recent Check-ins
             </div>
             {readiness.length === 0 ? (
-              <div style={{ color: textMute(dark), fontSize: 12 }}>No check-ins yet.</div>
+              <div style={{ color: textMute(dark), fontSize: 12 }}>{tr('trainer.detail.noCheckins')}</div>
             ) : readiness.map((r, i) => (
               <div key={r.id} style={{
                 padding: '10px 0',
@@ -510,17 +513,17 @@ export function TrainerClientDetailScreen({
 
             const unifiedStatus = (p: WorkoutPlan, s: WorkoutSession | null): { label: string; color: string } => {
               if (s) {
-                if (s.status === 'completed' || s.completed_at) return { label: 'DONE',        color: '#10B981' };
-                if (s.status === 'active')                       return { label: 'IN PROGRESS', color: t.primary };
-                if (s.status === 'paused')                       return { label: 'PAUSED',      color: '#F5A623' };
-                if (s.status === 'incomplete')                   return { label: 'INCOMPLETE',  color: '#F5A623' };
-                if (s.status === 'abandoned')                    return { label: 'ABANDONED',   color: t.accent  };
+                if (s.status === 'completed' || s.completed_at) return { label: tr('trainer.detail.sessionStatus.done'),       color: '#10B981' };
+                if (s.status === 'active')                       return { label: tr('trainer.detail.sessionStatus.inProgress'), color: t.primary };
+                if (s.status === 'paused')                       return { label: tr('trainer.detail.sessionStatus.paused'),     color: '#F5A623' };
+                if (s.status === 'incomplete')                   return { label: tr('trainer.detail.sessionStatus.incomplete'), color: '#F5A623' };
+                if (s.status === 'abandoned')                    return { label: tr('trainer.detail.sessionStatus.abandoned'),  color: t.accent  };
               }
-              if (p.status === 'completed') return { label: 'DONE',        color: '#10B981' };
-              if (p.status === 'active')    return { label: 'IN PROGRESS', color: t.primary };
-              if (p.status === 'postponed') return { label: 'POSTPONED',   color: '#F5B45A' };
-              if (p.status === 'cancelled') return { label: 'CANCELLED',   color: '#FF4D4D' };
-              return { label: 'SENT', color: t.primary };
+              if (p.status === 'completed') return { label: tr('trainer.detail.sessionStatus.done'),       color: '#10B981' };
+              if (p.status === 'active')    return { label: tr('trainer.detail.sessionStatus.inProgress'), color: t.primary };
+              if (p.status === 'postponed') return { label: tr('trainer.detail.sessionStatus.postponed'),  color: '#F5B45A' };
+              if (p.status === 'cancelled') return { label: tr('trainer.detail.sessionStatus.cancelled'),  color: '#FF4D4D' };
+              return { label: tr('trainer.detail.sessionStatus.sent'), color: t.primary };
             };
 
             const renderSessionExercises = (exs: SessionExercise[], sessionColor: string) =>
@@ -598,7 +601,7 @@ export function TrainerClientDetailScreen({
                     Plan & Workout
                   </div>
                   {plans.length === 0 ? (
-                    <div style={{ padding: '0 16px 14px', color: textMute(dark), fontSize: 12 }}>No plans sent yet.</div>
+                    <div style={{ padding: '0 16px 14px', color: textMute(dark), fontSize: 12 }}>{tr('trainer.detail.noPlans')}</div>
                   ) : plans.map((p, i) => {
                     const linkedSessions = sessions
                       .filter(s => s.plan_id === p.id)
@@ -651,11 +654,11 @@ export function TrainerClientDetailScreen({
                           <div style={{ padding: '0 16px 14px', background: 'var(--sunken)' }}>
                             {sessionExs ? (
                               sessionExs.length === 0
-                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>No exercise data recorded.</div>
+                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>{tr('trainer.detail.noExerciseData')}</div>
                                 : renderSessionExercises(sessionExs, stColor)
                             ) : (
                               planExs.length === 0
-                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>No exercises in this plan.</div>
+                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>{tr('trainer.detail.noExercises')}</div>
                                 : planExs.map((ex, ei) => (
                                   <div key={ex.id} style={{
                                     padding: '8px 12px', borderRadius: 10, marginBottom: 6,
@@ -731,7 +734,7 @@ export function TrainerClientDetailScreen({
                           {open && (
                             <div style={{ padding: '0 16px 14px', background: 'var(--sunken)' }}>
                               {exs.length === 0
-                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>No exercise data recorded.</div>
+                                ? <div style={{ fontSize: 11, color: textMute(dark) }}>{tr('trainer.detail.noExerciseData')}</div>
                                 : renderSessionExercises(exs, sc)
                               }
                             </div>
@@ -771,7 +774,7 @@ export function TrainerClientDetailScreen({
           background: t.accent, color: '#FFFFFF',
           border: 'none', fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 14, fontWeight: 700, cursor: 'pointer',
         }}>
-        + Create Plan for {selectedClient.name?.split(' ')[0] || 'Client'}
+        {tr('trainer.detail.createPlan', { name: selectedClient.name?.split(' ')[0] || 'Client' })}
       </button>
       </div>
     </>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
@@ -34,6 +35,7 @@ function Kpi({ val, lbl, t, dark, accent = false }: KpiProps) {
 
 export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
   const { t, dark } = useTrainerTheme();
+  const { t: tr } = useTranslation();
   const clients = [
     { name: 'Frances Scott',  goal: 'Endurance',    streak: 12, status: 'on-track', last: 'today' },
     { name: 'Lukas Becker',   goal: 'Strength',     streak: 5,  status: 'behind',   last: '3d ago' },
@@ -49,18 +51,18 @@ export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
 
   return (
     <>
-      <ScreenTitle dark={dark} sub="Feed the AI with your methodology — your clients get it daily.">Trainer Studio</ScreenTitle>
+      <ScreenTitle dark={dark} sub={tr('trainer.studio.sub')}>{tr('trainer.studio.title')}</ScreenTitle>
 
       {/* KPI strip */}
       <div style={{ padding: '0 22px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-        <Kpi val="24"  lbl="Clients"     t={t} dark={dark}/>
-        <Kpi val="187" lbl="This week"   t={t} dark={dark}/>
-        <Kpi val="92%" lbl="Adherence"   t={t} dark={dark} accent/>
+        <Kpi val="24"  lbl={tr('trainer.studio.clients')}   t={t} dark={dark}/>
+        <Kpi val="187" lbl={tr('trainer.studio.thisWeek')}  t={t} dark={dark}/>
+        <Kpi val="92%" lbl={tr('trainer.studio.adherence')} t={t} dark={dark} accent/>
       </div>
 
       {/* Methodology feeder */}
       <div style={{ padding: '0 22px 14px' }}>
-        <SectionLabel dark={dark}>Feed the AI</SectionLabel>
+        <SectionLabel dark={dark}>{tr('trainer.studio.feedAI')}</SectionLabel>
         <div style={{
           padding: 16, borderRadius: 16,
           background: `linear-gradient(135deg, #C23B22 0%, ${t.accent}cc 100%)`,
@@ -82,18 +84,18 @@ export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
             <button onClick={() => nav('trainerLibraryExercises')} style={{
               padding: '9px 14px', borderRadius: 999, border: '1.5px solid rgba(14,26,43,.4)',
               background: 'transparent', color: '#0E1A2B', fontSize: 12, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer',
-            }}>Exercise Library</button>
+            }}>{tr('trainer.studio.exerciseLibrary')}</button>
             <button style={{
               padding: '9px 14px', borderRadius: 14, border: '1.5px solid rgba(14,26,43,.4)',
               background: 'transparent', color: '#0E1A2B', fontSize: 12, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer',
-            }}>Retrain AI</button>
+            }}>{tr('trainer.studio.retrainAI')}</button>
           </div>
         </div>
       </div>
 
       {/* Client list */}
       <div style={{ padding: '0 22px 14px' }}>
-        <SectionLabel dark={dark}>Your clients</SectionLabel>
+        <SectionLabel dark={dark}>{tr('trainer.studio.yourClients')}</SectionLabel>
         {clients.map((c, i) => (
           <div key={i} style={{
             display: 'flex', alignItems: 'center', gap: 12,
@@ -121,7 +123,7 @@ export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
 
       <div style={{ padding: '0 22px 28px' }}>
         <button onClick={() => alert('Invite link copied: trainer.app/coach/frances')} style={{ ...outlineBtn(t.accent), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <Icon name="plus" size={16} color={t.primary} stroke={2.4}/> Invite client
+          <Icon name="plus" size={16} color={t.primary} stroke={2.4}/> {tr('trainer.dashboard.inviteClient')}
         </button>
       </div>
     </>

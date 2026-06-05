@@ -12,6 +12,93 @@
     "workout": "Treino",
     "progress": "Progresso"
   },
+  "trainer": {
+    "dashboard": {
+      "title": "Meus Clientes",
+      "subActive": "{{active}} ativos · {{pending}} pendentes",
+      "noClients": "Nenhum cliente ainda",
+      "noClientsNote": "Convide seu primeiro cliente por e-mail para começar.",
+      "pending": "Pendente",
+      "training": "Treinando",
+      "paused": "Pausado",
+      "view": "Ver →",
+      "inviteClient": "Convidar cliente",
+      "inviteByEmail": "Convidar por e-mail",
+      "cancel": "Cancelar",
+      "send": "Enviar convite",
+      "sending": "Enviando…",
+      "errNotFound": "Nenhuma conta encontrada com esse e-mail.",
+      "safetyGatePending": "Safety Gate · Revisão Pendente",
+      "alerts": "Alertas",
+      "tasks": "Tarefas",
+      "ack": "Ok",
+      "resolve": "Resolver"
+    },
+    "studio": {
+      "title": "Trainer Studio",
+      "sub": "Alimente a IA com sua metodologia — seus clientes recebem isso diariamente.",
+      "clients": "Clientes",
+      "thisWeek": "Esta semana",
+      "adherence": "Adesão",
+      "feedAI": "Alimentar IA",
+      "exerciseLibrary": "Biblioteca de Exercícios",
+      "retrainAI": "Retreinar IA",
+      "yourClients": "Seus clientes"
+    },
+    "detail": {
+      "noCheckins": "Nenhum check-in ainda.",
+      "noPlans": "Nenhum plano enviado ainda.",
+      "noExerciseData": "Nenhum dado de exercício registrado.",
+      "noExercises": "Nenhum exercício neste plano.",
+      "createPlan": "+ Criar Plano para {{name}}",
+      "painReported": "Dor relatada",
+      "highEnergy": "Alta energia",
+      "moderateEnergy": "Energia moderada",
+      "lowEnergy": "Baixa energia",
+      "approved": "Aprovado",
+      "rejected": "Rejeitado",
+      "sessionStatus": {
+        "done": "FEITO", "inProgress": "EM ANDAMENTO", "paused": "PAUSADO",
+        "incomplete": "INCOMPLETO", "abandoned": "ABANDONADO",
+        "postponed": "ADIADO", "cancelled": "CANCELADO", "sent": "ENVIADO"
+      },
+      "profileSections": {
+        "basic_data": "Dados Básicos", "objectives": "Objetivos",
+        "movement_history": "Histórico de Movimento", "functional_capacity": "Capacidade Funcional",
+        "environment": "Ambiente", "availability": "Disponibilidade",
+        "preferences": "Preferências", "habits": "Hábitos",
+        "comorbidities": "Comorbidades", "declared_health": "Saúde Declarada"
+      }
+    },
+    "planner": {
+      "noCheckin": "Sem check-in hoje",
+      "newExercise": "Novo exercício",
+      "exerciseName": "Nome do exercício",
+      "sets": "Séries",
+      "reps": "Reps",
+      "unknownErr": "Erro desconhecido",
+      "muscleGroups": ["Peitoral","Costas","Ombros","Braços","Core","Pernas","Corpo todo","Cardio"]
+    },
+    "library": {
+      "title": "Biblioteca de Exercícios",
+      "sub": "Gerencie o catálogo de exercícios, variantes de acessibilidade e protocolos.",
+      "searchPlaceholder": "Buscar exercícios...",
+      "muscleGroupLabel": "Grupo Muscular",
+      "equipmentLabel": "Equipamento",
+      "levelLabel": "Nível",
+      "statusLabel": "Status",
+      "allMuscles": "Todos os Músculos",
+      "allEquipment": "Todos os Equipamentos",
+      "allLevels": "Todos os Níveis",
+      "allStatuses": "Todos os Status",
+      "errNameRequired": "Nome é obrigatório.",
+      "errMuscleRequired": "Grupo Muscular é obrigatório.",
+      "errSave": "Erro ao salvar exercício",
+      "errUnknown": "Ocorreu um erro desconhecido",
+      "levelOpts": { "beginner": "Iniciante", "intermediate": "Intermediário", "advanced": "Avançado" },
+      "equipmentOpts": { "dumbbells": "Halteres", "barbell": "Barra", "cables": "Cabos", "machine": "Máquina", "bodyweight": "Peso corporal" }
+    }
+  },
   "client": {
     "history": {
       "title": "Histórico de Treinos",

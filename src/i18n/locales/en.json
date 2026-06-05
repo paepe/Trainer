@@ -12,6 +12,93 @@
     "workout": "Workout",
     "progress": "Progress"
   },
+  "trainer": {
+    "dashboard": {
+      "title": "My Clients",
+      "subActive": "{{active}} active · {{pending}} pending",
+      "noClients": "No clients yet",
+      "noClientsNote": "Invite your first client by email to get started.",
+      "pending": "Pending",
+      "training": "Training",
+      "paused": "Paused",
+      "view": "View →",
+      "inviteClient": "Invite client",
+      "inviteByEmail": "Invite by email",
+      "cancel": "Cancel",
+      "send": "Send invite",
+      "sending": "Sending…",
+      "errNotFound": "No account found with that email.",
+      "safetyGatePending": "Safety Gate · Pending Review",
+      "alerts": "Alerts",
+      "tasks": "Tasks",
+      "ack": "Ack",
+      "resolve": "Resolve"
+    },
+    "studio": {
+      "title": "Trainer Studio",
+      "sub": "Feed the AI with your methodology — your clients get it daily.",
+      "clients": "Clients",
+      "thisWeek": "This week",
+      "adherence": "Adherence",
+      "feedAI": "Feed the AI",
+      "exerciseLibrary": "Exercise Library",
+      "retrainAI": "Retrain AI",
+      "yourClients": "Your clients"
+    },
+    "detail": {
+      "noCheckins": "No check-ins yet.",
+      "noPlans": "No plans sent yet.",
+      "noExerciseData": "No exercise data recorded.",
+      "noExercises": "No exercises in this plan.",
+      "createPlan": "+ Create Plan for {{name}}",
+      "painReported": "Pain reported",
+      "highEnergy": "High energy",
+      "moderateEnergy": "Moderate energy",
+      "lowEnergy": "Low energy",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "sessionStatus": {
+        "done": "DONE", "inProgress": "IN PROGRESS", "paused": "PAUSED",
+        "incomplete": "INCOMPLETE", "abandoned": "ABANDONED",
+        "postponed": "POSTPONED", "cancelled": "CANCELLED", "sent": "SENT"
+      },
+      "profileSections": {
+        "basic_data": "Basic Data", "objectives": "Objectives",
+        "movement_history": "Movement History", "functional_capacity": "Functional Capacity",
+        "environment": "Environment", "availability": "Availability",
+        "preferences": "Preferences", "habits": "Habits",
+        "comorbidities": "Comorbidities", "declared_health": "Declared Health"
+      }
+    },
+    "planner": {
+      "noCheckin": "No check-in today",
+      "newExercise": "New exercise",
+      "exerciseName": "Exercise name",
+      "sets": "Sets",
+      "reps": "Reps",
+      "unknownErr": "Unknown error",
+      "muscleGroups": ["Chest","Back","Shoulders","Arms","Core","Legs","Full body","Cardio"]
+    },
+    "library": {
+      "title": "Exercise Library",
+      "sub": "Manage exercises catalog, accessibility variants, and workout protocols.",
+      "searchPlaceholder": "Search exercises...",
+      "muscleGroupLabel": "Muscle Group",
+      "equipmentLabel": "Equipment",
+      "levelLabel": "Level",
+      "statusLabel": "Status",
+      "allMuscles": "All Muscles",
+      "allEquipment": "All Equipment",
+      "allLevels": "All Levels",
+      "allStatuses": "All Statuses",
+      "errNameRequired": "Name is required.",
+      "errMuscleRequired": "Muscle Group is required.",
+      "errSave": "Error saving exercise",
+      "errUnknown": "Unknown error occurred",
+      "levelOpts": { "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced" },
+      "equipmentOpts": { "dumbbells": "Dumbbells", "barbell": "Barbell", "cables": "Cables", "machine": "Machine", "bodyweight": "Bodyweight" }
+    }
+  },
   "client": {
     "history": {
       "title": "Workout History",

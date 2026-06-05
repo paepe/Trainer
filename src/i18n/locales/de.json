@@ -12,6 +12,93 @@
     "workout": "Training",
     "progress": "Fortschritt"
   },
+  "trainer": {
+    "dashboard": {
+      "title": "Meine Kunden",
+      "subActive": "{{active}} aktiv · {{pending}} ausstehend",
+      "noClients": "Noch keine Kunden",
+      "noClientsNote": "Lade deinen ersten Kunden per E-Mail ein, um loszulegen.",
+      "pending": "Ausstehend",
+      "training": "Im Training",
+      "paused": "Pausiert",
+      "view": "Ansehen →",
+      "inviteClient": "Kunden einladen",
+      "inviteByEmail": "Per E-Mail einladen",
+      "cancel": "Abbrechen",
+      "send": "Einladung senden",
+      "sending": "Wird gesendet…",
+      "errNotFound": "Kein Konto mit dieser E-Mail gefunden.",
+      "safetyGatePending": "Safety Gate · Ausstehende Überprüfung",
+      "alerts": "Warnungen",
+      "tasks": "Aufgaben",
+      "ack": "OK",
+      "resolve": "Lösen"
+    },
+    "studio": {
+      "title": "Trainer Studio",
+      "sub": "Füttere die KI mit deiner Methodik — deine Kunden erhalten sie täglich.",
+      "clients": "Kunden",
+      "thisWeek": "Diese Woche",
+      "adherence": "Adhärenz",
+      "feedAI": "KI füttern",
+      "exerciseLibrary": "Übungsbibliothek",
+      "retrainAI": "KI neu trainieren",
+      "yourClients": "Deine Kunden"
+    },
+    "detail": {
+      "noCheckins": "Noch keine Check-ins.",
+      "noPlans": "Noch keine Pläne gesendet.",
+      "noExerciseData": "Keine Übungsdaten aufgezeichnet.",
+      "noExercises": "Keine Übungen in diesem Plan.",
+      "createPlan": "+ Plan erstellen für {{name}}",
+      "painReported": "Schmerz gemeldet",
+      "highEnergy": "Hohe Energie",
+      "moderateEnergy": "Mittlere Energie",
+      "lowEnergy": "Niedrige Energie",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "sessionStatus": {
+        "done": "FERTIG", "inProgress": "IN BEARBEITUNG", "paused": "PAUSIERT",
+        "incomplete": "UNVOLLSTÄNDIG", "abandoned": "ABGEBROCHEN",
+        "postponed": "VERSCHOBEN", "cancelled": "STORNIERT", "sent": "GESENDET"
+      },
+      "profileSections": {
+        "basic_data": "Grunddaten", "objectives": "Ziele",
+        "movement_history": "Bewegungsverlauf", "functional_capacity": "Funktionelle Kapazität",
+        "environment": "Umgebung", "availability": "Verfügbarkeit",
+        "preferences": "Präferenzen", "habits": "Gewohnheiten",
+        "comorbidities": "Begleiterkrankungen", "declared_health": "Angegebene Gesundheit"
+      }
+    },
+    "planner": {
+      "noCheckin": "Kein Check-in heute",
+      "newExercise": "Neue Übung",
+      "exerciseName": "Übungsname",
+      "sets": "Sätze",
+      "reps": "Wdh.",
+      "unknownErr": "Unbekannter Fehler",
+      "muscleGroups": ["Brust","Rücken","Schultern","Arme","Core","Beine","Ganzkörper","Cardio"]
+    },
+    "library": {
+      "title": "Übungsbibliothek",
+      "sub": "Übungskatalog, Zugänglichkeitsvarianten und Protokolle verwalten.",
+      "searchPlaceholder": "Übungen suchen...",
+      "muscleGroupLabel": "Muskelgruppe",
+      "equipmentLabel": "Ausrüstung",
+      "levelLabel": "Niveau",
+      "statusLabel": "Status",
+      "allMuscles": "Alle Muskeln",
+      "allEquipment": "Alle Ausrüstung",
+      "allLevels": "Alle Niveaus",
+      "allStatuses": "Alle Status",
+      "errNameRequired": "Name ist erforderlich.",
+      "errMuscleRequired": "Muskelgruppe ist erforderlich.",
+      "errSave": "Fehler beim Speichern der Übung",
+      "errUnknown": "Ein unbekannter Fehler ist aufgetreten",
+      "levelOpts": { "beginner": "Anfänger", "intermediate": "Fortgeschritten", "advanced": "Profi" },
+      "equipmentOpts": { "dumbbells": "Hanteln", "barbell": "Langhantel", "cables": "Kabel", "machine": "Maschine", "bodyweight": "Eigengewicht" }
+    }
+  },
   "client": {
     "history": {
       "title": "Trainingsverlauf",

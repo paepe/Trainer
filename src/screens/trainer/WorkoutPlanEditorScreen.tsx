@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
@@ -78,6 +79,7 @@ export function WorkoutPlanEditorScreen({
   selectedClient,
 }: WorkoutPlanEditorScreenProps) {
   const { t, dark } = useTrainerTheme();
+  const { t: tr } = useTranslation();
   const [context, setContext] = React.useState<WorkoutPlanEditorContext | null>(null);
   const [exercises, setExercises] = React.useState<WorkoutExercise[]>([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
@@ -97,7 +99,7 @@ export function WorkoutPlanEditorScreen({
   const [aiLoading, setAiLoading]       = React.useState(false);
   const [aiError, setAiError]           = React.useState('');
 
-  const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs', 'Full body', 'Cardio'];
+  const MUSCLE_GROUPS = tr('trainer.planner.muscleGroups', { returnObjects: true }) as string[];
 
   async function askAI() {
     setAiLoading(true);
@@ -134,7 +136,7 @@ export function WorkoutPlanEditorScreen({
         notes:         ex.notes || '',
       })));
     } catch (err: unknown) {
-      setAiError(err instanceof Error ? err.message : 'Unknown error');
+      setAiError(err instanceof Error ? err.message : tr('trainer.planner.unknownErr'));
     } finally {
       setAiLoading(false);
     }
@@ -338,7 +340,7 @@ export function WorkoutPlanEditorScreen({
                 )}
               </>
             ) : (
-              <span style={{ fontSize: 12, color: textMute(dark) }}>No check-in today</span>
+              <span style={{ fontSize: 12, color: textMute(dark) }}>{tr('trainer.planner.noCheckin')}</span>
             )}
             {context.physicalProfile?.primary_goal && (
               <span style={{ fontSize: 12, color: textSec(dark) }}>
@@ -404,11 +406,11 @@ export function WorkoutPlanEditorScreen({
             background: surfRaised(dark), border: `1.5px solid ${t.primary}`,
             display: 'flex', flexDirection: 'column', gap: 10
           }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>New exercise</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>{tr('trainer.planner.newExercise')}</div>
             <div>
               <TextInput
                 icon="dumbbell"
-                placeholder="Exercise name"
+                placeholder={tr('trainer.planner.exerciseName')}
                 value={draft.exercise_name}
                 onChange={v => { setDraft({ ...draft, exercise_name: v }); setNameError(false); }}
               />
@@ -433,7 +435,7 @@ export function WorkoutPlanEditorScreen({
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {(['sets', 'reps'] as const).map(key => {
-                const label = key === 'sets' ? 'Sets' : 'Reps';
+                const label = key === 'sets' ? tr('trainer.planner.sets') : tr('trainer.planner.reps');
                 const min = 1;
                 const max = key === 'sets' ? 10 : 50;
                 return (

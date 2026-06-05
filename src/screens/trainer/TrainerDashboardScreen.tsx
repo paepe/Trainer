@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput, VStack, HStack, Spacer } from '@/ui';
 import { supabase } from '../../supabase';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -57,6 +58,7 @@ export function TrainerDashboardScreen({
   selectClient,
 }: TrainerDashboardScreenProps) {
   const { t, dark } = useTrainerTheme();
+  const { t: tr } = useTranslation();
   const { alerts, tasks, acknowledgeAlert, resolveAlert, completeTask } = useAlerts(user?.id);
 
   const [clients, setClients]           = React.useState<TrainerClient[]>([]);
@@ -188,7 +190,7 @@ export function TrainerDashboardScreen({
       .single();
 
     if (!found) {
-      setInviteErr('No account found with that email.');
+      setInviteErr(tr('trainer.dashboard.errNotFound'));
       setInviting(false);
       return;
     }
@@ -235,8 +237,8 @@ export function TrainerDashboardScreen({
 
   return (
     <>
-      <ScreenTitle dark={dark} sub={`${activeClients.length} active · ${pendingClients.length} pending`}>
-        My Clients
+      <ScreenTitle dark={dark} sub={tr('trainer.dashboard.subActive', { active: activeClients.length, pending: pendingClients.length })}>
+        {tr('trainer.dashboard.title')}
       </ScreenTitle>
 
       <VStack padding="0 22px 32px" gap={12}>
@@ -259,7 +261,7 @@ export function TrainerDashboardScreen({
           }}>
             <HStack gap={8} style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#EF5B3C' }}>
-                Safety Gate · Pending Review
+                {tr('trainer.dashboard.safetyGatePending')}
               </div>
               <div style={{
                 fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
@@ -307,7 +309,7 @@ export function TrainerDashboardScreen({
                     transition: 'opacity .15s',
                   }}
                 >
-                  {reviewingId === ev.id ? '…' : '✓ Revisto'}
+                  {reviewingId === ev.id ? '…' : `✓ ${tr('trainer.dashboard.resolve')}`}
                 </button>
               </div>
             ))}
@@ -351,10 +353,10 @@ export function TrainerDashboardScreen({
               <Icon name="user" size={24} color={t.primary} stroke={2} />
             </div>
             <div style={{ fontSize: 15, fontWeight: 700, color: textPri(dark), marginBottom: 6 }}>
-              No clients yet
+              {tr('trainer.dashboard.noClients')}
             </div>
             <div style={{ fontSize: 13, color: textSec(dark) }}>
-              Invite your first client by email to get started.
+              {tr('trainer.dashboard.noClientsNote')}
             </div>
           </div>
         )}
@@ -390,7 +392,7 @@ export function TrainerDashboardScreen({
                 background: `${t.accent}22`, color: t.accent, letterSpacing: '.05em', textTransform: 'uppercase',
                 flexShrink: 0,
               }}>
-                Pending
+                {tr('trainer.dashboard.pending')}
               </div>
             ) : (
               <HStack gap={8} style={{ flexShrink: 0 }}>
@@ -401,7 +403,7 @@ export function TrainerDashboardScreen({
                     display: 'flex', alignItems: 'center', gap: 5,
                   }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse 1.5s ease-in-out infinite' }}/>
-                    Training
+                    {tr('trainer.dashboard.training')}
                   </div>
                 )}
                 {tc.client?.id && sessionStatusMap[tc.client.id] === 'paused' && (
@@ -411,7 +413,7 @@ export function TrainerDashboardScreen({
                     display: 'flex', alignItems: 'center', gap: 5,
                   }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F5A623' }}/>
-                    Paused
+                    {tr('trainer.dashboard.paused')}
                   </div>
                 )}
                 <button
@@ -422,7 +424,7 @@ export function TrainerDashboardScreen({
                     border: 'none', fontFamily: 'inherit', cursor: 'pointer',
                   }}
                 >
-                  View →
+                  {tr('trainer.dashboard.view')}
                 </button>
               </HStack>
             )}
@@ -436,7 +438,7 @@ export function TrainerDashboardScreen({
             background: surfRaised(dark), border: `1.5px solid ${t.primary}`,
           }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), marginBottom: 10 }}>
-              Invite by email
+              {tr('trainer.dashboard.inviteByEmail')}
             </div>
             <TextInput
               icon="mail"
@@ -461,7 +463,7 @@ export function TrainerDashboardScreen({
                   borderRadius: 12,
                 }}
               >
-                Cancel
+                {tr('trainer.dashboard.cancel')}
               </button>
               <button
                 onClick={invite}
@@ -472,7 +474,7 @@ export function TrainerDashboardScreen({
                   fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer', opacity: inviting ? 0.7 : 1,
                 }}
               >
-                {inviting ? 'Sending…' : 'Send invite'}
+                {inviting ? tr('trainer.dashboard.sending') : tr('trainer.dashboard.send')}
               </button>
             </HStack>
           </div>
@@ -487,7 +489,7 @@ export function TrainerDashboardScreen({
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
-            <Icon name="plus" size={16} color={t.accent} /> Invite client
+            <Icon name="plus" size={16} color={t.accent} /> {tr('trainer.dashboard.inviteClient')}
           </button>
         )}
       </VStack>
@@ -514,6 +516,7 @@ function AlertsSection({
   onAcknowledge:  (id: string) => Promise<void>;
   onResolve:      (id: string) => Promise<void>;
 }) {
+  const { t: tr } = useTranslation();
   const [busy, setBusy] = React.useState<string | null>(null);
 
   const handle = async (fn: (id: string) => Promise<void>, id: string) => {
@@ -529,7 +532,7 @@ function AlertsSection({
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#EF5B3C' }}>
-          Alerts
+          {tr('trainer.dashboard.alerts')}
         </div>
         <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#EF5B3C', color: '#fff' }}>
           {alerts.length}
@@ -575,7 +578,7 @@ function AlertsSection({
                     opacity: busy === alert.id ? 0.5 : 1,
                   }}
                 >
-                  Ack
+                  {tr('trainer.dashboard.ack')}
                 </button>
               )}
               <button
@@ -588,7 +591,7 @@ function AlertsSection({
                   opacity: busy === alert.id ? 0.5 : 1,
                 }}
               >
-                {busy === alert.id ? '…' : 'Resolve'}
+                {busy === alert.id ? '…' : tr('trainer.dashboard.resolve')}
               </button>
             </div>
           </div>
@@ -616,6 +619,7 @@ function TasksSection({
   clientNameMap:  Record<string, string>;
   onComplete:     (id: string) => Promise<void>;
 }) {
+  const { t: tr } = useTranslation();
   const [busy, setBusy] = React.useState<string | null>(null);
 
   const handle = async (id: string) => {
@@ -631,7 +635,7 @@ function TasksSection({
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
-          Tasks
+          {tr('trainer.dashboard.tasks')}
         </div>
         <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: t.accent, color: '#fff' }}>
           {tasks.length}
@@ -677,7 +681,7 @@ function TasksSection({
               opacity: busy === task.id ? 0.5 : 1, flexShrink: 0,
             }}
           >
-            {busy === task.id ? '…' : '✓ Done'}
+            {busy === task.id ? '…' : `✓ ${tr('trainer.dashboard.resolve')}`}
           </button>
         </div>
       ))}
