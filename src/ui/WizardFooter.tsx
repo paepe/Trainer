@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { Icon } from '../components/Icon';
 import { HStack } from './Layout';
@@ -19,6 +20,8 @@ export function WizardFooter({
   onSave,
   saving,
 }: WizardFooterProps) {
+  const { t: tr } = useTranslation();
+  const effectiveNextLabel = nextLabel || tr('wizardFooter.continue');
   return (
     <div style={{ paddingTop: 20 }}>
       <HStack gap={8}>
@@ -37,7 +40,7 @@ export function WizardFooter({
               whiteSpace: 'nowrap',
             }}
           >
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? tr('wizard.saving') : tr('wizardFooter.save')}
           </Button>
         )}
         <Button
@@ -53,7 +56,7 @@ export function WizardFooter({
             boxShadow: `0 10px 30px ${BRAND.primary}33`,
           }}
         >
-          {nextLabel}
+          {effectiveNextLabel}
           <Icon name="chevR" size={14} color={DARK.surface} stroke={2.4} />
         </Button>
       </HStack>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { Icon } from '../components/Icon';
 
@@ -8,6 +9,7 @@ export interface VoiceOptionProps {
 }
 
 export function VoiceOption({ note, onClick }: VoiceOptionProps) {
+  const { t: tr } = useTranslation();
   const [hover, setHover] = useState(false);
   
   return (
@@ -15,7 +17,7 @@ export function VoiceOption({ note, onClick }: VoiceOptionProps) {
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      aria-label="Voice input"
+      aria-label={tr('wizard.voice.kicker')}
       style={{
         width: '100%',
         textAlign: 'left',
@@ -42,10 +44,10 @@ export function VoiceOption({ note, onClick }: VoiceOptionProps) {
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.primary, marginBottom: 1 }}>
-          Speak to the app
+          {tr('voiceOption.speakToApp')}
         </div>
         <div style={{ fontSize: 10.5, color: DARK.textMute, lineHeight: 1.4 }}>
-          {note ?? 'Voice input available on this block — AI will structure it for you.'}
+          {note ?? tr('voiceOption.defaultNote')}
         </div>
       </div>
       <Icon name="chevR" size={16} color={BRAND.primary} stroke={2} />

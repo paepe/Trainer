@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -19,6 +20,7 @@ export function Button({
   style, 
   ...rest 
 }: ButtonProps) {
+  const { t: tr } = useTranslation();
   const styles = {
     primary: { background: BRAND.primary, color: DARK.bg, border: 'none' },
     ghost:   { background: 'transparent', color: DARK.textSec, border: `1px solid ${DARK.border}` },
@@ -47,7 +49,7 @@ export function Button({
       }} 
       {...rest}
     >
-      {loading ? 'Loading…' : children}
+      {loading ? tr('common.loading') : children}
     </button>
   );
 }
