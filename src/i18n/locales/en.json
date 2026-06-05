@@ -8,7 +8,9 @@
     "live": "Live",
     "today": "Today",
     "yesterday": "Yesterday",
-    "action": "Action"
+    "action": "Action",
+    "loading": "Loading…",
+    "optional": "(optional)"
   },
   "inbox": {
     "title": "Inbox",
@@ -280,66 +282,42 @@
   },
   "studio": {
     "sidebar": {
-      "dashboard": "Dashboard",
-      "team": "Team",
-      "clients": "Clients",
-      "protocols": "Protocols",
-      "signOut": "Sign out"
+      "studioLabel": "Studio"
     },
     "dashboard": {
-      "title": "Dashboard",
-      "sub": "Studio overview",
-      "activeClients": "Active clients",
-      "activeTrainers": "Active trainers",
-      "plansThisWeek": "Plans this week",
-      "completedThisWeek": "Completed this week",
-      "trainers": "Trainers",
-      "noTrainers": "No trainers yet. Go to Team to invite."
+      "protocolsSection": "Protocols",
+      "noProtocolsYet": "No protocols yet. Go to Protocols to create."
     },
     "team": {
-      "title": "Team",
-      "inviteTrainer": "Invite trainer by email",
-      "send": "Send",
-      "cancel": "Cancel",
-      "noTrainers": "No trainers yet. Invite your first trainer above.",
-      "headers": [
-        "Name",
-        "Email",
-        "Role",
-        "Actions"
-      ],
-      "remove": "Remove"
+      "inviteTrainerBtn": "+ Invite trainer",
+      "emailPlaceholder": "trainer@email.com"
     },
     "clients": {
-      "title": "Clients",
-      "allTrainers": "All trainers",
-      "allLevels": "All levels",
-      "headers": [
-        "Client",
-        "Email",
-        "Trainer",
-        "Goal",
-        "Level"
-      ],
-      "noClients": "No active clients yet. Trainers need to be linked to clients first.",
-      "noMatch": "No clients match the current filters."
+      "searchPlaceholder": "Search by name or email…",
+      "clear": "Clear ×"
     },
     "protocols": {
-      "title": "Protocol Library",
-      "newProtocol": "New protocol",
-      "name": "Name",
-      "objective": "Objective",
-      "level": "Level",
-      "description": "Description",
-      "createProtocol": "Create protocol",
-      "cancel": "Cancel"
+      "newProtocolHeading": "New protocol",
+      "durationLabel": "Duration (min)",
+      "searchPlaceholder": "Search by name or objective…",
+      "sortBy": "Sort by:",
+      "sortName": "Name",
+      "sortLevel": "Level",
+      "sortDuration": "Duration",
+      "sortExercises": "Exercises",
+      "clearFilters": "Clear filters ×",
+      "noProtocolsYet": "No protocols yet. Create your first protocol above.",
+      "noMatch": "No protocols match your criteria.",
+      "delete": "Delete"
     },
     "protocolDetail": {
-      "noExercises": "No exercises yet.",
-      "exercise": "Exercise",
-      "muscleGroup": "Muscle group",
-      "sets": "Sets",
-      "reps": "Reps"
+      "exercisesCount": "Exercises ({{count}})",
+      "loadKg": "Load (kg)",
+      "restS": "Rest (s)",
+      "add": "Add",
+      "cancel": "Cancel",
+      "addExercise": "+ Add exercise",
+      "loadOptional": "optional"
     },
     "auth": {
       "accessDenied": "Access denied",
@@ -349,9 +327,8 @@
       "signInBtn": "Sign in"
     },
     "createStudio": {
-      "title": "Create your Studio",
-      "note": "Give your studio a name to get started. You can always change this later.",
-      "errUnknown": "An error occurred"
+      "btnCreateStudio": "Create Studio →",
+      "namePlaceholder": "Studio name (e.g. FitCore Lisboa)"
     }
   },
   "checkinEnums": {
@@ -2030,5 +2007,61 @@
         "hint": "Hide TrAIner brand for your studio"
       }
     }
+  },
+  "risk": {
+    "noRestrictions": "No restrictions",
+    "noRestrictionsDesc": "Profile with no identified conditions. AI-led with no restrictions.",
+    "low": "Low",
+    "lowDesc": "Mild conditions. Normal progression with occasional attention.",
+    "moderate": "Moderate",
+    "moderateDesc": "Moderate conditions. Privacy masking active. Safety Gate activated.",
+    "high": "High",
+    "highDesc": "Requires human validation. AI operates in conservative mode.",
+    "critical": "Critical",
+    "criticalDesc": "AI-led blocked. Professional review required before proceeding.",
+    "levelBadge": "RISK_LEVEL = \"{{level}}\""
+  },
+  "bodyDiagram": {
+    "neck": "NECK",
+    "shoulder": "SHOULDER",
+    "upper_back": "UPPER BACK",
+    "lower_back": "LOWER BACK",
+    "elbow": "ELBOW",
+    "hip": "HIP",
+    "knee": "KNEE",
+    "ankle": "ANKLE",
+    "wrist": "WRIST",
+    "other": "OTHER"
+  },
+  "voiceOption": {
+    "speakToApp": "Speak to the app",
+    "defaultNote": "Voice input available on this block — AI will structure it for you."
+  },
+  "safetyGate": {
+    "seekGuidance": "Seek guidance if symptom persists · pain {{region}} · signal: {{signal}}.",
+    "adaptedRecommended": "Adapted session recommended — reduced intensity."
+  },
+  "workoutGen": {
+    "timedOut": "Workout generation timed out.",
+    "unableToReach": "Unable to reach workout service.",
+    "generateFailed": "Failed to generate workout",
+    "noValidPlan": "Workout service did not return a valid plan.",
+    "smartFailed": "Smart workout generation failed",
+    "smartTimedOut": "Smart workout timed out."
+  },
+  "events": {
+    "highPainTitle": "High pain reported — {{region}}",
+    "highPainBody": "Intensity {{intensity}}/10 during workout session. Review and adjust plan.",
+    "reviewPainTitle": "Review pain — {{region}}",
+    "reviewPainBody": "Client reported {{intensity}}/10 intensity in {{region}}. Review session and adjust plan if needed."
+  },
+  "app": {
+    "noClientSelected": "⚠ No client selected",
+    "selectClientBanner": "Select a client from My Clients first to load their data.",
+    "goToMyClients": "Go to My Clients"
+  },
+  "wizardFooter": {
+    "continue": "Continue",
+    "save": "Save"
   }
 }

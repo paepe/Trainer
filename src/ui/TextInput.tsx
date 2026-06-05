@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { Icon } from '../components/Icon';
 
@@ -33,6 +34,7 @@ export function TextInput({
   style,
   ...rest
 }: TextInputProps) {
+  const { t: tr } = useTranslation();
   const [focus, setFocus] = React.useState(false);
   
   const baseInputStyle: React.CSSProperties = {
@@ -56,7 +58,7 @@ export function TextInput({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
       {label && (
         <span style={{ fontSize: 11, fontWeight: 600, color: DARK.textMute, textTransform: 'uppercase', letterSpacing: '.06em' }}>
-          {label} {optional && <span style={{ textTransform: 'lowercase', opacity: 0.7 }}>(opcional)</span>}
+          {label} {optional && <span style={{ textTransform: 'lowercase', opacity: 0.7 }}>{tr('common.optional')}</span>}
         </span>
       )}
       

@@ -8,7 +8,9 @@
     "live": "Live",
     "today": "Heute",
     "yesterday": "Gestern",
-    "action": "Aktion"
+    "action": "Aktion",
+    "loading": "Wird geladen…",
+    "optional": "(optional)"
   },
   "inbox": {
     "title": "Posteingang",
@@ -280,66 +282,42 @@
   },
   "studio": {
     "sidebar": {
-      "dashboard": "Dashboard",
-      "team": "Team",
-      "clients": "Kunden",
-      "protocols": "Protokolle",
-      "signOut": "Abmelden"
+      "studioLabel": "Studio"
     },
     "dashboard": {
-      "title": "Dashboard",
-      "sub": "Studio-Übersicht",
-      "activeClients": "Aktive Kunden",
-      "activeTrainers": "Aktive Trainer",
-      "plansThisWeek": "Pläne diese Woche",
-      "completedThisWeek": "Diese Woche abgeschlossen",
-      "trainers": "Trainer",
-      "noTrainers": "Noch keine Trainer. Zum Team gehen, um einzuladen."
+      "protocolsSection": "Protokolle",
+      "noProtocolsYet": "Noch keine Protokolle. Gehe zu Protokolle zum Erstellen."
     },
     "team": {
-      "title": "Team",
-      "inviteTrainer": "Trainer per E-Mail einladen",
-      "send": "Senden",
-      "cancel": "Abbrechen",
-      "noTrainers": "Noch keine Trainer. Ersten Trainer oben einladen.",
-      "headers": [
-        "Name",
-        "E-Mail",
-        "Rolle",
-        "Aktionen"
-      ],
-      "remove": "Entfernen"
+      "inviteTrainerBtn": "+ Trainer einladen",
+      "emailPlaceholder": "trainer@email.com"
     },
     "clients": {
-      "title": "Kunden",
-      "allTrainers": "Alle Trainer",
-      "allLevels": "Alle Niveaus",
-      "headers": [
-        "Kunde",
-        "E-Mail",
-        "Trainer",
-        "Ziel",
-        "Niveau"
-      ],
-      "noClients": "Noch keine aktiven Kunden. Trainer müssen zunächst mit Kunden verknüpft werden.",
-      "noMatch": "Keine Kunden entsprechen den aktuellen Filtern."
+      "searchPlaceholder": "Nach Name oder E-Mail suchen…",
+      "clear": "Löschen ×"
     },
     "protocols": {
-      "title": "Protokollbibliothek",
-      "newProtocol": "Neues Protokoll",
-      "name": "Name",
-      "objective": "Ziel",
-      "level": "Niveau",
-      "description": "Beschreibung",
-      "createProtocol": "Protokoll erstellen",
-      "cancel": "Abbrechen"
+      "newProtocolHeading": "Neues Protokoll",
+      "durationLabel": "Dauer (min)",
+      "searchPlaceholder": "Nach Name oder Ziel suchen…",
+      "sortBy": "Sortieren nach:",
+      "sortName": "Name",
+      "sortLevel": "Niveau",
+      "sortDuration": "Dauer",
+      "sortExercises": "Übungen",
+      "clearFilters": "Filter löschen ×",
+      "noProtocolsYet": "Noch keine Protokolle. Erstes Protokoll oben erstellen.",
+      "noMatch": "Keine Protokolle entsprechen den Kriterien.",
+      "delete": "Löschen"
     },
     "protocolDetail": {
-      "noExercises": "Noch keine Übungen.",
-      "exercise": "Übung",
-      "muscleGroup": "Muskelgruppe",
-      "sets": "Sätze",
-      "reps": "Wdh."
+      "exercisesCount": "Übungen ({{count}})",
+      "loadKg": "Last (kg)",
+      "restS": "Pause (s)",
+      "add": "Hinzufügen",
+      "cancel": "Abbrechen",
+      "addExercise": "+ Übung hinzufügen",
+      "loadOptional": "optional"
     },
     "auth": {
       "accessDenied": "Zugriff verweigert",
@@ -349,9 +327,8 @@
       "signInBtn": "Anmelden"
     },
     "createStudio": {
-      "title": "Dein Studio erstellen",
-      "note": "Gib deinem Studio einen Namen, um loszulegen. Dies kann später geändert werden.",
-      "errUnknown": "Ein Fehler ist aufgetreten"
+      "btnCreateStudio": "Studio erstellen →",
+      "namePlaceholder": "Studio-Name (z.B. FitCore Lisboa)"
     }
   },
   "checkinEnums": {
@@ -2031,5 +2008,61 @@
         "hint": "TrAIner-Marke für dein Studio ausblenden"
       }
     }
+  },
+  "risk": {
+    "noRestrictions": "Keine Einschränkungen",
+    "noRestrictionsDesc": "Profil ohne identifizierte Erkrankungen. KI-geführt ohne Einschränkungen.",
+    "low": "Niedrig",
+    "lowDesc": "Leichte Bedingungen. Normale Progression mit gelegentlicher Aufmerksamkeit.",
+    "moderate": "Mittel",
+    "moderateDesc": "Mittlere Bedingungen. Datenschutz-Maskierung aktiv. Safety Gate aktiviert.",
+    "high": "Hoch",
+    "highDesc": "Erfordert menschliche Validierung. KI operiert konservativ.",
+    "critical": "Kritisch",
+    "criticalDesc": "KI-Führung blockiert. Professionelle Überprüfung erforderlich.",
+    "levelBadge": "RISIKOSTUFE = \"{{level}}\""
+  },
+  "bodyDiagram": {
+    "neck": "NACKEN",
+    "shoulder": "SCHULTER",
+    "upper_back": "OBERER RÜCKEN",
+    "lower_back": "LENDENWIRBEL",
+    "elbow": "ELLBOGEN",
+    "hip": "HÜFTE",
+    "knee": "KNIE",
+    "ankle": "KNÖCHEL",
+    "wrist": "HANDGELENK",
+    "other": "SONSTIGES"
+  },
+  "voiceOption": {
+    "speakToApp": "Sprich mit der App",
+    "defaultNote": "Spracheingabe in diesem Block verfügbar — KI strukturiert sie für dich."
+  },
+  "safetyGate": {
+    "seekGuidance": "Suche Rat, wenn Symptom anhält · Schmerz {{region}} · Signal: {{signal}}.",
+    "adaptedRecommended": "Angepasste Einheit empfohlen — reduzierte Intensität."
+  },
+  "workoutGen": {
+    "timedOut": "Workout-Generierung abgelaufen.",
+    "unableToReach": "Workout-Dienst nicht erreichbar.",
+    "generateFailed": "Workout-Generierung fehlgeschlagen",
+    "noValidPlan": "Workout-Dienst gab keinen gültigen Plan zurück.",
+    "smartFailed": "Intelligente Workout-Generierung fehlgeschlagen",
+    "smartTimedOut": "Intelligentes Workout abgelaufen."
+  },
+  "events": {
+    "highPainTitle": "Hoher Schmerz gemeldet — {{region}}",
+    "highPainBody": "Intensität {{intensity}}/10 während der Einheit. Plan überprüfen und anpassen.",
+    "reviewPainTitle": "Schmerz überprüfen — {{region}}",
+    "reviewPainBody": "Kunde meldete {{intensity}}/10 Intensität in {{region}}. Einheit überprüfen und Plan bei Bedarf anpassen."
+  },
+  "app": {
+    "noClientSelected": "⚠ Kein Kunde ausgewählt",
+    "selectClientBanner": "Wähle zuerst einen Kunden unter Meine Kunden aus, um seine Daten zu laden.",
+    "goToMyClients": "Zu Meine Kunden"
+  },
+  "wizardFooter": {
+    "continue": "Weiter",
+    "save": "Speichern"
   }
 }

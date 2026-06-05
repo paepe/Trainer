@@ -8,7 +8,9 @@
     "live": "Ao Vivo",
     "today": "Hoje",
     "yesterday": "Ontem",
-    "action": "Ação"
+    "action": "Ação",
+    "loading": "Carregando…",
+    "optional": "(opcional)"
   },
   "inbox": {
     "title": "Mensagens",
@@ -280,66 +282,42 @@
   },
   "studio": {
     "sidebar": {
-      "dashboard": "Painel",
-      "team": "Equipe",
-      "clients": "Clientes",
-      "protocols": "Protocolos",
-      "signOut": "Sair"
+      "studioLabel": "Studio"
     },
     "dashboard": {
-      "title": "Painel",
-      "sub": "Visão geral do studio",
-      "activeClients": "Clientes ativos",
-      "activeTrainers": "Treinadores ativos",
-      "plansThisWeek": "Planos esta semana",
-      "completedThisWeek": "Concluídos esta semana",
-      "trainers": "Treinadores",
-      "noTrainers": "Nenhum treinador ainda. Vá para Equipe para convidar."
+      "protocolsSection": "Protocolos",
+      "noProtocolsYet": "Ainda não há protocolos. Vá em Protocolos para criar."
     },
     "team": {
-      "title": "Equipe",
-      "inviteTrainer": "Convidar treinador por e-mail",
-      "send": "Enviar",
-      "cancel": "Cancelar",
-      "noTrainers": "Nenhum treinador ainda. Convide seu primeiro treinador acima.",
-      "headers": [
-        "Nome",
-        "E-mail",
-        "Função",
-        "Ações"
-      ],
-      "remove": "Remover"
+      "inviteTrainerBtn": "+ Convidar treinador",
+      "emailPlaceholder": "treinador@email.com"
     },
     "clients": {
-      "title": "Clientes",
-      "allTrainers": "Todos os treinadores",
-      "allLevels": "Todos os níveis",
-      "headers": [
-        "Cliente",
-        "E-mail",
-        "Treinador",
-        "Objetivo",
-        "Nível"
-      ],
-      "noClients": "Nenhum cliente ativo ainda. Os treinadores precisam ser vinculados aos clientes primeiro.",
-      "noMatch": "Nenhum cliente corresponde aos filtros atuais."
+      "searchPlaceholder": "Buscar por nome ou email…",
+      "clear": "Limpar ×"
     },
     "protocols": {
-      "title": "Biblioteca de Protocolos",
-      "newProtocol": "Novo protocolo",
-      "name": "Nome",
-      "objective": "Objetivo",
-      "level": "Nível",
-      "description": "Descrição",
-      "createProtocol": "Criar protocolo",
-      "cancel": "Cancelar"
+      "newProtocolHeading": "Novo protocolo",
+      "durationLabel": "Duração (min)",
+      "searchPlaceholder": "Buscar por nome ou objetivo…",
+      "sortBy": "Ordenar por:",
+      "sortName": "Nome",
+      "sortLevel": "Nível",
+      "sortDuration": "Duração",
+      "sortExercises": "Exercícios",
+      "clearFilters": "Limpar filtros ×",
+      "noProtocolsYet": "Ainda não há protocolos. Crie seu primeiro protocolo acima.",
+      "noMatch": "Nenhum protocolo corresponde aos critérios.",
+      "delete": "Excluir"
     },
     "protocolDetail": {
-      "noExercises": "Nenhum exercício ainda.",
-      "exercise": "Exercício",
-      "muscleGroup": "Grupo muscular",
-      "sets": "Séries",
-      "reps": "Reps"
+      "exercisesCount": "Exercícios ({{count}})",
+      "loadKg": "Carga (kg)",
+      "restS": "Descanso (s)",
+      "add": "Adicionar",
+      "cancel": "Cancelar",
+      "addExercise": "+ Adicionar exercício",
+      "loadOptional": "opcional"
     },
     "auth": {
       "accessDenied": "Acesso negado",
@@ -349,9 +327,8 @@
       "signInBtn": "Entrar"
     },
     "createStudio": {
-      "title": "Crie seu Studio",
-      "note": "Dê um nome ao seu studio para começar. Você pode alterar isso mais tarde.",
-      "errUnknown": "Ocorreu um erro"
+      "btnCreateStudio": "Criar Studio →",
+      "namePlaceholder": "Nome do studio (ex.: FitCore Lisboa)"
     }
   },
   "checkinEnums": {
@@ -2031,5 +2008,61 @@
         "hint": "Ocultar a marca TrAIner para seu estúdio"
       }
     }
+  },
+  "risk": {
+    "noRestrictions": "Sem restrições",
+    "noRestrictionsDesc": "Perfil sem condições identificadas. Conduzido por IA sem restrições.",
+    "low": "Baixo",
+    "lowDesc": "Condições leves. Progressão normal com atenção ocasional.",
+    "moderate": "Moderado",
+    "moderateDesc": "Condições moderadas. Mascaramento de privacidade ativo. Safety Gate ativado.",
+    "high": "Alto",
+    "highDesc": "Requer validação humana. IA opera em modo conservador.",
+    "critical": "Crítico",
+    "criticalDesc": "Condução por IA bloqueada. Revisão profissional necessária antes de prosseguir.",
+    "levelBadge": "NÍVEL_DE_RISCO = \"{{level}}\""
+  },
+  "bodyDiagram": {
+    "neck": "PESCOÇO",
+    "shoulder": "OMBRO",
+    "upper_back": "COSTAS ALTAS",
+    "lower_back": "LOMBAR",
+    "elbow": "COTOVELO",
+    "hip": "QUADRIL",
+    "knee": "JOELHO",
+    "ankle": "TORNOZELO",
+    "wrist": "PUNHO",
+    "other": "OUTRO"
+  },
+  "voiceOption": {
+    "speakToApp": "Fale com o app",
+    "defaultNote": "Entrada de voz disponível neste bloco — a IA estruturará para você."
+  },
+  "safetyGate": {
+    "seekGuidance": "Busque orientação se o sintoma persistir · dor {{region}} · sinal: {{signal}}.",
+    "adaptedRecommended": "Sessão adaptada recomendada — intensidade reduzida."
+  },
+  "workoutGen": {
+    "timedOut": "Geração de treino expirou.",
+    "unableToReach": "Não foi possível alcançar o serviço de treino.",
+    "generateFailed": "Falha ao gerar treino",
+    "noValidPlan": "Serviço de treino não retornou um plano válido.",
+    "smartFailed": "Falha na geração inteligente de treino",
+    "smartTimedOut": "Treino inteligente expirou."
+  },
+  "events": {
+    "highPainTitle": "Dor alta reportada — {{region}}",
+    "highPainBody": "Intensidade {{intensity}}/10 durante a sessão. Revise e ajuste o plano.",
+    "reviewPainTitle": "Revisar dor — {{region}}",
+    "reviewPainBody": "Cliente reportou intensidade {{intensity}}/10 em {{region}}. Revise a sessão e ajuste o plano se necessário."
+  },
+  "app": {
+    "noClientSelected": "⚠ Nenhum cliente selecionado",
+    "selectClientBanner": "Selecione um cliente em Meus Clientes primeiro para carregar seus dados.",
+    "goToMyClients": "Ir para Meus Clientes"
+  },
+  "wizardFooter": {
+    "continue": "Continuar",
+    "save": "Salvar"
   }
 }

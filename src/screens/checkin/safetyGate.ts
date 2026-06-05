@@ -1,3 +1,4 @@
+import i18n from '../../i18n';
 import type { CheckInQuick, CheckInDetailed, SafetyGateResult, SafetyGateStatus, SafetySignal } from '../../types/checkin-v2';
 
 const SIGNAL_LABELS: Record<SafetySignal, string> = {
@@ -36,9 +37,9 @@ export function computeSafetyGate(data: CheckInQuick | CheckInDetailed): SafetyG
   const firstSignal   = signals[0];
 
   const rec = hasSignals && firstSignal
-    ? `Seek guidance if symptom persists${data.pain.region ? ` · pain ${data.pain.region}` : ''} · signal: ${SIGNAL_LABELS[firstSignal]}.`
+    ? i18n.t('safetyGate.seekGuidance', { region: data.pain.region ?? '', signal: SIGNAL_LABELS[firstSignal] })
     : score < 55
-    ? 'Adapted session recommended — reduced intensity.'
+    ? i18n.t('safetyGate.adaptedRecommended')
     : undefined;
 
   return {

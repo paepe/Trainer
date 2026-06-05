@@ -466,20 +466,20 @@ export default function App() {
           fontSize: 8.5, fontWeight: 700, letterSpacing: '.1em',
           textTransform: 'uppercase', color: '#F5A623', marginBottom: 8,
         }}>
-          ⚠ No client selected
+          {tr('app.noClientSelected')}
         </div>
         <p style={{
           margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-sec)',
           lineHeight: 1.5,
         }}>
-          Select a client from My Clients first to load their data.
+          {tr('app.selectClientBanner')}
         </p>
         <button onClick={() => { setScreen('trainerDashboard'); setSelectedClient(null); }} style={{
           padding: '9px 22px', borderRadius: 14, border: 'none',
           background: t.primary, color: '#0E1A2B',
           fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
         }}>
-          Go to My Clients
+          {tr('app.goToMyClients')}
         </button>
       </div>
     ) : null;

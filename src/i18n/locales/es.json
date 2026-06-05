@@ -8,7 +8,9 @@
     "live": "En vivo",
     "today": "Hoy",
     "yesterday": "Ayer",
-    "action": "Acción"
+    "action": "Acción",
+    "loading": "Cargando…",
+    "optional": "(opcional)"
   },
   "inbox": {
     "title": "Bandeja de entrada",
@@ -280,66 +282,42 @@
   },
   "studio": {
     "sidebar": {
-      "dashboard": "Panel",
-      "team": "Equipo",
-      "clients": "Clientes",
-      "protocols": "Protocolos",
-      "signOut": "Cerrar sesión"
+      "studioLabel": "Studio"
     },
     "dashboard": {
-      "title": "Panel",
-      "sub": "Vista general del studio",
-      "activeClients": "Clientes activos",
-      "activeTrainers": "Entrenadores activos",
-      "plansThisWeek": "Planes esta semana",
-      "completedThisWeek": "Completados esta semana",
-      "trainers": "Entrenadores",
-      "noTrainers": "Aún no hay entrenadores. Ve a Equipo para invitar."
+      "protocolsSection": "Protocolos",
+      "noProtocolsYet": "Aún no hay protocolos. Ve a Protocolos para crear."
     },
     "team": {
-      "title": "Equipo",
-      "inviteTrainer": "Invitar entrenador por correo",
-      "send": "Enviar",
-      "cancel": "Cancelar",
-      "noTrainers": "Aún no hay entrenadores. Invita a tu primer entrenador arriba.",
-      "headers": [
-        "Nombre",
-        "Correo",
-        "Rol",
-        "Acciones"
-      ],
-      "remove": "Eliminar"
+      "inviteTrainerBtn": "+ Invitar entrenador",
+      "emailPlaceholder": "entrenador@email.com"
     },
     "clients": {
-      "title": "Clientes",
-      "allTrainers": "Todos los entrenadores",
-      "allLevels": "Todos los niveles",
-      "headers": [
-        "Cliente",
-        "Correo",
-        "Entrenador",
-        "Objetivo",
-        "Nivel"
-      ],
-      "noClients": "Aún no hay clientes activos. Los entrenadores deben estar vinculados a los clientes primero.",
-      "noMatch": "Ningún cliente coincide con los filtros actuales."
+      "searchPlaceholder": "Buscar por nombre o email…",
+      "clear": "Limpiar ×"
     },
     "protocols": {
-      "title": "Biblioteca de Protocolos",
-      "newProtocol": "Nuevo protocolo",
-      "name": "Nombre",
-      "objective": "Objetivo",
-      "level": "Nivel",
-      "description": "Descripción",
-      "createProtocol": "Crear protocolo",
-      "cancel": "Cancelar"
+      "newProtocolHeading": "Nuevo protocolo",
+      "durationLabel": "Duración (min)",
+      "searchPlaceholder": "Buscar por nombre u objetivo…",
+      "sortBy": "Ordenar por:",
+      "sortName": "Nombre",
+      "sortLevel": "Nivel",
+      "sortDuration": "Duración",
+      "sortExercises": "Ejercicios",
+      "clearFilters": "Limpiar filtros ×",
+      "noProtocolsYet": "Aún no hay protocolos. Crea tu primer protocolo arriba.",
+      "noMatch": "Ningún protocolo coincide con los criterios.",
+      "delete": "Eliminar"
     },
     "protocolDetail": {
-      "noExercises": "Aún no hay ejercicios.",
-      "exercise": "Ejercicio",
-      "muscleGroup": "Grupo muscular",
-      "sets": "Series",
-      "reps": "Reps"
+      "exercisesCount": "Ejercicios ({{count}})",
+      "loadKg": "Carga (kg)",
+      "restS": "Descanso (s)",
+      "add": "Agregar",
+      "cancel": "Cancelar",
+      "addExercise": "+ Agregar ejercicio",
+      "loadOptional": "opcional"
     },
     "auth": {
       "accessDenied": "Acceso denegado",
@@ -349,9 +327,8 @@
       "signInBtn": "Iniciar sesión"
     },
     "createStudio": {
-      "title": "Crea tu Studio",
-      "note": "Dale un nombre a tu studio para empezar. Puedes cambiarlo más adelante.",
-      "errUnknown": "Ocurrió un error"
+      "btnCreateStudio": "Crear Studio →",
+      "namePlaceholder": "Nombre del studio (ej.: FitCore Lisboa)"
     }
   },
   "checkinEnums": {
@@ -2031,5 +2008,61 @@
         "hint": "Ocultar la marca TrAIner para tu estudio"
       }
     }
+  },
+  "risk": {
+    "noRestrictions": "Sin restricciones",
+    "noRestrictionsDesc": "Perfil sin condiciones identificadas. Conducido por IA sin restricciones.",
+    "low": "Bajo",
+    "lowDesc": "Condiciones leves. Progresión normal con atención ocasional.",
+    "moderate": "Moderado",
+    "moderateDesc": "Condiciones moderadas. Enmascaramiento de privacidad activo. Safety Gate activado.",
+    "high": "Alto",
+    "highDesc": "Requiere validación humana. IA opera en modo conservador.",
+    "critical": "Crítico",
+    "criticalDesc": "Conducción por IA bloqueada. Revisión profesional necesaria antes de proceder.",
+    "levelBadge": "NIVEL_DE_RIESGO = \"{{level}}\""
+  },
+  "bodyDiagram": {
+    "neck": "CUELLO",
+    "shoulder": "HOMBRO",
+    "upper_back": "ESPALDA ALTA",
+    "lower_back": "LUMBAR",
+    "elbow": "CODO",
+    "hip": "CADERA",
+    "knee": "RODILLA",
+    "ankle": "TOBILLO",
+    "wrist": "MUÑECA",
+    "other": "OTRO"
+  },
+  "voiceOption": {
+    "speakToApp": "Habla con la app",
+    "defaultNote": "Entrada de voz disponible en este bloque — la IA la estructurará para ti."
+  },
+  "safetyGate": {
+    "seekGuidance": "Busca orientación si el síntoma persiste · dolor {{region}} · señal: {{signal}}.",
+    "adaptedRecommended": "Sesión adaptada recomendada — intensidad reducida."
+  },
+  "workoutGen": {
+    "timedOut": "Generación de entrenamiento expiró.",
+    "unableToReach": "No se pudo contactar el servicio de entrenamiento.",
+    "generateFailed": "Error al generar entrenamiento",
+    "noValidPlan": "El servicio de entrenamiento no devolvió un plan válido.",
+    "smartFailed": "Error en generación inteligente de entrenamiento",
+    "smartTimedOut": "Entrenamiento inteligente expiró."
+  },
+  "events": {
+    "highPainTitle": "Dolor alto reportado — {{region}}",
+    "highPainBody": "Intensidad {{intensity}}/10 durante la sesión. Revisa y ajusta el plan.",
+    "reviewPainTitle": "Revisar dolor — {{region}}",
+    "reviewPainBody": "Cliente reportó intensidad {{intensity}}/10 en {{region}}. Revisa la sesión y ajusta el plan si es necesario."
+  },
+  "app": {
+    "noClientSelected": "⚠ Ningún cliente seleccionado",
+    "selectClientBanner": "Selecciona un cliente en Mis Clientes primero para cargar sus datos.",
+    "goToMyClients": "Ir a Mis Clientes"
+  },
+  "wizardFooter": {
+    "continue": "Continuar",
+    "save": "Guardar"
   }
 }

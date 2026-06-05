@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import i18n from '../i18n';
 import type { Json } from '../types/supabase';
 import type { SystemEventType } from '../types/workout';
 
@@ -52,8 +53,8 @@ export async function handlePainReport(
       client_id:  userId,
       alert_type: 'high_pain',
       severity,
-      title:  `High pain reported — ${bodyRegion}`,
-      body:   `Intensity ${intensity}/10 during workout session. Review and adjust plan.`,
+      title:  i18n.t('events.highPainTitle', { region: bodyRegion }),
+      body:   i18n.t('events.highPainBody', { intensity }),
       status: 'open',
       session_id: sessionId,
     })
@@ -68,8 +69,8 @@ export async function handlePainReport(
     trainer_id:        tc.trainer_id,
     client_id:         userId,
     task_type:         'review_pain',
-    title:             `Review pain — ${bodyRegion}`,
-    description:       `Client reported ${intensity}/10 intensity in ${bodyRegion}. Review session and adjust plan if needed.`,
+    title:             i18n.t('events.reviewPainTitle', { region: bodyRegion }),
+    description:       i18n.t('events.reviewPainBody', { intensity, region: bodyRegion }),
     priority:          intensity >= 9 ? 'urgent' : 'high',
     status:            'pending',
     related_session_id: sessionId,
