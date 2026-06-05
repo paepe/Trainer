@@ -1,38 +1,31 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { PrimaryGoal, SecondaryGoal } from '../../../types/profile-v2';
 
-const PRIMARY_GOALS: { value: PrimaryGoal; label: string; icon: string }[] = [
-  { value: 'hypertrophy',       label: 'Hypertrophy',       icon: 'dumbbell' },
-  { value: 'weight_loss',       label: 'Weight Loss',     icon: 'flame'    },
-  { value: 'strength_gain',     label: 'Strength Gain',    icon: 'bolt'     },
-  { value: 'conditioning',      label: 'Conditioning',   icon: 'pulse'    },
-  { value: 'mobility',          label: 'Mobility',        icon: 'heart'    },
-  { value: 'longevity',         label: 'Longevity',       icon: 'moon'     },
-  { value: 'return_to_training',label: 'Return to Training', icon: 'rocket'   },
-  { value: 'emotional_wellbeing',label:'Emotional Wellbeing',icon: 'sparkle' },
+// Labels resolved at render via wizard.goals.<value>
+const PRIMARY_GOALS: { value: PrimaryGoal; icon: string }[] = [
+  { value: 'hypertrophy',        icon: 'dumbbell' },
+  { value: 'weight_loss',        icon: 'flame'    },
+  { value: 'strength_gain',      icon: 'bolt'     },
+  { value: 'conditioning',       icon: 'pulse'    },
+  { value: 'mobility',           icon: 'heart'    },
+  { value: 'longevity',          icon: 'moon'     },
+  { value: 'return_to_training', icon: 'rocket'   },
+  { value: 'emotional_wellbeing', icon: 'sparkle' },
 ];
 
-const SECONDARY_GOALS: { value: SecondaryGoal; label: string }[] = [
-  { value: 'hypertrophy',        label: 'Hypertrophy'         },
-  { value: 'weight_loss',        label: 'Weight Loss'       },
-  { value: 'strength_gain',      label: 'Strength Gain'      },
-  { value: 'conditioning',       label: 'Conditioning'     },
-  { value: 'mobility',           label: 'Mobility'          },
-  { value: 'longevity',          label: 'Longevity'         },
-  { value: 'return_to_training', label: 'Return to Training'   },
-  { value: 'emotional_wellbeing',label: 'Emotional Wellbeing' },
-  { value: 'daily_autonomy',     label: 'Daily Autonomy'    },
-  { value: 'body_composition',   label: 'Body Composition' },
-  { value: 'sports_performance', label: 'Sports Performance' },
-  { value: 'balance',            label: 'Balance'          },
-  { value: 'consistency',        label: 'Consistency'        },
+const SECONDARY_GOALS: SecondaryGoal[] = [
+  'hypertrophy', 'weight_loss', 'strength_gain', 'conditioning', 'mobility',
+  'longevity', 'return_to_training', 'emotional_wellbeing', 'daily_autonomy',
+  'body_composition', 'sports_performance', 'balance', 'consistency',
 ];
 
 export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+  const { t: tr } = useTranslation();
   const obj = data.objectives ?? { primary_goal: undefined as unknown as PrimaryGoal, secondary_goals: [] };
 
   const setPrimary = (v: PrimaryGoal) =>
@@ -44,30 +37,30 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
     onUpdate({ objectives: { ...obj, secondary_goals: next } });
   };
 
-  const availableSecondary = SECONDARY_GOALS.filter(g => g.value !== obj.primary_goal);
+  const availableSecondary = SECONDARY_GOALS.filter(g => g !== obj.primary_goal);
   const canAdvance = !!obj.primary_goal;
   const [voiceOpen, setVoiceOpen] = React.useState(false);
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
+      <WizardHeader title={tr('wizard.sections.objectives')} currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        What can movement<br/>improve in your life?
+        {tr('wizard.step03.q1')}<br/>{tr('wizard.step03.q2')}
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        "What would you like movement to improve in your life?"
+        {tr('wizard.step03.prompt')}
       </p>
 
-      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Primary goal</Typography>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step03.primaryGoal')}</Typography>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
         {PRIMARY_GOALS.map(g => (
           <ChoiceCard
             key={g.value}
-            title={g.label}
+            title={tr(`wizard.goals.${g.value}`)}
             icon={g.icon}
             active={obj.primary_goal === g.value}
             onClick={() => setPrimary(g.value)}
@@ -77,14 +70,14 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
 
       {obj.primary_goal && (
         <>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Secondary goals (optional)</Typography>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step03.secondaryGoals')}</Typography>
           <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
             {availableSecondary.map(g => (
               <Chip
-                key={g.value}
-                label={g.label}
-                active={(obj.secondary_goals ?? []).includes(g.value)}
-                onClick={() => toggleSecondary(g.value)}
+                key={g}
+                label={tr(`wizard.goals.${g}`)}
+                active={(obj.secondary_goals ?? []).includes(g)}
+                onClick={() => toggleSecondary(g)}
               />
             ))}
           </HStack>
@@ -92,7 +85,7 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
       )}
 
       <VoiceOption
-        note="Tell us about your goals in your own words."
+        note={tr('wizard.step03.voiceNote')}
         onClick={() => setVoiceOpen(true)}
       />
 
@@ -106,7 +99,7 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
 
       {voiceOpen && (
         <WizardVoiceOverlay dark={dark} primary={primary}
-          context="Tell us about your goals"
+          context={tr('wizard.step03.voiceContext')}
           onConfirm={(text) => {
             onUpdate({ objectives: { ...obj, voice_note: text } });
             setVoiceOpen(false);

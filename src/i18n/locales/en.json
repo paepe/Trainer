@@ -82,6 +82,30 @@
       "emergencyNamePlaceholder": "First and last name",
       "sex": { "female": "Female", "male": "Male", "intersex": "Intersex", "prefer_not_to_say": "Prefer not to say" }
     },
+    "goals": {
+      "hypertrophy": "Hypertrophy",
+      "weight_loss": "Weight Loss",
+      "strength_gain": "Strength Gain",
+      "conditioning": "Conditioning",
+      "mobility": "Mobility",
+      "longevity": "Longevity",
+      "return_to_training": "Return to Training",
+      "emotional_wellbeing": "Emotional Wellbeing",
+      "daily_autonomy": "Daily Autonomy",
+      "body_composition": "Body Composition",
+      "sports_performance": "Sports Performance",
+      "balance": "Balance",
+      "consistency": "Consistency"
+    },
+    "step03": {
+      "q1": "What can movement",
+      "q2": "improve in your life?",
+      "prompt": "\"What would you like movement to improve in your life?\"",
+      "primaryGoal": "Primary goal",
+      "secondaryGoals": "Secondary goals (optional)",
+      "voiceNote": "Tell us about your goals in your own words.",
+      "voiceContext": "Tell us about your goals"
+    },
     "step01": {
       "kicker": "MODULE 01 · PREDICTIVE BASE",
       "title": "Smart Student Profile",

@@ -82,6 +82,30 @@
       "emergencyNamePlaceholder": "Vor- und Nachname",
       "sex": { "female": "Weiblich", "male": "Männlich", "intersex": "Intersexuell", "prefer_not_to_say": "Keine Angabe" }
     },
+    "goals": {
+      "hypertrophy": "Hypertrophie",
+      "weight_loss": "Gewichtsabnahme",
+      "strength_gain": "Kraftzuwachs",
+      "conditioning": "Konditionierung",
+      "mobility": "Mobilität",
+      "longevity": "Langlebigkeit",
+      "return_to_training": "Rückkehr zum Training",
+      "emotional_wellbeing": "Emotionales Wohlbefinden",
+      "daily_autonomy": "Alltagsautonomie",
+      "body_composition": "Körperzusammensetzung",
+      "sports_performance": "Sportliche Leistung",
+      "balance": "Gleichgewicht",
+      "consistency": "Beständigkeit"
+    },
+    "step03": {
+      "q1": "Was kann Bewegung",
+      "q2": "in deinem Leben verbessern?",
+      "prompt": "\"Was soll Bewegung in deinem Leben verbessern?\"",
+      "primaryGoal": "Hauptziel",
+      "secondaryGoals": "Nebenziele (optional)",
+      "voiceNote": "Erzähl uns deine Ziele in eigenen Worten.",
+      "voiceContext": "Erzähl uns deine Ziele"
+    },
     "step01": {
       "kicker": "MODUL 01 · PRÄDIKTIVE BASIS",
       "title": "Intelligentes Sportlerprofil",

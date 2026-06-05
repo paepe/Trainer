@@ -82,6 +82,30 @@
       "emergencyNamePlaceholder": "Nome e sobrenome",
       "sex": { "female": "Feminino", "male": "Masculino", "intersex": "Intersexo", "prefer_not_to_say": "Prefiro não dizer" }
     },
+    "goals": {
+      "hypertrophy": "Hipertrofia",
+      "weight_loss": "Perda de peso",
+      "strength_gain": "Ganho de força",
+      "conditioning": "Condicionamento",
+      "mobility": "Mobilidade",
+      "longevity": "Longevidade",
+      "return_to_training": "Retorno ao treino",
+      "emotional_wellbeing": "Bem-estar emocional",
+      "daily_autonomy": "Autonomia diária",
+      "body_composition": "Composição corporal",
+      "sports_performance": "Desempenho esportivo",
+      "balance": "Equilíbrio",
+      "consistency": "Consistência"
+    },
+    "step03": {
+      "q1": "O que o movimento pode",
+      "q2": "melhorar na sua vida?",
+      "prompt": "\"O que você gostaria que o movimento melhorasse na sua vida?\"",
+      "primaryGoal": "Objetivo principal",
+      "secondaryGoals": "Objetivos secundários (opcional)",
+      "voiceNote": "Conte sobre seus objetivos com suas próprias palavras.",
+      "voiceContext": "Conte sobre seus objetivos"
+    },
     "step01": {
       "kicker": "MÓDULO 01 · BASE PREDITIVA",
       "title": "Perfil Inteligente do Aluno",
