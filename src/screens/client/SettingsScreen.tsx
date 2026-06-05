@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
@@ -30,121 +31,134 @@ interface SelectorRow<K extends keyof AppPreferences> {
 }
 
 export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false }: SettingsScreenProps) {
+  const { t: tr } = useTranslation();  // `t` is the theme; `tr` translates
   const isAutonomous = !isTrainer && !hasTrainer;
 
   // ── Value-preference sections (Tier 1) ───────────────────────────────────────
   const trainingPrefs: SelectorRow<keyof AppPreferences>[] = [
-    { key: 'defaultLocation', label: 'Default location', hint: 'Where you usually train',
-      options: [{ value: 'gym', label: 'Gym' }, { value: 'home', label: 'Home' }, { value: 'outdoor', label: 'Outdoor' }] },
-    { key: 'defaultDurationMin', label: 'Default session', hint: 'Preferred workout length',
+    { key: 'defaultLocation', label: tr('settings.fields.location.label'), hint: tr('settings.fields.location.hint'),
+      options: [{ value: 'gym', label: tr('settings.opt.location.gym') }, { value: 'home', label: tr('settings.opt.location.home') }, { value: 'outdoor', label: tr('settings.opt.location.outdoor') }] },
+    { key: 'defaultDurationMin', label: tr('settings.fields.duration.label'), hint: tr('settings.fields.duration.hint'),
       options: [30, 45, 60, 75, 90].map(n => ({ value: n as AppPreferences['defaultDurationMin'], label: `${n}m` })) },
-    { key: 'preferredIntensity', label: 'Preferred intensity', hint: 'Baseline effort for AI plans',
-      options: [{ value: 'light', label: 'Light' }, { value: 'moderate', label: 'Moderate' }, { value: 'hard', label: 'Hard' }] },
+    { key: 'preferredIntensity', label: tr('settings.fields.intensity.label'), hint: tr('settings.fields.intensity.hint'),
+      options: [{ value: 'light', label: tr('settings.opt.intensity.light') }, { value: 'moderate', label: tr('settings.opt.intensity.moderate') }, { value: 'hard', label: tr('settings.opt.intensity.hard') }] },
   ];
 
   const trainerMgmt: SelectorRow<keyof AppPreferences>[] = [
-    { key: 'planExpiryDays', label: 'Plan auto-expiry', hint: 'Cancel pending plans after',
+    { key: 'planExpiryDays', label: tr('settings.fields.planExpiry.label'), hint: tr('settings.fields.planExpiry.hint'),
       options: [7, 10, 14, 21, 30].map(n => ({ value: n as AppPreferences['planExpiryDays'], label: `${n}d` })) },
-    { key: 'trainerDashboardLimit', label: 'Dashboard depth', hint: 'Sessions & plans loaded per client',
+    { key: 'trainerDashboardLimit', label: tr('settings.fields.dashboardDepth.label'), hint: tr('settings.fields.dashboardDepth.hint'),
       options: [5, 10, 20, 50].map(n => ({ value: n as AppPreferences['trainerDashboardLimit'], label: `${n}` })) },
   ];
 
   const coachingPrefs: SelectorRow<keyof AppPreferences>[] = [
-    { key: 'workoutReadyExpiryMin', label: 'Ready-to-train window', hint: 'How long your "I\'m ready" alert stays live',
+    { key: 'workoutReadyExpiryMin', label: tr('settings.fields.readyWindow.label'), hint: tr('settings.fields.readyWindow.hint'),
       options: [{ value: 15, label: '15m' }, { value: 30, label: '30m' }, { value: 60, label: '1h' }, { value: 120, label: '2h' }] },
   ];
 
   const dataPrefs: SelectorRow<keyof AppPreferences>[] = [
-    { key: 'sessionHistoryLimit', label: 'History depth', hint: 'Past sessions kept on the History screen',
+    { key: 'sessionHistoryLimit', label: tr('settings.fields.historyDepth.label'), hint: tr('settings.fields.historyDepth.hint'),
       options: [25, 50, 100, 200].map(n => ({ value: n as AppPreferences['sessionHistoryLimit'], label: `${n}` })) },
   ];
 
   const appearancePrefs: SelectorRow<keyof AppPreferences>[] = [
-    { key: 'lightPalette', label: 'Light palette', hint: 'Applied when dark mode is off',
-      options: [{ value: 'arctic', label: 'Arctic' }, { value: 'sand', label: 'Sand' }] },
+    { key: 'lightPalette', label: tr('settings.fields.lightPalette.label'), hint: tr('settings.fields.lightPalette.hint'),
+      options: [{ value: 'arctic', label: tr('settings.opt.palette.arctic') }, { value: 'sand', label: tr('settings.opt.palette.sand') }] },
+  ];
+
+  // Language endonyms are intentionally NOT translated (always shown natively).
+  const localePrefs: SelectorRow<keyof AppPreferences>[] = [
+    { key: 'language', label: tr('settings.sections.language'), hint: tr('settings.fields.language.hint'),
+      options: [
+        { value: 'en', label: 'English' }, { value: 'pt', label: 'Português' },
+        { value: 'es', label: 'Español' }, { value: 'de', label: 'Deutsch' },
+      ] },
   ];
 
   // AI training focus — autonomous clients only (clients with a trainer inherit
   // focus from the trainer's Coach DNA, so these sliders wouldn't apply).
   const aiFocusRows: { key: 'aiFocusStrength' | 'aiFocusEndurance' | 'aiFocusMobility'; label: string }[] = [
-    { key: 'aiFocusStrength',  label: 'Strength' },
-    { key: 'aiFocusEndurance', label: 'Endurance' },
-    { key: 'aiFocusMobility',  label: 'Mobility' },
+    { key: 'aiFocusStrength',  label: tr('settings.opt.focus.strength') },
+    { key: 'aiFocusEndurance', label: tr('settings.opt.focus.endurance') },
+    { key: 'aiFocusMobility',  label: tr('settings.opt.focus.mobility') },
   ];
 
   // ── Boolean toggle groups ────────────────────────────────────────────────────
   const aiGroup: ToggleRow[] = [
-    ['aiPersonalization', 'AI workouts',      'Daily plan from your trainer + AI'],
-    ['analysis',          'Workout Analysis', 'Post-session AI summary'],
-    ['cycle',             'Cycle tracking',   'Adapt intensity to your phase'],
-    ['behaviour',         'Behavior Track',   'Learn from completion + feedback'],
+    ['aiPersonalization', tr('settings.toggle.aiWorkouts.label'), tr('settings.toggle.aiWorkouts.hint')],
+    ['analysis',          tr('settings.toggle.analysis.label'),   tr('settings.toggle.analysis.hint')],
+    ['cycle',             tr('settings.toggle.cycle.label'),      tr('settings.toggle.cycle.hint')],
+    ['behaviour',         tr('settings.toggle.behaviour.label'),  tr('settings.toggle.behaviour.hint')],
   ];
   const notifGroup: ToggleRow[] = [
-    ['notifications', 'Push notifications', 'All app alerts'],
-    ['goals',         'Goal reminders',     'Weekly milestone nudges'],
-    ['alerts',        'Activity Alerts',    'Inactive day warnings'],
-    ['sounds',        'Sounds & Beeps',     'In-workout audio cues'],
+    ['notifications', tr('settings.toggle.push.label'),   tr('settings.toggle.push.hint')],
+    ['goals',         tr('settings.toggle.goals.label'),  tr('settings.toggle.goals.hint')],
+    ['alerts',        tr('settings.toggle.alerts.label'), tr('settings.toggle.alerts.hint')],
+    ['sounds',        tr('settings.toggle.sounds.label'), tr('settings.toggle.sounds.hint')],
   ];
 
   return (
     <>
-      <ScreenTitle dark={dark}>Settings</ScreenTitle>
+      <ScreenTitle dark={dark}>{tr('settings.title')}</ScreenTitle>
       <div style={{ padding: '0 22px 14px' }}>
 
         {/* Training Preferences — clients (autonomous + with trainer) */}
         {!isTrainer && (
-          <SelectorSection title="Training Preferences" rows={trainingPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SelectorSection title={tr('settings.sections.training')} rows={trainingPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
         )}
 
         {/* Client Management — trainer only */}
         {isTrainer && (
-          <SelectorSection title="Client Management" rows={trainerMgmt} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SelectorSection title={tr('settings.sections.clientMgmt')} rows={trainerMgmt} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
         )}
 
         {/* Coaching — client with an active trainer */}
         {hasTrainer && !isTrainer && (
-          <SelectorSection title="Coaching" rows={coachingPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SelectorSection title={tr('settings.sections.coaching')} rows={coachingPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
         )}
 
         {/* AI personalization */}
-        <ToggleSection title="AI personalization" rows={aiGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+        <ToggleSection title={tr('settings.sections.ai')} rows={aiGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
 
         {/* AI training focus — autonomous clients only */}
         {isAutonomous && (
-          <SliderSection title="AI Training Focus" hint="How much your AI plans emphasise each area" rows={aiFocusRows} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SliderSection title={tr('settings.sections.aiFocus')} hint={tr('settings.aiFocusHint')} rows={aiFocusRows} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
         )}
 
         {/* Appearance — dark toggle + light palette, clients only (trainer always-dark §8) */}
         {!isTrainer && (
           <>
-            <ToggleSection title="Appearance" rows={[['darkMode', 'Dark mode', 'Use the dark theme across the app']]} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+            <ToggleSection title={tr('settings.sections.appearance')} rows={[['darkMode', tr('settings.toggle.darkMode.label'), tr('settings.toggle.darkMode.hint')]]} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
             {!prefs.darkMode && (
-              <SelectorSection title="Light palette" rows={appearancePrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+              <SelectorSection title={tr('settings.sections.lightPalette')} rows={appearancePrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
             )}
           </>
         )}
 
+        {/* Language — all roles */}
+        <SelectorSection title={tr('settings.sections.language')} rows={localePrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+
         {/* Notifications */}
-        <ToggleSection title="Notifications" rows={notifGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+        <ToggleSection title={tr('settings.sections.notifications')} rows={notifGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
 
         {/* Data & History — clients (power-user fetch depth) */}
         {!isTrainer && (
-          <SelectorSection title="Data & History" rows={dataPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SelectorSection title={tr('settings.sections.data')} rows={dataPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
         )}
 
         {/* B2B / Studio — trainer / studio context */}
         {!isAutonomous && (
-          <ToggleSection title="B2B / Studio" rows={[['whiteLabel', 'White-label mode', 'Hide TrAIner brand for your studio']]} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <ToggleSection title={tr('settings.sections.b2b')} rows={[['whiteLabel', tr('settings.toggle.whiteLabel.label'), tr('settings.toggle.whiteLabel.hint')]]} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
         )}
 
-        <button onClick={() => alert('TrAIner v1.1.0 · The PT & ME Experience')} style={{
+        <button onClick={() => alert(tr('settings.aboutTagline'))} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
           padding: '16px 4px', background: 'transparent', border: 'none',
           fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left',
         }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 500, color: textPri(dark) }}>About this app</div>
-            <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>Version 1.1.0</div>
+            <div style={{ fontSize: 15, fontWeight: 500, color: textPri(dark) }}>{tr('common.about')}</div>
+            <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>{tr('common.version', { version: '1.1.0' })}</div>
           </div>
           <Icon name="chev" size={18} color={textMute(dark)}/>
         </button>

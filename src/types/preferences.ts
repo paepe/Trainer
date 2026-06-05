@@ -3,6 +3,8 @@
 // fields (language, defaultLocation, preferredIntensity, planExpiryDays, …) —
 // the interface is intentionally explicit (no index signature) so those
 // additions are type-checked rather than silently accepted as booleans.
+import type { AppLanguage } from '../i18n';
+
 export type LightPalette = 'arctic' | 'sand';
 export type TrainingLocation = 'gym' | 'home' | 'outdoor';
 export type SessionDuration  = 30 | 45 | 60 | 75 | 90;
@@ -32,8 +34,9 @@ export interface AppPreferences {
   planExpiryDays:         PlanExpiryDays;          // trainer
   workoutReadyExpiryMin:  WorkoutReadyExpiryMin;   // client-with-trainer
 
-  // Appearance
+  // Appearance & locale
   lightPalette:           LightPalette;            // client light variant
+  language:               AppLanguage;             // UI + AI output language
 
   // Tier 2 — AI training focus (autonomous clients; 1–10 emphasis)
   aiFocusStrength:        number;

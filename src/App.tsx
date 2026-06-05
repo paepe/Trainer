@@ -12,6 +12,7 @@ import { NotificationProvider, useNotification, ThemeProvider } from './contexts
 import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './types';
 import type { AppPreferences } from './types/preferences';
 import { TRAINER_ROLES } from './types/auth';
+import i18n, { detectDeviceLanguage } from './i18n';
 
 const ProfileWizardScreen        = React.lazy(() => import('./screens/auth/ProfileWizardScreen').then(m => ({ default: m.ProfileWizardScreen })));
 const CheckInProntidaoScreen     = React.lazy(() => import('./screens/checkin/CheckInProntidaoScreen').then(m => ({ default: m.CheckInProntidaoScreen })));
@@ -65,7 +66,11 @@ export default function App() {
     lightPalette: 'arctic',
     aiFocusStrength: 5, aiFocusEndurance: 5, aiFocusMobility: 5,
     sessionHistoryLimit: 50, trainerDashboardLimit: 10,
+    language: detectDeviceLanguage(),
   });
+
+  // Keep the active i18n language in sync with the saved/selected preference.
+  React.useEffect(() => { void i18n.changeLanguage(prefs.language); }, [prefs.language]);
 
   const {
     saveCycleConfig, fetchCycleConfig,
@@ -192,6 +197,7 @@ export default function App() {
         aiFocusMobility:       (data.ai_focus_mobility        as number | undefined) ?? 5,
         sessionHistoryLimit:   (data.session_history_limit    as AppPreferences['sessionHistoryLimit']   | undefined) ?? 50,
         trainerDashboardLimit: (data.trainer_dashboard_limit  as AppPreferences['trainerDashboardLimit'] | undefined) ?? 10,
+        language:              (data.language                 as AppPreferences['language']              | undefined) ?? detectDeviceLanguage(),
       });
       // Seed the check-in defaults from saved training preferences (pre-fill)
       const loc = (data.default_location     as CheckIn['location'] | undefined) ?? 'gym';
@@ -339,6 +345,7 @@ export default function App() {
       ai_focus_mobility:        newPrefs.aiFocusMobility,
       session_history_limit:    newPrefs.sessionHistoryLimit,
       trainer_dashboard_limit:  newPrefs.trainerDashboardLimit,
+      language:                 newPrefs.language,
     });
   };
 

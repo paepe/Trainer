@@ -1,0 +1,53 @@
+{
+  "common": {
+    "about": "Über diese App",
+    "version": "Version {{version}}"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "aboutTagline": "TrAIner v1.1.0 · Das PT & ME Erlebnis",
+    "aiFocusHint": "Wie stark deine KI-Pläne jeden Bereich betonen",
+    "sections": {
+      "training": "Trainingseinstellungen",
+      "clientMgmt": "Kundenverwaltung",
+      "coaching": "Betreuung",
+      "ai": "KI-Personalisierung",
+      "aiFocus": "KI-Trainingsfokus",
+      "appearance": "Darstellung",
+      "lightPalette": "Helle Palette",
+      "language": "Sprache",
+      "notifications": "Benachrichtigungen",
+      "data": "Daten & Verlauf",
+      "b2b": "B2B / Studio"
+    },
+    "fields": {
+      "location": { "label": "Standardort", "hint": "Wo du normalerweise trainierst" },
+      "duration": { "label": "Standardsitzung", "hint": "Bevorzugte Trainingsdauer" },
+      "intensity": { "label": "Bevorzugte Intensität", "hint": "Basisaufwand für KI-Pläne" },
+      "planExpiry": { "label": "Automatischer Planablauf", "hint": "Ausstehende Pläne stornieren nach" },
+      "dashboardDepth": { "label": "Dashboard-Tiefe", "hint": "Sitzungen & Pläne pro Kunde geladen" },
+      "readyWindow": { "label": "Bereitschaftsfenster", "hint": "Wie lange deine \"Ich bin bereit\"-Meldung aktiv bleibt" },
+      "historyDepth": { "label": "Verlaufstiefe", "hint": "Vergangene Sitzungen im Verlauf gespeichert" },
+      "lightPalette": { "label": "Helle Palette", "hint": "Wird angewendet, wenn der Dunkelmodus aus ist" },
+      "language": { "hint": "Sprache der App und des KI-Coachings" }
+    },
+    "opt": {
+      "location": { "gym": "Fitnessstudio", "home": "Zuhause", "outdoor": "Draußen" },
+      "intensity": { "light": "Leicht", "moderate": "Moderat", "hard": "Hart" },
+      "palette": { "arctic": "Arktis", "sand": "Sand" },
+      "focus": { "strength": "Kraft", "endurance": "Ausdauer", "mobility": "Mobilität" }
+    },
+    "toggle": {
+      "aiWorkouts": { "label": "KI-Workouts", "hint": "Täglicher Plan von deinem Trainer + KI" },
+      "analysis": { "label": "Trainingsanalyse", "hint": "KI-Zusammenfassung nach der Sitzung" },
+      "cycle": { "label": "Zyklus-Tracking", "hint": "Intensität an deine Phase anpassen" },
+      "behaviour": { "label": "Verhaltens-Tracking", "hint": "Aus Abschluss + Feedback lernen" },
+      "push": { "label": "Push-Benachrichtigungen", "hint": "Alle App-Hinweise" },
+      "goals": { "label": "Zielerinnerungen", "hint": "Wöchentliche Meilenstein-Hinweise" },
+      "alerts": { "label": "Aktivitätswarnungen", "hint": "Warnungen bei inaktiven Tagen" },
+      "sounds": { "label": "Töne & Signaltöne", "hint": "Audio-Hinweise im Training" },
+      "darkMode": { "label": "Dunkelmodus", "hint": "Dunkles Design in der ganzen App verwenden" },
+      "whiteLabel": { "label": "White-Label-Modus", "hint": "TrAIner-Marke für dein Studio ausblenden" }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "common": {
+    "about": "About this app",
+    "version": "Version {{version}}"
+  },
+  "settings": {
+    "title": "Settings",
+    "aboutTagline": "TrAIner v1.1.0 · The PT & ME Experience",
+    "aiFocusHint": "How much your AI plans emphasise each area",
+    "sections": {
+      "training": "Training Preferences",
+      "clientMgmt": "Client Management",
+      "coaching": "Coaching",
+      "ai": "AI personalization",
+      "aiFocus": "AI Training Focus",
+      "appearance": "Appearance",
+      "lightPalette": "Light palette",
+      "language": "Language",
+      "notifications": "Notifications",
+      "data": "Data & History",
+      "b2b": "B2B / Studio"
+    },
+    "fields": {
+      "location": { "label": "Default location", "hint": "Where you usually train" },
+      "duration": { "label": "Default session", "hint": "Preferred workout length" },
+      "intensity": { "label": "Preferred intensity", "hint": "Baseline effort for AI plans" },
+      "planExpiry": { "label": "Plan auto-expiry", "hint": "Cancel pending plans after" },
+      "dashboardDepth": { "label": "Dashboard depth", "hint": "Sessions & plans loaded per client" },
+      "readyWindow": { "label": "Ready-to-train window", "hint": "How long your \"I'm ready\" alert stays live" },
+      "historyDepth": { "label": "History depth", "hint": "Past sessions kept on the History screen" },
+      "lightPalette": { "label": "Light palette", "hint": "Applied when dark mode is off" },
+      "language": { "hint": "App and AI coaching language" }
+    },
+    "opt": {
+      "location": { "gym": "Gym", "home": "Home", "outdoor": "Outdoor" },
+      "intensity": { "light": "Light", "moderate": "Moderate", "hard": "Hard" },
+      "palette": { "arctic": "Arctic", "sand": "Sand" },
+      "focus": { "strength": "Strength", "endurance": "Endurance", "mobility": "Mobility" }
+    },
+    "toggle": {
+      "aiWorkouts": { "label": "AI workouts", "hint": "Daily plan from your trainer + AI" },
+      "analysis": { "label": "Workout Analysis", "hint": "Post-session AI summary" },
+      "cycle": { "label": "Cycle tracking", "hint": "Adapt intensity to your phase" },
+      "behaviour": { "label": "Behavior Track", "hint": "Learn from completion + feedback" },
+      "push": { "label": "Push notifications", "hint": "All app alerts" },
+      "goals": { "label": "Goal reminders", "hint": "Weekly milestone nudges" },
+      "alerts": { "label": "Activity Alerts", "hint": "Inactive day warnings" },
+      "sounds": { "label": "Sounds & Beeps", "hint": "In-workout audio cues" },
+      "darkMode": { "label": "Dark mode", "hint": "Use the dark theme across the app" },
+      "whiteLabel": { "label": "White-label mode", "hint": "Hide TrAIner brand for your studio" }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "common": {
+    "about": "Acerca de esta app",
+    "version": "Versión {{version}}"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "aboutTagline": "TrAIner v1.1.0 · La experiencia PT & ME",
+    "aiFocusHint": "Cuánto enfatizan tus planes de IA cada área",
+    "sections": {
+      "training": "Preferencias de entrenamiento",
+      "clientMgmt": "Gestión de clientes",
+      "coaching": "Asesoramiento",
+      "ai": "Personalización de IA",
+      "aiFocus": "Enfoque de entrenamiento de IA",
+      "appearance": "Apariencia",
+      "lightPalette": "Paleta clara",
+      "language": "Idioma",
+      "notifications": "Notificaciones",
+      "data": "Datos e historial",
+      "b2b": "B2B / Studio"
+    },
+    "fields": {
+      "location": { "label": "Ubicación predeterminada", "hint": "Dónde sueles entrenar" },
+      "duration": { "label": "Sesión predeterminada", "hint": "Duración de entrenamiento preferida" },
+      "intensity": { "label": "Intensidad preferida", "hint": "Esfuerzo base para planes de IA" },
+      "planExpiry": { "label": "Caducidad automática del plan", "hint": "Cancelar planes pendientes tras" },
+      "dashboardDepth": { "label": "Profundidad del panel", "hint": "Sesiones y planes cargados por cliente" },
+      "readyWindow": { "label": "Ventana de preparación", "hint": "Cuánto tiempo permanece activa tu alerta \"Estoy listo\"" },
+      "historyDepth": { "label": "Profundidad del historial", "hint": "Sesiones pasadas guardadas en la pantalla de Historial" },
+      "lightPalette": { "label": "Paleta clara", "hint": "Se aplica cuando el modo oscuro está desactivado" },
+      "language": { "hint": "Idioma de la app y del coaching de IA" }
+    },
+    "opt": {
+      "location": { "gym": "Gimnasio", "home": "Casa", "outdoor": "Aire libre" },
+      "intensity": { "light": "Suave", "moderate": "Moderada", "hard": "Intensa" },
+      "palette": { "arctic": "Ártico", "sand": "Arena" },
+      "focus": { "strength": "Fuerza", "endurance": "Resistencia", "mobility": "Movilidad" }
+    },
+    "toggle": {
+      "aiWorkouts": { "label": "Entrenos de IA", "hint": "Plan diario de tu entrenador + IA" },
+      "analysis": { "label": "Análisis de entrenamiento", "hint": "Resumen de IA tras la sesión" },
+      "cycle": { "label": "Seguimiento del ciclo", "hint": "Adaptar la intensidad a tu fase" },
+      "behaviour": { "label": "Seguimiento de conducta", "hint": "Aprender de la finalización + feedback" },
+      "push": { "label": "Notificaciones push", "hint": "Todas las alertas de la app" },
+      "goals": { "label": "Recordatorios de objetivos", "hint": "Avisos semanales de hitos" },
+      "alerts": { "label": "Alertas de actividad", "hint": "Avisos de días inactivos" },
+      "sounds": { "label": "Sonidos y pitidos", "hint": "Señales de audio durante el entrenamiento" },
+      "darkMode": { "label": "Modo oscuro", "hint": "Usar el tema oscuro en toda la app" },
+      "whiteLabel": { "label": "Modo white-label", "hint": "Ocultar la marca TrAIner para tu estudio" }
+    }
+  }
+}
