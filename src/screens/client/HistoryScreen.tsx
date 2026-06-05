@@ -21,6 +21,7 @@ interface HistoryScreenProps {
   dark:           boolean;
   user:           AppUser;
   selectedClient?: { id: string; name?: string } | null;
+  prefs?:         { sessionHistoryLimit?: number };
 }
 
 interface Session {
@@ -31,7 +32,8 @@ interface Session {
   plan_id:            string | null;
 }
 
-export function HistoryScreen({ nav, t, dark, user, selectedClient }: HistoryScreenProps) {
+export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: HistoryScreenProps) {
+  const historyLimit = prefs?.sessionHistoryLimit ?? 50;
   const targetUserId = selectedClient?.id ?? user.id;
   const targetName  = selectedClient?.name;
   const days      = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -50,12 +52,12 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient }: HistoryScr
       .select('id, started_at, completed_at, total_duration_min, plan_id')
       .eq('user_id', targetUserId)
       .order('started_at', { ascending: false })
-      .limit(50)
+      .limit(historyLimit)
       .then(({ data }) => {
         setSessions((data as Session[]) || []);
         setLoading(false);
       });
-  }, [targetUserId]);
+  }, [targetUserId, historyLimit]);
 
   const filtered = sessions.filter(s => {
     if (!s.started_at) return false;

@@ -25,6 +25,9 @@ export function computeSafetyGate(data: CheckInQuick | CheckInDetailed): SafetyG
   score -= signals.length * 15;
   score = Math.max(0, Math.min(100, Math.round(score)));
 
+  // Block threshold (30) is a fixed clinical default — deliberately NOT a user
+  // preference (Tier 3 decision 2026-06-05): self-lowering it would let a client
+  // train while the gate should block them. Stays in code with the score coeffs.
   const status: SafetyGateStatus =
     hasSignals || score < 30 ? 'blocked' :
     score < 55               ? 'caution' : 'clear';

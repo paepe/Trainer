@@ -64,6 +64,7 @@ export default function App() {
     planExpiryDays: 10, workoutReadyExpiryMin: 30,
     lightPalette: 'arctic',
     aiFocusStrength: 5, aiFocusEndurance: 5, aiFocusMobility: 5,
+    sessionHistoryLimit: 50, trainerDashboardLimit: 10,
   });
 
   const {
@@ -189,6 +190,8 @@ export default function App() {
         aiFocusStrength:       (data.ai_focus_strength        as number | undefined) ?? 5,
         aiFocusEndurance:      (data.ai_focus_endurance       as number | undefined) ?? 5,
         aiFocusMobility:       (data.ai_focus_mobility        as number | undefined) ?? 5,
+        sessionHistoryLimit:   (data.session_history_limit    as AppPreferences['sessionHistoryLimit']   | undefined) ?? 50,
+        trainerDashboardLimit: (data.trainer_dashboard_limit  as AppPreferences['trainerDashboardLimit'] | undefined) ?? 10,
       });
       // Seed the check-in defaults from saved training preferences (pre-fill)
       const loc = (data.default_location     as CheckIn['location'] | undefined) ?? 'gym';
@@ -334,6 +337,8 @@ export default function App() {
       ai_focus_strength:        newPrefs.aiFocusStrength,
       ai_focus_endurance:       newPrefs.aiFocusEndurance,
       ai_focus_mobility:        newPrefs.aiFocusMobility,
+      session_history_limit:    newPrefs.sessionHistoryLimit,
+      trainer_dashboard_limit:  newPrefs.trainerDashboardLimit,
     });
   };
 
@@ -526,7 +531,7 @@ export default function App() {
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient}/>;
-      case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays}/>;
+      case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient}/>;
       case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen nav={nav} user={trainerUser}/>;
       case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser}/>;

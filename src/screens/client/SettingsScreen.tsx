@@ -45,11 +45,18 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
   const trainerMgmt: SelectorRow<keyof AppPreferences>[] = [
     { key: 'planExpiryDays', label: 'Plan auto-expiry', hint: 'Cancel pending plans after',
       options: [7, 10, 14, 21, 30].map(n => ({ value: n as AppPreferences['planExpiryDays'], label: `${n}d` })) },
+    { key: 'trainerDashboardLimit', label: 'Dashboard depth', hint: 'Sessions & plans loaded per client',
+      options: [5, 10, 20, 50].map(n => ({ value: n as AppPreferences['trainerDashboardLimit'], label: `${n}` })) },
   ];
 
   const coachingPrefs: SelectorRow<keyof AppPreferences>[] = [
     { key: 'workoutReadyExpiryMin', label: 'Ready-to-train window', hint: 'How long your "I\'m ready" alert stays live',
       options: [{ value: 15, label: '15m' }, { value: 30, label: '30m' }, { value: 60, label: '1h' }, { value: 120, label: '2h' }] },
+  ];
+
+  const dataPrefs: SelectorRow<keyof AppPreferences>[] = [
+    { key: 'sessionHistoryLimit', label: 'History depth', hint: 'Past sessions kept on the History screen',
+      options: [25, 50, 100, 200].map(n => ({ value: n as AppPreferences['sessionHistoryLimit'], label: `${n}` })) },
   ];
 
   const appearancePrefs: SelectorRow<keyof AppPreferences>[] = [
@@ -119,6 +126,11 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
 
         {/* Notifications */}
         <ToggleSection title="Notifications" rows={notifGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+
+        {/* Data & History — clients (power-user fetch depth) */}
+        {!isTrainer && (
+          <SelectorSection title="Data & History" rows={dataPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+        )}
 
         {/* B2B / Studio — trainer / studio context */}
         {!isAutonomous && (
