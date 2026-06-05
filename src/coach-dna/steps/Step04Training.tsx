@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { Chip }        from '../components/Chip';
@@ -14,7 +15,12 @@ interface Step04Props {
 }
 
 export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
+  const translatedMethods = tr('coachDna.step04.methods', { returnObjects: true }) as unknown as string[];
+  const translatedEnvs = tr('coachDna.step04.envs', { returnObjects: true }) as unknown as string[];
+  const translatedIntensity = tr('coachDna.step04.intensity', { returnObjects: true }) as unknown as string[];
+
   const toggleMethod = (m: string) => {
     const methods = data.methods.includes(m)
       ? data.methods.filter(x => x !== m)
@@ -33,49 +39,49 @@ export const Step04Training: React.FC<Step04Props> = ({ data, onChange }) => {
     <div>
       <StepHeader
         idx={4} total={12}
-        title="How and where you train"
-        sub="Methods, environments, and general intensity that define your practice."
+        title={tr('coachDna.step04.title')}
+        sub={tr('coachDna.step04.sub')}
       />
-      <Hint>Select everything that's part of your daily repertoire.</Hint>
+      <Hint>{tr('coachDna.step04.hint')}</Hint>
 
-      <FieldLabel hint="multiple choice">Training methods</FieldLabel>
+      <FieldLabel hint={tr('coachDna.step04.multipleChoice')}>{tr('coachDna.step04.methodsLabel')}</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-        {METHODS.map(m => (
+        {METHODS.map((m, i) => (
           <Chip
-            key={m} label={m} multi
+            key={m} label={translatedMethods[i] ?? m} multi
             active={data.methods.includes(m)}
             onClick={() => toggleMethod(m)}
-            color={t.accent}
+            color={theme.accent}
           />
         ))}
       </div>
 
-      <FieldLabel hint="multiple choice">Preferred environments</FieldLabel>
+      <FieldLabel hint={tr('coachDna.step04.multipleChoice')}>{tr('coachDna.step04.envsLabel')}</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-        {ENVIRONMENTS.map(e => (
+        {ENVIRONMENTS.map((e, i) => (
           <Chip
-            key={e} label={e} multi
+            key={e} label={translatedEnvs[i] ?? e} multi
             active={data.envs.includes(e)}
             onClick={() => toggleEnv(e)}
-            color={t.primarySoft}
+            color={theme.primarySoft}
           />
         ))}
       </div>
 
-      <FieldLabel>General intensity</FieldLabel>
+      <FieldLabel>{tr('coachDna.step04.intensityLabel')}</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-        {INTENSITY.map(i => (
+        {INTENSITY.map((intensity, i) => (
           <Chip
-            key={i} label={i}
-            active={data.intensity === i}
-            onClick={() => onChange({ intensity: i })}
-            color={t.accent}
+            key={intensity} label={translatedIntensity[i] ?? intensity}
+            active={data.intensity === intensity}
+            onClick={() => onChange({ intensity })}
+            color={theme.accent}
           />
         ))}
       </div>
 
       <PrivacyNote>
-        Methods and environments guide the AI Coach Engine in selecting exercises and formats compatible with your context.
+        {tr('coachDna.step04.privacyNote')}
       </PrivacyNote>
     </div>
   );

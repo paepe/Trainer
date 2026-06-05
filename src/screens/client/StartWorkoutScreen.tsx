@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { supabase } from '../../supabase';
 import { Icon, AvatarImage, ScreenTitle, SectionLabel } from '../../components';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
@@ -64,6 +66,7 @@ interface StartWorkoutScreenProps {
 }
 
 export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', prefs }: StartWorkoutScreenProps) {
+  const { t: tr } = useTranslation();
   const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);  // AI-generated plan only
   const [planId,     setPlanId]     = React.useState<string | null>(null);
   const [planSource, setPlanSource] = React.useState<string | null>(null);
@@ -361,8 +364,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
         if (result.blocked) {
           setSafetyBlocked(true);
-          setSafetyTitle(result.safetyTitle ?? 'Safety Gate Active');
-          setSafetyMessage(result.safetyMessage ?? 'Your check-in indicates this is not a safe moment for an AI-led session.');
+          setSafetyTitle(result.safetyTitle ?? tr('client.workout.safetyGateTitle'));
+          setSafetyMessage(result.safetyMessage ?? tr('client.workout.safetyGateMsg'));
           setLoading(false);
           return;
         }
@@ -372,7 +375,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile);
       } // end if (user?.id)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : tr('client.workout.unknownError'));
     } finally {
       setLoading(false);
     }
@@ -410,9 +413,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
   // ── Unified plan-card actions ────────────────────────────────────────────────
   const STATUS_META: Record<string, { label: string; color: string }> = {
-    sent:      { label: 'Sent',       color: t.primary },
-    active:    { label: 'Incomplete', color: '#F5A623' },
-    postponed: { label: 'Postponed',  color: '#F5B45A' },
+    sent:      { label: tr('client.workout.planStatus.sent'),      color: t.primary },
+    active:    { label: tr('client.workout.planStatus.active'),    color: '#F5A623' },
+    postponed: { label: tr('client.workout.planStatus.postponed'), color: '#F5B45A' },
   };
 
   const notifyTrainerAction = (p: PlanCard, kind: 'cancelled' | 'postponed') => {
@@ -420,9 +423,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
       .then(({ data: tc }) => {
         if (!tc?.trainer_id) return;
-        const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'unknown date';
-        const title = kind === 'cancelled' ? 'Plan cancelled by client' : 'Plan postponed by client';
-        const body  = `${user.name || 'Your client'} ${kind} the workout plan from ${planDate}.`;
+        const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : tr('client.workout.notificationUnknownDate');
+        const title = kind === 'cancelled' ? tr('client.workout.notificationPlanCancelled') : tr('client.workout.notificationPlanPostponed');
+        const body  = tr(`client.workout.notificationBody${kind === 'cancelled' ? 'Cancelled' : 'Postponed'}`, {
+          name: user.name || tr('client.workout.notificationYourClient'),
+          planDate: planDate.toString(),
+        });
         notify(tc.trainer_id, title, body, undefined, { type: kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
       });
   };
@@ -459,7 +465,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
   return (
     <>
-      <ScreenTitle dark={dark}>Start Workout</ScreenTitle>
+      <ScreenTitle dark={dark}>{tr('client.workout.title')}</ScreenTitle>
 
       {/* Live: new plan arrived from the trainer while on this screen */}
       {newPlanArrived && (
@@ -475,7 +481,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             }}
           >
             <Icon name="sparkle" size={15} color="#fff" stroke={2.4}/>
-            New plan from your trainer — tap to load
+            {tr('client.workout.newPlanFromTrainer')}
           </button>
         </div>
       )}
@@ -491,7 +497,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           {/* Trainer avatar */}
           <AvatarImage
             url={trainerAvatarUrl}
-            label={trainerName ?? 'Trainer'}
+            label={trainerName ?? tr('client.workout.trainerFallback')}
             w={64} h={64}
             radius={16}
             dark={dark}
@@ -505,7 +511,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 letterSpacing: '.07em', textTransform: 'uppercase',
                 background: `${t.primary}22`, color: t.primary,
               }}>
-                {planSource === 'trainer' ? 'Your Trainer' : 'AI Plan'}
+                {planSource === 'trainer' ? tr('client.workout.yourTrainer') : tr('client.workout.aiPlan')}
               </div>
             </div>
             <div style={{
@@ -513,13 +519,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
-              {planSource === 'trainer' ? "Trainer's Plan" : 'AI-Powered Plan'}
+              {planSource === 'trainer' ? tr('client.workout.trainerPlan') : tr('client.workout.aiPoweredPlan')}
             </div>
             <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.55)' : 'rgba(14,26,43,.5)', marginTop: 2 }}>
               {hasTrainerPlans ? (
-                <>{trainerName ? `by ${trainerName} · ` : ''}{trainerPlans.length} plan{trainerPlans.length !== 1 ? 's' : ''} waiting</>
+                <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{tr('client.workout.planCount', { count: trainerPlans.length })}</>
               ) : (
-                <>{activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || 'gym'}</>
+                <>{activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || tr('client.workout.gymFallback')}</>
               )}
             </div>
           </div>
@@ -529,15 +535,15 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {/* Your Plans — unified trainer-plan list (sent / active / postponed) */}
       {hasTrainerPlans && (
         <div style={{ padding: '0 22px 14px' }}>
-          <SectionLabel dark={dark}>Your Plans</SectionLabel>
+          <SectionLabel dark={dark}>{tr('client.workout.yourPlans')}</SectionLabel>
           <div style={{ borderRadius: 14, overflow: 'hidden', border: `1px solid ${t.primary}33` }}>
             {trainerPlans.map((p, i) => {
               const isOpen = expandedPlan === p.id;
               const meta = STATUS_META[p.status] ?? STATUS_META.sent!;
               const dateLabel = p.sentAt
-                ? new Date(p.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                : 'Plan';
-              const startLabel = p.status === 'sent' ? '▶ Start' : '▶ Resume';
+                ? new Date(p.sentAt).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric' })
+                : tr('client.workout.plan');
+              const startLabel = p.status === 'sent' ? tr('client.workout.startLabel') : tr('client.workout.resumeLabel');
               return (
                 <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${t.primary}22` : undefined }}>
 
@@ -553,7 +559,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ fontSize: 12.5, fontWeight: 600, color: dark ? '#fff' : '#0E1A2B' }}>{dateLabel}</span>
                         <span style={{ fontSize: 11.5, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginLeft: 8 }}>
-                          {p.exercises.length} exercise{p.exercises.length !== 1 ? 's' : ''}
+                          {tr('client.workout.exerciseCount', { count: p.exercises.length })}
                         </span>
                       </div>
                       <span style={{ fontSize: 10, fontWeight: 700, color: meta.color, letterSpacing: '.06em', textTransform: 'uppercase', flexShrink: 0 }}>
@@ -563,7 +569,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                     </button>
 
                     <button
-                      title="Cancel this plan"
+                      title={tr('client.workout.cancelPlan')}
                       onClick={() => setConfirmCancelPlan(p)}
                       style={{
                         flexShrink: 0, padding: '3px 9px', borderRadius: 999,
@@ -572,7 +578,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '.04em',
                       }}
                     >
-                      Cancel
+                      {tr('client.workout.cancelLabel')}
                     </button>
                   </div>
 
@@ -618,7 +624,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                               cursor: 'pointer', fontFamily: 'inherit',
                             }}
                           >
-                            Postpone
+                            {tr('client.workout.postpone')}
                           </button>
                         )}
                         <button
@@ -654,7 +660,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           <p style={{ margin: '0 0 12px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6 }}>{safetyMessage}</p>
           {readinessScore !== null && (
             <div style={{ fontSize: 11, color: '#EF5B3C', fontWeight: 600 }}>
-              Readiness score: {readinessScore}/100
+              {tr('client.workout.readinessScoreLabel')}{readinessScore}/100
             </div>
           )}
         </div>
@@ -663,7 +669,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {/* Adaptations banner — shown when smart endpoint provides adjustments */}
       {!safetyBlocked && adaptations.length > 0 && (
         <div style={{ margin: '0 22px 10px', padding: '8px 12px', borderRadius: 10, background: `${t.primary}14`, border: `1px solid ${t.primary}33` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: t.primary, marginBottom: 4 }}>Session adapted</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: t.primary, marginBottom: 4 }}>{tr('client.workout.sessionAdapted')}</div>
           {adaptations.map((a, i) => <div key={i} style={{ fontSize: 11.5, color: textSec(dark) }}>· {a}</div>)}
         </div>
       )}
@@ -671,7 +677,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {/* Today's AI plan — only when no actionable trainer plan exists */}
       {!hasTrainerPlans && (
       <div style={{ padding: '4px 22px 0' }}>
-        <SectionLabel dark={dark}>Today&apos;s AI plan</SectionLabel>
+        <SectionLabel dark={dark}>{tr('client.workout.todaysAiPlan')}</SectionLabel>
 
         {loading && (
           <div style={{
@@ -684,7 +690,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               borderTopColor: t.primary,
               animation: 'spin 0.7s linear infinite',
             }}/>
-            <div style={{ fontSize: 13, color: textSec(dark) }}>Generating your plan…</div>
+            <div style={{ fontSize: 13, color: textSec(dark) }}>{tr('client.workout.generating')}</div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
@@ -699,7 +705,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               padding: '8px 18px', borderRadius: 999, border: 'none',
               background: t.accent, color: '#fff',
               fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-            }}>Retry</button>
+            }}>{tr('client.workout.retry')}</button>
           </div>
         )}
 
@@ -723,7 +729,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               }}>
                 <span style={{ fontSize: 11 }}>🌙</span>
                 <span style={{ fontSize: 11.5, fontWeight: 600, color: '#A78BFA' }}>
-                  {cycleCtx.phase} phase · Day {cycleCtx.day}/{cycleCtx.cycleLength} · Cycle-adapted
+                  {tr('client.workout.phaseDay', { phase: cycleCtx.phase, day: cycleCtx.day, length: cycleCtx.cycleLength })}{tr('client.workout.cycleAdapted')}
                 </span>
               </div>
             )}
@@ -742,7 +748,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             ))}
             {sore.length > 0 && (
               <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 10, background: `${t.accent}1a`, color: t.accent, fontSize: 11.5, fontWeight: 600 }}>
-                Adjusted for: {sore.join(', ').toLowerCase()}
+                {tr('client.workout.adjustedFor')}{sore.join(', ').toLowerCase()}
               </div>
             )}
           </div>
@@ -762,7 +768,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               opacity: (!plan || loading) ? 0.5 : 1,
             }}
           >
-            <Icon name="play" size={14} color="#0E1A2B"/> Start Workout
+            <Icon name="play" size={14} color="#0E1A2B"/> {tr('client.workout.startBtn')}
           </button>
         </div>
       )}
@@ -784,17 +790,17 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             }}
           >
             <div style={{ fontSize: 17, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B', marginBottom: 8, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>
-              Cancel this plan?
+              {tr('client.workout.cancelModalTitle')}
             </div>
             <div style={{ fontSize: 13, color: textSec(dark), lineHeight: 1.55, marginBottom: 22 }}>
-              The plan from{' '}
+              {tr('client.workout.cancelModalFrom')}
               <b style={{ color: dark ? '#fff' : '#0E1A2B' }}>
                 {confirmCancelPlan.sentAt
-                  ? new Date(confirmCancelPlan.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                  : 'your trainer'}
+                  ? new Date(confirmCancelPlan.sentAt).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric' })
+                  : tr('client.workout.cancelModalYourTrainer')}
               </b>
-              {' '}will be cancelled and your trainer will be notified.
-              This action cannot be undone.
+              {tr('client.workout.cancelModalWillBeCanceled')}
+              {tr('client.workout.cancelModalCannotUndo')}
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button
@@ -806,7 +812,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
-                Keep it
+                {tr('client.workout.keepIt')}
               </button>
               <button
                 onClick={() => { cancelPlan(confirmCancelPlan); setConfirmCancelPlan(null); }}
@@ -817,7 +823,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
-                Yes, cancel
+                {tr('client.workout.yesCancel')}
               </button>
             </div>
           </div>

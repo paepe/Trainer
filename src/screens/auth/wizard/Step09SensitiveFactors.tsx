@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 
 export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+  const { t: tr } = useTranslation();
   const sf = data.sensitive_factors ?? {
     declares_emotional_history: false,
     declares_recreational_substance: false,
@@ -18,18 +20,17 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} badge="blinded" title="Protected Sensitive Factors" subtitle="Intimate data is protected. Appears to operational awareness. You can review and request human validation." />
+      <WizardHeader currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack} badge="blinded" title={tr('wizard.step09.title')} subtitle={tr('wizard.step09.subtitle')} />
 
       
       
 
       <Alert isAI variant="warning"
-        text="Medications, voluntarily declared substances, psychological history — stay private to you and are marked as 'declared safety factor' — conservative progression."
+        text={tr('wizard.step09.alert')}
       />
 
       <VStack gap={12} style={{ marginTop: 20 }}>
 
-        {/* Medications — opt-in expandable */}
         <div style={{
           padding: 14, borderRadius: 14,
           background: surfRaised(dark),
@@ -44,9 +45,9 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
             }}
           >
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Regular Medications</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>{tr('wizard.step09.medicationsTitle')}</div>
               <div style={{ fontSize: 11.5, color: textSec(dark), marginTop: 3, lineHeight: 1.45 }}>
-                Optional — only if it affects energy, sleep, or performance.
+                {tr('wizard.step09.medicationsSub')}
               </div>
             </div>
             <div style={{
@@ -54,60 +55,57 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
               background: `${primary}18`, padding: '3px 8px', borderRadius: 6,
               letterSpacing: '.06em', flexShrink: 0, marginLeft: 10,
             }}>
-              RANKING
+              {tr('wizard.step09.rankingBadge')}
             </div>
           </button>
           {medOpen && (
             <div style={{ marginTop: 14 }}>
               <TextInput
-                label="Medication name (optional)"
+                label={tr('wizard.step09.medicationNameLabel')}
                 value={sf.regular_medications ?? ''}
                 onChange={v => {
                   if (v) set({ regular_medications: v });
                   else { const { regular_medications: _, ...rest } = sf; onUpdate({ sensitive_factors: rest }); }
                 }}
-                placeholder="e.g.: Losartan, Metformin, Fluoxetine"
+                placeholder={tr('wizard.step09.medicationPlaceholder')}
               />
               <p style={{ fontSize: 11, color: textMute(dark), margin: '8px 0 0', lineHeight: 1.45 }}>
-                Private data. Never displayed to the trainer without explicit authorization.
+                {tr('wizard.step09.privacyNote')}
               </p>
             </div>
           )}
         </div>
 
-        {/* Emotional history */}
         <DisclosureCard
-          title="I want to declare emotional / psychiatric history"
-          description="Helps only so the AI can make safer decisions and slow progression is planned for the entire journey."
+          title={tr('wizard.step09.psychTitle')}
+          description={tr('wizard.step09.psychDesc')}
           enabled={sf.declares_emotional_history}
           onToggle={() => set({ declares_emotional_history: !sf.declares_emotional_history })}
           dark={dark}
           primary={primary}
         />
 
-        {/* Recreational substance */}
         <DisclosureCard
-          title="I want to declare recreational substance use"
-          description="Anonymous. Influences intensity and monitoring recommendations."
+          title={tr('wizard.step09.substanceTitle')}
+          description={tr('wizard.step09.substanceDesc')}
           enabled={sf.declares_recreational_substance}
           onToggle={() => set({ declares_recreational_substance: !sf.declares_recreational_substance })}
           dark={dark}
           primary={primary}
         />
 
-        {/* Privacy rule */}
         <div style={{
           padding: '12px 14px', borderRadius: 12,
           background: `${accent}10`, border: `1px solid ${accent}33`,
         }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: accent, marginBottom: 4 }}>Core rule</div>
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: accent, marginBottom: 4 }}>{tr('wizard.step09.coreRule')}</div>
           <p style={{ margin: 0, fontSize: 12, color: textSec(dark), lineHeight: 1.5 }}>
-            Intimate data = private. Operational consequence = shared in masked form. You can revoke access at any time in Block 13.
+            {tr('wizard.step09.ruleText')}
           </p>
         </div>
 
         <VoiceOption
-          note="Speak freely — the AI structures it before saving."
+          note={tr('wizard.step09.voiceNote')}
           onClick={() => setVoiceOpen(true)}
         />
       </VStack>
@@ -117,7 +115,7 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
 
       {voiceOpen && (
         <WizardVoiceOverlay dark={dark} primary={primary}
-          context="Tell us about sensitive factors"
+          context={tr('wizard.step09.voiceContext')}
           onConfirm={(text) => {
             onUpdate({ sensitive_factors: { ...sf, voice_note: text } });
             setVoiceOpen(false);

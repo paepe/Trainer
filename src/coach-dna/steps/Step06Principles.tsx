@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { PrivacyNote } from '../components/PrivacyNote';
@@ -14,7 +15,9 @@ interface Step06Props {
 }
 
 export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }) => {
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
+  const principleLabel = (key: string) => tr(`coachDna.step06.principles.${key}`);
   const toggle = (key: string) => {
     if (principles.includes(key)) {
       onChange(principles.filter(p => p !== key));
@@ -29,18 +32,18 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
     <div>
       <StepHeader
         idx={6} total={12}
-        title="Core principles"
-        sub="The beliefs that guide your prescription decisions."
-        badge={`Choose up to ${MAX}`}
+        title={tr('coachDna.step06.title')}
+        sub={tr('coachDna.step06.sub')}
+        badge={tr('coachDna.step06.badge', { max: MAX })}
       />
-      <Hint>What is your training philosophy at its core?</Hint>
+      <Hint>{tr('coachDna.step06.hint')}</Hint>
 
       {/* counter */}
       <div style={{
         display: 'flex', justifyContent: 'flex-end',
         marginBottom: 12,
         fontFamily: '"JetBrains Mono",ui-monospace,monospace',
-        fontSize: 11, color: atMax ? t.accent : DARK.textMute,
+        fontSize: 11, color: atMax ? theme.accent : DARK.textMute,
       }}>
         {principles.length}/{MAX}
       </div>
@@ -59,8 +62,8 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
               style={{
                 display:      'flex', alignItems: 'center', gap: 12,
                 padding:      '13px 14px', borderRadius: 12,
-                border:       `1.5px solid ${active ? t.accent : DARK.border}`,
-                background:   active ? `${t.accent}14` : DARK.surface,
+                border:       `1.5px solid ${active ? theme.accent : DARK.border}`,
+                background:   active ? `${theme.accent}14` : DARK.surface,
                 cursor:       dimmed ? 'not-allowed' : 'pointer',
                 opacity:      dimmed ? 0.4 : 1,
                 fontFamily:   'inherit', textAlign: 'left',
@@ -69,8 +72,8 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
             >
               <div style={{
                 width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                border:     `1.5px solid ${active ? t.accent : DARK.border}`,
-                background: active ? t.accent : 'transparent',
+                border:     `1.5px solid ${active ? theme.accent : DARK.border}`,
+                background: active ? theme.accent : 'transparent',
                 display:    'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: '"Plus Jakarta Sans","Inter",sans-serif',
                 fontSize:   12, fontWeight: 800,
@@ -85,7 +88,7 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
                 color:    active ? DARK.textPri : DARK.textSec,
                 flex:     1,
               }}>
-                {p.label}
+                {principleLabel(p.key)}
               </span>
             </button>
           );
@@ -93,7 +96,7 @@ export const Step06Principles: React.FC<Step06Props> = ({ principles, onChange }
       </div>
 
       <PrivacyNote tone="coach">
-        The selected principles set absolute priorities in the generator — what appears first in every prescription.
+        {tr('coachDna.step06.privacyNote')}
       </PrivacyNote>
     </div>
   );

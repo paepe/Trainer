@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, primaryBtn } from '../../theme';
@@ -27,7 +29,6 @@ interface PostWorkoutSummaryScreenProps {
   savePostWorkoutFeedback: (data: { session_id: string; overall_feeling: number; energy_after: number | null; notes: string | null; forUserId?: string }) => Promise<{ error: unknown }>;
 }
 
-const FEELING_LABELS = ['Terrible', 'Bad', 'Okay', 'Good', 'Great'];
 const FEELING_ICONS  = ['😩',       '😕',  '😐',    '😊',   '🤩'];
 
 export function PostWorkoutSummaryScreen({
@@ -37,6 +38,11 @@ export function PostWorkoutSummaryScreen({
   startedAt: startedAtProp, forClientName, forClientId,
   savePostWorkoutFeedback,
 }: PostWorkoutSummaryScreenProps) {
+  const { t: tr } = useTranslation();
+  const feelingLabels = React.useMemo(
+    () => tr('postWorkout.feelings', { returnObjects: true }) as string[],
+    [tr],
+  );
   const [feeling,   setFeeling]   = React.useState(4);
   const [energy,    setEnergy]    = React.useState<number | null>(null);
   const [notes,     setNotes]     = React.useState('');
@@ -132,7 +138,7 @@ export function PostWorkoutSummaryScreen({
   if (sessionStatus === null) {
     return (
       <div style={{ padding: '60px 22px', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
-        Loading session…
+        {tr('postWorkout.loading')}
       </div>
     );
   }
@@ -146,14 +152,14 @@ export function PostWorkoutSummaryScreen({
           fontFamily: '"Plus Jakarta Sans",sans-serif',
           fontSize: 22, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B',
         }}>
-          {isCompleted ? 'Workout Complete!' : 'Session Summary'}
+          {isCompleted ? tr('postWorkout.title') : tr('postWorkout.titleIncomplete')}
         </div>
         <div style={{ fontSize: 13, color: textSec(dark), marginTop: 4 }}>
-          {isCompleted ? <>Great effort — here&rsquo;s your session summary</> : 'This session was not completed'}
+          {isCompleted ? <>{tr('postWorkout.subtitleComplete')}</> : tr('postWorkout.subtitleIncomplete')}
           {startedAt && (
             <span style={{ color: textMute(dark) }}>
-              {' · '}{new Date(startedAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-              {' · '}{new Date(startedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+              {' · '}{new Date(startedAt).toLocaleDateString(i18n.language || 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              {' · '}{new Date(startedAt).toLocaleTimeString(i18n.language || 'en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
             </span>
           )}
         </div>
@@ -168,10 +174,10 @@ export function PostWorkoutSummaryScreen({
           border: `1px solid ${borderSubtle(dark)}`,
           padding: 16,
         }}>
-          <StatTile label="Duration"  value={durationMin ? `${durationMin} min` : '—'} icon="history" t={t} dark={dark}/>
-          <StatTile label="Exercises" value={total > 0 ? `${completedCount}/${total}` : '—'} icon="play" t={t} dark={dark}/>
-          <StatTile label="Sets done" value={totalSets > 0 ? String(totalSets) : '—'} icon="chart" t={t} dark={dark}/>
-          <StatTile label="Score"     value={total > 0 ? `${Math.round((completedCount / total) * 100)}%` : '—'} icon="target" t={t} dark={dark}/>
+          <StatTile label={tr('postWorkout.duration')}  value={durationMin ? `${durationMin} min` : '—'} icon="history" t={t} dark={dark}/>
+          <StatTile label={tr('postWorkout.exercises')} value={total > 0 ? `${completedCount}/${total}` : '—'} icon="play" t={t} dark={dark}/>
+          <StatTile label={tr('postWorkout.setsDone')} value={totalSets > 0 ? String(totalSets) : '—'} icon="chart" t={t} dark={dark}/>
+          <StatTile label={tr('postWorkout.score')}     value={total > 0 ? `${Math.round((completedCount / total) * 100)}%` : '—'} icon="target" t={t} dark={dark}/>
         </div>
       </div>
 
@@ -183,7 +189,7 @@ export function PostWorkoutSummaryScreen({
             background: 'color-mix(in srgb, var(--border) 53%, transparent)', border: `1px solid ${borderSubtle(dark)}`,
             fontSize: 13, color: textSec(dark), lineHeight: 1.55,
           }}>
-            Feedback is only available for completed sessions.
+            {tr('postWorkout.feedbackOnlyCompleted')}
           </div>
           <button
             onClick={() => nav('history')}
@@ -192,7 +198,7 @@ export function PostWorkoutSummaryScreen({
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
-            ← Back to History
+            {tr('postWorkout.backToHistory')}
           </button>
         </div>
       )}
@@ -208,7 +214,7 @@ export function PostWorkoutSummaryScreen({
                 background: `${t.primary}12`, border: `1px solid ${t.primary}33`,
                 fontSize: 11, color: t.primary, fontWeight: 600,
               }}>
-                Recording on behalf of {forClientName ?? 'client'} · feedback saved under client's profile
+                {tr('postWorkout.trainerSessionNote', { client: forClientName ?? tr('postWorkout.clientFallback') })}
               </div>
             </div>
           )}
@@ -216,7 +222,7 @@ export function PostWorkoutSummaryScreen({
           {/* How did you feel? */}
           <div style={{ padding: '0 22px 18px' }}>
             <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-              How did you feel?
+              {tr('postWorkout.howDidYouFeel')}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
               {[1,2,3,4,5].map(n => (
@@ -228,7 +234,7 @@ export function PostWorkoutSummaryScreen({
                 }}>
                   <span style={{ fontSize: 20 }}>{FEELING_ICONS[n - 1]}</span>
                   <span style={{ fontSize: 10, fontWeight: 600, color: feeling === n ? t.primary : textMute(dark) }}>
-                    {FEELING_LABELS[n - 1]}
+                    {feelingLabels[n - 1]}
                   </span>
                 </button>
               ))}
@@ -238,7 +244,7 @@ export function PostWorkoutSummaryScreen({
           {/* Energy after */}
           <div style={{ padding: '0 22px 18px' }}>
             <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
-              Energy level after — {energy ?? '—'}/10
+              {tr('postWorkout.energyLevelAfter', { energy: energy ?? '—' })}
             </div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
               {[1,2,3,4,5,6,7,8,9,10].map(n => (
@@ -256,12 +262,12 @@ export function PostWorkoutSummaryScreen({
           {/* Notes */}
           <div style={{ padding: '0 22px 18px' }}>
             <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
-              Notes (optional)
+              {tr('postWorkout.notesOptional')}
             </div>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="How was the session?"
+              placeholder={tr('postWorkout.sessionPlaceholder')}
               rows={3}
               style={{
                 width: '100%', boxSizing: 'border-box',
@@ -284,7 +290,7 @@ export function PostWorkoutSummaryScreen({
               }}
             >
               <Icon name="check" size={15} color="#0E1A2B" stroke={2.5}/>
-              {saving ? 'Saving…' : isTrainerSession ? 'Save & Back to Dashboard' : 'Save & Continue'}
+              {saving ? tr('postWorkout.saveSaving') : isTrainerSession ? tr('postWorkout.saveTrainerDashboard') : tr('postWorkout.saveContinue')}
             </button>
           </div>
         </>

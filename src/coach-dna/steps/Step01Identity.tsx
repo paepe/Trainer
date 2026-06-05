@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput } from '@/ui';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
@@ -9,8 +10,6 @@ import { FieldLabel }  from '../components/FieldLabel';
 import { useTheme }    from '../../contexts';
 import type { CoachDNAIdentity } from '../../types/coach-dna';
 
-const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'] as const;
-
 interface Step01Props {
   data:      CoachDNAIdentity;
   onChange:  (v: Partial<CoachDNAIdentity>) => void;
@@ -18,15 +17,17 @@ interface Step01Props {
 }
 
 export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerId }) => {
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
+  const genders = tr('coachDna.step01.genders', { returnObjects: true }) as unknown as string[];
   return (
   <div>
     <StepHeader
       idx={1} total={12}
-      title="Trainer identity"
-      sub="Basic information that identifies your presence in the app."
+      title={tr('coachDna.step01.title')}
+      sub={tr('coachDna.step01.sub')}
     />
-    <Hint>How do you introduce yourself to your clients?</Hint>
+    <Hint>{tr('coachDna.step01.hint')}</Hint>
 
     <PhotoSlot
       value={data.photo}
@@ -36,39 +37,39 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
     />
 
     <TextInput
-      label="Full name"
+      label={tr('coachDna.step01.fullName')}
       value={data.name}
       onChange={name => onChange({ name })}
-      placeholder="e.g. Rafael Mendes"
+      placeholder={tr('coachDna.step01.namePlaceholder')}
     />
 
     <VoiceBar
       onTranscript={text => onChange({ name: (data.name + ' ' + text).trim() })}
-      hint="Dictate name to AI"
+      hint={tr('coachDna.components.voiceBar.dictateHint')}
     />
 
     <div style={{ marginBottom: 16 }}>
-      <FieldLabel>Gender</FieldLabel>
+      <FieldLabel>{tr('coachDna.step01.gender')}</FieldLabel>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {GENDERS.map(g => (
+        {genders.map(g => (
           <Chip
             key={g}
             label={g}
             active={data.gender === g}
             onClick={() => onChange({ gender: g })}
-            color={t.accent}
+            color={theme.accent}
           />
         ))}
       </div>
     </div>
 
     <TextInput
-      label="Age"
+      label={tr('coachDna.step01.age')}
       value={data.age}
       onChange={age => onChange({ age })}
-      placeholder="34"
+      placeholder={tr('coachDna.step01.agePlaceholder')}
       type="number"
-      suffix="yrs"
+      suffix={tr('coachDna.step01.ageSuffix')}
       optional
     />
   </div>

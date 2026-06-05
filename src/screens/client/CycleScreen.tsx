@@ -229,7 +229,7 @@ export function CycleScreen({
       </div>
 
       <div style={{ padding: '14px 22px 0' }}>
-        <SectionLabel dark={dark}>Today&rsquo;s recommendation</SectionLabel>
+        <SectionLabel dark={dark}>{tr('client.cycle.todayRecommendation')}</SectionLabel>
         <div style={{
           padding: '14px 16px', borderRadius: 14,
           background: `${t.primary}${dark ? '14' : '10'}`,
@@ -238,7 +238,7 @@ export function CycleScreen({
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <Icon name="sparkle" size={16} color={t.primary} stroke={2.3}/>
             <div style={{ fontSize: 12.5, color: textSec(dark), lineHeight: 1.55 }}>
-              You&rsquo;re in <b style={{ color: c }}>{phase.toLowerCase()} phase</b>.{' '}
+              <span dangerouslySetInnerHTML={{ __html: tr('client.cycle.youAreInPhase', { phase: phase.toLowerCase() }) }} />
               {tr(`client.cycle.phaseNote.${phase}` as `client.cycle.phaseNote.${string}`)}
             </div>
           </div>
@@ -287,7 +287,7 @@ export function CycleScreen({
                 color: t.primary, letterSpacing: '-0.03em', lineHeight: 1,
               }}>{draftDay}<span style={{ fontSize: 18, color: textMute(dark), marginLeft: 6 }}>/ {draftLen}</span></div>
               <div style={{ fontSize: 12, fontWeight: 600, color: phaseOf(draftDay, draftPhases).color, marginTop: 4 }}>
-                {phaseOf(draftDay, draftPhases).name} phase
+                {tr(`client.cycle.phaseLabel.${phaseOf(draftDay, draftPhases).name}` as `client.cycle.phaseLabel.${string}`)}
               </div>
             </div>
 

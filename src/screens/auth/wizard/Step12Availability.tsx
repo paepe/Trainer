@@ -1,32 +1,17 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { PreferredTime, AdherenceBarrier } from '../../../types/profile-v2';
 
-const TIME_OPTIONS: { value: PreferredTime; label: string }[] = [
-  { value: 'morning',   label: 'Morning'  },
-  { value: 'afternoon', label: 'Afternoon'},
-  { value: 'evening',   label: 'Evening'  },
-  { value: 'variable',  label: 'Variable' },
-];
-
-const WEEK_DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
-
-const BARRIERS: { value: AdherenceBarrier; label: string }[] = [
-  { value: 'night_shift',          label: 'Night shift'         },
-  { value: 'family_care',          label: 'Family care'        },
-  { value: 'frequent_travel',      label: 'Frequent travel'    },
-  { value: 'treatment_radiation',  label: 'Treatment/Radiation'},
-  { value: 'transport',            label: 'Transport'          },
-  { value: 'cost',                 label: 'Cost'               },
-  { value: 'emotional',            label: 'Emotional'          },
-  { value: 'time_constraint',      label: 'Lack of time'       },
-];
-
+const TIME_VALUES: PreferredTime[] = ['morning', 'afternoon', 'evening', 'variable'];
+const WEEK_DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const BARRIER_VALUES: AdherenceBarrier[] = ['night_shift', 'family_care', 'frequent_travel', 'treatment_radiation', 'transport', 'cost', 'emotional', 'time_constraint'];
 const SESSION_PRESETS = [30, 45, 60, 90];
 
 export function Step12Availability({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+  const { t: tr } = useTranslation();
   const av = data.availability ?? {
     days_per_week: 3,
     session_duration_min: 45,
@@ -34,6 +19,9 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
     preferred_days: [],
     adherence_barriers: [],
   };
+
+  const timeOpts = TIME_VALUES.map(v => ({ value: v, label: tr(`wizard.step12.times.${v}`) }));
+  const dayLabels = tr('wizard.step12.days', { returnObjects: true }) as unknown as string[];
 
   const set = (patch: Partial<typeof av>) => onUpdate({ availability: { ...av, ...patch } });
 
@@ -49,26 +37,25 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} title="Availability and barriers" subtitle="To calibrate the plan within what you can actually fulfill." />
+      <WizardHeader currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack} title={tr('wizard.step12.title')} subtitle={tr('wizard.step12.subtitle')} />
 
       
       
 
       <VStack gap={22}>
         <Slider
-          label="Days per week"
+          label={tr('wizard.step12.daysPerWeek')}
           value={av.days_per_week ?? 3}
-          min={1} max={7} suffix=" days/week"
+          min={1} max={7} suffix={tr('wizard.step12.daysSuffix')}
           onChange={v => set({ days_per_week: v })}
         />
 
-        {/* Session duration */}
         <div>
           <HStack justifyContent="space-between" alignItems="baseline" style={{ marginBottom: 8 }}>
-            <span style={{ fontSize: 13, color: textSec(dark) }}>Duration per session</span>
+            <span style={{ fontSize: 13, color: textSec(dark) }}>{tr('wizard.step12.durationLabel')}</span>
             <span style={{ fontSize: 18, fontWeight: 700, color: primary, letterSpacing: '-0.02em' }}>
               {av.session_duration_min ?? 45}
-              <span style={{ fontSize: 12, color: '#888', marginLeft: 3, fontWeight: 500 }}>min</span>
+              <span style={{ fontSize: 12, color: '#888', marginLeft: 3, fontWeight: 500 }}>{tr('wizard.step12.minSuffix')}</span>
             </span>
           </HStack>
           <HStack gap={8}>
@@ -82,28 +69,26 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
                   border: `1.5px solid ${on ? primary : borderSubtle(dark)}`,
                   fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                 }}>
-                  {m} min
+                  {m} {tr('wizard.step12.minSuffix')}
                 </button>
               );
             })}
           </HStack>
         </div>
 
-        {/* Preferred time */}
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Best time</Typography>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step12.bestTime')}</Typography>
           <SegmentedControl
-            options={TIME_OPTIONS}
+            options={timeOpts}
             value={av.preferred_time ?? 'afternoon'}
             onChange={v => set({ preferred_time: v as PreferredTime })}
           />
         </div>
 
-        {/* Preferred days */}
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Preferred days</Typography>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step12.preferredDays')}</Typography>
           <HStack gap={8} justifyContent="space-between">
-            {WEEK_DAYS.map((d, i) => {
+            {WEEK_DAY_LABELS.map((d, i) => {
               const on = (av.preferred_days ?? []).includes(i);
               return (
                 <button key={i} onClick={() => toggleDay(i)} style={{
@@ -113,23 +98,22 @@ export function Step12Availability({ dark, primary, accent, data, onUpdate, onNe
                   border: `1.5px solid ${on ? primary : borderSubtle(dark)}`,
                   fontFamily: 'inherit', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 }}>
-                  {d}
+                  {dayLabels[i] ?? d}
                 </button>
               );
             })}
           </HStack>
         </div>
 
-        {/* Adherence barriers */}
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Adherence barriers</Typography>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step12.barriers')}</Typography>
           <HStack style={{ flexWrap: 'wrap' }} gap={8}>
-            {BARRIERS.map(b => (
+            {BARRIER_VALUES.map(b => (
               <Chip
-                key={b.value}
-                label={b.label}
-                active={(av.adherence_barriers ?? []).includes(b.value)}
-                onClick={() => toggleBarrier(b.value)}
+                key={b}
+                label={tr(`wizard.step12.barrierItems.${b}`)}
+                active={(av.adherence_barriers ?? []).includes(b)}
+                onClick={() => toggleBarrier(b)}
               />
             ))}
           </HStack>

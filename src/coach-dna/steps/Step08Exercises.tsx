@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { FieldLabel }  from '../components/FieldLabel';
@@ -78,27 +79,28 @@ function TagInput({ tags, placeholder, onAdd, onRemove, color }: {
 }
 
 export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) => {
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
   return (
   <div>
     <StepHeader
       idx={8} total={12}
-      title="Exercises & repertoire"
-      sub="Your movement vocabulary defines your identity as a coach."
-      badge="Coach DNA"
+      title={tr('coachDna.step08.title')}
+      sub={tr('coachDna.step08.sub')}
+      badge={tr('coachDna.step08.badge')}
     />
-    <Hint>Add the exercises you use most and the ones you avoid. Press Enter or comma to confirm.</Hint>
+    <Hint>{tr('coachDna.step08.hint')}</Hint>
 
-    <FieldLabel hint="unlimited">Favorite exercises</FieldLabel>
+    <FieldLabel hint={tr('coachDna.step08.favoritesHint')}>{tr('coachDna.step08.favoritesLabel')}</FieldLabel>
     <TagInput
       tags={exercises.favorites}
-      placeholder="e.g. Back Squat, Turkish Get-Up…"
-      color={t.accent}
+      placeholder={tr('coachDna.step08.favoritesPlaceholder')}
+      color={theme.accent}
       onAdd={t  => onChange({ ...exercises, favorites: [...exercises.favorites, t] })}
       onRemove={t => onChange({ ...exercises, favorites: exercises.favorites.filter(x => x !== t) })}
     />
     <VoiceBar
-      hint="Dictate favorite exercises"
+      hint={tr('coachDna.step08.favoritesLabel')}
       onTranscript={text => {
         const parts = text.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
         const next  = [...exercises.favorites];
@@ -108,10 +110,10 @@ export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) 
     />
 
     <div style={{ marginTop: 24 }}>
-      <FieldLabel hint="optional">Exercises to avoid / not use</FieldLabel>
+      <FieldLabel hint={tr('coachDna.step08.avoidHint')}>{tr('coachDna.step08.avoidLabel')}</FieldLabel>
       <TagInput
         tags={exercises.avoid}
-        placeholder="e.g. Leg Press, traditional sit-up…"
+        placeholder={tr('coachDna.step08.avoidPlaceholder')}
         color={DARK.textSec}
         onAdd={t  => onChange({ ...exercises, avoid: [...exercises.avoid, t] })}
         onRemove={t => onChange({ ...exercises, avoid: exercises.avoid.filter(x => x !== t) })}
@@ -119,7 +121,7 @@ export const Step08Exercises: React.FC<Step08Props> = ({ exercises, onChange }) 
     </div>
 
     <PrivacyNote tone="optional">
-      This repertoire feeds the automatic exercise selection by the AI Coach Engine.
+      {tr('coachDna.step08.privacyNote')}
     </PrivacyNote>
   </div>
   );

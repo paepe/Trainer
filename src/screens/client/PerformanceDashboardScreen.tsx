@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { RefreshChip } from '../../components/RefreshChip';
+import i18n from '../../i18n';
 import type { NavFn } from '../../types';
 import { useM5Data, C, scoreColor, goodScoreColor, band } from './performance/perf-engines';
 import {
@@ -12,8 +14,8 @@ import {
 import type { M5Data } from './performance/perf-types';
 
 // Converts snake_case / raw DB keys to "Title Case" for display
-function fmtRegion(r: string | null | undefined): string {
-  if (!r) return 'Region';
+function fmtRegion(r: string | null | undefined, fallback = 'Region'): string {
+  if (!r) return fallback;
   return r.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
@@ -49,6 +51,7 @@ const NAV_TABS: { id: ScreenId; label: string }[] = [
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient }: Props) {
+  const { t: tr } = useTranslation();
   const targetUserId = selectedClient?.id ?? user.id;
   const targetName   = selectedClient?.name ?? user.name;
   const targetGender = user.gender;
@@ -66,7 +69,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
   const screenContent = (() => {
     if (!data) {
       if (loading) return <LoadingState />;
-      return <div style={{ padding: 60, textAlign: 'center', color: T.textMute, fontFamily: FF_MONO, fontSize: 13 }}>No data available</div>;
+      return <div style={{ padding: 60, textAlign: 'center', color: T.textMute, fontFamily: FF_MONO, fontSize: 13 }}>{tr('perf.noData')}</div>;
     }
     return (
       <div style={{ position: 'relative', flex: 1 }}>
@@ -78,7 +81,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
             background: C.cyan, color: T.navy, fontFamily: FF_MONO, fontSize: 9,
             fontWeight: 700, letterSpacing: '.06em',
           }}>
-            REFRESHING…
+            {tr('perf.refreshing')}
           </span>
         </div>}
         {(() => {
@@ -107,7 +110,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-            Viewing
+            {tr('perf.viewing')}
           </span>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>
             {selectedClient.name.split(' ')[0]}
@@ -145,7 +148,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
               transition: 'background .15s, color .15s',
             }}
           >
-            {tab.label}
+            {tr(`perf.tabs.${tab.id}`)}
           </button>
         ))}
       </div>
@@ -161,18 +164,19 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
 // ── Loading state ─────────────────────────────────────────────────────────────
 
 function LoadingState() {
+  const { t: tr } = useTranslation();
   return (
     <div style={{
       padding: '60px 0', display: 'flex', flexDirection: 'column',
       alignItems: 'center', gap: 12,
-    }}>
+      }}>
       <div style={{
         width: 32, height: 32, borderRadius: '50%',
         border: `3px solid ${T.border}`, borderTopColor: C.cyan,
         animation: 'spin .7s linear infinite',
       }}/>
       <span style={{ fontFamily: FF_MONO, fontSize: 11, color: T.textMute }}>
-        Calculating indicators…
+        {tr('perf.calculating')}
       </span>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
@@ -193,16 +197,17 @@ function TelaOverview({
   userName?: string | undefined;
   viewingClient?: boolean;
 }) {
+  const { t: tr } = useTranslation();
   const adh = Math.round(data.adherenceRate * 100);
   const mainInsight = data.insights[0];
 
   const navCards: { id: ScreenId; icon: string; title: string; sub: string; color: string }[] = [
-    { id: 'aderencia',   icon: '📅', title: 'Adherence',         sub: `${adh}% · ${data.workoutStreak} days streak`,               color: C.cyan    },
-    { id: 'performance', icon: '📈', title: 'Performance',      sub: 'Load, volume and perceived effort',                         color: C.cyan    },
-    { id: 'dor',         icon: '⚠️', title: 'Pain & Safety',    sub: `${data.painEvents14d.length} occurrence(s) in 14 days`,    color: data.painEvents14d.length ? C.coral : C.green },
-    { id: 'scores',      icon: '🤖', title: 'AI Analysis',      sub: '9 predictive indicators',                                   color: C.lavender },
-    { id: 'voz',         icon: '🎙️', title: 'Voice Analytics',  sub: 'Ask about your progress',                                   color: C.cyanDeep },
-    { id: 'marcos',      icon: '🏆', title: 'Milestones & Achievements', sub: `${data.milestones.filter(m => m.unlocked).length}/${data.milestones.length} unlocked`, color: C.amber },
+    { id: 'aderencia',   icon: '📅', title: tr('perf.overview.navCards.aderencia.title'),           sub: tr('perf.overview.navCards.aderencia.sub', { adh, streak: data.workoutStreak }), color: C.cyan  },
+    { id: 'performance', icon: '📈', title: tr('perf.overview.navCards.performance.title'),        sub: tr('perf.overview.navCards.performance.sub'),                                         color: C.cyan  },
+    { id: 'dor',         icon: '⚠️', title: tr('perf.overview.navCards.dor.title'),               sub: tr('perf.overview.navCards.dor.sub', { count: data.painEvents14d.length }),           color: data.painEvents14d.length ? C.coral : C.green },
+    { id: 'scores',      icon: '🤖', title: tr('perf.overview.navCards.scores.title'),            sub: tr('perf.overview.navCards.scores.sub'),                                              color: C.lavender },
+    { id: 'voz',         icon: '🎙️', title: tr('perf.overview.navCards.voz.title'),               sub: tr('perf.overview.navCards.voz.sub'),                                                 color: C.cyanDeep },
+    { id: 'marcos',      icon: '🏆', title: tr('perf.overview.navCards.marcos.title'),            sub: tr('perf.overview.navCards.marcos.sub', { unlocked: data.milestones.filter(m => m.unlocked).length, total: data.milestones.length }), color: C.amber },
   ];
 
   const volumeData = data.weeklyStats.map(w => w.volume / 1000); // tonnes
@@ -211,9 +216,9 @@ function TelaOverview({
   return (
     <ScreenWrap>
       <ScreenTitle
-        kicker={`MY PROGRESS · ${data.weeksActive} WEEKS`}
-        title={viewingClient && userName ? `Progress of ${userName.split(' ')[0]}` : `You are progressing${userName ? ', ' + userName : ''}.`}
-        sub="Summary of your progress over the last few weeks."
+        kicker={tr('perf.overview.kicker', { weeksActive: data.weeksActive })}
+        title={viewingClient && userName ? tr('perf.overview.titleClient', { name: userName.split(' ')[0] }) : tr('perf.overview.titleOwn')}
+        sub={tr('perf.overview.sub')}
       />
 
       {/* Hero: score ring + 2 stats */}
@@ -225,23 +230,23 @@ function TelaOverview({
           <ScoreRing
             score={Math.round(data.adherenceRate * 100)}
             color={C.cyan}
-            label="ADHERENCE"
-            sub={`${data.weeksActive} wks`}
+            label={tr('perf.overview.adherence')}
+            sub={`${data.weeksActive}${tr('perf.overview.wks')}`}
             size={92}
           />
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <StatCard
-            kicker="Sessions"
+            kicker={tr('perf.overview.sessions')}
             value={`${data.completedSessions}/${data.plannedSessions}`}
-            sub={`${data.partialSessions} partial`}
+            sub={`${data.partialSessions}${tr('perf.overview.partialSessions')}`}
             color={C.cyan}
             deltaTone={data.adherenceRate >= 0.8 ? 'good' : 'neutral'}
           />
           <StatCard
-            kicker="Streak"
+            kicker={tr('perf.overview.streak')}
             value={`${data.workoutStreak}d`}
-            sub="consecutive days"
+            sub={tr('perf.overview.consecutiveDays')}
             color={C.amber}
           />
         </div>
@@ -250,7 +255,7 @@ function TelaOverview({
       {/* AI main insight */}
       {mainInsight && (
         <AIMessage
-          title="Week summary"
+          title={tr('perf.overview.weekSummary')}
           tone={mainInsight.severity === 'positive' ? 'green' : mainInsight.severity === 'critical' ? 'coral' : 'cyan'}
           body={mainInsight.data}
           action={mainInsight.action}
@@ -259,21 +264,21 @@ function TelaOverview({
 
       {/* 2×2 stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <StatCard kicker="Frequency"  value={`${Math.round(data.completedSessions / Math.max(data.weeksActive, 1) * 10) / 10}×`} sub="per week"/>
-        <StatCard kicker="Check-ins"   value={`${Math.round(data.checkinRate * 100)}%`} sub="coverage"/>
-        <StatCard kicker="Pain 14d"     value={String(data.painEvents14d.length)}
-          sub={data.painRecurrenceCount >= 3 ? 'recurrent' : 'occurrences'}
+        <StatCard kicker={tr('perf.overview.frequency')}  value={`${Math.round(data.completedSessions / Math.max(data.weeksActive, 1) * 10) / 10}×`} sub={tr('perf.overview.perWeek')}/>
+        <StatCard kicker={tr('perf.overview.checkins')}   value={`${Math.round(data.checkinRate * 100)}%`} sub={tr('perf.overview.coverage')}/>
+        <StatCard kicker={tr('perf.overview.pain14d')}     value={String(data.painEvents14d.length)}
+          sub={data.painRecurrenceCount >= 3 ? tr('perf.overview.recurrent') : tr('perf.overview.occurrences')}
           color={data.painEvents14d.length >= 3 ? C.coral : T.text}
           deltaTone={data.painEvents14d.length >= 3 ? 'bad' : 'good'}
         />
-        <StatCard kicker="Streak"      value={`${data.workoutStreak}d`}
+        <StatCard kicker={tr('perf.overview.streak')}      value={`${data.workoutStreak}d`}
           color={data.workoutStreak >= 7 ? C.green : T.text}
         />
       </div>
 
       {/* Volume sparkline */}
       {volumeMax > 0 && (
-        <Section title="Weekly volume (t·rep)">
+        <Section title={tr('perf.overview.weeklyVolume')}>
           <Sparkline data={volumeData} color={C.cyan} height={52} showDots/>
           <div style={{
             display: 'flex', justifyContent: 'space-between', marginTop: 4,
@@ -310,8 +315,9 @@ TelaOverview.defaultProps = {};
 // ── Screen 02 — Adherence ───────────────────────────────────────────────────────
 
 function TelaAderencia({ data }: { data: M5Data }) {
+  const { t: tr } = useTranslation();
   const adh = Math.round(data.adherenceRate * 100);
-  const label = adh >= 85 ? 'Excellent consistency' : adh >= 70 ? 'Good consistency' : 'Under construction';
+  const label = adh >= 85 ? tr('perf.adherence.excellent') : adh >= 70 ? tr('perf.adherence.good') : tr('perf.adherence.underConstruction');
 
   const cellColor = (status: number) => {
     if (status === 1)   return C.green;
@@ -322,26 +328,26 @@ function TelaAderencia({ data }: { data: M5Data }) {
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker="ADHERENCE · 6 WEEKS" title="Your training consistency."/>
+      <ScreenTitle kicker={tr('perf.adherence.kicker')} title={tr('perf.adherence.title')}/>
 
       {/* Hero ring */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 16, padding: 16,
         background: T.surf, borderRadius: 16, border: `1px solid ${T.border}`,
       }}>
-        <ScoreRing score={adh} color={C.cyan} label="ADHERENCE" size={80}/>
+        <ScoreRing score={adh} color={C.cyan} label={tr('perf.adherence.label')} size={80}/>
         <div>
           <div style={{ fontFamily: FF_DISPLAY, fontSize: 16, fontWeight: 700, color: T.text }}>
             {label}
           </div>
           <div style={{ fontSize: 12, color: T.textSec, marginTop: 2 }}>
-            {data.completedSessions} sessions · {data.weeksActive} weeks
+            {tr('perf.adherence.sessionsWeeks', { sessions: data.completedSessions, weeks: data.weeksActive })}
           </div>
         </div>
       </div>
 
       {/* Week grid */}
-      <Section title="Current week">
+      <Section title={tr('perf.adherence.currentWeek')}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
           {data.weekDays.map((day, i) => {
             const status = data.weekStatus[i] ?? 0;
@@ -364,7 +370,7 @@ function TelaAderencia({ data }: { data: M5Data }) {
         </div>
         {/* Legend */}
         <div style={{ display: 'flex', gap: 12, marginTop: 10, justifyContent: 'center' }}>
-          {[['Complete', C.green], ['Partial', C.amber], ['Missed', C.coral]].map(([lbl, c]) => (
+          {[[tr('perf.adherence.completed'), C.green], [tr('perf.adherence.partial'), C.amber], [tr('perf.adherence.missed'), C.coral]].map(([lbl, c]) => (
             <div key={String(lbl)} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <div style={{ width: 8, height: 8, borderRadius: 2, background: String(c) }}/>
               <span style={{ fontFamily: FF_MONO, fontSize: 9, color: T.textMute }}>{lbl}</span>
@@ -375,28 +381,28 @@ function TelaAderencia({ data }: { data: M5Data }) {
 
       {/* Stats 2×2 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <StatCard kicker="Completed"  value={String(data.completedSessions)} color={C.green}/>
-        <StatCard kicker="Partials"   value={String(data.partialSessions)}   color={C.amber}/>
-        <StatCard kicker="Missed"     value={String(data.missedSessions)}    color={data.missedSessions > 2 ? C.coral : T.text}/>
-        <StatCard kicker="Check-ins"   value={`${Math.round(data.checkinRate * 100)}%`} color={C.cyan}/>
+        <StatCard kicker={tr('perf.adherence.completed')}  value={String(data.completedSessions)} color={C.green}/>
+        <StatCard kicker={tr('perf.adherence.partials')}   value={String(data.partialSessions)}   color={C.amber}/>
+        <StatCard kicker={tr('perf.adherence.missed')}     value={String(data.missedSessions)}    color={data.missedSessions > 2 ? C.coral : T.text}/>
+        <StatCard kicker={tr('perf.overview.checkins')}   value={`${Math.round(data.checkinRate * 100)}%`} color={C.cyan}/>
       </div>
 
       <AIMessage
-        title="Consistency analysis"
+        title={tr('perf.adherence.consistencyAnalysis')}
         tone={adh >= 85 ? 'green' : adh >= 70 ? 'cyan' : 'amber'}
         body={
           adh >= 85
-            ? `Adherence of ${adh}% is an indicator of sustained consistency. Continue with the same cadence.`
+            ? tr('perf.adherence.analysisExcellent', { adh })
             : adh >= 70
-            ? `Adherence of ${adh}% is solid. Small schedule adjustments can boost your consistency further.`
-            : `Adherence of ${adh}% indicates room for growth. Review availability with your trainer.`
+            ? tr('perf.adherence.analysisGood', { adh })
+            : tr('perf.adherence.analysisLow', { adh })
         }
-        action={adh >= 85 ? 'Maintain volume and frequency' : 'Discuss plan adjustment with trainer'}
+        action={adh >= 85 ? tr('perf.adherence.maintainVolume') : tr('perf.adherence.discussPlan')}
       />
 
       {/* Recent sessions list */}
       {data.recentSessions.length > 0 && (
-        <Section title="Latest sessions">
+        <Section title={tr('perf.adherence.latestSessions')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {data.recentSessions.slice(0, 5).map(s => (
               <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -408,15 +414,15 @@ function TelaAderencia({ data }: { data: M5Data }) {
                   {s.date}
                 </span>
                 <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: T.text }}>
-                  {s.completed ? 'Completed' : s.partial ? 'Partial' : 'Abandoned'}
+                  {s.completed ? tr('perf.adherence.sessionCompleted') : s.partial ? tr('perf.adherence.sessionPartial') : tr('perf.adherence.sessionAbandoned')}
                 </span>
                 {s.rpe !== null && (
                   <span style={{ fontFamily: FF_MONO, fontSize: 10, color: C.amber }}>
-                    RPE {s.rpe}
+                    {tr('perf.adherence.rpePrefix')}{s.rpe}
                   </span>
                 )}
                 {s.hasPain && (
-                  <span style={{ fontFamily: FF_MONO, fontSize: 9, color: C.coral }}>⚠ pain</span>
+                  <span style={{ fontFamily: FF_MONO, fontSize: 9, color: C.coral }}>{tr('perf.adherence.painBadge')}</span>
                 )}
               </div>
             ))}
@@ -430,6 +436,7 @@ function TelaAderencia({ data }: { data: M5Data }) {
 // ── Tela 03 — Performance ─────────────────────────────────────────────────────
 
 function TelaPerformance({ data }: { data: M5Data }) {
+  const { t: tr } = useTranslation();
   const volumeData = data.weeklyStats.map(w => w.volume / 1000);
   const rpeData    = data.weeklyStats.map(w => w.rpe).filter(r => r > 0);
   const labels     = data.weeklyStats.map(w => w.label);
@@ -442,24 +449,24 @@ function TelaPerformance({ data }: { data: M5Data }) {
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker="PERFORMANCE · load, volume, effort" title="Technical evolution."/>
+      <ScreenTitle kicker={tr('perf.performance.kicker')} title={tr('perf.performance.title')}/>
 
       {/* Volume bar chart */}
-      <Section title="Total weekly volume" right={
+      <Section title={tr('perf.performance.totalVolume')} right={
         <span style={{ fontFamily: FF_MONO, fontSize: 9.5, color: Number(volDelta) >= 0 ? C.green : C.coral }}>
           {Number(volDelta) >= 0 ? '+' : ''}{volDelta}%
         </span>
       }>
         {volumeData.some(v => v > 0)
-          ? <BarChart data={volumeData} labels={labels} color={C.cyan} suffix="t"/>
-          : <EmptyMetric label="No sets recorded yet"/>
+          ? <BarChart data={volumeData} labels={labels} color={C.cyan} suffix={tr('perf.performance.tonnesSuffix')}/>
+          : <EmptyMetric label={tr('perf.performance.noSetsRecorded')}/>
         }
       </Section>
 
       {/* RPE sparkline */}
-      <Section title="Avg RPE" right={
+      <Section title={tr('perf.performance.avgRPE')} right={
         <span style={{ fontFamily: FF_MONO, fontSize: 9.5, color: Number(rpeDelta) > 0 ? C.amber : C.green }}>
-          {Number(rpeDelta) > 0 ? '↗ rising' : rpeData.length > 0 ? '↘ stable' : '—'}
+          {Number(rpeDelta) > 0 ? tr('perf.performance.trendRising') : rpeData.length > 0 ? tr('perf.performance.trendStable') : tr('perf.performance.trendNone')}
         </span>
       }>
         {rpeData.length >= 2
@@ -467,19 +474,19 @@ function TelaPerformance({ data }: { data: M5Data }) {
               <Sparkline data={rpeData} color={C.amber} height={52} showDots/>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
                 <span style={{ fontFamily: FF_MONO, fontSize: 9, color: T.textMute }}>
-                  start: {(rpeData[0] ?? 0).toFixed(1)}
+                  {tr('perf.performance.startLabel')}{(rpeData[0] ?? 0).toFixed(1)}
                 </span>
                 <span style={{ fontFamily: FF_MONO, fontSize: 9, color: C.amber }}>
-                  current: {(rpeData[rpeData.length - 1] ?? 0).toFixed(1)}
+                  {tr('perf.performance.currentLabel')}{(rpeData[rpeData.length - 1] ?? 0).toFixed(1)}
                 </span>
               </div>
             </>
-          : <EmptyMetric label="Log RPE in sessions to see the trend"/>
+          : <EmptyMetric label={tr('perf.performance.logRPE')}/>
         }
       </Section>
 
       {/* Sessions per week */}
-      <Section title="Sessions per week">
+      <Section title={tr('perf.performance.sessionsPerWeek')}>
         <BarChart
           data={data.weeklyStats.map(w => w.sessions)}
           labels={labels}
@@ -488,16 +495,16 @@ function TelaPerformance({ data }: { data: M5Data }) {
       </Section>
 
       <AIMessage
-        title="Performance analysis"
+        title={tr('perf.performance.performanceAnalysis')}
         tone={Number(rpeDelta) > 1 ? 'amber' : 'cyan'}
         body={
           rpeData.length < 2
-            ? 'Log RPE in sessions to activate predictive fatigue analysis.'
+            ? tr('perf.performance.logRPEActivate')
             : Number(rpeDelta) > 1
-            ? `RPE has risen ${rpeDelta} points in recent weeks. Monitor signs of accumulated fatigue.`
-            : `Volume and RPE progressing in a compatible manner. Healthy performance indicators.`
+            ? tr('perf.performance.analysisRising', { rpeDelta })
+            : tr('perf.performance.analysisStable')
         }
-        action={Number(rpeDelta) > 1.5 ? 'Consider preventive deload' : 'Maintain current progression'}
+        action={Number(rpeDelta) > 1.5 ? tr('perf.performance.preventiveDeload') : tr('perf.performance.maintainProgression')}
       />
     </ScreenWrap>
   );
@@ -506,12 +513,13 @@ function TelaPerformance({ data }: { data: M5Data }) {
 // ── Screen 04 — Pain & Safety ─────────────────────────────────────────────────
 
 function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
+  const { t: tr } = useTranslation();
   const hasPain    = data.painEvents14d.length > 0;
   const isRecurrent = data.painRecurrenceCount >= 3;
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker="PAIN & SAFETY · 14 DAYS" title="Risk signal monitoring."/>
+      <ScreenTitle kicker={tr('perf.pain.kicker')} title={tr('perf.pain.title')}/>
 
       {/* Hero */}
       <div style={{
@@ -523,24 +531,24 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
         <div>
           {hasPain ? (
             <>
-              <Kicker color={C.coral}>{fmtRegion(data.primaryPainRegion).toUpperCase()}</Kicker>
+              <Kicker color={C.coral}>{fmtRegion(data.primaryPainRegion, tr('perf.region')).toUpperCase()}</Kicker>
               <div style={{
                 fontFamily: FF_DISPLAY, fontSize: 22, fontWeight: 800, color: C.coral,
               }}>
                 {data.painRecurrenceCount}/{data.painEvents14d.length}
               </div>
               <div style={{ fontSize: 11, color: T.textSec, lineHeight: 1.4, marginTop: 2 }}>
-                {isRecurrent
-                  ? `occurrences. Pain Recurrence Engine activated.`
-                  : `occurrence(s). Monitoring evolution.`
+{isRecurrent
+  ? `${data.painRecurrenceCount}${tr('perf.pain.occurrencesRecurrence')}`
+  : `${data.painEvents14d.length}${tr('perf.pain.occurrencesMonitoring')}`
                 }
               </div>
             </>
           ) : (
             <>
-              <Kicker color={C.green}>NO PAIN</Kicker>
+              <Kicker color={C.green}>{tr('perf.pain.noPain')}</Kicker>
               <div style={{ fontFamily: FF_DISPLAY, fontSize: 22, fontWeight: 800, color: C.green }}>0</div>
-               <div style={{ fontSize: 11, color: T.textSec, marginTop: 2 }}>occurrences in the last 14 days.</div>
+               <div style={{ fontSize: 11, color: T.textSec, marginTop: 2 }}>{tr('perf.pain.occurrencesIn14d')}</div>
             </>
           )}
         </div>
@@ -548,27 +556,27 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
 
       {/* AI message */}
       <AIMessage
-        title={isRecurrent ? 'Pain Recurrence Engine' : 'Pain monitoring'}
+        title={isRecurrent ? tr('perf.pain.recurrence') : tr('perf.pain.monitoring')}
         tone={isRecurrent ? 'coral' : hasPain ? 'amber' : 'green'}
         body={
           isRecurrent
-            ? `Recurring pain in ${data.primaryPainRegion ?? 'region'} detected (${data.painRecurrenceCount}× in 14d). Risk exercise identified — substitution recommended.`
+            ? tr('perf.pain.recurringPain', { region: data.primaryPainRegion ?? tr('perf.pain.regionFallback'), count: data.painRecurrenceCount })
             : hasPain
-            ? `${data.painEvents14d.length} registered occurrence(s). Intensity monitored. Keep your trainer informed.`
-            : 'No pain recorded in the last 14 days. Continue executing with good technique.'
+            ? tr('perf.pain.hasPainBody', { count: data.painEvents14d.length })
+            : tr('perf.pain.noPainBody')
         }
         action={
           isRecurrent
-            ? 'Replace exercise and notify trainer'
+            ? tr('perf.pain.replaceExercise')
             : hasPain
-            ? 'Notify trainer and record intensity in each session'
-            : 'Maintain attention to execution technique'
+            ? tr('perf.pain.notifyTrainer')
+            : tr('perf.pain.maintainTechnique')
         }
       />
 
       {/* Pain history */}
       {data.painEvents14d.length > 0 && (
-        <Section title="Pain history">
+        <Section title={tr('perf.pain.history')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.painEvents14d.map((e, i) => (
               <div key={i} style={{
@@ -601,12 +609,12 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
 
       {/* Actions */}
       {hasPain && (
-        <Section title="Available actions">
+        <Section title={tr('perf.pain.availableActions')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              { label: 'Replace risk exercise',   color: C.coral },
-              { label: 'Notify personal trainer', color: C.amber },
-              { label: 'Log detailed pain',       color: C.cyan  },
+              { label: tr('perf.pain.replaceRisk'),   color: C.coral },
+              { label: tr('perf.pain.notifyPT'), color: C.amber },
+              { label: tr('perf.pain.logPain'),       color: C.cyan  },
             ].map(({ label, color }) => (
               <div key={label} style={{
                 padding: '10px 14px', borderRadius: 10,
@@ -628,6 +636,7 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
 // ── Tela 05 — Scores Preditivos ───────────────────────────────────────────────
 
 function TelaScores({ data }: { data: M5Data }) {
+  const { t: tr } = useTranslation();
   const scoreList = [
     data.scores.churnRisk,
     data.scores.fatigueRisk,
@@ -643,9 +652,9 @@ function TelaScores({ data }: { data: M5Data }) {
   return (
     <ScreenWrap>
       <ScreenTitle
-        kicker="AI ANALYSIS · PREDICTIVE LAYER"
-        title="9 predictive indicators."
-        sub="Prediction is not diagnosis. Probabilistic indicators for decision support."
+        kicker={tr('perf.scores.kicker')}
+        title={tr('perf.scores.title')}
+        sub={tr('perf.scores.sub')}
       />
 
       {/* Score grid */}
@@ -654,7 +663,7 @@ function TelaScores({ data }: { data: M5Data }) {
           const c = s.isGoodScore ? goodScoreColor(s.score) : scoreColor(s.score);
           const b = band(s.score);
           const badgeLabel = s.isGoodScore
-            ? s.score >= 75 ? 'GOOD' : s.score >= 50 ? 'WARNING' : 'LOW'
+            ? s.score >= 75 ? tr('perf.scores.good') : s.score >= 50 ? tr('perf.scores.warning') : tr('perf.scores.low')
             : b.toUpperCase();
           return (
             <div key={s.code} style={{
@@ -698,7 +707,7 @@ function TelaScores({ data }: { data: M5Data }) {
 
       {/* Insights */}
       {data.insights.length > 0 && (
-        <Section title={`Actionable insights · ${data.insights.length}`}>
+        <Section title={tr('perf.scores.insights', { count: data.insights.length })}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {data.insights.map(ins => (
               <InsightCard
@@ -721,9 +730,8 @@ function TelaScores({ data }: { data: M5Data }) {
         border: `1px solid ${C.lavender}44`,
         fontSize: 11, color: T.textSec, lineHeight: 1.5,
       }}>
-        <span style={{ color: C.lavender, fontWeight: 700 }}>ℹ Prediction ≠ diagnosis.</span>{' '}
-        All scores are probabilistic and are intended to support personal trainer decisions,
-        not replace professional evaluation. Sensitive data is processed locally.
+        <span style={{ color: C.lavender, fontWeight: 700 }}>{tr('perf.scores.disclaimerBold')}</span>{' '}
+        {tr('perf.scores.disclaimerBody')}
       </div>
     </ScreenWrap>
   );
@@ -732,54 +740,47 @@ function TelaScores({ data }: { data: M5Data }) {
 // ── Voice query engine ────────────────────────────────────────────────────────
 
 function processVoiceQuery(q: string, data: M5Data): string {
+  const tr = i18n.t;
   const n   = q.toLowerCase();
   const adh = Math.round(data.adherenceRate * 100);
-  const fmt = (s: { score: number; desc: string; action: string }, label: string) =>
-    `${label}: ${Math.round(s.score)}/100. ${s.desc} ${s.action}`;
 
   if (n.includes('summary') || n.includes('monthly')) {
-    return `Summary: ${data.completedSessions} completed sessions of ${data.plannedSessions} planned — ${adh}% adherence. Current streak: ${data.workoutStreak} day(s). ${data.scores.fatigueRisk.desc}`;
+    return tr('perf.voice.responseSummary', { completed: data.completedSessions, planned: data.plannedSessions, adh, streak: data.workoutStreak, fatigueDesc: data.scores.fatigueRisk.desc });
   }
   if (n.includes('fatigue') || n.includes('fatigued')) {
-    return fmt(data.scores.fatigueRisk, 'Fatigue risk');
+    const s = data.scores.fatigueRisk;
+    return tr('perf.voice.responseFatigue', { score: Math.round(s.score), desc: s.desc, action: s.action });
   }
   if (n.includes('dropout') || n.includes('churn') || n.includes('quit')) {
-    return fmt(data.scores.churnRisk, 'Churn risk');
+    const s = data.scores.churnRisk;
+    return tr('perf.voice.responseChurn', { score: Math.round(s.score), desc: s.desc, action: s.action });
   }
   if (n.includes('load') || n.includes('increase') || n.includes('progression')) {
     const s = data.scores.progressionReadiness;
-    return `Progression readiness: ${Math.round(s.score)}/100. ${s.action}`;
+    return tr('perf.voice.responseProgression', { score: Math.round(s.score), action: s.action });
   }
   if (n.includes('sessions') || n.includes('completed') || n.includes('month')) {
-    return `You completed ${data.completedSessions} sessions of ${data.plannedSessions} planned — ${adh}% adherence. Current streak: ${data.workoutStreak} day(s).`;
+    return tr('perf.voice.responseSessions', { completed: data.completedSessions, planned: data.plannedSessions, adh, streak: data.workoutStreak });
   }
   if (n.includes('performance') || n.includes('week')) {
     const last = data.weeklyStats[data.weeklyStats.length - 1];
-    if (!last) return 'No performance data recorded yet.';
-    return `This week: ${last.sessions} session(s), avg RPE ${last.rpe.toFixed(1)}, volume ${last.volume} sets.`;
+    if (!last) return tr('perf.voice.noData');
+    return tr('perf.voice.responseWeek', { sessions: last.sessions, rpe: last.rpe.toFixed(1), volume: last.volume });
   }
   if (n.includes('pain') || n.includes('aching') || n.includes('hurt')) {
-    if (data.painEvents14d.length === 0) return 'No pain episodes in the last 14 days.';
-    return `${data.painEvents14d.length} pain episode(s) in the last 14 days. Primary region: ${data.primaryPainRegion ?? 'unidentified'}.`;
+    if (data.painEvents14d.length === 0) return tr('perf.voice.responsePainNone');
+    return tr('perf.voice.responsePain', { count: data.painEvents14d.length, region: data.primaryPainRegion ?? tr('perf.pain.unidentified') });
   }
   if (n.includes('sleep') || n.includes('energy')) {
-    return `Average sleep: ${data.sleepAvg.toFixed(1)}/10. Average energy: ${data.energyAvg.toFixed(1)}/10.`;
+    return tr('perf.voice.responseSleepEnergy', { sleep: data.sleepAvg.toFixed(1), energy: data.energyAvg.toFixed(1) });
   }
-  return 'I didn\'t understand your question. Try: "Am I at risk of fatigue?", "How many sessions did I complete this month?", "When can I increase the load?" or "Generate my monthly summary."';
+  return tr('perf.voice.responseFallback');
 }
 
 // ── Screen 06 — Voice Analytics ───────────────────────────────────────────────────
 
-const SUGGESTED_QUESTIONS = [
-  'How was my performance this week?',
-  'Am I at risk of fatigue?',
-  'When can I increase the load?',
-  'How many sessions did I complete this month?',
-  'Am I at risk of churn?',
-  'Generate my monthly summary.',
-];
-
 function TelaVoz({ data }: { data: M5Data }) {
+  const { t: tr } = useTranslation();
   const [query,     setQuery]     = React.useState('');
   const [response,  setResponse]  = React.useState<string | null>(null);
   const [listening, setListening] = React.useState(false);
@@ -796,7 +797,7 @@ function TelaVoz({ data }: { data: M5Data }) {
     if (!SR) { setNoSupport(true); return; }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rec = new SR() as any;
-    rec.lang = 'en-US';
+    rec.lang = i18n.language || 'en-US';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     rec.start();
@@ -811,12 +812,16 @@ function TelaVoz({ data }: { data: M5Data }) {
     rec.onend   = () => setListening(false);
   };
 
+  const questions = React.useMemo(
+    () => tr('perf.voice.suggestions', { returnObjects: true }) as string[],
+    [tr],
+  );
   return (
     <ScreenWrap>
       <ScreenTitle
-        kicker="VOICE · CONVERSATIONAL ANALYSIS"
-        title="Ask about your progress."
-        sub="Voice query interface for your performance data."
+        kicker={tr('perf.voice.kicker')}
+        title={tr('perf.voice.title')}
+        sub={tr('perf.voice.sub')}
       />
 
       {/* Mic button */}
@@ -843,11 +848,11 @@ function TelaVoz({ data }: { data: M5Data }) {
           <Icon name="mic" size={30} color="#0E1A2B" stroke={2}/>
         </button>
         <div style={{ fontFamily: FF_MONO, fontSize: 11, color: listening ? C.cyan : T.textMute, letterSpacing: '0.06em' }}>
-          {listening ? 'Listening…' : 'Tap to speak'}
+          {listening ? tr('perf.voice.listening') : tr('perf.voice.tapSpeak')}
         </div>
         {noSupport && (
           <div style={{ fontSize: 11, color: C.coral, textAlign: 'center' }}>
-            Voice recognition not supported in this browser. Use the questions below.
+            {tr('perf.voice.notSupported')}
           </div>
         )}
       </div>
@@ -865,15 +870,15 @@ function TelaVoz({ data }: { data: M5Data }) {
             </div>
           )}
           {response && (
-            <AIMessage title="Response" body={response} tone="cyan" />
+            <AIMessage title={tr('perf.voice.response')} body={response} tone="cyan" />
           )}
         </div>
       )}
 
       {/* Suggested questions */}
-      <Section title="Suggested questions">
+      <Section title={tr('perf.voice.suggestedQuestions')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {SUGGESTED_QUESTIONS.map(q => (
+          {questions.map(q => (
             <button
               key={q}
               onClick={() => process(q)}
@@ -900,8 +905,7 @@ function TelaVoz({ data }: { data: M5Data }) {
       }}>
         <span style={{ color: C.coral, fontSize: 13 }}>🔒</span>
         <div style={{ fontSize: 11, color: T.textSec, lineHeight: 1.5 }}>
-          <b style={{ color: C.coral }}>Privacy:</b> Voice queries do not expose sensitive data
-          (health, medication, physiological cycle). Data masked by default. (RV-5.1)
+          <b style={{ color: C.coral }}>{tr('perf.voice.privacy')}:</b> {tr('perf.voice.privacyFull')}
         </div>
       </div>
     </ScreenWrap>
@@ -911,12 +915,13 @@ function TelaVoz({ data }: { data: M5Data }) {
 // ── Tela 07 — Marcos & Conquistas ────────────────────────────────────────────
 
 function TelaMarcos({ data }: { data: M5Data }) {
+  const { t: tr } = useTranslation();
   const unlockedCount = data.milestones.filter(m => m.unlocked).length;
   const total         = data.milestones.length;
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker="MILESTONES · PROOF OF VALUE" title="Your achievements."/>
+      <ScreenTitle kicker={tr('perf.milestones.kicker')} title={tr('perf.milestones.title')}/>
 
       {/* Hero */}
       <div style={{
@@ -940,13 +945,13 @@ function TelaMarcos({ data }: { data: M5Data }) {
           }}>
             {unlockedCount}/{total}
           </div>
-          <div style={{ fontSize: 12, color: T.textSec }}>milestones unlocked on this journey</div>
+          <div style={{ fontSize: 12, color: T.textSec }}>{tr('perf.milestones.heroSub')}</div>
         </div>
       </div>
 
       {/* Unlocked milestones */}
       {data.milestones.filter(m => m.unlocked).length > 0 && (
-        <Section title="Unlocked">
+        <Section title={tr('perf.milestones.unlocked')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {data.milestones.filter(m => m.unlocked).map(m => (
               <div key={m.id} style={{
@@ -974,7 +979,7 @@ function TelaMarcos({ data }: { data: M5Data }) {
 
       {/* In-progress milestones */}
       {data.milestones.filter(m => !m.unlocked).length > 0 && (
-        <Section title="In progress">
+        <Section title={tr('perf.milestones.inProgress')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {data.milestones.filter(m => !m.unlocked).map(m => {
               const pct = Math.min(100, (m.current / m.target) * 100);
@@ -1001,14 +1006,14 @@ function TelaMarcos({ data }: { data: M5Data }) {
       )}
 
       <AIMessage
-        title="Proof of value"
+        title={tr('perf.milestones.proofTitle')}
         tone="lavender"
         body={
           unlockedCount === 0
-            ? 'Complete your first session to unlock the first milestone. Every workout counts.'
-            : `${unlockedCount} milestone${unlockedCount > 1 ? 's' : ''} unlocked. Each achievement is evidence of your commitment.`
+            ? tr('perf.milestones.firstSession')
+            : tr('perf.milestones.milestoneUnlocked', { count: unlockedCount })
         }
-        action={unlockedCount > 0 ? 'Generate monthly report — share with trainer' : 'Start your first workout'}
+        action={unlockedCount > 0 ? tr('perf.milestones.generateReport') : tr('perf.milestones.startFirst')}
       />
     </ScreenWrap>
   );

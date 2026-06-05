@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { RefreshChip } from '../../components/RefreshChip';
@@ -180,12 +181,12 @@ export function TrainerClientDetailScreen({
   if (!selectedClient) {
     return (
       <div style={{ padding: '60px 32px', textAlign: 'center', color: textSec(dark), fontSize: 13 }}>
-        No client selected.
+        {tr('trainer.detail.noClientSelected')}
         <button
           onClick={() => nav('trainerDashboard')}
           style={{ ...ghostBtn(dark), display: 'block', margin: '16px auto 0' }}
         >
-          ← Back
+          {tr('trainer.detail.backBtn')}
         </button>
       </div>
     );
@@ -252,17 +253,17 @@ export function TrainerClientDetailScreen({
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
-            Client Profile
+            {tr('trainer.detail.clientProfile')}
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: textPri(dark), fontFamily: '"Plus Jakarta Sans",sans-serif' }}>
-            {selectedClient.name || 'Client'}
+            {selectedClient.name || tr('trainer.detail.clientFallback')}
           </div>
         </div>
         <RefreshChip onRefresh={() => void load()} loading={loading} lastUpdated={lastUpdated} live color={t.primary} dark={dark} />
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: textMute(dark), fontSize: 13 }}>Loading…</div>
+        <div style={{ textAlign: 'center', padding: 60, color: textMute(dark), fontSize: 13 }}>{tr('trainer.detail.loading')}</div>
       ) : (
         <div style={{ padding: '16px 22px 100px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
@@ -294,14 +295,14 @@ export function TrainerClientDetailScreen({
             <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
-                  Smart Profile v2
+                  {tr('trainer.detail.smartProfileV2')}
                 </div>
                 {profileV2.completed_at && (
                   <span style={{
                     fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
                     background: `${t.accent}20`, color: t.accent, letterSpacing: '.04em',
                   }}>
-                    COMPLETE
+                    {tr('trainer.detail.complete')}
                   </span>
                 )}
               </div>
@@ -324,7 +325,7 @@ export function TrainerClientDetailScreen({
               {T2_SECTIONS.some(([, d]) => d != null) && (
                 <div style={{ padding: '10px 12px', borderRadius: 10, background: `${t.accent}08`, border: `1px solid ${t.accent}22` }}>
                   <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', color: t.accent, marginBottom: 10 }}>
-                    T2 · CONDITIONAL
+                    {tr('trainer.detail.t2Conditional')}
                   </div>
                   {T2_SECTIONS.map(([label, data]) => {
                     const rendered = renderFields(data);
@@ -350,7 +351,7 @@ export function TrainerClientDetailScreen({
                 }}>
                   <span style={{ fontSize: 13 }}>🔒</span>
                   <span style={{ fontSize: 11, color: textMute(dark) }}>
-                    {t3Count} confidential section{t3Count > 1 ? 's' : ''} (T3 — not shared)
+                    {tr('trainer.detail.t3Confidential', { count: t3Count })}
                   </span>
                 </div>
               )}
@@ -361,7 +362,7 @@ export function TrainerClientDetailScreen({
           {readiness.length > 0 && (
             <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-                Readiness · Last {readiness.length}
+                {tr('trainer.detail.readinessLast', { n: readiness.length })}
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                 {[...readiness].reverse().map((r) => {
@@ -396,12 +397,12 @@ export function TrainerClientDetailScreen({
                       {/* Date */}
                       <div style={{ fontSize: 8, color: textMute(dark), textAlign: 'center' }}>
                         {r.occurred_at
-                          ? new Date(r.occurred_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' })
+                          ? new Date(r.occurred_at).toLocaleDateString(i18n.language || 'en-US', { day: '2-digit', month: '2-digit' })
                           : '—'}
                       </div>
                       {/* Voice badge */}
                       {r.input_source === 'voice' && (
-                        <div style={{ fontSize: 7, color: t.primary, fontWeight: 700 }}>VOZ</div>
+                        <div style={{ fontSize: 7, color: t.primary, fontWeight: 700 }}>{tr('trainer.detail.voz')}</div>
                       )}
                     </div>
                   );
@@ -431,7 +432,7 @@ export function TrainerClientDetailScreen({
           {decisions.length > 0 && (
             <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
-                Readiness Decisions
+                {tr('trainer.detail.readinessDecisions')}
               </div>
               {decisions.map((d, i) => {
                 const approved = d.response === 'approved';
@@ -451,7 +452,7 @@ export function TrainerClientDetailScreen({
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ fontSize: 12.5, fontWeight: 700, color }}>{approved ? tr('trainer.detail.approved') : tr('trainer.detail.rejected')}</span>
                       <span style={{ fontSize: 11, color: textMute(dark), marginLeft: 8 }}>
-                        {when ? new Date(when).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                        {when ? new Date(when).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                       </span>
                     </div>
                   </div>
@@ -463,7 +464,7 @@ export function TrainerClientDetailScreen({
           {/* Recent Check-ins (checkin_prontidao) */}
           <div style={{ padding: 16, borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
-              Recent Check-ins
+              {tr('trainer.detail.recentCheckins')}
             </div>
             {readiness.length === 0 ? (
               <div style={{ color: textMute(dark), fontSize: 12 }}>{tr('trainer.detail.noCheckins')}</div>
@@ -474,22 +475,22 @@ export function TrainerClientDetailScreen({
                 display: 'flex', gap: 12,
               }}>
                 <div style={{ fontSize: 10, color: textMute(dark), minWidth: 72, paddingTop: 2 }}>
-                  {r.occurred_at ? new Date(r.occurred_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }) : '—'}
+                  {r.occurred_at ? new Date(r.occurred_at).toLocaleDateString(i18n.language || 'en-US', { day: '2-digit', month: '2-digit' }) : '—'}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     {r.energy_level != null && (
                       <span style={{ fontSize: 12, color: textSec(dark) }}>
-                        Energy <span style={{ fontWeight: 700, color: t.primary }}>{r.energy_level}/10</span>
+                        {tr('trainer.detail.energyLabel')}<span style={{ fontWeight: 700, color: t.primary }}>{r.energy_level}/10</span>
                       </span>
                     )}
                     {r.readiness_score != null && (
                       <span style={{ fontSize: 12, color: textSec(dark) }}>
-                        Readiness <span style={{ fontWeight: 700, color: r.readiness_score >= 70 ? '#4ade80' : r.readiness_score >= 40 ? '#F5A623' : t.accent }}>{r.readiness_score}</span>
+                        {tr('trainer.detail.readinessLabel')}<span style={{ fontWeight: 700, color: r.readiness_score >= 70 ? '#4ade80' : r.readiness_score >= 40 ? '#F5A623' : t.accent }}>{r.readiness_score}</span>
                       </span>
                     )}
                     {r.pain_present && (
-                      <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>⚠ Pain reported</span>
+                      <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>{tr('trainer.detail.painReportedLabel')}</span>
                     )}
                     {r.available_minutes != null && (
                       <span style={{ fontSize: 12, color: textSec(dark) }}>{r.available_minutes} min</span>
@@ -499,8 +500,8 @@ export function TrainerClientDetailScreen({
                     )}
                   </div>
                   <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2, display: 'flex', gap: 8 }}>
-                    {r.sleep_quality && <span>Sleep: {r.sleep_quality}</span>}
-                    {r.input_source === 'voice' && <span style={{ color: t.primary, fontWeight: 700 }}>VOZ</span>}
+                    {r.sleep_quality && <span>{tr('trainer.detail.sleepLabel')}{r.sleep_quality}</span>}
+                    {r.input_source === 'voice' && <span style={{ color: t.primary, fontWeight: 700 }}>{tr('trainer.detail.voz')}</span>}
                   </div>
                 </div>
               </div>
@@ -547,15 +548,15 @@ export function TrainerClientDetailScreen({
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 700, color: exColor }}>
                         {ex.exercise_name}
-                        {skipped   && <span style={{ fontSize: 10, marginLeft: 6, color: textMute(dark) }}>skipped</span>}
+                        {skipped   && <span style={{ fontSize: 10, marginLeft: 6, color: textMute(dark) }}>{tr('trainer.detail.skipped')}</span>}
                         {completed && <span style={{ fontSize: 10, marginLeft: 6, color: '#10B981' }}>✓</span>}
                       </div>
                       <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
                         {[
-                          ex.sets_prescribed    ? `${ex.sets_prescribed} sets`    : null,
-                          ex.reps_prescribed    ? `${ex.reps_prescribed} reps`    : null,
-                          ex.load_kg_prescribed ? `${ex.load_kg_prescribed} kg`   : null,
-                          ex.rest_seconds       ? `${ex.rest_seconds}s rest`      : null,
+                          ex.sets_prescribed    ? `${ex.sets_prescribed} ${tr('trainer.detail.unitSets')}`    : null,
+                          ex.reps_prescribed    ? `${ex.reps_prescribed} ${tr('trainer.detail.unitReps')}`    : null,
+                          ex.load_kg_prescribed ? `${ex.load_kg_prescribed} ${tr('trainer.detail.unitKg')}`   : null,
+                          ex.rest_seconds       ? `${ex.rest_seconds}${tr('trainer.detail.unitRest')}`      : null,
                         ].filter(Boolean).join(' · ')}
                         {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
                       </div>
@@ -572,7 +573,7 @@ export function TrainerClientDetailScreen({
                                   <b style={{ color: textPri(dark) }}>{log.reps_done}</b>
                                   {ex.reps_prescribed != null && log.reps_done !== ex.reps_prescribed && (
                                     <span style={{ color: textMute(dark) }}>/{ex.reps_prescribed}</span>
-                                  )} reps
+                                  )} {tr('trainer.detail.unitReps')}
                                 </span>
                               )}
                               {log.load_kg != null && (
@@ -580,7 +581,7 @@ export function TrainerClientDetailScreen({
                                   <b style={{ color: textPri(dark) }}>{log.load_kg}</b>
                                   {ex.load_kg_prescribed != null && log.load_kg !== ex.load_kg_prescribed && (
                                     <span style={{ color: textMute(dark) }}>/{ex.load_kg_prescribed}</span>
-                                  )} kg
+                                  )} {tr('trainer.detail.unitKg')}
                                 </span>
                               )}
                               {log.rpe != null && <span style={{ color: textMute(dark) }}>RPE {log.rpe}</span>}
@@ -598,7 +599,7 @@ export function TrainerClientDetailScreen({
                 {/* Plan-linked cards */}
                 <div style={{ borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden' }}>
                   <div style={{ padding: '12px 16px 10px', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
-                    Plan & Workout
+                    {tr('trainer.detail.planAndWorkout')}
                   </div>
                   {plans.length === 0 ? (
                     <div style={{ padding: '0 16px 14px', color: textMute(dark), fontSize: 12 }}>{tr('trainer.detail.noPlans')}</div>
@@ -611,10 +612,10 @@ export function TrainerClientDetailScreen({
                     const open     = expandedPlan === p.id;
 
                     const dateLabel = session?.started_at
-                      ? new Date(session.started_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      ? new Date(session.started_at).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                       : p.scheduled_date
-                      ? new Date(p.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                      : p.created_at ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+                      ? new Date(p.scheduled_date).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : p.created_at ? new Date(p.created_at).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
                     const sessionExs = session
                       ? [...(session.workout_session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index)
@@ -674,10 +675,10 @@ export function TrainerClientDetailScreen({
                                       <div style={{ fontSize: 12.5, fontWeight: 700, color: textPri(dark) }}>{ex.exercise_name}</div>
                                       <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
                                         {[
-                                          ex.sets       ? `${ex.sets} sets`             : null,
-                                          ex.reps       ? `${ex.reps} reps`             : null,
-                                          ex.load_kg    ? `${ex.load_kg} kg`            : null,
-                                          ex.rest_seconds ? `${ex.rest_seconds}s rest`  : null,
+                                          ex.sets       ? `${ex.sets} ${tr('trainer.detail.unitSets')}`             : null,
+                                          ex.reps       ? `${ex.reps} ${tr('trainer.detail.unitReps')}`             : null,
+                                          ex.load_kg    ? `${ex.load_kg} ${tr('trainer.detail.unitKg')}`            : null,
+                                          ex.rest_seconds ? `${ex.rest_seconds}${tr('trainer.detail.unitRest')}`  : null,
                                         ].filter(Boolean).join(' · ')}
                                         {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
                                       </div>
@@ -699,15 +700,15 @@ export function TrainerClientDetailScreen({
                 {freeSessions.length > 0 && (
                   <div style={{ borderRadius: 16, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, overflow: 'hidden' }}>
                     <div style={{ padding: '12px 16px 10px', fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
-                      Free Sessions
+                      {tr('trainer.detail.freeSessions')}
                     </div>
                     {freeSessions.map((s, i) => {
                       const open = expandedPlan === s.id;
                       const exs  = [...(s.workout_session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index);
-                      const date = new Date(s.started_at || s.created_at || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                      const date = new Date(s.started_at || s.created_at || '').toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                       const isDone = s.status === 'completed' || !!s.completed_at;
                       const sc   = isDone ? '#10B981' : t.primary;
-                      const slabel = isDone ? 'DONE' : (s.status ?? '—').toUpperCase();
+                      const slabel = isDone ? tr('trainer.detail.done') : (s.status ?? '—').toUpperCase();
                       return (
                         <div key={s.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
                           <button
@@ -766,7 +767,7 @@ export function TrainerClientDetailScreen({
           fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 13, fontWeight: 600, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
-          <Icon name="sparkle" size={14} color={t.accent}/> Readiness Check-in for {selectedClient.name?.split(' ')[0] || 'client'}
+          <Icon name="sparkle" size={14} color={t.accent}/> {tr('trainer.detail.readinessCheckinFor', { name: selectedClient.name?.split(' ')[0] || 'client' })}
         </button>
       )}
       <button onClick={() => nav('workoutPlanEditor')} style={{
@@ -774,7 +775,7 @@ export function TrainerClientDetailScreen({
           background: t.accent, color: '#FFFFFF',
           border: 'none', fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 14, fontWeight: 700, cursor: 'pointer',
         }}>
-        {tr('trainer.detail.createPlan', { name: selectedClient.name?.split(' ')[0] || 'Client' })}
+        {tr('trainer.detail.createPlan', { name: selectedClient.name?.split(' ')[0] || tr('trainer.detail.clientFallback') })}
       </button>
       </div>
     </>

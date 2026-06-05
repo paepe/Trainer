@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { LevelPicker } from '../components/LevelPicker';
@@ -11,24 +12,31 @@ interface Step03Props {
   onChange: (v: Partial<CoachDNAFitness>) => void;
 }
 
-export const Step03Fitness: React.FC<Step03Props> = ({ data, onChange }) => (
+export const Step03Fitness: React.FC<Step03Props> = ({ data, onChange }) => {
+  const { t: tr } = useTranslation();
+  const levels = FITNESS_LEVELS.map(l => ({
+    value: l.value,
+    label: tr(`coachDna.step03.levels.${l.value}.label`),
+    sub:   tr(`coachDna.step03.levels.${l.value}.sub`),
+  }));
+  return (
   <div>
     <StepHeader
       idx={3} total={12}
-      title="Your current fitness level"
-      sub="Your personal conditioning reference point."
+      title={tr('coachDna.step03.title')}
+      sub={tr('coachDna.step03.sub')}
     />
-    <Hint>Not your clients' — your own fitness level today.</Hint>
+    <Hint>{tr('coachDna.step03.hint')}</Hint>
 
     <LevelPicker
       value={data.level}
       onChange={level => onChange({ level })}
-      items={FITNESS_LEVELS as unknown as { value: number; label: string; sub: string }[]}
+      items={levels as unknown as { value: number; label: string; sub: string }[]}
     />
 
     <PrivacyNote tone="optional">
-      This calibrates the reference intensity of the workouts you prescribe,
-      without exposing your personal information to clients.
+      {tr('coachDna.step03.privacyNote')}
     </PrivacyNote>
   </div>
-);
+  );
+};

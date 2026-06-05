@@ -5,6 +5,7 @@
 //   Trainer: Approve / Reject chips on workout_ready items
 //   Client : "Start Workout" button on workout_approved items
 import React          from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase }   from '../../supabase';
 import { Icon }       from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
@@ -32,8 +33,15 @@ function isExpired(item: InboxItem): boolean {
   return new Date(item.expires_at).getTime() < Date.now();
 }
 
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const fmtDate = (iso: string, lng: string) => {
+  const localeMap: Record<string, string> = {
+    pt: 'pt-BR',
+    en: 'en-US',
+    es: 'es-ES',
+    de: 'de-DE'
+  };
+  return new Date(iso).toLocaleDateString(localeMap[lng] || 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -49,29 +57,47 @@ export interface InboxScreenProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: InboxScreenProps) {
+  const { t: tr, i18n } = useTranslation();
   const [items,    setItems]    = React.useState<InboxItem[]>([]);
   const [loading,  setLoading]  = React.useState(true);
   const [busy,     setBusy]     = React.useState<string | null>(null);
   const [expanded, setExpanded] = React.useState<string | null>(null);
 
-  // ── Name resolution (cached) ───────────────────────────────────────────────
+  // ── Batch name resolution (1 query instead of N) ──────────────────────────
+  // Caches resolved names in a ref so Realtime INSERTs reuse them.
 
   const nameCache = React.useRef<Record<string, string>>({});
-  const resolveName = React.useCallback(async (fromId: string | null): Promise<string | null> => {
-    if (!fromId) return null;
-    if (nameCache.current[fromId]) return nameCache.current[fromId];
-    const { data } = await supabase.from('profiles').select('name').eq('id', fromId).maybeSingle();
-    const name = (data as { name: string } | null)?.name ?? null;
-    if (name) nameCache.current[fromId] = name;
-    return name;
+
+  const enrichBatch = React.useCallback(async (rawList: Omit<InboxItem, 'peer_name'>[]): Promise<InboxItem[]> => {
+    // collect unique unresolved from_user_ids
+    const unresolved = [...new Set(
+      rawList.map(d => d.from_user_id).filter(Boolean) as string[],
+    )].filter(id => !nameCache.current[id]);
+
+    if (unresolved.length > 0) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', unresolved);
+      if (data) {
+        for (const p of data as { id: string; name: string }[]) {
+          nameCache.current[p.id] = p.name;
+        }
+      }
+      // mark unresolved ones as null so we don't re-query them
+      for (const id of unresolved) {
+        if (!nameCache.current[id]) nameCache.current[id] = '';
+      }
+    }
+
+    return rawList.map(d => ({
+      ...d,
+      ...(d.from_user_id && nameCache.current[d.from_user_id]
+        ? { peer_name: nameCache.current[d.from_user_id] } : {}),
+    }));
   }, []);
 
-  const enrich = React.useCallback(async (raw: Omit<InboxItem, 'peer_name'>): Promise<InboxItem> => {
-    const name = await resolveName(raw.from_user_id);
-    return { ...raw, ...(name ? { peer_name: name } : {}) };
-  }, [resolveName]);
-
-  // ── Initial load + Realtime subscription ──────────────────────────────────
+  // ── Initial load ───────────────────────────────────────────────────────────
 
   React.useEffect(() => {
     if (!userId) return;
@@ -86,11 +112,9 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
       .then(async ({ data, error }) => {
         if (error) console.error('[Inbox] load failed:', error.message);
         if (data) {
-          const enriched = await Promise.all(data.map(d => enrich(d as Omit<InboxItem, 'peer_name'>)));
+          const enriched = await enrichBatch(data as Omit<InboxItem, 'peer_name'>[]);
           setItems(enriched);
 
-          // Mark unread messages as read — opening the inbox = seen.
-          // The Realtime UPDATE handler in App.tsx decrements the tab badge.
           const unreadIds = data.filter(d => (d as { read_at?: string | null }).read_at == null).map(d => d.id);
           if (unreadIds.length) {
             supabase.from('notification_log')
@@ -101,28 +125,51 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
         }
         setLoading(false);
       });
+  }, [userId, enrichBatch]);
+
+  // ── Realtime subscription (only after initial load completes) ──────────────
+
+  React.useEffect(() => {
+    if (!userId || loading) return;
 
     const channel = supabase
       .channel(`inbox:${userId}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${userId}` },
         async (payload) => {
-          const enriched = await enrich(payload.new as Omit<InboxItem, 'peer_name'>);
-          setItems(prev => [enriched, ...prev]);
+          const [enriched] = await enrichBatch([payload.new as Omit<InboxItem, 'peer_name'>]);
+          if (!enriched?.id) return;
+          setItems(prev => {
+            if (prev.some(i => i.id === enriched.id)) return prev; // dedup
+            return [enriched, ...prev];
+          });
         }
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${userId}` },
         (payload) => {
+          const old = payload.old as InboxItem & { read_at?: string | null };
+          const upd = payload.new as InboxItem & { read_at?: string | null };
+
+          // skip self-triggered mark-as-read updates (only read_at changed)
+          const onlyReadAtChanged =
+            old.read_at !== upd.read_at &&
+            old.response === upd.response &&
+            old.response_at === upd.response_at &&
+            old.title === upd.title &&
+            old.body === upd.body;
+
+          if (onlyReadAtChanged) return;
+
           setItems(prev => prev.map(i =>
-            i.id === (payload.new as InboxItem).id ? { ...i, ...(payload.new as Partial<InboxItem>) } : i
+            i.id === upd.id ? { ...i, ...(upd as Partial<InboxItem>) } : i
           ));
         }
       )
       .subscribe();
 
     return () => { void supabase.removeChannel(channel); };
-  }, [userId, enrich]);
+  }, [userId, loading, enrichBatch]);
 
   // ── Trainer: Approve / Reject ──────────────────────────────────────────────
 
@@ -137,12 +184,12 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
     const trainerFirst = userName?.split(' ')[0] ?? 'Your trainer';
     if (response === 'approved') {
-      notify(item.from_user_id, `${trainerFirst} approved your workout!`,
-        'Your trainer reviewed your readiness and gave the green light. Start your workout now.',
+      notify(item.from_user_id, tr('inbox.notification.approved_title', { trainer: trainerFirst }),
+        tr('inbox.approved'),
         undefined, { type: 'workout_approved', ...(userId ? { fromUserId: userId } : {}) });
     } else {
-      notify(item.from_user_id, `${trainerFirst} suggested resting today`,
-        "Your trainer reviewed your readiness and recommends skipping today's session.",
+      notify(item.from_user_id, tr('inbox.notification.rejected_title', { trainer: trainerFirst }),
+        tr('inbox.rejected'),
         undefined, { type: 'workout_rejected', ...(userId ? { fromUserId: userId } : {}) });
     }
 
@@ -155,17 +202,18 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
   // ── Render ─────────────────────────────────────────────────────────────────
 
   const pendingCount = items.filter(i => i.type === 'workout_ready' && !i.response && !isExpired(i)).length;
-  const title        = 'Inbox';
+  const title        = tr('inbox.title');
+  const titleSuffix  = pendingCount > 0 ? tr('inbox.pending_count', { count: pendingCount }) : '';
 
   return (
     <>
       <ScreenTitle dark={dark}>
-        {title}{pendingCount > 0 ? ` · ${pendingCount} pending` : ''}
+        {title}{titleSuffix}
       </ScreenTitle>
 
       {loading && (
         <div style={{ padding: '40px 22px', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
-          Loading…
+          {tr('inbox.loading')}
         </div>
       )}
 
@@ -173,7 +221,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
         <div style={{ padding: '48px 22px', textAlign: 'center' }}>
           <Icon name="bell" size={32} color={textMute(dark)} />
           <div style={{ marginTop: 12, fontSize: 13, color: textMute(dark) }}>
-            {isTrainer ? 'No alerts yet.' : 'No messages yet.'}
+            {isTrainer ? tr('inbox.noAlerts') : tr('inbox.noMessages')}
           </div>
         </div>
       )}
@@ -222,15 +270,15 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                     <Icon name={iconName} size={16} color={iconColor} stroke={2.2} />
                   </div>
 
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark), marginBottom: 2 }}>
-                      {item.title}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark), marginBottom: 2 }}>
+                        {item.title}
+                      </div>
+                      <div style={{ fontSize: 11, color: textMute(dark) }}>
+                        {item.peer_name && <span style={{ color: textSec(dark), fontWeight: 600 }}>{item.peer_name} · </span>}
+                        {fmtDate(item.created_at, i18n.language)}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 11, color: textMute(dark) }}>
-                      {item.peer_name && <span style={{ color: textSec(dark), fontWeight: 600 }}>{item.peer_name} · </span>}
-                      {fmtDate(item.created_at)}
-                    </div>
-                  </div>
 
                   <StatusBadge item={item} expired={expired} isTrainer={isTrainer} t={t} dark={dark} />
                   <span style={{ fontSize: 10, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
@@ -249,7 +297,12 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                         marginBottom: 12, padding: '6px 10px', borderRadius: 8,
                         background: `${t.primary}14`, fontSize: 11, color: t.primary,
                       }}>
-                        ⏱ Request expires {new Date(item.expires_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        {tr('inbox.requestExpires', {
+                          time: new Date(item.expires_at).toLocaleTimeString(
+                            i18n.language === 'pt' ? 'pt-BR' : i18n.language === 'es' ? 'es-ES' : i18n.language === 'de' ? 'de-DE' : 'en-US',
+                            { hour: '2-digit', minute: '2-digit' }
+                          )
+                        })}
                       </div>
                     )}
 
@@ -264,7 +317,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                           opacity: busy === item.id ? 0.6 : 1,
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         }}>
-                          <Icon name="check" size={13} color="#0E1A2B" stroke={2.8} /> Approve
+                          <Icon name="check" size={13} color="#0E1A2B" stroke={2.8} /> {tr('inbox.actions.approve')}
                         </button>
                         <button onClick={() => respond(item, 'rejected')} disabled={busy === item.id} style={{
                           flex: 1, padding: '10px 0', borderRadius: 10,
@@ -272,7 +325,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                           fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
                           cursor: busy === item.id ? 'default' : 'pointer', opacity: busy === item.id ? 0.6 : 1,
                         }}>
-                          Reject
+                          {tr('inbox.actions.reject')}
                         </button>
                       </div>
                     )}
@@ -285,7 +338,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                         fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
                         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       }}>
-                        <Icon name="play" size={13} color="#0E1A2B" stroke={2.5} /> Start Workout
+                        <Icon name="play" size={13} color="#0E1A2B" stroke={2.5} /> {tr('inbox.actions.startWorkout')}
                       </button>
                     )}
 
@@ -297,7 +350,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                         border: `1px solid ${item.response === 'approved' ? '#4ade8040' : `${t.accent}40`}`,
                         fontSize: 11.5, color: item.response === 'approved' ? '#4ade80' : t.accent, fontWeight: 600,
                       }}>
-                        {item.response === 'approved' ? '✓ Approved' : '✗ Rejected'} · {fmtDate(item.response_at)}
+                        {item.response === 'approved' ? tr('inbox.responses.approved') : tr('inbox.responses.rejected')} · {fmtDate(item.response_at, i18n.language)}
                       </div>
                     )}
                   </div>
@@ -316,6 +369,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 function StatusBadge({ item, expired, isTrainer, t, dark }: {
   item: InboxItem; expired: boolean; isTrainer: boolean; t: any; dark: boolean;
 }) {
+  const { t: tr } = useTranslation();
   const badge = (label: string, color: string) => (
     <span style={{
       fontSize: 10, fontWeight: 700, borderRadius: 999, padding: '3px 9px', flexShrink: 0,
@@ -323,15 +377,15 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
     }}>{label}</span>
   );
 
-  if (item.response === 'approved' || item.type === 'workout_approved') return badge('Approved ✓', '#4ade80');
-  if (item.response === 'rejected' || item.type === 'workout_rejected') return badge('Rejected ✗', t.accent);
-  if (expired && item.type === 'workout_ready') return badge('Expired', textMute(dark));
-  if (item.type === 'workout_ready' && isTrainer)                        return badge('Pending', t.primary);
-  if (item.type === 'plan_sent')                                          return badge('New Plan', t.primary);
-  if (item.type === 'plan_cancelled')                                     return badge('Cancelled', t.accent);
-  if (item.type === 'plan_postponed')                                     return badge('Postponed', '#F5B45A');
-  if (item.type === 'plan_expired')                                       return badge('Expired', textMute(dark));
-  if (item.type === 'checkin_alert' || item.type === 'safety_gate')      return badge('Alert', '#F5A623');
-  if (item.type === 'workout_completed')                                  return badge('Done ✓', '#4ade80');
+  if (item.response === 'approved' || item.type === 'workout_approved') return badge(tr('inbox.badges.approved'), '#4ade80');
+  if (item.response === 'rejected' || item.type === 'workout_rejected') return badge(tr('inbox.badges.rejected'), t.accent);
+  if (expired && item.type === 'workout_ready') return badge(tr('inbox.badges.expired'), textMute(dark));
+  if (item.type === 'workout_ready' && isTrainer)                        return badge(tr('inbox.badges.pending'), t.primary);
+  if (item.type === 'plan_sent')                                          return badge(tr('inbox.badges.newPlan'), t.primary);
+  if (item.type === 'plan_cancelled')                                     return badge(tr('inbox.badges.cancelled'), t.accent);
+  if (item.type === 'plan_postponed')                                     return badge(tr('inbox.badges.postponed'), '#F5B45A');
+  if (item.type === 'plan_expired')                                       return badge(tr('inbox.badges.expired'), textMute(dark));
+  if (item.type === 'checkin_alert' || item.type === 'safety_gate')      return badge(tr('inbox.badges.alert'), '#F5A623');
+  if (item.type === 'workout_completed')                                  return badge(tr('inbox.badges.done'), '#4ade80');
   return null;
 }

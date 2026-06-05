@@ -1,7 +1,450 @@
 {
   "common": {
     "about": "Acerca de esta app",
-    "version": "Versión {{version}}"
+    "version": "Versión {{version}}",
+    "signOut": "Cerrar sesión",
+    "refresh": "Actualizar",
+    "updating": "Actualizando…",
+    "live": "En vivo",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "action": "Acción"
+  },
+  "inbox": {
+    "title": "Bandeja de entrada",
+    "noAlerts": "Aún no hay alertas.",
+    "noMessages": "Aún no hay mensajes.",
+    "approved": "Tu entrenador revisó tu preparación y dio el visto bueno. Comienza tu entrenamiento ahora.",
+    "rejected": "Tu entrenador revisó tu preparación y recomienda saltarte la sesión de hoy.",
+    "notification": {
+      "approved_title": "¡Listo para entrenar! ({{trainer}})",
+      "rejected_title": "Ajuste de sesión recomendado ({{trainer}})"
+    },
+    "pending_count_one": " ({{count}} pendiente)",
+    "pending_count_other": " ({{count}} pendientes)",
+    "loading": "Cargando mensajes...",
+    "requestExpires": "La solicitud vence a las {{time}}",
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "startWorkout": "Iniciar Entrenamiento"
+    },
+    "responses": {
+      "approved": "Aprobado por el entrenador",
+      "rejected": "El entrenador recomienda saltarse la sesión"
+    },
+    "badges": {
+      "expired": "Expirado",
+      "pending": "Pendiente",
+      "newPlan": "Nuevo Plan",
+      "cancelled": "Cancelado",
+      "postponed": "Pospuesto",
+      "alert": "Alerta",
+      "approved": "Aprobado",
+      "rejected": "Rechazado",
+      "done": "Hecho"
+    }
+  },
+  "postWorkout": {
+    "title": "¡Entrenamiento Completo!",
+    "titleIncomplete": "Resumen de la Sesión",
+    "subtitleComplete": "Gran esfuerzo — aquí está el resumen de tu sesión",
+    "subtitleIncomplete": "Esta sesión no fue completada",
+    "duration": "Duración",
+    "exercises": "Ejercicios",
+    "setsDone": "Series realizadas",
+    "score": "Puntuación",
+    "sessionPlaceholder": "¿Cómo fue la sesión?",
+    "feelings": [
+      "Pésimo",
+      "Mal",
+      "Regular",
+      "Bien",
+      "Excelente"
+    ],
+    "loading": "Cargando sesión…",
+    "feedbackOnlyCompleted": "El feedback solo está disponible para sesiones completadas.",
+    "backToHistory": "← Volver al Historial",
+    "trainerSessionNote": "Registrando en nombre de {{client}} · feedback guardado en el perfil del cliente",
+    "clientFallback": "cliente",
+    "howDidYouFeel": "¿Cómo te sentiste?",
+    "energyLevelAfter": "Nivel de energía después — {{energy}}/10",
+    "notesOptional": "Notas (opcional)",
+    "saveSaving": "Guardando…",
+    "saveTrainerDashboard": "Guardar y volver al panel",
+    "saveContinue": "Guardar y continuar"
+  },
+  "perf": {
+    "noData": "Sin datos disponibles",
+    "region": "Región",
+    "tabs": {
+      "overview": "Resumen",
+      "aderencia": "Adherencia",
+      "performance": "Rendimiento",
+      "dor": "Dolor",
+      "scores": "Puntuaciones IA",
+      "voz": "Voz",
+      "marcos": "Hitos"
+    },
+    "overview": {
+      "sub": "Resumen de tu progreso en las últimas semanas.",
+      "adherence": "ADHERENCIA",
+      "sessions": "Sesiones",
+      "streak": "Racha",
+      "weekSummary": "Resumen semanal",
+      "frequency": "Frecuencia",
+      "checkins": "Check-ins",
+      "perWeek": "por semana",
+      "coverage": "cobertura",
+      "kicker": "MI PROGRESO · {{weeksActive}} SEMANAS",
+      "titleClient": "Progreso de {{name}}",
+      "titleOwn": "Estás progresando.",
+      "pain14d": "Dolor 14d",
+      "recurrent": "recurrente",
+      "occurrences": "ocurrencias",
+      "weeklyVolume": "Volumen semanal (t·rep)",
+      "navCards": {
+        "aderencia": {
+          "title": "Adherencia",
+          "sub": "{{adh}}% · {{streak}} días de racha"
+        },
+        "performance": {
+          "title": "Rendimiento",
+          "sub": "Carga, volumen y esfuerzo percibido"
+        },
+        "dor": {
+          "title": "Dolor & Seguridad",
+          "sub": "{{count}} ocurrencia(s) en 14 días"
+        },
+        "scores": {
+          "title": "Análisis IA",
+          "sub": "9 indicadores predictivos"
+        },
+        "voz": {
+          "title": "Análisis por Voz",
+          "sub": "Pregunta sobre tu progreso"
+        },
+        "marcos": {
+          "title": "Hitos & Logros",
+          "sub": "{{unlocked}}/{{total}} desbloqueados"
+        }
+      },
+      "wks": " sem",
+      "partialSessions": " parciales",
+      "consecutiveDays": "días consecutivos"
+    },
+    "adherence": {
+      "kicker": "ADHERENCIA · 6 SEMANAS",
+      "title": "Tu consistencia de entrenamiento.",
+      "label": "ADHERENCIA",
+      "currentWeek": "Semana actual",
+      "completed": "Completado",
+      "partial": "Parcial",
+      "missed": "Perdido",
+      "partials": "Parciales",
+      "consistencyAnalysis": "Análisis de consistencia",
+      "latestSessions": "Últimas sesiones",
+      "sessionCompleted": "Completado",
+      "sessionPartial": "Parcial",
+      "sessionAbandoned": "Abandonado",
+      "maintainVolume": "Mantener volumen y frecuencia",
+      "discussPlan": "Hablar con el entrenador sobre ajuste de plan",
+      "excellent": "Consistencia excelente",
+      "good": "Buena consistencia",
+      "underConstruction": "En construcción",
+      "sessionsWeeks": "{{sessions}} sesiones · {{weeks}} semanas",
+      "rpePrefix": "RPE ",
+      "painBadge": "⚠ dolor",
+      "analysisExcellent": "Adherencia del {{adh}}% es un indicador de consistencia sostenida. Continúa con la misma cadencia.",
+      "analysisGood": "Adherencia del {{adh}}% es sólida. Pequeños ajustes de horario pueden aumentar aún más tu consistencia.",
+      "analysisLow": "Adherencia del {{adh}}% indica espacio de mejora. Revisa la disponibilidad con tu entrenador."
+    },
+    "performance": {
+      "kicker": "RENDIMIENTO · carga, volumen, esfuerzo",
+      "title": "Evolución técnica.",
+      "totalVolume": "Volumen semanal total",
+      "avgRPE": "RPE promedio",
+      "sessionsPerWeek": "Sesiones por semana",
+      "performanceAnalysis": "Análisis de rendimiento",
+      "noSetsRecorded": "Aún no se han registrado series",
+      "logRPE": "Registra RPE en las sesiones para ver la tendencia",
+      "logRPEActivate": "Registra RPE en las sesiones para activar el análisis predictivo de fatiga.",
+      "preventiveDeload": "Considera un deload preventivo",
+      "maintainProgression": "Mantener progresión actual",
+      "tonnesSuffix": "t",
+      "trendRising": "↗ subiendo",
+      "trendStable": "↘ estable",
+      "trendNone": "—",
+      "startLabel": "inicio: ",
+      "currentLabel": "actual: ",
+      "analysisRising": "El RPE subió {{rpeDelta}} puntos en las últimas semanas. Monitorea signos de fatiga acumulada.",
+      "analysisStable": "Volumen y RPE progresando de forma compatible. Indicadores de rendimiento saludables."
+    },
+    "pain": {
+      "kicker": "DOLOR & SEGURIDAD · 14 DÍAS",
+      "title": "Monitoreo de señales de riesgo.",
+      "noPain": "SIN DOLOR",
+      "recurrence": "Motor de Recurrencia de Dolor",
+      "monitoring": "Monitoreo de dolor",
+      "replaceExercise": "Reemplazar ejercicio y notificar al entrenador",
+      "notifyTrainer": "Notificar al entrenador y registrar intensidad en cada sesión",
+      "maintainTechnique": "Mantener atención a la técnica de ejecución",
+      "history": "Historial de dolor",
+      "availableActions": "Acciones disponibles",
+      "replaceRisk": "Reemplazar ejercicio de riesgo",
+      "notifyPT": "Notificar al entrenador personal",
+      "logPain": "Registrar dolor detallado",
+      "occurrencesRecurrence": " ocurrencias. Motor de Recurrencia de Dolor activado.",
+      "occurrencesMonitoring": " ocurrencia(s). Monitorizando evolución.",
+      "occurrencesIn14d": " ocurrencias en los últimos 14 días.",
+      "regionFallback": "región",
+      "unidentified": "no identificada",
+      "recurringPain": "Dolor recurrente en {{region}} detectado ...",
+      "hasPainBody": "{{count}} ocurrencia(s) registrada(s). Intensidad monitorizada. Mantén a tu entrenador informado.",
+      "noPainBody": "Sin dolor registrado en los últimos 14 días. Continúa ejecutando con buena técnica."
+    },
+    "scores": {
+      "sub": "La predicción no es diagnóstico. Indicadores probabilísticos de apoyo a la decisión.",
+      "good": "BIEN",
+      "warning": "ATENCIÓN",
+      "low": "BAJO",
+      "fatigueRisk": "Riesgo de fatiga",
+      "churnRisk": "Riesgo de abandono",
+      "kicker": "ANÁLISIS IA · CAPA PREDICTIVA",
+      "title": "9 indicadores predictivos.",
+      "insights": "Insights accionables · {{count}}",
+      "disclaimerBold": "ℹ Predicción ≠ diagnóstico.",
+      "disclaimerBody": "Todas las puntuaciones son probabilísticas y están destinadas a apoyar decisiones del entrenador, no reemplazando la evaluación profesional. Los datos sensibles se procesan localmente."
+    },
+    "voice": {
+      "title": "Pregunta sobre tu progreso.",
+      "sub": "Interfaz de consulta por voz para tus datos de rendimiento.",
+      "listening": "Escuchando…",
+      "tapSpeak": "Toca para hablar",
+      "response": "Respuesta",
+      "suggestedQuestions": "Preguntas sugeridas",
+      "privacy": "Privacidad: las consultas de voz no exponen datos sensibles",
+      "noData": "Aún no se han registrado datos de rendimiento.",
+      "suggestions": [
+        "¿Cómo fue mi rendimiento esta semana?",
+        "¿Estoy en riesgo de fatiga?",
+        "¿Cuándo puedo aumentar la carga?",
+        "¿Cuántas sesiones completé este mes?",
+        "¿Estoy en riesgo de abandono?",
+        "Genera mi resumen mensual."
+      ],
+      "kicker": "VOZ · ANÁLISIS CONVERSACIONAL",
+      "notSupported": "Reconocimiento de voz no soportado en este navegador. Usa las preguntas de abajo.",
+      "privacyFull": "Las consultas de voz no exponen datos sensibles (salud, medicación, ciclo fisiológico). Datos enmascarados por defecto. (RV-5.1)",
+      "responseSummary": "Resumen: {{completed}} sesiones completadas de {{planned}} planificadas — {{adh}}% de adherencia. Racha actual: {{streak}} día(s). {{fatigueDesc}}",
+      "responseFatigue": "Riesgo de fatiga: {{score}}/100. {{desc}} {{action}}",
+      "responseChurn": "Riesgo de abandono: {{score}}/100. {{desc}} {{action}}",
+      "responseProgression": "Preparación para progresión: {{score}}/100. {{action}}",
+      "responseSessions": "Completaste {{completed}} sesiones de {{planned}} planificadas — {{adh}}% de adherencia. Racha actual: {{streak}} día(s).",
+      "responseWeek": "Esta semana: {{sessions}} sesión(es), RPE medio {{rpe}}, volumen {{volume}} series.",
+      "responsePainNone": "Sin episodios de dolor en los últimos 14 días.",
+      "responsePain": "{{count}} episodio(s) de dolor en los últimos 14 días. Región principal: {{region}}.",
+      "responseSleepEnergy": "Sueño medio: {{sleep}}/10. Energía media: {{energy}}/10.",
+      "responseFallback": "No entendí tu pregunta. Intenta: \"¿Estoy en riesgo de fatiga?\", \"¿Cuántas sesiones completé este mes?\", \"¿Cuándo puedo aumentar la carga?\" o \"Genera mi resumen mensual.\""
+    },
+    "milestones": {
+      "kicker": "HITOS · PRUEBA DE VALOR",
+      "title": "Tus logros.",
+      "unlocked": "Desbloqueados",
+      "inProgress": "En progreso",
+      "proofTitle": "Prueba de valor",
+      "firstSession": "Completa tu primera sesión para desbloquear el primer hito. Cada entrenamiento cuenta.",
+      "generateReport": "Generar informe mensual — compartir con entrenador",
+      "startFirst": "Comienza tu primer entrenamiento",
+      "heroSub": "hitos desbloqueados en este viaje",
+      "milestoneUnlocked_one": "{{count}} hito desbloqueado. Cada logro es evidencia de tu compromiso.",
+      "milestoneUnlocked_other": "{{count}} hitos desbloqueados. Cada logro es evidencia de tu compromiso."
+    },
+    "refreshing": "ACTUALIZANDO…",
+    "viewing": "Viendo",
+    "calculating": "Calculando indicadores…"
+  },
+  "studio": {
+    "sidebar": {
+      "dashboard": "Panel",
+      "team": "Equipo",
+      "clients": "Clientes",
+      "protocols": "Protocolos",
+      "signOut": "Cerrar sesión"
+    },
+    "dashboard": {
+      "title": "Panel",
+      "sub": "Vista general del studio",
+      "activeClients": "Clientes activos",
+      "activeTrainers": "Entrenadores activos",
+      "plansThisWeek": "Planes esta semana",
+      "completedThisWeek": "Completados esta semana",
+      "trainers": "Entrenadores",
+      "noTrainers": "Aún no hay entrenadores. Ve a Equipo para invitar."
+    },
+    "team": {
+      "title": "Equipo",
+      "inviteTrainer": "Invitar entrenador por correo",
+      "send": "Enviar",
+      "cancel": "Cancelar",
+      "noTrainers": "Aún no hay entrenadores. Invita a tu primer entrenador arriba.",
+      "headers": [
+        "Nombre",
+        "Correo",
+        "Rol",
+        "Acciones"
+      ],
+      "remove": "Eliminar"
+    },
+    "clients": {
+      "title": "Clientes",
+      "allTrainers": "Todos los entrenadores",
+      "allLevels": "Todos los niveles",
+      "headers": [
+        "Cliente",
+        "Correo",
+        "Entrenador",
+        "Objetivo",
+        "Nivel"
+      ],
+      "noClients": "Aún no hay clientes activos. Los entrenadores deben estar vinculados a los clientes primero.",
+      "noMatch": "Ningún cliente coincide con los filtros actuales."
+    },
+    "protocols": {
+      "title": "Biblioteca de Protocolos",
+      "newProtocol": "Nuevo protocolo",
+      "name": "Nombre",
+      "objective": "Objetivo",
+      "level": "Nivel",
+      "description": "Descripción",
+      "createProtocol": "Crear protocolo",
+      "cancel": "Cancelar"
+    },
+    "protocolDetail": {
+      "noExercises": "Aún no hay ejercicios.",
+      "exercise": "Ejercicio",
+      "muscleGroup": "Grupo muscular",
+      "sets": "Series",
+      "reps": "Reps"
+    },
+    "auth": {
+      "accessDenied": "Acceso denegado",
+      "accessDeniedNote": "Este panel requiere una cuenta de Administrador de Studio.",
+      "signOut": "Cerrar sesión",
+      "signIn": "Inicia sesión para gestionar tu studio.",
+      "signInBtn": "Iniciar sesión"
+    },
+    "createStudio": {
+      "title": "Crea tu Studio",
+      "note": "Dale un nombre a tu studio para empezar. Puedes cambiarlo más adelante.",
+      "errUnknown": "Ocurrió un error"
+    }
+  },
+  "checkinEnums": {
+    "sleep": {
+      "poor": "Malo",
+      "regular": "Regular",
+      "good": "Bueno",
+      "excellent": "Excelente"
+    },
+    "bodyPart": {
+      "neck": "Cuello",
+      "shoulder": "Hombro",
+      "elbow": "Codo",
+      "wrist": "Muñeca",
+      "upper_back": "Espalda alta",
+      "lower_back": "Lumbar",
+      "hip": "Cadera",
+      "knee": "Rodilla",
+      "ankle": "Tobillo",
+      "other": "Otro"
+    },
+    "location": {
+      "home": "Casa",
+      "gym": "Gimnasio",
+      "studio": "Studio",
+      "park": "Parque",
+      "online": "Online"
+    },
+    "equipment": {
+      "dumbbells": "Mancuernas",
+      "resistance_bands": "Bandas",
+      "barbell": "Barra",
+      "bench": "Banco",
+      "machines": "Máquinas",
+      "treadmill": "Caminadora",
+      "kettlebell": "Kettlebell",
+      "none": "Ninguno"
+    },
+    "signals": {
+      "severe_pain": "Dolor intenso",
+      "dizziness": "Mareo",
+      "shortness_of_breath": "Falta de aire",
+      "chest_pain": "Dolor en el pecho",
+      "malaise": "Malestar",
+      "loss_of_balance": "Pérdida de equilibrio",
+      "fainting_sensation": "Sensación de desmayo"
+    },
+    "adaptations": {
+      "maintain_normal": "Mantener normal",
+      "reduce_intensity": "Reducir intensidad",
+      "reduce_impact": "Reducir impacto",
+      "increase_rest": "Aumentar descanso",
+      "shorten_session": "Acortar sesión",
+      "prioritize_mobility": "Movilidad",
+      "postpone_training": "Posponer entrenamiento",
+      "regenerative": "Regenerativo"
+    },
+    "emotional": {
+      "physical": "Físico",
+      "mental": "Mental",
+      "both": "Ambos"
+    }
+  },
+  "quickCheckin": {
+    "kicker": "CHECK-IN RÁPIDO · 40 SEG",
+    "title": "Cinco preguntas",
+    "energyHint": "¿cómo te sientes?",
+    "fatigueHint": "fatiga percibida",
+    "inPainToday": "Tengo dolor hoy",
+    "painDetailHint": "Toca para detallar región e intensidad",
+    "intensity": "Intensidad",
+    "calculate": "Calcular preparación →",
+    "back": "← Atrás",
+    "viewing": "Viendo",
+    "blocks": {
+      "energy": "Energía",
+      "sleep": "Sueño",
+      "pain": "Dolor",
+      "fatigue": "Fatiga",
+      "time": "Tiempo disponible"
+    }
+  },
+  "detailedCheckin": {
+    "kicker": "CHECK-IN DETALLADO · 12 BLOQUES",
+    "inPainToday": "Tengo dolor hoy",
+    "painDetailHint": "Toca para detallar región e intensidad",
+    "floorExercises": "Puedo hacer ejercicios en el suelo hoy",
+    "floorNote": "Esta información ayuda a filtrar ejercicios adecuados.",
+    "signalsNote": "Las señales reportadas activan el Safety Gate: las sesiones dirigidas por IA serán bloqueadas y se requerirá revisión humana.",
+    "rhythmNote": "Quiero una versión más cómoda hoy",
+    "rhythmPrivacy": "Adaptación privada. Nunca mostramos fase del ciclo ni síntomas.",
+    "intensity": "Intensidad",
+    "viewing": "Viendo",
+    "blocks": {
+      "energy": "Energía",
+      "sleep": "Sueño",
+      "pain": "Dolor",
+      "fatigue": "Fatiga",
+      "emotional": "Estado emocional",
+      "time": "Tiempo",
+      "location": "Ubicación de hoy",
+      "equipment": "Equipamiento disponible hoy",
+      "capacity": "Capacidad funcional hoy",
+      "signals": "Señales de advertencia",
+      "rhythm": "Ritmo Corporal",
+      "adaptation": "Preferencia de adaptación"
+    }
   },
   "nav": {
     "clients": "Clientes",
@@ -10,7 +453,20 @@
     "history": "Historial",
     "menu": "Menú",
     "workout": "Entreno",
-    "progress": "Progreso"
+    "progress": "Progreso",
+    "cycle": "Ciclo"
+  },
+  "sideMenu": {
+    "smartProfile": "Perfil Inteligente del Alumno",
+    "checkin": "Check-in",
+    "workout": "Entreno",
+    "history": "Historial",
+    "progress": "Progreso",
+    "cycle": "Ciclo",
+    "coachDna": "Coach DNA",
+    "trainerStudio": "Trainer Studio",
+    "exerciseLibrary": "Biblioteca de Ejercicios",
+    "settings": "Ajustes"
   },
   "trainer": {
     "dashboard": {
@@ -32,7 +488,10 @@
       "alerts": "Alertas",
       "tasks": "Tareas",
       "ack": "Ack",
-      "resolve": "Resolver"
+      "resolve": "Resolver",
+      "loading": "Cargando…",
+      "clientFallback": "Cliente",
+      "unknown": "Desconocido"
     },
     "studio": {
       "title": "Trainer Studio",
@@ -43,7 +502,10 @@
       "feedAI": "Alimentar IA",
       "exerciseLibrary": "Biblioteca de Ejercicios",
       "retrainAI": "Reentrenar IA",
-      "yourClients": "Tus clientes"
+      "yourClients": "Tus clientes",
+      "methodology": "Tu metodología · v3.2",
+      "aiSummary": "42 entrenamientos · 18 progresiones · 7 arquetipos de clientes. La IA usa esto para generar planes solo para tus clientes.",
+      "addWorkout": "+ Agregar entrenamiento"
     },
     "detail": {
       "noCheckins": "Aún no hay check-ins.",
@@ -58,17 +520,54 @@
       "approved": "Aprobado",
       "rejected": "Rechazado",
       "sessionStatus": {
-        "done": "HECHO", "inProgress": "EN PROGRESO", "paused": "PAUSADO",
-        "incomplete": "INCOMPLETO", "abandoned": "ABANDONADO",
-        "postponed": "POSPUESTO", "cancelled": "CANCELADO", "sent": "ENVIADO"
+        "done": "HECHO",
+        "inProgress": "EN PROGRESO",
+        "paused": "PAUSADO",
+        "incomplete": "INCOMPLETO",
+        "abandoned": "ABANDONADO",
+        "postponed": "POSPUESTO",
+        "cancelled": "CANCELADO",
+        "sent": "ENVIADO"
       },
       "profileSections": {
-        "basic_data": "Datos básicos", "objectives": "Objetivos",
-        "movement_history": "Historial de movimiento", "functional_capacity": "Capacidad funcional",
-        "environment": "Entorno", "availability": "Disponibilidad",
-        "preferences": "Preferencias", "habits": "Hábitos",
-        "comorbidities": "Comorbilidades", "declared_health": "Salud declarada"
-      }
+        "basic_data": "Datos básicos",
+        "objectives": "Objetivos",
+        "movement_history": "Historial de movimiento",
+        "functional_capacity": "Capacidad funcional",
+        "environment": "Entorno",
+        "availability": "Disponibilidad",
+        "preferences": "Preferencias",
+        "habits": "Hábitos",
+        "comorbidities": "Comorbilidades",
+        "declared_health": "Salud declarada"
+      },
+      "noClientSelected": "Ningún cliente seleccionado.",
+      "backBtn": "← Atrás",
+      "clientProfile": "Perfil del Cliente",
+      "clientFallback": "Cliente",
+      "loading": "Cargando…",
+      "smartProfileV2": "Perfil Inteligente v2",
+      "complete": "COMPLETO",
+      "t2Conditional": "T2 · CONDICIONAL",
+      "t3Confidential_one": "{{count}} sección confidencial (T3 — no compartida)",
+      "t3Confidential_other": "{{count}} secciones confidenciales (T3 — no compartidas)",
+      "readinessLast": "Preparación · Últimos {{n}}",
+      "voz": "VOZ",
+      "readinessDecisions": "Decisiones de Preparación",
+      "recentCheckins": "Check-ins Recientes",
+      "energyLabel": "Energía ",
+      "readinessLabel": "Preparación ",
+      "painReportedLabel": "⚠ Dolor reportado",
+      "sleepLabel": "Sueño: ",
+      "skipped": "omitido",
+      "unitSets": "series",
+      "unitReps": "reps",
+      "unitKg": "kg",
+      "unitRest": "s descanso",
+      "planAndWorkout": "Plan & Entrenamiento",
+      "freeSessions": "Sesiones Libres",
+      "done": "HECHO",
+      "readinessCheckinFor": "Check-in de Preparación para {{name}}"
     },
     "planner": {
       "noCheckin": "Sin check-in hoy",
@@ -77,7 +576,41 @@
       "sets": "Series",
       "reps": "Reps",
       "unknownErr": "Error desconocido",
-      "muscleGroups": ["Pecho","Espalda","Hombros","Brazos","Core","Piernas","Cuerpo completo","Cardio"]
+      "muscleGroups": [
+        "Pecho",
+        "Espalda",
+        "Hombros",
+        "Brazos",
+        "Core",
+        "Piernas",
+        "Cuerpo completo",
+        "Cardio"
+      ],
+      "clientFallback": "Cliente",
+      "noClientSelected": "Ningún cliente seleccionado.",
+      "backToClients": "← Volver a clientes",
+      "headerKicker": "Plan de Entrenamiento",
+      "sent": "Enviado ✓",
+      "todaysContext": "Contexto de hoy",
+      "available": "disponible",
+      "goal": "Objetivo ",
+      "level": "Nivel ",
+      "exercisesHeader": "Ejercicios ({{count}})",
+      "addBtn": "Agregar",
+      "emptyHint": "Toca Agregar para construir el plan.",
+      "nameRequired": "El nombre del ejercicio es obligatorio.",
+      "loadPlaceholder": "Carga (kg)",
+      "restPlaceholder": "Descanso (s)",
+      "cancelBtn": "Cancelar",
+      "addExerciseBtn": "Agregar ejercicio",
+      "trainerNotes": "Notas del entrenador",
+      "notesPlaceholder": "Notas visibles para el cliente…",
+      "generating": "Generando…",
+      "askAI": "✦ Preguntar a la IA",
+      "sending": "Enviando…",
+      "sendToClient": "Enviar al cliente →",
+      "startLiveSession": "Iniciar Sesión en Vivo",
+      "startLiveSessionHint": "Entrenar a {{name}} ahora — abre el modo de entrenamiento directamente"
     },
     "library": {
       "title": "Biblioteca de Ejercicios",
@@ -95,16 +628,98 @@
       "errMuscleRequired": "El grupo muscular es obligatorio.",
       "errSave": "Error al guardar el ejercicio",
       "errUnknown": "Ocurrió un error desconocido",
-      "levelOpts": { "beginner": "Principiante", "intermediate": "Intermedio", "advanced": "Avanzado" },
-      "equipmentOpts": { "dumbbells": "Mancuernas", "barbell": "Barra", "cables": "Cables", "machine": "Máquina", "bodyweight": "Peso corporal" }
+      "levelOpts": {
+        "beginner": "Principiante",
+        "intermediate": "Intermedio",
+        "advanced": "Avanzado"
+      },
+      "equipmentOpts": {
+        "dumbbells": "Mancuernas",
+        "barbell": "Barra",
+        "cables": "Cables",
+        "machine": "Máquina",
+        "bodyweight": "Peso corporal"
+      },
+      "tabExercises": "Catálogo",
+      "tabProtocols": "Protocolos",
+      "loadingExercises": "Cargando catálogo de ejercicios...",
+      "noExercises": "No se encontraron ejercicios.",
+      "loadingProtocols": "Cargando protocolos...",
+      "noProtocols": "No se encontraron protocolos.",
+      "noDescription": "Sin descripción.",
+      "protocolExercises": "Ejercicios del Protocolo:",
+      "noExercisesInProtocol": "No hay ejercicios en este protocolo.",
+      "accessibilityTags": {
+        "lowImpact": "Bajo Impacto",
+        "noFloor": "Sin Suelo",
+        "seated": "Sentado"
+      },
+      "statusOpts": {
+        "active": "Activo",
+        "blocked": "Bloqueado",
+        "restricted": "Restringido",
+        "draft": "Borrador"
+      },
+      "modal": {
+        "editExercise": "Editar Ejercicio",
+        "newExercise": "Nuevo Ejercicio",
+        "exerciseDetails": "Detalles del Ejercicio",
+        "blockedWarning": "Ejercicio Bloqueado: Este ejercicio ha sido bloqueado por graves riesgos de seguridad o contraindicaciones del cliente.",
+        "restrictedWarning": "Ejercicio Restringido: Asegura supervisión adecuada y corrección de postura.",
+        "exerciseName": "Nombre del Ejercicio",
+        "muscleGroup": "Grupo Muscular",
+        "status": "Estado",
+        "equipment": "Equipamiento",
+        "level": "Nivel",
+        "descriptionInstructions": "Descripción e Instrucciones",
+        "videoUrl": "URL del Video",
+        "accessibilityTags": "Etiquetas de Accesibilidad (separadas por coma)",
+        "alternativeExercises": "Ejercicios Alternativos (separados por coma)",
+        "cancel": "Cancelar",
+        "saveChanges": "Guardar Cambios",
+        "instructions": "Instrucciones:",
+        "videoReference": "Referencia de Video:",
+        "viewExecutionVideo": "Ver video de ejecución",
+        "accessibilityTagsLabel": "Etiquetas de Accesibilidad:",
+        "alternativeExercisesLabel": "Ejercicios Alternativos:",
+        "editExerciseBtn": "Editar ejercicio",
+        "accessibilityPlaceholder": "low_impact, no_floor, seated"
+      },
+      "voiceAssistant": {
+        "title": "Asistente de Voz IA (Módulo 8)",
+        "placeholder": "Ej.: \"¿Alternativa de bajo impacto para burpees?\"",
+        "simulate": "Simular",
+        "analyzing": "Analizando...",
+        "parsedIntent": "Intención interpretada: ",
+        "matchingExercises": "Ejercicios coincidentes:",
+        "governanceLabel": "Acción de Gobernanza Pre-autorizada (RV-8.3)",
+        "confirmLog": "Confirmar y Registrar Acción",
+        "auditLog": "Registro de Auditoría de Gobernanza:"
+      }
     }
   },
   "client": {
     "history": {
       "title": "Historial de Entrenamientos",
       "viewProgress": "Ver Progreso",
-      "days": ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],
-      "dayLabels": ["D","L","M","X","J","V","S"]
+      "days": [
+        "Dom",
+        "Lun",
+        "Mar",
+        "Mié",
+        "Jue",
+        "Vie",
+        "Sáb"
+      ],
+      "dayLabels": [
+        "D",
+        "L",
+        "M",
+        "X",
+        "J",
+        "V",
+        "S"
+      ]
     },
     "stats": {
       "title": "Estadísticas de Entrenamiento",
@@ -122,7 +737,10 @@
       "workoutSession": "Sesión de entrenamiento",
       "sessionSummary": "Resumen de la sesión",
       "viewStats": "Ver estadísticas",
-      "exerciseOf": "{{done}} / {{total}} ejercicios"
+      "exerciseOf": "{{done}} / {{total}} ejercicios",
+      "sessionLasted": "Tu sesión duró <b>{{duration}}</b>. ",
+      "ofPlannedCompleted": "<b>{{pct}}%</b> de los ejercicios planeados completados. ",
+      "greatWork": "Gran trabajo — revisa tus estadísticas de progreso."
     },
     "cycle": {
       "title": "Ciclo",
@@ -147,7 +765,9 @@
       "disabledTitle": "Seguimiento del ciclo desactivado",
       "disabledNote": "Activa el seguimiento del ciclo en Ajustes para adaptar la intensidad de tu entrenamiento a tu fase actual.",
       "editAriaLabel": "Editar día actual del ciclo",
-      "peakWindow": "ventana de pico"
+      "peakWindow": "ventana de pico",
+      "todayRecommendation": "Recomendación de hoy",
+      "youAreInPhase": "Estás en fase <b>{{phase}}</b>. "
     },
     "workout": {
       "title": "Iniciar Entrenamiento",
@@ -166,7 +786,40 @@
         "sent": "Enviado",
         "active": "Incompleto",
         "postponed": "Pospuesto"
-      }
+      },
+      "startBtn": "Iniciar Entrenamiento",
+      "newPlanFromTrainer": "Nuevo plan de tu entrenador — toca para cargar",
+      "trainerFallback": "Entrenador",
+      "by": "por ",
+      "planCount_one": "{{count}} plan esperando",
+      "planCount_other": "{{count}} planes esperando",
+      "gymFallback": "gimnasio",
+      "startLabel": "▶ Iniciar",
+      "resumeLabel": "▶ Continuar",
+      "exerciseCount_one": "{{count}} ejercicio",
+      "exerciseCount_other": "{{count}} ejercicios",
+      "postpone": "Posponer",
+      "readinessScoreLabel": "Puntuación de preparación: ",
+      "todaysAiPlan": "Plan de IA de hoy",
+      "generating": "Generando tu plan…",
+      "phaseDay": "fase {{phase}} · Día {{day}}/{{length}}",
+      "cycleAdapted": "· Adaptado al ciclo",
+      "adjustedFor": "Ajustado para: ",
+      "cancelModalTitle": "¿Cancelar este plan?",
+      "cancelModalFrom": "El plan de ",
+      "cancelModalYourTrainer": "tu entrenador",
+      "cancelModalWillBeCanceled": " será cancelado y tu entrenador será notificado.",
+      "cancelModalCannotUndo": "Esta acción no se puede deshacer.",
+      "keepIt": "Conservar",
+      "yesCancel": "Sí, cancelar",
+      "notificationPlanCancelled": "Plan cancelado por el cliente",
+      "notificationPlanPostponed": "Plan pospuesto por el cliente",
+      "notificationYourClient": "Tu cliente",
+      "notificationUnknownDate": "fecha desconocida",
+      "notificationBodyCancelled": "{{name}} canceló el plan de entrenamiento del {{planDate}}.",
+      "notificationBodyPostponed": "{{name}} pospuso el plan de entrenamiento del {{planDate}}.",
+      "unknownError": "Error desconocido",
+      "cancelLabel": "Cancelar"
     },
     "mode": {
       "finishWorkout": "Finalizar Entrenamiento",
@@ -178,16 +831,34 @@
       "skipRest": "Saltar Descanso",
       "reportPain": "Reportar Dolor",
       "report": "Reportar",
-      "skipReasons": ["Dolor / Lesión","Falta de Equipo","Fatiga / Energía","Restricción de Tiempo","Otro"],
+      "skipReasons": [
+        "Dolor / Lesión",
+        "Falta de Equipo",
+        "Fatiga / Energía",
+        "Restricción de Tiempo",
+        "Otro"
+      ],
       "specifyRequired": "Por favor especifica (obligatorio)",
       "commentsOptional": "Comentarios adicionales (opcional)",
       "typeReason": "Escribe el motivo...",
       "typeComments": "Escribe los comentarios...",
       "bodyParts": {
-        "neck": "Cuello", "shoulder": "Hombro", "elbow": "Codo", "wrist": "Muñeca",
-        "upper_back": "Espalda alta", "lower_back": "Lumbar", "hip": "Cadera",
-        "knee": "Rodilla", "ankle": "Tobillo", "other": "Otro"
-      }
+        "neck": "Cuello",
+        "shoulder": "Hombro",
+        "elbow": "Codo",
+        "wrist": "Muñeca",
+        "upper_back": "Espalda alta",
+        "lower_back": "Lumbar",
+        "hip": "Cadera",
+        "knee": "Rodilla",
+        "ankle": "Tobillo",
+        "other": "Otro"
+      },
+      "logSet": "Registrar Serie",
+      "skip": "Saltar",
+      "painBtn": "Dolor",
+      "secondsRemaining": "segundos restantes",
+      "bodyRegion": "Región Corporal"
     }
   },
   "checkin": {
@@ -195,16 +866,30 @@
       "readinessCheckin": "Check-in de Preparación",
       "live": "EN VIVO",
       "safetyGateActive": "Safety Gate activo",
-      "greet": { "morning": "Buenos días", "afternoon": "Buenas tardes", "evening": "Buenas noches" },
+      "greet": {
+        "morning": "Buenos días",
+        "afternoon": "Buenas tardes",
+        "evening": "Buenas noches"
+      },
       "beforeStart": "Antes de empezar, dinos rápidamente cómo te sientes hoy.",
       "safetyGateNote": "Dolor, mareos o señales de alerta pausan automáticamente la sesión dirigida por IA.",
       "postWorkoutLink": "¿Ya entrenaste hoy? Check-in post-entrenamiento →",
       "lastCheckin": "Último check-in · {{date}}",
       "streak": "racha · {{count}} días",
       "options": {
-        "voice":    { "label": "Habla con la app",       "desc": "La forma más rápida. La IA estructura tu voz en campos.", "badge": "RECOMENDADO" },
-        "quick":    { "label": "Check-in rápido",        "desc": "Cinco preguntas esenciales: sueño, energía, dolor, fatiga, tiempo." },
-        "detailed": { "label": "Check-in detallado",     "desc": "Doce bloques para mayor precisión del plan." }
+        "voice": {
+          "label": "Habla con la app",
+          "desc": "La forma más rápida. La IA estructura tu voz en campos.",
+          "badge": "RECOMENDADO"
+        },
+        "quick": {
+          "label": "Check-in rápido",
+          "desc": "Cinco preguntas esenciales: sueño, energía, dolor, fatiga, tiempo."
+        },
+        "detailed": {
+          "label": "Check-in detallado",
+          "desc": "Doce bloques para mayor precisión del plan."
+        }
       }
     },
     "voice": {
@@ -224,6 +909,33 @@
       "recovery": "RECUPERACIÓN"
     },
     "postWorkout": {
+      "kicker": "CHECK-IN · POST-ENTRENAMIENTO",
+      "title": "¿Cómo fue el entrenamiento?",
+      "subtitle": "Alimenta tu progresión y la IA aprende de lo que funcionó en tu cuerpo.",
+      "overallFeeling": "Sensación general",
+      "completedEverything": "¿Completaste todo?",
+      "rpe": "Esfuerzo percibido (RPE)",
+      "painDuringAfter": "¿Sentiste dolor durante o después?",
+      "painEngineNote": "Alimenta el Motor de Recurrencia de Dolor — tres ocurrencias en 14 días disparan una alerta.",
+      "noteLabel": "Nota para la IA o entrenador",
+      "notePlaceholder": "ej.: La sentadilla dolió al bajar, pero la prensa de piernas fue bien.",
+      "back": "← volver",
+      "saving": "Guardando…",
+      "saveBtn": "Guardar feedback ✓",
+      "feedbackSaved": "Feedback guardado",
+      "feedbackSavedSub": "La IA usará esto para refinar tu progresión.",
+      "sensations": {
+        "excellent": "excelente",
+        "good": "bueno",
+        "ok": "ok",
+        "hard": "duro",
+        "very_hard": "muy duro"
+      },
+      "completion": {
+        "yes": "Sí",
+        "partially": "Parcialmente",
+        "no": "No"
+      },
       "partially": "Parcialmente"
     }
   },
@@ -264,9 +976,18 @@
       "errMatch": "Las contraseñas no coinciden."
     },
     "roles": {
-      "client": { "label": "Cliente", "desc": "Quiero entrenar" },
-      "trainer": { "label": "Entrenador", "desc": "Prescribo entrenamientos" },
-      "studio_admin": { "label": "Studio", "desc": "Dirijo un gimnasio" }
+      "client": {
+        "label": "Cliente",
+        "desc": "Quiero entrenar"
+      },
+      "trainer": {
+        "label": "Entrenador",
+        "desc": "Prescribo entrenamientos"
+      },
+      "studio_admin": {
+        "label": "Studio",
+        "desc": "Dirijo un gimnasio"
+      }
     }
   },
   "wizard": {
@@ -295,7 +1016,12 @@
       "sexNote": "Usado para personalización — nunca para diagnóstico.",
       "emergencyContact": "Contacto de emergencia",
       "emergencyNamePlaceholder": "Nombre y apellido",
-      "sex": { "female": "Femenino", "male": "Masculino", "intersex": "Intersexual", "prefer_not_to_say": "Prefiero no decirlo" }
+      "sex": {
+        "female": "Femenino",
+        "male": "Masculino",
+        "intersex": "Intersexual",
+        "prefer_not_to_say": "Prefiero no decirlo"
+      }
     },
     "goals": {
       "hypertrophy": "Hipertrofia",
@@ -375,6 +1101,791 @@
       "network": "Conexión perdida. Revisa tu internet.",
       "duplicate": "Perfil ya guardado.",
       "generic": "Error al guardar. Revisa tu conexión."
+    },
+    "step04": {
+      "titleMain": "Historial de Movimiento",
+      "heading1": "Historial y relación",
+      "heading2": "con el movimiento",
+      "subheading": "Para entender la experiencia, los patrones de adherencia y qué obstaculizó tu camino.",
+      "currentFrequency": "Frecuencia actual",
+      "currentLevel": "Nivel actual",
+      "practicedModalities": "Modalidades practicadas",
+      "frequencyLabel": "Frecuencia típica",
+      "frequencySuffix": "×/semana",
+      "frequencies": {
+        "irregular": "Sin regularidad",
+        "sometimes": "A veces",
+        "not_training": "Sin entrenar"
+      },
+      "levels": {
+        "beginner": "Principiante",
+        "intermediate": "Intermedio",
+        "advanced": "Avanzado"
+      },
+      "modalities": {
+        "weight_training": "Musculación",
+        "running": "Correr",
+        "walking": "Caminar",
+        "yoga": "Yoga",
+        "pilates": "Pilates",
+        "cycling": "Ciclismo",
+        "swimming": "Natación",
+        "functional": "Funcional",
+        "martial_arts": "Artes Marciales",
+        "dance": "Danza",
+        "crossfit": "CrossFit",
+        "other": "Otro"
+      },
+      "dropoutTitle": "¿Qué llevó al abandono?",
+      "dropoutSub": "Sin juicios. Esto ayuda al plan a evitar los mismos obstáculos.",
+      "dropoutToggle": "¿Has abandonado un entrenamiento antes?",
+      "dropoutHint": "Puedes detallar esto en el siguiente paso.",
+      "churnRiskLabel": "¿Cómo prefieres progresar?",
+      "churnOptions": {
+        "gradual": "Gradual",
+        "moderate": "Moderado",
+        "intense": "Intenso"
+      },
+      "churnAlert": "Estos datos alimentan el Motor de Riesgo de Abandono — consultado y expuesto internamente como 'razones de enfoque'.",
+      "negExperiences": "Tuve experiencias negativas con el entrenamiento",
+      "afraidInjury": "Tengo miedo de lesionarme",
+      "embarrassed": "Me siento avergonzado en el gimnasio",
+      "dropoutReasons": {
+        "lack_of_time": "Falta de tiempo",
+        "injury": "Lesión",
+        "lack_of_results": "Falta de resultados",
+        "demotivation": "Desmotivación",
+        "cost": "Costo",
+        "routine_change": "Cambio de rutina",
+        "discomfort": "Vergüenza",
+        "other": "Otro"
+      },
+      "consistencyLabel": "¿Qué ayuda con la constancia?",
+      "consistencyPlaceholder": "ej.: Entrenamiento matutino, compañero de entrenamiento, ver el progreso…",
+      "disruptedLabel": "¿Qué interrumpió tu rutina antes?",
+      "disruptedPlaceholder": "ej.: Viaje de trabajo, lesión, falta de tiempo…",
+      "voiceNote": "Puedes contarnos con tus propias palabras.",
+      "voiceContext": "Cuéntanos tu historial"
+    },
+    "step05": {
+      "title": "Salud Declarada",
+      "bodyPre": "El sistema ",
+      "bodyBold": "no diagnostica",
+      "bodyPost": ". Solo usa lo que declaras para adaptar el plan de forma segura.",
+      "disclosurePrompt": "¿Hay alguna condición a considerar?",
+      "discloseYes": "Sí, ¿cuáles son?",
+      "discloseNo": "No aplica",
+      "disclosePrefer": "Prefiero no decirlo",
+      "categoriesLabel": "Categorías",
+      "categories": {
+        "cardiovascular": "Cardiovascular",
+        "metabolic": "Metabólica",
+        "renal": "Renal",
+        "respiratory": "Respiratoria",
+        "musculoskeletal": "Musculoesquelética",
+        "neurological": "Neurológica",
+        "chronic_pain": "Dolor crónico",
+        "emotional_health": "Salud emocional",
+        "pregnancy_postpartum": "Embarazo o postparto",
+        "post_operative": "Postoperatorio",
+        "physical_disability": "Discapacidad física",
+        "other": "Otra condición"
+      },
+      "freeNoteLabel": "Nota libre",
+      "freeNotePlaceholder": "ej.: Cirugía de rodilla en 2023, autorizado para musculación",
+      "highRiskAlert": "Datos sensibles. Marca estos puntos para validar restricciones operativas — recomienda progresión conservadora.",
+      "voiceNote": "Cuéntanos tu condición con tus propias palabras.",
+      "voiceContext": "Cuéntanos sobre tu salud"
+    },
+    "step06": {
+      "title": "Comorbilidades y cuidados",
+      "subtitle": "Solo lo que te sientas cómodo compartiendo. Influye en la automatización y la validación humana.",
+      "conditions": {
+        "hypertension": "Hipertensión",
+        "type1_diabetes": "Diabetes Tipo 1",
+        "asthma": "Asma",
+        "obesity": "Obesidad",
+        "osteoporosis": "Osteoporosis",
+        "osteopenia": "Osteopenia",
+        "fibromyalgia": "Fibromialgia",
+        "chronic_pain": "Dolor Crónico",
+        "cardiovascular": "Condición cardiovascular",
+        "renal_condition": "Condición renal",
+        "post_operative": "Postoperatorio",
+        "pregnancy": "Embarazo",
+        "postpartum": "Postparto",
+        "other": "Otra condición",
+        "prefer_not_to_say": "Prefiero no decirlo"
+      },
+      "voiceNote": "Puedes describir tu situación de salud con tus propias palabras.",
+      "voiceContext": "Cuéntanos tus condiciones"
+    },
+    "step07": {
+      "title": "Capacidad Funcional",
+      "heading1": "Capacidad funcional",
+      "heading2": "y accesibilidad",
+      "subheading": "Capacidad de movimiento antes del entrenamiento. Asegurémonos de que el plan sea realista.",
+      "mobility": "Movilidad",
+      "balance": "Equilibrio",
+      "autonomy": "Autonomía",
+      "effortTolerance": "Tolerancia al esfuerzo",
+      "painLevel": "Nivel habitual de dolor",
+      "accessToEnv": "Acceso al entorno de entrenamiento",
+      "supportResources": "Recursos de apoyo que usas",
+      "instructionPreference": "¿Cómo prefieres recibir instrucciones?",
+      "mobilityLevels": {
+        "low": "Baja",
+        "moderate": "Moderada",
+        "good": "Buena"
+      },
+      "balanceLevels": {
+        "unstable": "Inestable",
+        "assisted": "Asistido",
+        "stable": "Estable"
+      },
+      "autonomyLevels": {
+        "assisted": "Asistido",
+        "partial": "Parcial",
+        "independent": "Independiente"
+      },
+      "supports": {
+        "wheelchair": "Silla de ruedas",
+        "cane": "Bastón",
+        "walker": "Andador",
+        "prosthesis": "Prótesis",
+        "nearby_support": "Apoyo cercano",
+        "none": "Ninguno"
+      },
+      "painLevels": {
+        "none": "Ninguno",
+        "mild": "Leve",
+        "moderate": "Moderado",
+        "severe": "Intenso"
+      },
+      "accessLevels": {
+        "full": "Total",
+        "partial": "Parcial",
+        "limited": "Limitado"
+      },
+      "instructionFormats": {
+        "visual": "Visual",
+        "auditory": "Auditivo",
+        "simplified_text": "Texto simplificado",
+        "vibration": "Vibración",
+        "standard": "Estándar"
+      },
+      "alert": "Estos datos generan el Perfil de Capacidad Funcional y filtran ejercicios — por ejemplo, si no puedes doblar las rodillas, se prescribirán menos ejercicios en el suelo."
+    },
+    "step08": {
+      "title": "Hábitos",
+      "heading1": "Algunas rutinas pueden",
+      "heading2": "influir en el entrenamiento",
+      "subheading": "Selecciona solo lo que consideres relevante. Estos datos ayudan al plan a respetar tu realidad.",
+      "habits": {
+        "sedentary": "Sedentarismo prolongado",
+        "low_hydration": "Hidratación insuficiente",
+        "intense_routine": "Rutina muy intensa",
+        "high_stress": "Alto nivel de estrés",
+        "irregular_eating": "Alimentación irregular",
+        "frequent_travel": "Viajes frecuentes",
+        "caregiving": "Cuidador de dependientes",
+        "smoking": "Tabaquismo",
+        "alcohol": "Consumo regular de alcohol",
+        "transport": "Dificultades de transporte",
+        "irregular_sleep": "Sueño irregular o insuficiente",
+        "fatigue": "Fatiga frecuente",
+        "emotional_eating": "Alimentación emocional",
+        "sedentary_work": "Trabajo muy sedentario",
+        "financial_stress": "Estrés financiero"
+      },
+      "alert": "Estos datos alimentan predicciones internas de fatiga, adherencia y recuperación. Nada se muestra directamente al entrenador sin autorización."
+    },
+    "step09": {
+      "title": "Factores Sensibles Protegidos",
+      "subtitle": "Los datos íntimos están protegidos. Aparecen para conciencia operativa. Puedes revisar y solicitar validación humana.",
+      "alert": "Medicamentos, sustancias voluntariamente declaradas, historial psicológico — permanecen privados y se marcan como 'factor de seguridad declarado' — progresión conservadora.",
+      "medicationsTitle": "Medicamentos Regulares",
+      "medicationsSub": "Opcional — solo si afecta energía, sueño o rendimiento.",
+      "rankingBadge": "RANKING",
+      "medicationNameLabel": "Nombre del medicamento (opcional)",
+      "medicationPlaceholder": "ej.: Losartán, Metformina, Fluoxetina",
+      "privacyNote": "Datos privados. Nunca se muestran al entrenador sin autorización explícita.",
+      "psychTitle": "Deseo declarar historial emocional / psiquiátrico",
+      "psychDesc": "Ayuda solo para que la IA tome decisiones más seguras y planifique una progresión más lenta para todo el recorrido.",
+      "substanceTitle": "Deseo declarar uso de sustancias recreativas",
+      "substanceDesc": "Anónimo. Influye en las recomendaciones de intensidad y monitoreo.",
+      "coreRule": "Regla central",
+      "ruleText": "Datos íntimos = privados. Consecuencia operativa = compartida de forma enmascarada. Puedes revocar el acceso en cualquier momento en el Bloque 13.",
+      "voiceNote": "Habla con libertad — la IA lo estructura antes de guardar.",
+      "voiceContext": "Cuéntanos sobre factores sensibles"
+    },
+    "step10": {
+      "title": "Ritmo Corporal",
+      "subtitle": "Adaptación privada al ciclo fisiológico, siempre que quieras activarlo. Nunca inspeccionado.",
+      "activateLabel": "Activar Ritmo Corporal",
+      "activateHint": "Esta función es opt-in. Puedes desactivar y eliminar los datos en cualquier momento.",
+      "cycleDayLabel": "Día actual del ciclo",
+      "cycleDaySuffix": "º día",
+      "cycleDurationLabel": "Duración promedio del ciclo",
+      "cycleDurationSuffix": " días",
+      "periodToday": "Menstruación comienza hoy",
+      "day1Marked": "Día 1 marcado — adaptación conservadora activada",
+      "tapDay1": "Toca para marcar el día 1 del ciclo",
+      "adaptationLabel": "Preferencia de adaptación",
+      "adaptations": {
+        "maintain": "Mantener normal",
+        "reduce_intensity": "Reducir intensidad",
+        "reduce_impact": "Reducir impacto",
+        "increase_rest": "Aumentar descanso",
+        "shorten": "Acortar sesión",
+        "prioritize_mobility": "Priorizar movilidad",
+        "postpone": "Posponer entrenamiento",
+        "regenerative": "Regenerativo"
+      },
+      "privacyNote": "Nunca usamos expresiones como \"la alumna está menstruando\". Tu adaptación operativa será: \"Factor biológico temporal — enfoque moderado y menor impacto recomendados\"."
+    },
+    "step11": {
+      "title": "Entorno",
+      "heading1": "Dónde entrenas,",
+      "heading2": "en la vida real",
+      "subheading": "Para prescribir ejercicios que dependan del equipamiento, espacio y apoyo disponibles.",
+      "locationsLabel": "Ubicaciones posibles",
+      "equipmentLabel": "Equipamiento disponible",
+      "accessibilityLabel": "Condiciones de accesibilidad",
+      "locations": {
+        "home": "Casa",
+        "gym": "Gimnasio",
+        "studio": "Studio",
+        "park": "Parque",
+        "condo": "Condominio",
+        "online": "Online"
+      },
+      "equipment": {
+        "dumbbells": "Mancuernas",
+        "bands": "Bandas elásticas",
+        "barbell": "Barra",
+        "bench": "Banco",
+        "treadmill": "Caminadora",
+        "bike": "Bicicleta",
+        "machines": "Máquinas",
+        "kettlebell": "Kettlebell",
+        "cable": "Cable/polea",
+        "none": "Ninguno"
+      },
+      "accessibility": {
+        "wheelchair": "Accesible para sillas de ruedas",
+        "support_bars": "Barras de apoyo",
+        "safe_floor": "Piso seguro",
+        "privacy": "Privacidad para entrenar",
+        "companion": "Acompañante disponible",
+        "adapted": "Equipamiento adaptado"
+      }
+    },
+    "step12": {
+      "title": "Disponibilidad y barreras",
+      "subtitle": "Para calibrar el plan dentro de lo que realmente puedes cumplir.",
+      "daysPerWeek": "Días por semana",
+      "daysSuffix": " días/semana",
+      "durationLabel": "Duración por sesión",
+      "minSuffix": "min",
+      "bestTime": "Mejor horario",
+      "preferredDays": "Días preferidos",
+      "barriers": "Barreras de adherencia",
+      "times": [
+        "Mañana",
+        "Tarde",
+        "Noche",
+        "Variable"
+      ],
+      "days": [
+        "D",
+        "L",
+        "M",
+        "X",
+        "J",
+        "V",
+        "S"
+      ],
+      "barrierItems": {
+        "night_shift": "Turno nocturno",
+        "family_care": "Cuidado familiar",
+        "frequent_travel": "Viajes frecuentes",
+        "treatment_radiation": "Tratamiento/Radioterapia",
+        "transport": "Transporte",
+        "cost": "Costo",
+        "emotional": "Emocional",
+        "time_constraint": "Falta de tiempo"
+      }
+    },
+    "step13": {
+      "title": "Preferencias",
+      "heading1": "Preferencias de entrenamiento",
+      "heading2": "y apoyo",
+      "subheading": "Define el tono de comunicación y ajusta el plan a tu perfil conductual.",
+      "intensityLabel": "Intensidad preferida",
+      "companyLabel": "¿Entrenar solo o acompañado?",
+      "languageLabel": "Idioma preferido",
+      "explanationLabel": "Nivel de explicación",
+      "focusLabel": "Enfoque del objetivo",
+      "supportLabel": "Nivel de apoyo",
+      "intensities": {
+        "gradual": "Suave",
+        "moderate": "Moderado",
+        "intense": "Intenso"
+      },
+      "company": {
+        "solo": "Solo",
+        "accompanied": "Acompañado",
+        "indifferent": "Indiferente"
+      },
+      "languages": {
+        "direct": "Directo",
+        "explanatory": "Explicativo",
+        "technical": "Técnico"
+      },
+      "explanations": {
+        "simple": "Simple",
+        "detailed": "Detallado",
+        "technical": "Técnico"
+      },
+      "focuses": {
+        "performance": "Rendimiento",
+        "health": "Salud",
+        "aesthetics": "Estética",
+        "consistency": "Constancia"
+      },
+      "supports": {
+        "autonomous": "Autonomía",
+        "guided": "Guía cercana"
+      }
+    },
+    "step14": {
+      "title": "Consentimiento y visibilidad",
+      "subtitle": "Tú decides quién ve qué, y puedes revocar en cualquier momento.",
+      "personal": "Personal (entrenador)",
+      "studio": "Studio",
+      "rows": {
+        "training_objective": "Objetivo de entrenamiento",
+        "training_history": "Historial de entrenamiento",
+        "pain_operational_restriction": "Dolor / restricción operativa",
+        "relevant_comorbidity": "Comorbilidad relevante",
+        "sensitive_medication": "Medicamento sensible",
+        "emotional_psychiatric_health": "Salud emocional/psiquiátrica",
+        "body_rhythm": "Ritmo Corporal"
+      },
+      "values": {
+        "share": "COMPARTIR",
+        "summary": "RESUMEN",
+        "authorized_only": "SOLO AUTORIZADO",
+        "hidden": "OCULTO"
+      },
+      "sensitive": "SENSIBLE",
+      "aiUseLabel": "Permite uso de IA para adaptar el plan",
+      "aiUseDesc": "La IA usa los datos autorizados — no tiene acceso a lo que ocultaste.",
+      "maintainHistoryLabel": "Mantener historial de acceso",
+      "maintainHistoryDesc": "Podrás auditar quién accedió a qué y cuándo.",
+      "revokeNote": "Revocar el consentimiento impide el uso futuro no autorizado y mantiene un registro de decisión auditable."
+    },
+    "step15": {
+      "title": "Clasificación de Riesgo",
+      "subtitle": "Calculada a partir de los bloques anteriores. Puedes revisar y solicitar validación humana.",
+      "bodyPre": "La clasificación es ",
+      "bodyBold": "explicable",
+      "bodyPost": ": puedes solicitar los detalles de los factores que pesaron en cada decisión.",
+      "generating": "Generando Perfil Ampliado…",
+      "generateBtn": "Generar Perfil Ampliado →"
+    },
+    "voice": {
+      "kicker": "Entrada de Voz",
+      "instruction": "Habla o escribe con tus propias palabras. La IA organiza la información antes de guardar — tú confirmas todo primero.",
+      "close": "Cerrar",
+      "stopRecording": "Detener grabación",
+      "startRecording": "Iniciar grabación de voz",
+      "recording": "● Grabando… toca para parar",
+      "tapToSpeak": "Toca para hablar",
+      "micDenied": "Permiso de micrófono denegado. Usa el campo de texto abajo.",
+      "audioError": "Error al capturar audio. Inténtalo de nuevo o usa el campo de texto.",
+      "transcribedLabel": "Texto transcrito (puedes editar)",
+      "typeLabel": "Escribe aquí",
+      "transcribedPlaceholder": "El texto aparece aquí mientras hablas, o escribe directamente…",
+      "typePlaceholder": "Describe con tus propias palabras…",
+      "charactersSuffix": " caracteres",
+      "confirm": "Confirmar y continuar →",
+      "cancel": "Cancelar"
+    }
+  },
+  "coachDna": {
+    "screen": {
+      "title": "TrAIner · Coach Studio",
+      "dnaActive": "Coach DNA",
+      "phase2Complete": "Fase 2 Completa",
+      "blockOf": "Bloque {{step}} de {{total}}",
+      "save": "Guardar",
+      "continue": "Continuar",
+      "complete": "Completar Coach DNA",
+      "saving": "Guardando…",
+      "editDna": "Editar Coach DNA",
+      "buildDna": "Crear mi Coach DNA",
+      "updateDna": "Actualizar Coach DNA",
+      "activateDna": "Activar Coach DNA"
+    },
+    "intro": {
+      "kicker": "COACH STUDIO · ALIMENTA LA IA",
+      "title": "Coach DNA",
+      "body": "Captura <strong>tu firma de entrenamiento</strong> para que el AI Coach Engine genere entrenamientos con tu método real — no recomendaciones genéricas.",
+      "features": [
+        "Identidad profesional y formación",
+        "Estilo de coaching y ADN metodológico",
+        "Distribución de enfoque y biblioteca de ejercicios",
+        "Estilo de comunicación y perfil de clientes",
+        "Filosofía y personalidad de la IA"
+      ],
+      "privacyNote": "Cuanto más preciso sea tu perfil, más los entrenamientos generados parecerán escritos por ti.",
+      "meta": "≈ 5–8 min · 12 bloques · alimenta el AI Coach Engine"
+    },
+    "step01": {
+      "title": "Identidad del entrenador",
+      "sub": "Información básica que identifica tu presencia en la app.",
+      "hint": "¿Cómo te presentas a tus clientes?",
+      "fullName": "Nombre completo",
+      "namePlaceholder": "ej. Rafael Mendes",
+      "gender": "Género",
+      "genders": [
+        "Masculino",
+        "Femenino",
+        "Otro",
+        "Prefiero no decirlo"
+      ],
+      "age": "Edad",
+      "agePlaceholder": "34",
+      "ageSuffix": "años"
+    },
+    "step02": {
+      "title": "Formación y experiencia",
+      "sub": "Cuánto tiempo llevas entrenando y tu base académica / de certificaciones.",
+      "hint": "Tu experiencia moldea la profundidad de los entrenamientos generados.",
+      "yearsLabel": "Años de experiencia",
+      "yearsSuffix": " años",
+      "certsLabel": "Certificaciones y formación",
+      "certs": {
+        "pt": "Entrenador Personal",
+        "fitness": "Instructor de Fitness",
+        "edfis": "Educación Física / Ciencias del Deporte",
+        "physio": "Fisioterapeuta",
+        "snc": "Fuerza y Acondicionamiento",
+        "other": "Otro"
+      },
+      "privacyNote": "Tu formación informa al AI Coach Engine sobre la profundidad técnica de los protocolos que usas."
+    },
+    "step03": {
+      "title": "Tu nivel de condición física actual",
+      "sub": "Tu punto de referencia personal de condicionamiento.",
+      "hint": "No el de tus clientes — tu propio nivel de condición hoy.",
+      "levels": {
+        "1": {
+          "label": "Atleta de Élite",
+          "sub": "Competición o alto rendimiento"
+        },
+        "2": {
+          "label": "Muy en Forma",
+          "sub": "Entrenamiento avanzado consistente"
+        },
+        "3": {
+          "label": "En Forma",
+          "sub": "Entrenamiento progresivo regular"
+        },
+        "4": {
+          "label": "Promedio",
+          "sub": "Activo con entrenamientos intensos ocasionales"
+        },
+        "5": {
+          "label": "Moderadamente Activo",
+          "sub": "Enfoque en salud y bienestar"
+        }
+      },
+      "privacyNote": "Esto calibra la intensidad de referencia de los entrenamientos que prescribes, sin exponer tu información personal a los clientes."
+    },
+    "step04": {
+      "title": "Cómo y dónde entrenas",
+      "sub": "Métodos, entornos e intensidad general que definen tu práctica.",
+      "hint": "Selecciona todo lo que forma parte de tu repertorio diario.",
+      "methodsLabel": "Métodos de entrenamiento",
+      "envsLabel": "Entornos preferidos",
+      "intensityLabel": "Intensidad general",
+      "multipleChoice": "opción múltiple",
+      "methods": [
+        "CrossFit",
+        "Entrenamiento Funcional",
+        "HIIT",
+        "Entrenamiento en Circuito",
+        "Musculación / Culturismo",
+        "Entrenamiento de Fuerza",
+        "Correr",
+        "Movilidad",
+        "Rendimiento Atlético",
+        "Calistenia",
+        "Entrenamiento en Máquinas",
+        "Otro"
+      ],
+      "envs": [
+        "Box CrossFit",
+        "Gimnasio Comercial",
+        "Parque de Calistenia",
+        "Al aire libre, sin equipamiento",
+        "Al aire libre con bandas",
+        "Interior, sin equipamiento",
+        "Interior con bandas"
+      ],
+      "intensity": [
+        "Moderado",
+        "Desafiante",
+        "Variable",
+        "Alta intensidad"
+      ],
+      "privacyNote": "Los métodos y entornos orientan al AI Coach Engine en la selección de ejercicios y formatos compatibles con tu contexto."
+    },
+    "step05": {
+      "title": "Estilo de coaching",
+      "sub": "Cómo te presentas con tus clientes en la práctica.",
+      "badge": "Coach DNA",
+      "hint": "Elige todos los estilos que describen tu enfoque.",
+      "styles": {
+        "motiv": "Motivacional",
+        "prof": "Profesional",
+        "tech": "Técnico",
+        "perf": "Orientado al rendimiento",
+        "humor": "Relajado / Divertido",
+        "emp": "Empático",
+        "direct": "Directo",
+        "disc": "Disciplinado"
+      },
+      "privacyNote": "El estilo de coaching es la parte más decisiva de tu ADN — define el tono y la voz de cada entrenamiento generado."
+    },
+    "step06": {
+      "title": "Principios fundamentales",
+      "sub": "Las creencias que guían tus decisiones de prescripción.",
+      "badge": "Elige hasta {{max}}",
+      "hint": "¿Cuál es el núcleo de tu filosofía de entrenamiento?",
+      "principles": {
+        "quality": "Calidad antes de intensidad",
+        "intensity": "Intensidad por encima de la perfección",
+        "health": "La salud primero",
+        "strength": "La fuerza primero",
+        "athletics": "El atletismo primero",
+        "mobility": "La movilidad primero",
+        "fun": "El disfrute y la motivación primero",
+        "function": "Función por encima de estética",
+        "progress": "Progreso sostenible"
+      },
+      "privacyNote": "Los principios seleccionados establecen prioridades absolutas en el generador — lo que aparece primero en cada prescripción."
+    },
+    "step07": {
+      "title": "Enfoque de entrenamiento",
+      "sub": "¿Cuánto peso tiene cada capacidad física en tu método?",
+      "badge": "Coach DNA",
+      "hint": "Distribuye el énfasis entre las cualidades físicas. 0 = no es prioridad, 10 = pilar central.",
+      "items": {
+        "strength": "Fuerza",
+        "endurance": "Resistencia",
+        "mobility": "Movilidad",
+        "athletic": "Rendimiento atlético",
+        "coord": "Coordinación",
+        "balance": "Estabilidad / Equilibrio"
+      },
+      "notPriority": "0 – No es prioridad",
+      "centralPillar": "10 – Pilar central"
+    },
+    "step08": {
+      "title": "Ejercicios y repertorio",
+      "sub": "Tu vocabulario de movimiento define tu identidad como entrenador.",
+      "badge": "Coach DNA",
+      "hint": "Agrega los ejercicios que más usas y los que evitas. Presiona Enter o coma para confirmar.",
+      "favoritesLabel": "Ejercicios favoritos",
+      "favoritesHint": "ilimitado",
+      "favoritesPlaceholder": "ej. Sentadilla, Turkish Get-Up…",
+      "avoidLabel": "Ejercicios a evitar / no usar",
+      "avoidHint": "opcional",
+      "avoidPlaceholder": "ej. Prensa de pierna, abdominal tradicional…",
+      "privacyNote": "Este repertorio alimenta la selección automática de ejercicios por el AI Coach Engine."
+    },
+    "step09": {
+      "title": "Diseño de la sesión",
+      "sub": "Los formatos y la curva de intensidad que prefieres.",
+      "badge": "Coach DNA",
+      "hint": "Elige los formatos que usas y la curva de intensidad típica de tus sesiones.",
+      "formatsLabel": "Formatos preferidos",
+      "formatsHint": "elige todos los que usas",
+      "formats": [
+        "EMOM",
+        "AMRAP",
+        "For Time",
+        "Intervalado",
+        "Circuito",
+        "Superseries",
+        "Fuerza + MetCon",
+        "Solo Fuerza",
+        "Solo Acondicionamiento",
+        "Tabata"
+      ],
+      "curveLabel": "Curva de intensidad",
+      "curves": {
+        "progressive": {
+          "label": "Rampa progresiva",
+          "sub": "La intensidad aumenta a lo largo de la sesión"
+        },
+        "wave": {
+          "label": "Ondulación",
+          "sub": "Picos y valles alternados"
+        },
+        "peak_early": {
+          "label": "Pico temprano",
+          "sub": "Más intenso al inicio"
+        },
+        "peak_late": {
+          "label": "Pico tardío",
+          "sub": "Más intenso cerca del final"
+        },
+        "constant": {
+          "label": "Constante",
+          "sub": "Intensidad uniforme durante toda la sesión"
+        }
+      }
+    },
+    "step10": {
+      "title": "Estructura de la sesión",
+      "sub": "Define el orden predeterminado de los bloques en una sesión típica.",
+      "badge": "Coach DNA",
+      "hint": "Reordena los bloques con las flechas. Esta secuencia será la plantilla predeterminada de tus entrenamientos.",
+      "blocks": {
+        "mobility": {
+          "label": "Movilidad",
+          "sub": "Activación articular"
+        },
+        "warmup": {
+          "label": "Calentamiento",
+          "sub": "Elevación de temperatura"
+        },
+        "technique": {
+          "label": "Técnica",
+          "sub": "Enfoque en el patrón motor"
+        },
+        "strength": {
+          "label": "Fuerza",
+          "sub": "Bloque principal"
+        },
+        "conditioning": {
+          "label": "Acondicionamiento / WOD",
+          "sub": "Metabolismo y resistencia"
+        },
+        "cooldown": {
+          "label": "Enfriamiento",
+          "sub": "Recuperación y flexibilidad"
+        }
+      }
+    },
+    "step11": {
+      "title": "Público y tono",
+      "sub": "A quién entrenas y cómo te comunicas.",
+      "badge": "Coach DNA",
+      "hint": "Selecciona todos los perfiles de clientes con los que trabajas y el tono predominante de tu comunicación.",
+      "toneLabel": "Tono de comunicación",
+      "toneHint": "múltiple",
+      "tones": {
+        "professional": "Profesional",
+        "motivational": "Motivacional",
+        "casual": "Casual",
+        "athletic": "Atlético",
+        "direct": "Directo",
+        "technical": "Técnico"
+      },
+      "clientsLabel": "Perfil de clientes",
+      "clientsHint": "múltiple",
+      "clients": [
+        "Principiantes",
+        "Intermedios",
+        "Atletas avanzados",
+        "Mujeres",
+        "Hombres",
+        "Adultos mayores",
+        "Trabajadores de oficina",
+        "Pérdida de peso",
+        "Ganancia muscular",
+        "Rehabilitación",
+        "Entusiastas del fitness funcional",
+        "Atletas de CrossFit"
+      ]
+    },
+    "step12": {
+      "title": "Filosofía e identidad",
+      "sub": "El manifiesto que guía cada entrenamiento que creas.",
+      "badge": "Coach DNA",
+      "hint": "Este es el bloque más personal. Escribe o dicta con tus propias palabras.",
+      "mottoLabel": "Lema del entrenador",
+      "mottoHint": "opcional",
+      "mottoPlaceholder": "ej. \"Entrena con propósito, recupérate con inteligencia.\"",
+      "mottoExamples": [
+        "\"Entrena con propósito, recupérate con inteligencia.\"",
+        "\"Cada rep cuenta. Cada sesión importa.\"",
+        "\"El rendimiento es el resultado del método.\"",
+        "\"Muévete mejor. Muévete más fuerte.\""
+      ],
+      "promptLabel": "Prompt libre — tu voz de coach para la IA",
+      "promptHint": "opcional",
+      "promptPlaceholder": "Describe con tus propias palabras cómo entrenas, qué valoras y cómo quieres que la IA represente tu estilo al generar entrenamientos...",
+      "privacyNote": "Este prompt es el contexto más poderoso de tu ADN — la IA usa estas palabras literalmente para capturar tu voz."
+    },
+    "output": {
+      "kicker": "Coach DNA · Arquetipo",
+      "privacyNote": "El arquetipo se deriva automáticamente de tu ADN y se actualiza a medida que evolucionas tu perfil.",
+      "archetypes": {
+        "performance": {
+          "title": "Coach de Rendimiento",
+          "sub": "Alto rendimiento y objetivos medibles",
+          "desc": "Entrenas para resultados. Cada sesión tiene métricas, cada cliente tiene metas. Tu ADN genera entrenamientos orientados al rendimiento, enfocados en la progresión de carga y los récords personales."
+        },
+        "technician": {
+          "title": "El Técnico",
+          "sub": "Biomecánica y precisión metodológica",
+          "desc": "Estás obsesionado con el método. Cada ejercicio tiene una razón, cada fase tiene lógica. Tu ADN genera entrenamientos con indicaciones técnicas precisas y progresiones bien estructuradas."
+        },
+        "motivator": {
+          "title": "El Motivador",
+          "sub": "Energía y experiencias memorables",
+          "desc": "Creas ambientes que inspiran. Tu ADN genera entrenamientos con lenguaje energizante, variedad y desafíos que mantienen a los clientes comprometidos y regresando."
+        },
+        "guide": {
+          "title": "El Guía",
+          "sub": "Empatía y progreso sostenible",
+          "desc": "Acompañas a cada cliente a su propio ritmo. Tu ADN genera entrenamientos progresivos explicados con empatía, enfocados en la salud a largo plazo y la autonomía del cliente."
+        },
+        "drill": {
+          "title": "Maestro del Rigor",
+          "sub": "Disciplina y rigor progresivo",
+          "desc": "Exiges lo mejor de cada cliente. Tu ADN genera entrenamientos desafiantes con secuencias de fuerza bien definidas y estándares máximos de ejecución en cada repetición."
+        },
+        "movement": {
+          "title": "Especialista en Movimiento",
+          "sub": "Función, movilidad y patrones motores",
+          "desc": "Ves el cuerpo como un sistema integrado. Tu ADN genera entrenamientos que enfatizan la calidad del movimiento, la movilidad y los patrones funcionales."
+        }
+      }
+    },
+    "components": {
+      "photoSlot": {
+        "photoLabel": "Foto de perfil del coach",
+        "changeImage": "Cambiar imagen",
+        "uploadImage": "Subir imagen",
+        "changeLabel": "CAMBIAR"
+      },
+      "voiceBar": {
+        "dictateHint": "Dictar a la IA",
+        "stop": "Parar",
+        "startRecording": "Iniciar grabación",
+        "stopRecording": "Detener grabación",
+        "micDenied": "Permiso de micrófono denegado.",
+        "noSpeech": "No se detectó voz.",
+        "speechError": "Error de reconocimiento de voz."
+      }
     }
   },
   "settings": {
@@ -395,33 +1906,104 @@
       "b2b": "B2B / Studio"
     },
     "fields": {
-      "location": { "label": "Ubicación predeterminada", "hint": "Dónde sueles entrenar" },
-      "duration": { "label": "Sesión predeterminada", "hint": "Duración de entrenamiento preferida" },
-      "intensity": { "label": "Intensidad preferida", "hint": "Esfuerzo base para planes de IA" },
-      "planExpiry": { "label": "Caducidad automática del plan", "hint": "Cancelar planes pendientes tras" },
-      "dashboardDepth": { "label": "Profundidad del panel", "hint": "Sesiones y planes cargados por cliente" },
-      "readyWindow": { "label": "Ventana de preparación", "hint": "Cuánto tiempo permanece activa tu alerta \"Estoy listo\"" },
-      "historyDepth": { "label": "Profundidad del historial", "hint": "Sesiones pasadas guardadas en la pantalla de Historial" },
-      "lightPalette": { "label": "Paleta clara", "hint": "Se aplica cuando el modo oscuro está desactivado" },
-      "language": { "hint": "Idioma de la app y del coaching de IA" }
+      "location": {
+        "label": "Ubicación predeterminada",
+        "hint": "Dónde sueles entrenar"
+      },
+      "duration": {
+        "label": "Sesión predeterminada",
+        "hint": "Duración de entrenamiento preferida"
+      },
+      "intensity": {
+        "label": "Intensidad preferida",
+        "hint": "Esfuerzo base para planes de IA"
+      },
+      "planExpiry": {
+        "label": "Caducidad automática del plan",
+        "hint": "Cancelar planes pendientes tras"
+      },
+      "dashboardDepth": {
+        "label": "Profundidad del panel",
+        "hint": "Sesiones y planes cargados por cliente"
+      },
+      "readyWindow": {
+        "label": "Ventana de preparación",
+        "hint": "Cuánto tiempo permanece activa tu alerta \"Estoy listo\""
+      },
+      "historyDepth": {
+        "label": "Profundidad del historial",
+        "hint": "Sesiones pasadas guardadas en la pantalla de Historial"
+      },
+      "lightPalette": {
+        "label": "Paleta clara",
+        "hint": "Se aplica cuando el modo oscuro está desactivado"
+      },
+      "language": {
+        "hint": "Idioma de la app y del coaching de IA"
+      }
     },
     "opt": {
-      "location": { "gym": "Gimnasio", "home": "Casa", "outdoor": "Aire libre" },
-      "intensity": { "light": "Suave", "moderate": "Moderada", "hard": "Intensa" },
-      "palette": { "arctic": "Ártico", "sand": "Arena" },
-      "focus": { "strength": "Fuerza", "endurance": "Resistencia", "mobility": "Movilidad" }
+      "location": {
+        "gym": "Gimnasio",
+        "home": "Casa",
+        "outdoor": "Aire libre"
+      },
+      "intensity": {
+        "light": "Suave",
+        "moderate": "Moderada",
+        "hard": "Intensa"
+      },
+      "palette": {
+        "arctic": "Ártico",
+        "sand": "Arena"
+      },
+      "focus": {
+        "strength": "Fuerza",
+        "endurance": "Resistencia",
+        "mobility": "Movilidad"
+      }
     },
     "toggle": {
-      "aiWorkouts": { "label": "Entrenos de IA", "hint": "Plan diario de tu entrenador + IA" },
-      "analysis": { "label": "Análisis de entrenamiento", "hint": "Resumen de IA tras la sesión" },
-      "cycle": { "label": "Seguimiento del ciclo", "hint": "Adaptar la intensidad a tu fase" },
-      "behaviour": { "label": "Seguimiento de conducta", "hint": "Aprender de la finalización + feedback" },
-      "push": { "label": "Notificaciones push", "hint": "Todas las alertas de la app" },
-      "goals": { "label": "Recordatorios de objetivos", "hint": "Avisos semanales de hitos" },
-      "alerts": { "label": "Alertas de actividad", "hint": "Avisos de días inactivos" },
-      "sounds": { "label": "Sonidos y pitidos", "hint": "Señales de audio durante el entrenamiento" },
-      "darkMode": { "label": "Modo oscuro", "hint": "Usar el tema oscuro en toda la app" },
-      "whiteLabel": { "label": "Modo white-label", "hint": "Ocultar la marca TrAIner para tu estudio" }
+      "aiWorkouts": {
+        "label": "Entrenos de IA",
+        "hint": "Plan diario de tu entrenador + IA"
+      },
+      "analysis": {
+        "label": "Análisis de entrenamiento",
+        "hint": "Resumen de IA tras la sesión"
+      },
+      "cycle": {
+        "label": "Seguimiento del ciclo",
+        "hint": "Adaptar la intensidad a tu fase"
+      },
+      "behaviour": {
+        "label": "Seguimiento de conducta",
+        "hint": "Aprender de la finalización + feedback"
+      },
+      "push": {
+        "label": "Notificaciones push",
+        "hint": "Todas las alertas de la app"
+      },
+      "goals": {
+        "label": "Recordatorios de objetivos",
+        "hint": "Avisos semanales de hitos"
+      },
+      "alerts": {
+        "label": "Alertas de actividad",
+        "hint": "Avisos de días inactivos"
+      },
+      "sounds": {
+        "label": "Sonidos y pitidos",
+        "hint": "Señales de audio durante el entrenamiento"
+      },
+      "darkMode": {
+        "label": "Modo oscuro",
+        "hint": "Usar el tema oscuro en toda la app"
+      },
+      "whiteLabel": {
+        "label": "Modo white-label",
+        "hint": "Ocultar la marca TrAIner para tu estudio"
+      }
     }
   }
 }

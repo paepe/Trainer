@@ -1,29 +1,33 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { LifestyleBarrier } from '../../../types/profile-v2';
 
-const BARRIERS: { value: LifestyleBarrier; label: string }[] = [
-  { value: 'sedentary_prolonged', label: 'Prolonged sedentary lifestyle'         },
-  { value: 'low_hydration',       label: 'Low hydration'                },
-  { value: 'executive_routine',   label: 'Very intense routine'            },
-  { value: 'chronic_stress',      label: 'High stress level'            },
-  { value: 'irregular_meals',     label: 'Irregular eating'           },
-  { value: 'frequent_travel',     label: 'Frequent travel'              },
-  { value: 'caregiver_duty',      label: 'Caregiving duties'          },
-  { value: 'smoking',             label: 'Smoking'                       },
-  { value: 'regular_alcohol',     label: 'Regular alcohol consumption'       },
-  { value: 'transport_barriers',  label: 'Transport difficulties'     },
-  { value: 'sleep_disorder',      label: 'Irregular or insufficient sleep'  },
-  { value: 'chronic_fatigue',     label: 'Frequent fatigue'                },
-  { value: 'emotional_eating',    label: 'Emotional eating'    },
-  { value: 'sedentary_commute',   label: 'Very sedentary work'       },
-  { value: 'financial_stress',    label: 'Financial stress'              },
+const BARRIER_KEYS: { value: LifestyleBarrier; i18nKey: string }[] = [
+  { value: 'sedentary_prolonged', i18nKey: 'sedentary' },
+  { value: 'low_hydration',       i18nKey: 'low_hydration' },
+  { value: 'executive_routine',   i18nKey: 'intense_routine' },
+  { value: 'chronic_stress',      i18nKey: 'high_stress' },
+  { value: 'irregular_meals',     i18nKey: 'irregular_eating' },
+  { value: 'frequent_travel',     i18nKey: 'frequent_travel' },
+  { value: 'caregiver_duty',      i18nKey: 'caregiving' },
+  { value: 'smoking',             i18nKey: 'smoking' },
+  { value: 'regular_alcohol',     i18nKey: 'alcohol' },
+  { value: 'transport_barriers',  i18nKey: 'transport' },
+  { value: 'sleep_disorder',      i18nKey: 'irregular_sleep' },
+  { value: 'chronic_fatigue',     i18nKey: 'fatigue' },
+  { value: 'emotional_eating',    i18nKey: 'emotional_eating' },
+  { value: 'sedentary_commute',   i18nKey: 'sedentary_work' },
+  { value: 'financial_stress',    i18nKey: 'financial_stress' },
 ];
 
 export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+  const { t: tr } = useTranslation();
   const habits = data.habits ?? { lifestyle_barriers: [] };
+
+  const barrierLabel = (i18nKey: string) => tr(`wizard.step08.habits.${i18nKey}`);
 
   const toggle = (v: LifestyleBarrier) => {
     const cur = habits.lifestyle_barriers ?? [];
@@ -34,23 +38,23 @@ export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, on
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
+      <WizardHeader title={tr('wizard.step08.title')} currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Some routines can<br/>influence training
+        {tr('wizard.step08.heading1')}<br/>{tr('wizard.step08.heading2')}
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Select only what you find relevant. This data helps the plan respect your reality.
+        {tr('wizard.step08.subheading')}
       </p>
 
       <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
-        {BARRIERS.map(b => (
+        {BARRIER_KEYS.map(b => (
           <Chip
             key={b.value}
-            label={b.label}
+            label={barrierLabel(b.i18nKey)}
             active={(habits.lifestyle_barriers ?? []).includes(b.value)}
             onClick={() => toggle(b.value)}
           />
@@ -59,7 +63,7 @@ export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, on
 
       {hasSelection && (
         <Alert isAI
-          text="This data feeds internal fatigue, adherence, and recovery predictions. Nothing is displayed directly to the trainer without authorization."
+          text={tr('wizard.step08.alert')}
         />
       )}
 

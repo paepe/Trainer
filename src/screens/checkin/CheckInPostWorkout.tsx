@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../theme';
 import type { CheckInPostWorkout as PostWorkoutData, SensationRating, WorkoutCompletionStatus } from '../../types/checkin-v2';
 
@@ -10,21 +11,22 @@ interface CheckInPostWorkoutProps {
   onBack:   () => void;
 }
 
-const SENSATIONS: { value: SensationRating; label: string; emoji: string }[] = [
-  { value: 'excellent', label: 'excellent',        emoji: '😄' },
-  { value: 'good',      label: 'good',          emoji: '😊' },
-  { value: 'ok',        label: 'ok',           emoji: '😐' },
-  { value: 'hard',      label: 'hard',      emoji: '😓' },
-  { value: 'very_hard', label: 'very hard',emoji: '😖' },
-];
-
-const COMPLETION: { value: WorkoutCompletionStatus; label: string }[] = [
-  { value: 'yes',        label: 'Yes'          },
-  { value: 'partially',  label: 'Partially' },
-  { value: 'no',         label: 'No'          },
-];
+const SENSATION_VALS: SensationRating[] = ['excellent', 'good', 'ok', 'hard', 'very_hard'];
+const SENSATION_EMOJIS: Record<SensationRating, string> = {
+  excellent: '😄', good: '😊', ok: '😐', hard: '😓', very_hard: '😖',
+};
 
 export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: CheckInPostWorkoutProps) {
+  const { t: tr } = useTranslation();
+  const sensations = React.useMemo(() => SENSATION_VALS.map(v => ({
+    value: v, label: tr(`checkin.postWorkout.sensations.${v}`), emoji: SENSATION_EMOJIS[v],
+  })), [tr]);
+  const completions: { value: WorkoutCompletionStatus; label: string }[] = React.useMemo(() => [
+    { value: 'yes',       label: tr('checkin.postWorkout.completion.yes') },
+    { value: 'partially', label: tr('checkin.postWorkout.completion.partially') },
+    { value: 'no',        label: tr('checkin.postWorkout.completion.no') },
+  ], [tr]);
+
   const [sensation, setSensation]     = React.useState<SensationRating | undefined>(undefined);
   const [completion, setCompletion]   = React.useState<WorkoutCompletionStatus | undefined>(undefined);
   const [rpe, setRpe]                 = React.useState(5);
@@ -78,10 +80,10 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
           margin: '0 0 8px', fontFamily: '"Plus Jakarta Sans",sans-serif',
           fontSize: 22, fontWeight: 700, color: textPri(dark), textAlign: 'center',
         }}>
-          Feedback saved
+          {tr('checkin.postWorkout.feedbackSaved')}
         </h2>
         <p style={{ fontSize: 13, color: textSec(dark), textAlign: 'center', lineHeight: 1.55, margin: 0 }}>
-          The AI will use this to refine your progression.
+          {tr('checkin.postWorkout.feedbackSavedSub')}
         </p>
       </div>
     );
@@ -91,25 +93,24 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
-        CHECK-IN · POST-WORKOUT
+        {tr('checkin.postWorkout.kicker')}
       </div>
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        How was the workout?
+        {tr('checkin.postWorkout.title')}
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
-        Feeds your progression and the AI learns from what worked in your body.
+        {tr('checkin.postWorkout.subtitle')}
       </p>
 
-      {/* Sensation */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 14 }}>
-          Overall feeling
+          {tr('checkin.postWorkout.overallFeeling')}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          {SENSATIONS.map(s => (
+          {sensations.map(s => (
             <button
               key={s.value}
               onClick={() => setSensation(s.value)}
@@ -130,13 +131,12 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
         </div>
       </div>
 
-      {/* Concluiu tudo? */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-          Completed everything?
+          {tr('checkin.postWorkout.completedEverything')}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {COMPLETION.map(c => (
+          {completions.map(c => (
             <button key={c.value} onClick={() => setCompletion(c.value)} style={{ ...btnBase(completion === c.value), flex: 1 }}>
               {c.label}
             </button>
@@ -144,10 +144,9 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
         </div>
       </div>
 
-      {/* RPE */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 12 }}>
-          Perceived effort (RPE)
+          {tr('checkin.postWorkout.rpe')}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <input type="range" min={1} max={10} value={rpe}
@@ -160,16 +159,15 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
         </div>
       </div>
 
-      {/* Pain after */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark), marginBottom: 3 }}>
-              Did you feel pain during or after?
+              {tr('checkin.postWorkout.painDuringAfter')}
               {painAfter && <span style={{ fontSize: 12, marginLeft: 6 }}>⚠️</span>}
             </div>
             <div style={{ fontSize: 11, color: textSec(dark), lineHeight: 1.45 }}>
-              Feeds the Pain Recurrence Engine — three occurrences in 14 days trigger an alert.
+              {tr('checkin.postWorkout.painEngineNote')}
             </div>
           </div>
           <button
@@ -188,15 +186,14 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
         </div>
       </div>
 
-      {/* Notes */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 24, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 10 }}>
-          Note for the AI or trainer
+          {tr('checkin.postWorkout.noteLabel')}
         </div>
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          placeholder="e.g.: The squat hurt on the descent, but leg press was okay."
+          placeholder={tr('checkin.postWorkout.notePlaceholder')}
           rows={3}
           style={{
             width: '100%', background: 'none', border: 'none', outline: 'none', resize: 'none',
@@ -206,13 +203,12 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
         />
       </div>
 
-      {/* Actions */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <button onClick={onBack} style={{
           background: 'none', border: 'none', cursor: 'pointer',
           fontSize: 13, color: primary, fontFamily: 'inherit', fontWeight: 600, padding: 0,
         }}>
-          ← back
+          {tr('checkin.postWorkout.back')}
         </button>
         <button
           onClick={handleSubmit}
@@ -226,7 +222,7 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
         >
-          {saving ? 'Saving…' : 'Save feedback ✓'}
+          {saving ? tr('checkin.postWorkout.saving') : tr('checkin.postWorkout.saveBtn')}
         </button>
       </div>
     </div>

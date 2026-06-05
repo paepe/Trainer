@@ -1,43 +1,30 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { Icon } from '../../../components/Icon';
 import type { WizardStepProps } from './types';
 import type { TrainingLocation, Equipment, AccessibilityCondition } from '../../../types/profile-v2';
 
-const LOCATIONS: { value: TrainingLocation; label: string; icon: string }[] = [
-  { value: 'home',   label: 'Home',       icon: 'pin'    },
-  { value: 'gym',    label: 'Gym',        icon: 'dumbbell'},
-  { value: 'studio', label: 'Studio',     icon: 'grad'   },
-  { value: 'park',   label: 'Park',       icon: 'map'    },
-  { value: 'condo',  label: 'Condo',      icon: 'pin'    },
-  { value: 'online', label: 'Online',     icon: 'activity'},
+const LOCATION_KEYS: { value: TrainingLocation; icon: string }[] = [
+  { value: 'home',   icon: 'pin'    },
+  { value: 'gym',    icon: 'dumbbell'},
+  { value: 'studio', icon: 'grad'   },
+  { value: 'park',   icon: 'map'    },
+  { value: 'condo',  icon: 'pin'    },
+  { value: 'online', icon: 'activity'},
 ];
 
-const EQUIPMENT_OPTS: { value: Equipment; label: string }[] = [
-  { value: 'dumbbells',       label: 'Dumbbells'        },
-  { value: 'resistance_bands',label: 'Resistance bands' },
-  { value: 'barbell',         label: 'Barbell'          },
-  { value: 'bench',           label: 'Bench'            },
-  { value: 'treadmill',       label: 'Treadmill'        },
-  { value: 'bike',            label: 'Bike'             },
-  { value: 'machines',        label: 'Machines'         },
-  { value: 'kettlebell',      label: 'Kettlebell'       },
-  { value: 'cable_pulley',    label: 'Cable/pulley'     },
-  { value: 'none',            label: 'None'             },
-];
-
-const ACCESSIBILITY_OPTS: { value: AccessibilityCondition; label: string }[] = [
-  { value: 'wheelchair_accessible', label: 'Wheelchair accessible' },
-  { value: 'support_bars',          label: 'Support bars'          },
-  { value: 'safe_floor',            label: 'Safe floor'            },
-  { value: 'private_space',         label: 'Training privacy'     },
-  { value: 'companion_available',   label: 'Companion available'   },
-  { value: 'adapted_equipment',     label: 'Adapted equipment'     },
-];
+const EQUIP_KEYS: Equipment[] = ['dumbbells', 'resistance_bands', 'barbell', 'bench', 'treadmill', 'bike', 'machines', 'kettlebell', 'cable_pulley', 'none'];
+const ACCESSIBILITY_KEYS: AccessibilityCondition[] = ['wheelchair_accessible', 'support_bars', 'safe_floor', 'private_space', 'companion_available', 'adapted_equipment'];
 
 export function Step11Environment({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+  const { t: tr } = useTranslation();
   const env = data.environment ?? { locations: [], equipment: [], accessibility: [] };
+
+  const locLabel    = (v: TrainingLocation) => tr(`wizard.step11.locations.${v}`);
+  const equipLabel  = (v: Equipment) => tr(`wizard.step11.equipment.${v}`);
+  const accessLabel = (v: AccessibilityCondition) => tr(`wizard.step11.accessibility.${v}`);
 
   const toggleLocation = (v: TrainingLocation) => {
     const cur = env.locations ?? [];
@@ -64,22 +51,21 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
+      <WizardHeader title={tr('wizard.step11.title')} currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Where you train,<br/>in real life
+        {tr('wizard.step11.heading1')}<br/>{tr('wizard.step11.heading2')}
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        To prescribe exercises that depend on the equipment, space, and support you have.
+        {tr('wizard.step11.subheading')}
       </p>
 
-      {/* Locations — card grid */}
-      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Possible locations</Typography>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step11.locationsLabel')}</Typography>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
-        {LOCATIONS.map(loc => {
+        {LOCATION_KEYS.map(loc => {
           const on = (env.locations ?? []).includes(loc.value);
           return (
             <button key={loc.value} onClick={() => toggleLocation(loc.value)} style={{
@@ -98,34 +84,34 @@ export function Step11Environment({ dark, primary, accent, data, onUpdate, onNex
                 <Icon name={loc.icon} size={16} color={on ? '#0E1A2B' : primary} stroke={2}/>
               </div>
               <div style={{ fontSize: 12, fontWeight: 600, color: on ? primary : textPri(dark) }}>
-                {loc.label}
+                {locLabel(loc.value)}
               </div>
             </button>
           );
         })}
       </div>
 
-      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Available equipment</Typography>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step11.equipmentLabel')}</Typography>
       <HStack flexWrap="wrap" gap={10} style={{ marginBottom: 20 }}>
-        {EQUIPMENT_OPTS.map(e => (
+        {EQUIP_KEYS.map(e => (
           <Chip
-            key={e.value}
-            label={e.label}
-            active={(env.equipment ?? []).includes(e.value)}
-            onClick={() => toggleEquipment(e.value)}
-            disabled={e.value !== 'none' && (env.equipment ?? []).includes('none')}
+            key={e}
+            label={equipLabel(e)}
+            active={(env.equipment ?? []).includes(e)}
+            onClick={() => toggleEquipment(e)}
+            disabled={e !== 'none' && (env.equipment ?? []).includes('none')}
           />
         ))}
       </HStack>
 
-      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Accessibility conditions</Typography>
+      <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step11.accessibilityLabel')}</Typography>
       <HStack style={{ flexWrap: 'wrap' }} gap={8}>
-        {ACCESSIBILITY_OPTS.map(a => (
+        {ACCESSIBILITY_KEYS.map(a => (
           <Chip
-            key={a.value}
-            label={a.label}
-            active={(env.accessibility ?? []).includes(a.value)}
-            onClick={() => toggleAccessibility(a.value)}
+            key={a}
+            label={accessLabel(a)}
+            active={(env.accessibility ?? []).includes(a)}
+            onClick={() => toggleAccessibility(a)}
           />
         ))}
       </HStack>

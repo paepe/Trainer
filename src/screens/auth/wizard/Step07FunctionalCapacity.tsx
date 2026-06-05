@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
@@ -7,54 +8,17 @@ import type {
   PainLevel, AccessLevel, SupportResource, InstructionFormat,
 } from '../../../types/profile-v2';
 
-const MOBILITY_OPTS: { value: MobilityLevel; label: string }[] = [
-  { value: 'low',      label: 'Low'    },
-  { value: 'moderate', label: 'Moderate' },
-  { value: 'good',     label: 'Good'      },
-];
-const BALANCE_OPTS: { value: BalanceLevel; label: string }[] = [
-  { value: 'unstable', label: 'Unstable'  },
-  { value: 'assisted', label: 'Assisted' },
-  { value: 'stable',   label: 'Stable'   },
-];
-const AUTONOMY_OPTS: { value: AutonomyLevel; label: string }[] = [
-  { value: 'assisted',     label: 'Assisted'     },
-  { value: 'partial',      label: 'Partial'        },
-  { value: 'independent',  label: 'Independent'   },
-];
-const EFFORT_OPTS: { value: EffortTolerance; label: string }[] = [
-  { value: 'low',      label: 'Low'    },
-  { value: 'moderate', label: 'Moderate' },
-  { value: 'good',     label: 'Good'      },
-];
-const SUPPORT_RESOURCES: { value: SupportResource; label: string }[] = [
-  { value: 'wheelchair',    label: 'Wheelchair' },
-  { value: 'cane',          label: 'Cane'          },
-  { value: 'walker',        label: 'Walker'          },
-  { value: 'prosthesis',    label: 'Prosthesis'          },
-  { value: 'nearby_support',label: 'Nearby support'    },
-  { value: 'none',          label: 'None'           },
-];
-const PAIN_OPTS: { value: PainLevel; label: string }[] = [
-  { value: 'none',     label: 'None'   },
-  { value: 'mild',     label: 'Mild'      },
-  { value: 'moderate', label: 'Moderate'  },
-  { value: 'severe',   label: 'Severe'   },
-];
-const ACCESS_OPTS: { value: AccessLevel; label: string }[] = [
-  { value: 'full',    label: 'Full'     },
-  { value: 'partial', label: 'Partial'   },
-  { value: 'limited', label: 'Limited'  },
-];
-const INSTRUCTION_FORMATS: { value: InstructionFormat; label: string }[] = [
-  { value: 'visual',          label: 'Visual'             },
-  { value: 'auditory',        label: 'Auditory'           },
-  { value: 'simplified_text', label: 'Simplified text' },
-  { value: 'vibration',       label: 'Vibration'           },
-  { value: 'standard',        label: 'Standard'             },
-];
+const MOBILITY_VALUES: MobilityLevel[] = ['low', 'moderate', 'good'];
+const BALANCE_VALUES: BalanceLevel[] = ['unstable', 'assisted', 'stable'];
+const AUTONOMY_VALUES: AutonomyLevel[] = ['assisted', 'partial', 'independent'];
+const EFFORT_VALUES: EffortTolerance[] = ['low', 'moderate', 'good'];
+const SUPPORT_VALUES: SupportResource[] = ['wheelchair', 'cane', 'walker', 'prosthesis', 'nearby_support', 'none'];
+const PAIN_VALUES: PainLevel[] = ['none', 'mild', 'moderate', 'severe'];
+const ACCESS_VALUES: AccessLevel[] = ['full', 'partial', 'limited'];
+const INSTRUCTION_VALUES: InstructionFormat[] = ['visual', 'auditory', 'simplified_text', 'vibration', 'standard'];
 
 export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+  const { t: tr } = useTranslation();
   const fc = data.functional_capacity ?? {
     mobility: undefined as unknown as MobilityLevel,
     balance: undefined as unknown as BalanceLevel,
@@ -63,6 +27,14 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
     support_resources: [],
     instruction_format: [],
   };
+
+  const mobilityOpts    = MOBILITY_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.mobilityLevels.${v}`) }));
+  const balanceOpts     = BALANCE_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.balanceLevels.${v}`) }));
+  const autonomyOpts    = AUTONOMY_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.autonomyLevels.${v}`) }));
+  const effortOpts      = EFFORT_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.mobilityLevels.${v}`) }));
+  const painOpts        = PAIN_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.painLevels.${v}`) }));
+  const accessOpts      = ACCESS_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.accessLevels.${v}`) }));
+  const instructionOpts = INSTRUCTION_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.instructionFormats.${v}`) }));
 
   const set = (patch: Partial<typeof fc>) => onUpdate({ functional_capacity: { ...fc, ...patch } });
 
@@ -86,80 +58,80 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader title="Wizard Block" currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack}/>
+      <WizardHeader title={tr('wizard.step07.title')} currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack}/>
 
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Functional capacity<br/>and accessibility
+        {tr('wizard.step07.heading1')}<br/>{tr('wizard.step07.heading2')}
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-        Movement capability before training. Let's ensure the plan is realistic.
+        {tr('wizard.step07.subheading')}
       </p>
 
       <VStack gap={20}>
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Mobility</Typography>
-          <SegmentedControl options={MOBILITY_OPTS} value={fc.mobility ?? ''} onChange={v => set({ mobility: v as MobilityLevel })}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step07.mobility')}</Typography>
+          <SegmentedControl options={mobilityOpts} value={fc.mobility ?? ''} onChange={v => set({ mobility: v as MobilityLevel })}/>
         </div>
 
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Balance</Typography>
-          <SegmentedControl options={BALANCE_OPTS} value={fc.balance ?? ''} onChange={v => set({ balance: v as BalanceLevel })}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step07.balance')}</Typography>
+          <SegmentedControl options={balanceOpts} value={fc.balance ?? ''} onChange={v => set({ balance: v as BalanceLevel })}/>
         </div>
 
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Autonomy</Typography>
-          <SegmentedControl options={AUTONOMY_OPTS} value={fc.autonomy ?? ''} onChange={v => set({ autonomy: v as AutonomyLevel })}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step07.autonomy')}</Typography>
+          <SegmentedControl options={autonomyOpts} value={fc.autonomy ?? ''} onChange={v => set({ autonomy: v as AutonomyLevel })}/>
         </div>
 
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Effort tolerance</Typography>
-          <SegmentedControl options={EFFORT_OPTS} value={fc.effort_tolerance ?? ''} onChange={v => set({ effort_tolerance: v as EffortTolerance })}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step07.effortTolerance')}</Typography>
+          <SegmentedControl options={effortOpts} value={fc.effort_tolerance ?? ''} onChange={v => set({ effort_tolerance: v as EffortTolerance })}/>
         </div>
 
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Usual pain level</Typography>
-          <SegmentedControl options={PAIN_OPTS} value={fc.pain_level ?? ''} onChange={v => set({ pain_level: v as PainLevel })}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step07.painLevel')}</Typography>
+          <SegmentedControl options={painOpts} value={fc.pain_level ?? ''} onChange={v => set({ pain_level: v as PainLevel })}/>
         </div>
 
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Access to training environment</Typography>
-          <SegmentedControl options={ACCESS_OPTS} value={fc.access_level ?? ''} onChange={v => set({ access_level: v as AccessLevel })}/>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step07.accessToEnv')}</Typography>
+          <SegmentedControl options={accessOpts} value={fc.access_level ?? ''} onChange={v => set({ access_level: v as AccessLevel })}/>
         </div>
 
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Support resources you use</Typography>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step07.supportResources')}</Typography>
           <HStack style={{ flexWrap: 'wrap' }} gap={8}>
-            {SUPPORT_RESOURCES.map(r => (
+            {SUPPORT_VALUES.map(r => (
               <Chip
-                key={r.value}
-                label={r.label}
-                active={(fc.support_resources ?? []).includes(r.value)}
-                onClick={() => toggleSupport(r.value)}
-                disabled={r.value !== 'none' && (fc.support_resources ?? []).includes('none')}
+                key={r}
+                label={tr(`wizard.step07.supports.${r}`)}
+                active={(fc.support_resources ?? []).includes(r)}
+                onClick={() => toggleSupport(r)}
+                disabled={r !== 'none' && (fc.support_resources ?? []).includes('none')}
               />
             ))}
           </HStack>
         </div>
 
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>How do you prefer to receive instructions?</Typography>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step07.instructionPreference')}</Typography>
           <HStack style={{ flexWrap: 'wrap' }} gap={8}>
-            {INSTRUCTION_FORMATS.map(f => (
+            {INSTRUCTION_VALUES.map(f => (
               <Chip
-                key={f.value}
-                label={f.label}
-                active={(fc.instruction_format ?? []).includes(f.value)}
-                onClick={() => toggleFormat(f.value)}
+                key={f}
+                label={tr(`wizard.step07.instructionFormats.${f}`)}
+                active={(fc.instruction_format ?? []).includes(f)}
+                onClick={() => toggleFormat(f)}
               />
             ))}
           </HStack>
         </div>
 
         <Alert isAI
-          text="This data generates the Functional Capacity Profile and filters exercises — for example, if you cannot bend your knees, fewer floor exercises will be prescribed."
+          text={tr('wizard.step07.alert')}
         />
       </VStack>
 

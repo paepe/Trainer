@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from '../i18n';
 import { supabase } from '../supabase';
 import { useM5Data } from '../screens/client/performance/perf-engines';
 import type { CoachDNARow } from '../types/coach-dna';
@@ -143,7 +144,7 @@ export function useAIContext({ trainerId, clientId }: UseAIContextOptions): UseA
         });
 
         const placeholderTask: TaskContext = { type: 'generate_workout' };
-        const aiCtx = buildAIContext(trainerCtx, clientCtx, todayCtx, statsCtx, libraryCtx, placeholderTask);
+        const aiCtx = buildAIContext(trainerCtx, clientCtx, todayCtx, statsCtx, libraryCtx, placeholderTask, i18n.language || 'en');
 
         if (!cancelled) setContext(aiCtx);
       } catch (err) {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTheme } from '../../contexts';
 
@@ -12,6 +13,7 @@ interface StepHeaderProps {
 
 export const StepHeader: React.FC<StepHeaderProps> = ({ idx, total, title, sub, badge }) => {
   const { t } = useTheme();
+  const { t: tr } = useTranslation();
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -20,7 +22,7 @@ export const StepHeader: React.FC<StepHeaderProps> = ({ idx, total, title, sub, 
           fontSize:      10.5, fontWeight: 700, letterSpacing: '.15em',
           textTransform: 'uppercase', color: t.primary,
         }}>
-          BLOCK {String(idx).padStart(2, '0')} / {String(total).padStart(2, '0')}
+          {tr('coachDna.screen.blockOf', { step: idx, total })}
         </span>
         {badge && (
           <span style={{

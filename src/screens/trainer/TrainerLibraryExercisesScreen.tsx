@@ -175,7 +175,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
           }}
         >
           <Icon name="dumbbell" size={16} color={activeTab === 'exercises' ? '#0E1A2B' : textPri(dark)} />
-          Catalog
+          {tr('trainer.library.tabExercises')}
         </button>
         <button
           onClick={() => setActiveTab('protocols')}
@@ -188,7 +188,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
           }}
         >
           <Icon name="history" size={16} color={activeTab === 'protocols' ? '#0E1A2B' : textPri(dark)} />
-          Protocols
+          {tr('trainer.library.tabProtocols')}
         </button>
       </div>
 
@@ -334,10 +334,10 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                     }}
                   >
                     <option value="All">{tr('trainer.library.allStatuses')}</option>
-                    <option value="active">Active</option>
-                    <option value="blocked">Blocked</option>
-                    <option value="restricted">Restricted</option>
-                    <option value="draft">Draft</option>
+                    <option value="active">{tr('trainer.library.statusOpts.active')}</option>
+                    <option value="blocked">{tr('trainer.library.statusOpts.blocked')}</option>
+                    <option value="restricted">{tr('trainer.library.statusOpts.restricted')}</option>
+                    <option value="draft">{tr('trainer.library.statusOpts.draft')}</option>
                   </select>
                 </div>
               </div>
@@ -346,15 +346,15 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: textSec(dark) }}>
                   <input type="checkbox" checked={filterLowImpact} onChange={(e) => setFilterLowImpact(e.target.checked)} />
-                  Low Impact
+                   {tr('trainer.library.accessibilityTags.lowImpact')}
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: textSec(dark) }}>
                   <input type="checkbox" checked={filterNoFloor} onChange={(e) => setFilterNoFloor(e.target.checked)} />
-                  No Floor
+                  {tr('trainer.library.accessibilityTags.noFloor')}
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: textSec(dark) }}>
                   <input type="checkbox" checked={filterSeated} onChange={(e) => setFilterSeated(e.target.checked)} />
-                  Seated
+                  {tr('trainer.library.accessibilityTags.seated')}
                 </label>
               </div>
             </div>
@@ -362,9 +362,9 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
 
           {/* List */}
           {loading ? (
-            <div style={{ padding: '20px 0', textAlign: 'center', color: textMute(dark) }}>Loading exercise catalog...</div>
+            <div style={{ padding: '20px 0', textAlign: 'center', color: textMute(dark) }}>{tr('trainer.library.loadingExercises')}</div>
           ) : filteredExercises.length === 0 ? (
-            <div style={{ padding: '40px 0', textAlign: 'center', color: textMute(dark) }}>No exercises found.</div>
+            <div style={{ padding: '40px 0', textAlign: 'center', color: textMute(dark) }}>{tr('trainer.library.noExercises')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {filteredExercises.map(ex => {
@@ -421,9 +421,9 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
       {activeTab === 'protocols' && (
         <div style={{ padding: '0 22px 80px' }}>
           {loading ? (
-            <div style={{ padding: '20px 0', textAlign: 'center', color: textMute(dark) }}>Loading protocols...</div>
+            <div style={{ padding: '20px 0', textAlign: 'center', color: textMute(dark) }}>{tr('trainer.library.loadingProtocols')}</div>
           ) : protocols.length === 0 ? (
-            <div style={{ padding: '40px 0', textAlign: 'center', color: textMute(dark) }}>No protocols found.</div>
+            <div style={{ padding: '40px 0', textAlign: 'center', color: textMute(dark) }}>{tr('trainer.library.noProtocols')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {protocols.map(p => (
@@ -437,7 +437,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 16, color: textPri(dark) }}>{p.name}</div>
-                      <div style={{ fontSize: 12, color: textMute(dark), marginTop: 2 }}>{p.description || 'No description provided.'}</div>
+                      <div style={{ fontSize: 12, color: textMute(dark), marginTop: 2 }}>{p.description || tr('trainer.library.noDescription')}</div>
                     </div>
                     <span style={{
                       fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
@@ -455,7 +455,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
 
                   {/* Exercises inside protocol */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: textMute(dark) }}>Protocol Exercises:</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: textMute(dark) }}>{tr('trainer.library.protocolExercises')}</div>
                     {p.protocol_exercises && p.protocol_exercises.length > 0 ? (
                       p.protocol_exercises.map((pe: any, idx: number) => (
                         <div
@@ -480,7 +480,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                         </div>
                       ))
                     ) : (
-                      <div style={{ fontSize: 11, color: textMute(dark), fontStyle: 'italic' }}>No exercises in this protocol.</div>
+                      <div style={{ fontSize: 11, color: textMute(dark), fontStyle: 'italic' }}>{tr('trainer.library.noExercisesInProtocol')}</div>
                     )}
                   </div>
                 </div>
@@ -529,6 +529,7 @@ function VoiceAssistantPanel({
   voiceQuery, voiceResponse, voiceLoading, auditLogs, dark,
   onClose, onQueryChange, onSimulate, onGovernance, onSelectExercise,
 }: VoiceAssistantPanelProps) {
+  const { t: tr } = useTranslation();
   return (
     <div style={{ padding: '0 22px 18px' }}>
       <div style={{
@@ -539,7 +540,7 @@ function VoiceAssistantPanel({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="sparkle" size={18} color="#6e44ff" />
-            <span style={{ fontWeight: 700, fontSize: 14, color: '#9b51e0' }}>AI Voice Assistant (Module 8)</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#9b51e0' }}>{tr('trainer.library.voiceAssistant.title')}</span>
           </div>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: textMute(dark), cursor: 'pointer' }}>
             <Icon name="close" size={14} />
@@ -549,7 +550,7 @@ function VoiceAssistantPanel({
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
           <input
             type="text"
-            placeholder='E.g., "Low-impact alternative for burpees?"'
+            placeholder={tr('trainer.library.voiceAssistant.placeholder')}
             value={voiceQuery}
             onChange={e => onQueryChange(e.target.value)}
             style={{
@@ -563,7 +564,7 @@ function VoiceAssistantPanel({
             disabled={voiceLoading}
             style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: '#6e44ff', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
           >
-            {voiceLoading ? 'Analyzing...' : 'Simulate'}
+            {voiceLoading ? tr('trainer.library.voiceAssistant.analyzing') : tr('trainer.library.voiceAssistant.simulate')}
           </button>
         </div>
 
@@ -585,12 +586,12 @@ function VoiceAssistantPanel({
 
         {voiceResponse && (
           <div style={{ background: DARK.bg, border: `1px solid ${borderSubtle(dark)}`, borderRadius: 12, padding: 12, marginTop: 10 }}>
-            <span style={{ fontSize: 11, color: '#9b51e0', fontWeight: 600 }}>Parsed Intent: {voiceResponse.intent}</span>
+            <span style={{ fontSize: 11, color: '#9b51e0', fontWeight: 600 }}>{tr('trainer.library.voiceAssistant.parsedIntent')}{voiceResponse.intent}</span>
             <p style={{ fontSize: 13, margin: '4px 0 10px 0', lineHeight: 1.4, color: textPri(dark) }}>"{voiceResponse.reply}"</p>
 
             {voiceResponse.exercises?.length > 0 && (
               <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 11, color: textMute(dark), marginBottom: 4 }}>Matching exercises:</div>
+                <div style={{ fontSize: 11, color: textMute(dark), marginBottom: 4 }}>{tr('trainer.library.voiceAssistant.matchingExercises')}</div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {voiceResponse.exercises.map((e: any) => (
                     <div key={e.id} onClick={() => onSelectExercise(e)} style={{
@@ -605,12 +606,12 @@ function VoiceAssistantPanel({
 
             {(voiceResponse.intent.includes('restrict') || voiceResponse.intent.includes('block') || voiceResponse.intent.includes('create')) && (
               <div style={{ marginTop: 10, padding: 10, borderRadius: 8, background: 'rgba(242, 201, 76, 0.08)', border: '1px dashed rgba(242, 201, 76, 0.4)' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#f2c94c', marginBottom: 6 }}>⚠️ Governance Action Pre-authorized (RV-8.3)</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#f2c94c', marginBottom: 6 }}>⚠️ {tr('trainer.library.voiceAssistant.governanceLabel')}</div>
                 <button
                   onClick={() => onGovernance(`${voiceResponse.intent} for query: ${voiceQuery}`)}
                   style={{ padding: '6px 12px', background: '#f2c94c', color: '#0E1A2B', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}
                 >
-                  Confirm and Log Action
+                  {tr('trainer.library.voiceAssistant.confirmLog')}
                 </button>
               </div>
             )}
@@ -619,7 +620,7 @@ function VoiceAssistantPanel({
 
         {auditLogs.length > 0 && (
           <div style={{ marginTop: 10, fontSize: 11, color: textMute(dark) }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>Governance Audit Log:</div>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>{tr('trainer.library.voiceAssistant.auditLog')}</div>
             <div style={{ maxHeight: 60, overflowY: 'auto' }}>
               {auditLogs.map((log, i) => <div key={i} style={{ marginBottom: 2, fontFamily: 'monospace' }}>{log}</div>)}
             </div>
@@ -650,6 +651,7 @@ function ExerciseDetailModal({
   exercise, isEditing, formError, isTrainerOrAdmin, dark, t,
   onClose, onStartEdit, onCancelEdit, onChange, onSave,
 }: ExerciseDetailModalProps) {
+  const { t: tr } = useTranslation();
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 100,
@@ -667,17 +669,17 @@ function ExerciseDetailModal({
 
         <h3 style={{ margin: '0 0 16px 0', fontSize: 18, color: textPri(dark), display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="dumbbell" size={20} color={t.primary} />
-          {isEditing ? (exercise.id ? 'Edit Exercise' : 'New Exercise') : 'Exercise Details'}
+          {isEditing ? (exercise.id ? tr('trainer.library.modal.editExercise') : tr('trainer.library.modal.newExercise')) : tr('trainer.library.modal.exerciseDetails')}
         </h3>
 
         {exercise.status === 'blocked' && (
           <div style={{ background: 'rgba(235, 87, 87, 0.12)', border: '1px solid #eb5757', borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: '#eb5757', lineHeight: 1.4 }}>
-            <b>⚠️ Blocked Exercise:</b> This exercise has been blocked due to severe safety risks or client contraindications.
+            <b>⚠️ {tr('trainer.library.modal.blockedWarning')}</b>
           </div>
         )}
         {exercise.status === 'restricted' && (
           <div style={{ background: 'rgba(242, 201, 76, 0.12)', border: '1px solid #f2c94c', borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: '#f2c94c', lineHeight: 1.4 }}>
-            <b>⚠️ Restricted Exercise:</b> Ensure proper supervision and form correction.
+            ⚠️ {tr('trainer.library.modal.restrictedWarning')}
           </div>
         )}
 
@@ -685,14 +687,14 @@ function ExerciseDetailModal({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {formError && <div style={{ color: '#eb5757', fontSize: 12, fontWeight: 600 }}>{formError}</div>}
             <div>
-              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Exercise Name</label>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.exerciseName')}</label>
               <input type="text" value={exercise.name || ''} onChange={e => onChange({ ...exercise, name: e.target.value })}
                 style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
               />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
-                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Muscle Group</label>
+                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.muscleGroup')}</label>
                 <select value={exercise.muscle_group || 'Legs'} onChange={e => onChange({ ...exercise, muscle_group: e.target.value })}
                   style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
                 >
@@ -700,7 +702,7 @@ function ExerciseDetailModal({
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Status</label>
+                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.status')}</label>
                 <select value={exercise.status || 'draft'} onChange={e => onChange({ ...exercise, status: e.target.value as any })}
                   style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
                 >
@@ -710,7 +712,7 @@ function ExerciseDetailModal({
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
-                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Equipment</label>
+                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.equipment')}</label>
                 <input type="text"
                   value={exercise.equipment ? (Array.isArray(exercise.equipment) ? exercise.equipment.join(', ') : exercise.equipment) : ''}
                   onChange={e => onChange({ ...exercise, equipment: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
@@ -718,7 +720,7 @@ function ExerciseDetailModal({
                 />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Level</label>
+                <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.level')}</label>
                 <select value={exercise.level || 'beginner'} onChange={e => onChange({ ...exercise, level: e.target.value as any })}
                   style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
                 >
@@ -727,27 +729,27 @@ function ExerciseDetailModal({
               </div>
             </div>
             <div>
-              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Description & Instructions</label>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.descriptionInstructions')}</label>
               <textarea rows={3} value={exercise.short_instruction || ''} onChange={e => onChange({ ...exercise, short_instruction: e.target.value })}
                 style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark), fontFamily: 'inherit', fontSize: 13 }}
               />
             </div>
             <div>
-              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Video URL</label>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.videoUrl')}</label>
               <input type="text" value={exercise.video_url || ''} onChange={e => onChange({ ...exercise, video_url: e.target.value })}
                 style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
               />
             </div>
             <div>
-              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Accessibility Tags (comma separated)</label>
-              <input type="text" placeholder="low_impact, no_floor, seated"
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.accessibilityTags')}</label>
+              <input type="text" placeholder={tr('trainer.library.modal.accessibilityPlaceholder')}
                 value={exercise.accessibility_tags?.join(', ') || ''}
                 onChange={e => onChange({ ...exercise, accessibility_tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                 style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
               />
             </div>
             <div>
-              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Alternative Exercises (comma separated)</label>
+              <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.alternativeExercises')}</label>
               <input type="text" placeholder="Step Jack, Marcha no Lugar"
                 value={exercise.alternatives?.join(', ') || ''}
                 onChange={e => onChange({ ...exercise, alternatives: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
@@ -755,8 +757,8 @@ function ExerciseDetailModal({
               />
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-              <button onClick={onCancelEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
-              <button onClick={onSave} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.accent, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>Save Changes</button>
+              <button onClick={onCancelEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), cursor: 'pointer', fontWeight: 600 }}>{tr('trainer.library.modal.cancel')}</button>
+              <button onClick={onSave} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.accent, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>{tr('trainer.library.modal.saveChanges')}</button>
             </div>
           </div>
         ) : (
@@ -768,19 +770,19 @@ function ExerciseDetailModal({
             </div>
             {exercise.short_instruction && (
               <div>
-                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Instructions:</div>
+                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.instructions')}</div>
                 <div style={{ fontSize: 13, color: textPri(dark), marginTop: 4, lineHeight: 1.5 }}>{exercise.short_instruction}</div>
               </div>
             )}
             {exercise.video_url && (
               <div>
-                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Video Reference:</div>
-                <a href={exercise.video_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: t.primary, marginTop: 4, display: 'inline-block' }}>📹 View execution video</a>
+                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.videoReference')}</div>
+                <a href={exercise.video_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: t.primary, marginTop: 4, display: 'inline-block' }}>📹 {tr('trainer.library.modal.viewExecutionVideo')}</a>
               </div>
             )}
             {exercise.accessibility_tags && exercise.accessibility_tags.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Accessibility Tags:</div>
+                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.accessibilityTagsLabel')}</div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   {exercise.accessibility_tags.map(tag => (
                     <span key={tag} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', fontWeight: 600 }}>{tag}</span>
@@ -790,7 +792,7 @@ function ExerciseDetailModal({
             )}
             {exercise.alternatives && exercise.alternatives.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>Alternative Exercises:</div>
+                <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.alternativeExercisesLabel')}</div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   {exercise.alternatives.map(alt => (
                     <span key={alt} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(110, 68, 255, 0.1)', color: '#9b51e0', fontWeight: 600 }}>{alt}</span>
@@ -801,7 +803,7 @@ function ExerciseDetailModal({
             {isTrainerOrAdmin && (
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                 <button onClick={onStartEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.accent, color: '#fff', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Icon name="edit" size={16} color="#0E1A2B" /> Edit exercise
+                  <Icon name="edit" size={16} color="#0E1A2B" /> {tr('trainer.library.modal.editExerciseBtn')}
                 </button>
               </div>
             )}

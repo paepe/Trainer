@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type {
   CheckInDetailed as CheckInDetailedData,
@@ -17,71 +18,6 @@ interface CheckInDetailedProps {
   onSubmit:       (data: CheckInDetailedData) => void;
   onBack:         () => void;
 }
-
-// ── Local config ──────────────────────────────────────────────────────────────
-
-const SLEEP_OPTIONS: { value: SleepQualityV2; label: string }[] = [
-  { value: 'poor', label: 'Poor' }, { value: 'regular', label: 'Regular' },
-  { value: 'good', label: 'Good'  }, { value: 'excellent', label: 'Excellent'  },
-];
-
-const PAIN_REGIONS: { value: PainRegion; label: string }[] = [
-  { value: 'neck',       label: 'Neck'       }, { value: 'shoulder',   label: 'Shoulder'  },
-  { value: 'elbow',      label: 'Elbow'      }, { value: 'wrist',      label: 'Wrist'     },
-  { value: 'upper_back', label: 'Upper Back' }, { value: 'lower_back', label: 'Lower Back'},
-  { value: 'hip',        label: 'Hip'        }, { value: 'knee',       label: 'Knee'      },
-  { value: 'ankle',      label: 'Ankle'      }, { value: 'other',      label: 'Other'     },
-];
-
-const FATIGUE_TYPES: { value: FatigueType; label: string }[] = [
-  { value: 'physical', label: 'Physical' },
-  { value: 'mental',   label: 'Mental' },
-  { value: 'both',     label: 'Both'},
-];
-
-const EMOTIONS: { value: EmotionalState; label: string }[] = [
-  { value: 'calm',        label: 'calm'  }, { value: 'neutral',     label: 'neutral'     },
-  { value: 'motivated',   label: 'motivated'   }, { value: 'stressed',    label: 'stressed' },
-  { value: 'anxious',     label: 'anxious'    }, { value: 'discouraged', label: 'discouraged' },
-];
-
-const TIME_PRESETS = [15, 30, 45, 60, 90];
-
-const LOCATIONS: { value: string; label: string }[] = [
-  { value: 'home',   label: 'Home'     }, { value: 'gym',    label: 'Gym' },
-  { value: 'studio', label: 'Studio'   }, { value: 'park',   label: 'Park'   },
-  { value: 'online', label: 'Online'   },
-];
-
-const EQUIPMENT: { value: string; label: string }[] = [
-  { value: 'dumbbells',       label: 'Dumbbells'  }, { value: 'resistance_bands', label: 'Bands'  },
-  { value: 'barbell',         label: 'Barbell'     }, { value: 'bench',            label: 'Bench'      },
-  { value: 'machines',        label: 'Machines'  }, { value: 'treadmill',        label: 'Treadmill'    },
-  { value: 'kettlebell',      label: 'Kettlebell'}, { value: 'none',             label: 'None'     },
-];
-
-const SAFETY_SIGNALS: { value: SafetySignal; label: string }[] = [
-  { value: 'severe_pain',         label: 'Severe pain'          },
-  { value: 'dizziness',           label: 'Dizziness'            },
-  { value: 'shortness_of_breath', label: 'Shortness of breath'        },
-  { value: 'chest_pain',          label: 'Chest pain'       },
-  { value: 'malaise',             label: 'Malaise'          },
-  { value: 'loss_of_balance',     label: 'Loss of balance'},
-  { value: 'fainting_sensation',  label: 'Fainting sensation'},
-];
-
-const ADAPTATIONS: { value: AdaptationPreference; label: string }[] = [
-  { value: 'maintain_normal',    label: 'Maintain normal'       },
-  { value: 'reduce_intensity',   label: 'Reduce intensity' },
-  { value: 'reduce_impact',      label: 'Reduce impact'     },
-  { value: 'increase_rest',      label: 'Increase rest'   },
-  { value: 'shorten_session',    label: 'Shorten session'      },
-  { value: 'prioritize_mobility',label: 'Mobility'          },
-  { value: 'postpone_training',  label: 'Postpone training'        },
-  { value: 'regenerative',       label: 'Regenerative'        },
-];
-
-// ── Sub-components ────────────────────────────────────────────────────────────
 
 function BlockHeader({ num, icon, label, dark }: { num: number; icon: string; label: string; dark: boolean }) {
   return (
@@ -164,9 +100,47 @@ function ChipBtn({ label, selected, onClick, dark, primary }: {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+const PAIN_REGS: PainRegion[] = ['neck','shoulder','elbow','wrist','upper_back','lower_back','hip','knee','ankle','other'];
+const EMOTION_VALS: EmotionalState[] = ['calm','neutral','motivated','stressed','anxious','discouraged'];
+const SIGNAL_VALS: SafetySignal[] = ['severe_pain','dizziness','shortness_of_breath','chest_pain','malaise','loss_of_balance','fainting_sensation'];
+const ADAPT_VALS: AdaptationPreference[] = ['maintain_normal','reduce_intensity','reduce_impact','increase_rest','shorten_session','prioritize_mobility','postpone_training','regenerative'];
+const TIME_PRESETS = [15, 30, 45, 60, 90];
 
 export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, biologicalSex, onSubmit, onBack }: CheckInDetailedProps) {
+  const { t: tr } = useTranslation();
+  const sleepOpts: { value: SleepQualityV2; label: string }[] = React.useMemo(() => [
+    { value: 'poor', label: tr('checkinEnums.sleep.poor') },
+    { value: 'regular', label: tr('checkinEnums.sleep.regular') },
+    { value: 'good', label: tr('checkinEnums.sleep.good') },
+    { value: 'excellent', label: tr('checkinEnums.sleep.excellent') },
+  ], [tr]);
+  const painRegions = React.useMemo(() => PAIN_REGS.map(r => ({ value: r, label: tr(`checkinEnums.bodyPart.${r}`) })), [tr]);
+  const fatigueTypes = React.useMemo(() => [
+    { value: 'physical' as FatigueType, label: tr('checkinEnums.emotional.physical') },
+    { value: 'mental' as FatigueType, label: tr('checkinEnums.emotional.mental') },
+    { value: 'both' as FatigueType, label: tr('checkinEnums.emotional.both') },
+  ], [tr]);
+  const emotions = React.useMemo(() => EMOTION_VALS.map(e => ({ value: e, label: tr(`checkinEnums.emotional.${e}`) })), [tr]);
+  const locations = React.useMemo(() => [
+    { value: 'home', label: tr('checkinEnums.location.home') },
+    { value: 'gym', label: tr('checkinEnums.location.gym') },
+    { value: 'studio', label: tr('checkinEnums.location.studio') },
+    { value: 'park', label: tr('checkinEnums.location.park') },
+    { value: 'online', label: tr('checkinEnums.location.online') },
+  ], [tr]);
+  const equipment_ = React.useMemo(() => [
+    { value: 'dumbbells', label: tr('checkinEnums.equipment.dumbbells') },
+    { value: 'resistance_bands', label: tr('checkinEnums.equipment.resistance_bands') },
+    { value: 'barbell', label: tr('checkinEnums.equipment.barbell') },
+    { value: 'bench', label: tr('checkinEnums.equipment.bench') },
+    { value: 'machines', label: tr('checkinEnums.equipment.machines') },
+    { value: 'treadmill', label: tr('checkinEnums.equipment.treadmill') },
+    { value: 'kettlebell', label: tr('checkinEnums.equipment.kettlebell') },
+    { value: 'none', label: tr('checkinEnums.equipment.none') },
+  ], [tr]);
+  const safetySignals = React.useMemo(() => SIGNAL_VALS.map(s => ({ value: s, label: tr(`checkinEnums.signals.${s}`) })), [tr]);
+  const adaptations = React.useMemo(() => ADAPT_VALS.map(a => ({ value: a, label: tr(`checkinEnums.adaptations.${a}`) })), [tr]);
+
   const [energy, setEnergy]                     = React.useState(lastCheckin?.energy            ?? 5);
   const [sleep, setSleep]                       = React.useState((lastCheckin?.sleep_quality as SleepQualityV2 | undefined) ?? 'regular');
   const [sleepHours, setSleepHours]             = React.useState(lastCheckin?.sleep_hours       ?? 7);
@@ -244,13 +218,13 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
 
       {userName && (
         <div style={{ marginBottom: 12, padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>Viewing</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>{tr('detailedCheckin.viewing')}</span>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
         </div>
       )}
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
-        DETAILED CHECK-IN · 12 BLOCKS
+        {tr('detailedCheckin.kicker')}
       </div>
       <h2 style={{
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
@@ -264,15 +238,15 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
 
       {/* 1 Energia */}
       <div style={block()}>
-        <BlockHeader num={1} icon="⚡" label="Energy" dark={dark}/>
+        <BlockHeader num={1} icon="⚡" label={tr('detailedCheckin.blocks.energy')} dark={dark}/>
         <SliderRow label="how are you feeling?" value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
       {/* 2 Sono */}
       <div style={block()}>
-        <BlockHeader num={2} icon="🌙" label="Sleep" dark={dark}/>
+        <BlockHeader num={2} icon="🌙" label={tr('detailedCheckin.blocks.sleep')} dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-          {SLEEP_OPTIONS.map(o => (
+          {sleepOpts.map(o => (
             <button key={o.value} onClick={() => setSleep(o.value)} style={btnBase(sleep === o.value)}>
               {o.label}
             </button>
@@ -283,10 +257,10 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
 
       {/* 3 Dor */}
       <div style={block()}>
-        <BlockHeader num={3} icon="🔴" label="Pain" dark={dark}/>
+        <BlockHeader num={3} icon="🔴" label={tr('detailedCheckin.blocks.pain')} dark={dark}/>
         <ToggleRow
-          label="I'm in pain today"
-          sub={painOn ? 'Tap to detail region and intensity' : undefined}
+          label={tr('detailedCheckin.inPainToday')}
+          sub={painOn ? tr('detailedCheckin.painDetailHint') : undefined}
           on={painOn}
           onChange={v => { setPainOn(v); if (!v) { setPainRegion(undefined); } }}
           dark={dark} primary={primary}
@@ -294,12 +268,12 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
         {painOn && (
           <div style={{ marginTop: 14 }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-              {PAIN_REGIONS.map(r => (
+              {painRegions.map(r => (
                 <ChipBtn key={r.value} label={r.label} selected={painRegion === r.value}
                   onClick={() => setPainRegion(r.value)} dark={dark} primary={primary}/>
               ))}
             </div>
-            <SliderRow label="Intensity" value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
+            <SliderRow label={tr('detailedCheckin.intensity')} value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
             <div style={{ marginTop: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
                 TRIGGER MOVEMENT
@@ -319,35 +293,39 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
             </div>
           </div>
         )}
+        <ToggleRow
+          label={tr('detailedCheckin.floorExercises')}
+          sub={tr('detailedCheckin.floorNote')}
+          on={floorOk} onChange={setFloorOk} dark={dark} primary={primary}
+        />
       </div>
 
       {/* 4 Fadiga */}
       <div style={block()}>
-        <BlockHeader num={4} icon="🔋" label="Fatigue" dark={dark}/>
+        <BlockHeader num={4} icon="🔋" label={tr('detailedCheckin.blocks.fatigue')} dark={dark}/>
         <SliderRow label="perceived fatigue" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
-        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          {FATIGUE_TYPES.map(o => (
-            <button key={o.value} onClick={() => setFatigueType(o.value)} style={btnBase(fatigueType === o.value)}>
-              {o.label}
-            </button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+          {fatigueTypes.map(f => (
+            <ChipBtn key={f.value} label={f.label} selected={fatigueType === f.value}
+              onClick={() => setFatigueType(f.value)} dark={dark} primary={primary}/>
           ))}
         </div>
       </div>
 
-      {/* 5 Estado emocional */}
+      {/* 5 Emocional */}
       <div style={block()}>
-        <BlockHeader num={5} icon="🧠" label="Emotional state" dark={dark}/>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {EMOTIONS.map(o => (
-            <ChipBtn key={o.value} label={o.label} selected={emotion === o.value}
-              onClick={() => setEmotion(o.value)} dark={dark} primary={primary}/>
+        <BlockHeader num={5} icon="🧠" label={tr('detailedCheckin.blocks.emotional')} dark={dark}/>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {emotions.map(em => (
+            <ChipBtn key={em.value} label={em.label} selected={emotion === em.value}
+              onClick={() => setEmotion(em.value)} dark={dark} primary={primary}/>
           ))}
         </div>
       </div>
 
       {/* 6 Tempo */}
       <div style={block()}>
-        <BlockHeader num={6} icon="⏱️" label="Time" dark={dark}/>
+        <BlockHeader num={6} icon="⏱️" label={tr('detailedCheckin.blocks.time')} dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {TIME_PRESETS.map(t => (
             <button key={t} onClick={() => setMinutes(t)} style={btnBase(minutes === t)}>
@@ -357,97 +335,65 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
         </div>
       </div>
 
-      {/* 7 Local de hoje */}
+      {/* 7 Local */}
       <div style={block()}>
-        <BlockHeader num={7} icon="📍" label="Today's location" dark={dark}/>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {LOCATIONS.map(o => (
-            <button key={o.value} onClick={() => setLocation(o.value)} style={btnBase(location === o.value)}>
-              {o.label}
-            </button>
+        <BlockHeader num={7} icon="📍" label={tr('detailedCheckin.blocks.location')} dark={dark}/>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {locations.map(l => (
+            <ChipBtn key={l.value} label={l.label} selected={location === l.value}
+              onClick={() => setLocation(l.value)} dark={dark} primary={primary}/>
           ))}
         </div>
       </div>
 
-      {/* 8 Equipamentos */}
+      {/* 8 Equipamento */}
       <div style={block()}>
-        <BlockHeader num={8} icon="🏋️" label="Equipment available today" dark={dark}/>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {EQUIPMENT.map(o => (
-            <ChipBtn key={o.value} label={o.label} selected={equipment.includes(o.value)}
-              onClick={() => toggleEquip(o.value)} dark={dark} primary={primary}/>
+        <BlockHeader num={8} icon="🏋️" label={tr('detailedCheckin.blocks.equipment')} dark={dark}/>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {equipment_.map(e => (
+            <ChipBtn key={e.value} label={e.label} selected={equipment.includes(e.value)}
+              onClick={() => toggleEquip(e.value)} dark={dark} primary={primary}/>
           ))}
         </div>
       </div>
 
       {/* 9 Capacidade funcional */}
       <div style={block()}>
-        <BlockHeader num={9} icon="✅" label="Today's functional capacity" dark={dark}/>
-        <ToggleRow
-          label="I can do floor exercises today"
-          sub="This information helps filter suitable exercises."
-          on={floorOk}
-          onChange={setFloorOk}
-          dark={dark} primary={primary}
-        />
+        <BlockHeader num={9} icon="🤸" label={tr('detailedCheckin.blocks.capacity')} dark={dark}/>
+        <SliderRow label="mobility perception" value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
       {/* 10 Sinais de alerta */}
-      <div style={block({ border: `1px solid ${signals.length > 0 ? `${accent}55` : borderSubtle(dark)}` })}>
-        <BlockHeader num={10} icon="⚠️" label="Warning signs" dark={dark}/>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: signals.length > 0 ? 12 : 0 }}>
-          {SAFETY_SIGNALS.map(s => (
-            <button key={s.value} onClick={() => toggleSignal(s.value)} style={{
-              padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 12, fontWeight: 600,
-              background: signals.includes(s.value) ? `${accent}20` : surfRaised(dark),
-              border: `1.5px solid ${signals.includes(s.value) ? accent : borderSubtle(dark)}`,
-              color: signals.includes(s.value) ? accent : textPri(dark),
-            }}>
-              {s.label}
-            </button>
+      <div style={block({ borderColor: signals.length > 0 ? `${accent}55` : undefined })}>
+        <BlockHeader num={10} icon="⚠️" label={tr('detailedCheckin.blocks.signals')} dark={dark}/>
+        <p style={{ fontSize: 11, color: textMute(dark), lineHeight: 1.45, margin: '0 0 10px' }}>
+          {tr('detailedCheckin.signalsNote')}
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {safetySignals.map(s => (
+            <ChipBtn key={s.value} label={s.label} selected={signals.includes(s.value)}
+              onClick={() => toggleSignal(s.value)} dark={dark} primary={accent}/>
           ))}
         </div>
-        {signals.length > 0 && (
-          <div style={{
-            padding: '10px 12px', borderRadius: 8,
-            background: `${accent}14`, border: `1px solid ${accent}44`,
-            fontSize: 11.5, color: accent, lineHeight: 1.45,
-          }}>
-            Reported signs trigger the Safety Gate: <strong>AI-led will be blocked</strong> and human review will be required.
-          </div>
-        )}
       </div>
 
-      {/* 11 Body Rhythm — opt-in, hidden for biological sex = male */}
-      {biologicalSex !== 'male' && <div style={block({ background: `${primary}08`, border: `1px solid ${primary}22` })}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-          <BlockHeader num={11} icon="🌊" label="Body Rhythm" dark={dark}/>
-          <span style={{
-            fontSize: 9, fontWeight: 700, letterSpacing: '.06em',
-            background: `${primary}22`, color: primary,
-            padding: '2px 6px', borderRadius: 4, marginTop: 2,
-          }}>
-            OPT-IN
-          </span>
-        </div>
-        <ToggleRow
-          label="I want a more comfortable version today"
-          sub="Private adaptation. We never display cycle phase or symptoms."
-          on={bodyRhythm}
-          onChange={setBodyRhythm}
-          dark={dark} primary={primary}
-        />
-      </div>}
-
-      {/* 12 Adaptation preference */}
+      {/* 11 Body Rhythm */}
       <div style={block()}>
-        <BlockHeader num={12} icon="🎯" label="Adaptation preference" dark={dark}/>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {ADAPTATIONS.map(a => (
+        <BlockHeader num={11} icon="🌙" label={tr('detailedCheckin.blocks.rhythm')} dark={dark}/>
+        <ToggleRow
+          label={tr('detailedCheckin.rhythmNote')}
+          sub={tr('detailedCheckin.rhythmPrivacy')}
+          on={bodyRhythm} onChange={setBodyRhythm} dark={dark} primary={primary}
+        />
+      </div>
+
+      {/* 12 Adaptacao */}
+      <div style={block()}>
+        <BlockHeader num={12} icon="🔄" label={tr('detailedCheckin.blocks.adaptation')} dark={dark}/>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {adaptations.map(a => (
             <ChipBtn key={a.value} label={a.label} selected={adaptation === a.value}
-              onClick={() => setAdaptation(adaptation === a.value ? undefined : a.value)}
-              dark={dark} primary={primary}/>
+              onClick={() => setAdaptation(a.value)} dark={dark} primary={primary}/>
           ))}
         </div>
       </div>
@@ -455,7 +401,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
         <button onClick={handleSubmit} style={{ ...primaryBtn(primary), marginBottom: 0 }}>
-          Calculate Safety Gate →
+          Calculate readiness →
         </button>
         <button onClick={onBack} style={{ ...outlineBtn(primary), padding: '15px 20px' }}>
           ← Back

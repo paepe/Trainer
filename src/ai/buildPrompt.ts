@@ -2,7 +2,7 @@ import type { AIContext, TaskContext } from './types';
 
 // ─── System prompt (instructs the model on role, rules, output format) ────────
 
-function buildSystemPrompt(task: TaskContext['type']): string {
+function buildSystemPrompt(task: TaskContext['type'], locale: string): string {
   const base = `You are an AI personal training assistant for TrAIner, a professional fitness coaching platform.
 You receive structured context about the trainer (Coach DNA), the client (profile + history), today's readiness (check-in), performance statistics, and an exercise library.
 
@@ -13,6 +13,7 @@ Rules:
 - Respect equipment and location constraints exactly — never prescribe equipment not listed.
 - Honour the trainer's avoidExercises and client's injury/pain restrictions.
 - Adapt intensity based on readinessScore, fatigueRisk, and intensityCeiling.
+- Respond in ${locale}. All workout titles, coach notes, exercise cues, and adaptation notes must be in ${locale}.
 - Return ONLY valid JSON matching the required output shape — no markdown fences, no commentary.`;
 
   const shapes: Record<typeof task, string> = {
@@ -221,7 +222,7 @@ export function buildUserPrompt(ctx: AIContext): string {
 
 export function buildPrompt(ctx: AIContext): { system: string; user: string } {
   return {
-    system: buildSystemPrompt(ctx.task.type),
+    system: buildSystemPrompt(ctx.task.type, ctx.locale),
     user:   buildUserPrompt(ctx),
   };
 }

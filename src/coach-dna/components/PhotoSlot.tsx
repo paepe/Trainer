@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTheme } from '../../contexts';
@@ -16,7 +17,8 @@ function initials(name: string): string {
 }
 
 export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = '', trainerId }) => {
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
   const fileRef  = React.useRef<HTMLInputElement>(null);
   const [loading, setLoading] = React.useState(false);
   const [failed,  setFailed]  = React.useState(false);
@@ -51,7 +53,7 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
         style={{
           width: 92, height: 92, borderRadius: 24, flexShrink: 0,
           background:  hasImage ? 'transparent' : DARK.surface,
-          border:      `1.5px solid ${hasImage ? t.accent : DARK.border}`,
+          border:      `1.5px solid ${hasImage ? theme.accent : DARK.border}`,
           overflow:    'hidden', cursor: loading ? 'default' : 'pointer',
           display:     'flex', alignItems: 'center', justifyContent: 'center',
           position:    'relative',
@@ -71,19 +73,19 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
               fontSize: 9, fontWeight: 700, letterSpacing: '.08em',
               textTransform: 'uppercase', color: '#fff', textAlign: 'center',
             }}>
-              CHANGE
+              {tr('coachDna.components.photoSlot.changeLabel')}
             </div>
           </>
         ) : loading ? (
           <div style={{
             width: 20, height: 20, borderRadius: '50%',
-            border: `2px solid ${DARK.border}`, borderTopColor: t.accent,
-            animation: 'spin .7s linear infinite',
-          }}/>
-        ) : name ? (
-          <span style={{ fontSize: 26, fontWeight: 800, color: t.accent }}>
-            {initials(name)}
-          </span>
+              border: `2px solid ${DARK.border}`, borderTopColor: theme.accent,
+              animation: 'spin .7s linear infinite',
+            }}/>
+          ) : name ? (
+            <span style={{ fontSize: 26, fontWeight: 800, color: theme.accent }}>
+              {initials(name)}
+            </span>
         ) : (
           <Icon name="camera" size={28} color={DARK.textMute}/>
         )}
@@ -92,7 +94,7 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
       {/* label + action */}
       <div>
         <p style={{ margin: '0 0 8px', fontSize: 13, color: DARK.textSec, lineHeight: 1.4 }}>
-          Coach profile photo
+          {tr('coachDna.components.photoSlot.photoLabel')}
         </p>
         <button
           onClick={() => !loading && fileRef.current?.click()}
@@ -103,7 +105,9 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
           }}
         >
           <Icon name="camera" size={13} color={DARK.textSec}/>{' '}
-          {hasImage ? 'Change image' : 'Upload image'}
+          {hasImage
+            ? tr('coachDna.components.photoSlot.changeImage')
+            : tr('coachDna.components.photoSlot.uploadImage')}
         </button>
       </div>
 

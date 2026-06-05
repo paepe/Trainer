@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon }        from '../../components/Icon';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
@@ -13,7 +14,9 @@ interface Step05Props {
 }
 
 export const Step05Style: React.FC<Step05Props> = ({ style, onChange }) => {
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
+  const styleLabel = (key: string) => tr(`coachDna.step05.styles.${key}`);
   const toggle = (key: string) => {
     onChange(
       style.includes(key) ? style.filter(s => s !== key) : [...style, key],
@@ -24,11 +27,11 @@ export const Step05Style: React.FC<Step05Props> = ({ style, onChange }) => {
     <div>
       <StepHeader
         idx={5} total={12}
-        title="Coaching style"
-        sub="How you show up with your clients in practice."
-        badge="Coach DNA"
+        title={tr('coachDna.step05.title')}
+        sub={tr('coachDna.step05.sub')}
+        badge={tr('coachDna.step05.badge')}
       />
-      <Hint>Choose all styles that describe your approach.</Hint>
+      <Hint>{tr('coachDna.step05.hint')}</Hint>
 
       {/* 2-column grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
@@ -43,25 +46,25 @@ export const Step05Style: React.FC<Step05Props> = ({ style, onChange }) => {
                 justifyContent: 'center', gap: 8,
                 padding:      '16px 10px',
                 borderRadius: 14,
-                border:       `1.5px solid ${active ? t.accent : DARK.border}`,
-                background:   active ? `${t.accent}1c` : DARK.surface,
+                border:       `1.5px solid ${active ? theme.accent : DARK.border}`,
+                background:   active ? `${theme.accent}1c` : DARK.surface,
                 cursor:       'pointer', fontFamily: 'inherit',
                 transition:   'background .15s, border-color .15s',
               }}
             >
               <div style={{
                 width: 36, height: 36, borderRadius: 10,
-                background: active ? `${t.accent}22` : `${DARK.border}66`,
+                background: active ? `${theme.accent}22` : `${DARK.border}66`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Icon name={s.icon} size={18} color={active ? t.accent : DARK.textSec}/>
+                <Icon name={s.icon} size={18} color={active ? theme.accent : DARK.textSec}/>
               </div>
               <span style={{
                 fontSize: 12, fontWeight: 600,
                 color: active ? DARK.textPri : DARK.textSec,
                 textAlign: 'center', lineHeight: 1.3,
               }}>
-                {s.label}
+                {styleLabel(s.key)}
               </span>
             </button>
           );
@@ -69,7 +72,7 @@ export const Step05Style: React.FC<Step05Props> = ({ style, onChange }) => {
       </div>
 
       <PrivacyNote tone="coach">
-        Coaching style is the most decisive part of your DNA — it defines the tone and voice of every generated workout.
+        {tr('coachDna.step05.privacyNote')}
       </PrivacyNote>
     </div>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type { SafetyGateResult } from '../../types/checkin-v2';
 import type { RiskClassification } from '../../types/profile-v2';
@@ -16,8 +17,6 @@ interface CheckInResultProps {
   isTrainerContext?: boolean;
   linkedTrainerId?:  string;
 }
-
-// ── Readiness gauge (SVG arc) ─────────────────────────────────────────────────
 
 function ReadinessGauge({ score, color, dark }: { score: number; color: string; dark: boolean }) {
   const r    = 50;
@@ -50,16 +49,8 @@ function ReadinessGauge({ score, color, dark }: { score: number; color: string; 
   );
 }
 
-// ── Config ────────────────────────────────────────────────────────────────────
-
-const STATUS_META = {
-  clear:   { color: '#4ade80', heading: 'Let\'s go!',         bg: '#4ade8012' },
-  caution: { color: '#F5A623', heading: 'Today we\'ll go with caution.', bg: '#F5A62312' },
-  blocked: { color: '#EF5B3C', heading: 'Today we\'ll go with caution.', bg: '#EF5B3C12' },
-};
-
-const PAIN_LABEL = { low: 'low',    moderate: 'moderate', high: 'high'   };
-const REC_LABEL  = { stable: 'stable', recovering: 'recovering', at_risk: 'at_risk' };
+const PAIN_LABEL: Record<string, string> = { low: 'low', moderate: 'moderate', high: 'high' };
+const REC_LABEL: Record<string, string>  = { stable: 'stable', recovering: 'recovering', at_risk: 'at_risk' };
 
 function StatCell({ label, value, color, dark }: { label: string; value: string; color?: string; dark: boolean }) {
   return (
@@ -77,19 +68,26 @@ function StatCell({ label, value, color, dark }: { label: string; value: string;
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+const STATUS_META: Record<string, { color: string; bg: string }> = {
+  clear:   { color: '#4ade80', bg: '#4ade8012' },
+  caution: { color: '#F5A623', bg: '#F5A62312' },
+  blocked: { color: '#EF5B3C', bg: '#EF5B3C12' },
+};
 
 export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, onBack, isTrainerContext, linkedTrainerId }: CheckInResultProps) {
-  const meta         = STATUS_META[result.status];
+  const { t: tr } = useTranslation();
+  const meta         = STATUS_META[result.status] ?? { color: '#4ade80', bg: '#4ade8012' };
   const isBlocked    = result.ai_led_blocked;
-  const hasTrainer   = !!linkedTrainerId;  // client with an active trainer
+  const hasTrainer   = !!linkedTrainerId;
+
+  const heading = tr('checkin.result.viewCautionOptions');
 
   return (
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>
-          SCREEN 04 · READINESS REPORT · CONTEXTUAL
+          {tr('perf.tabs.performance')} · {tr('perf.tabs.scores')} · {tr('perf.tabs.overview')}
         </div>
         {onBack && (
           <button
@@ -120,7 +118,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         margin: '0 0 24px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        {meta.heading}
+        {heading}
       </h2>
 
       {/* Gauge */}
@@ -130,7 +128,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: meta.color, marginBottom: 16 }}>
-          READINESS
+          {tr('checkin.result.recovery')}
         </div>
         <ReadinessGauge score={result.readiness_score} color={meta.color} dark={dark}/>
       </div>
@@ -174,18 +172,18 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           <StatCell label="FATIGUE_RISK" value={`${result.passage_risk_pct}%`} dark={dark}/>
         )}
         {result.pain_alert_level && (
-          <StatCell label="PAIN_ALERT" value={PAIN_LABEL[result.pain_alert_level]} dark={dark} color={
+          <StatCell label="PAIN_ALERT" value={PAIN_LABEL[result.pain_alert_level] ?? ''} dark={dark} color={
             result.pain_alert_level === 'high' ? accent : result.pain_alert_level === 'moderate' ? '#F5A623' : '#4ade80'
           }/>
         )}
         {result.recovery_status && (
-          <StatCell label="RECOVERY" value={REC_LABEL[result.recovery_status]} dark={dark} color={
+          <StatCell label="RECOVERY" value={REC_LABEL[result.recovery_status] ?? ''} dark={dark} color={
             result.recovery_status === 'stable' ? '#4ade80' : result.recovery_status === 'recovering' ? '#F5A623' : accent
           }/>
         )}
       </div>
 
-      {/* Risk classification card — reuses RiskCard from profile wizard */}
+      {/* Risk classification card */}
       {risk ? (
         <div style={{ marginBottom: 24 }}>
           <RiskCard risk={risk} dark={dark} primary={primary} />
@@ -194,22 +192,18 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         <div style={{ flex: 1 }}/>
       )}
 
-      {/* CTAs — 3-way matrix */}
+      {/* CTAs */}
       {isTrainerContext ? (
-        /* Trainer doing check-in for a client */
         <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
           {isBlocked ? 'Review safety alert →' : 'Build plan →'}
         </button>
       ) : hasTrainer ? (
-        /* Client WITH an active trainer — data is already live with the trainer.
-           The only meaningful action is an explicit notification. Back handles navigation. */
         <button onClick={onAlert} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
           {isBlocked ? '⚠ Notify trainer — caution today' : '✦ Notify trainer — I\'m ready'}
         </button>
       ) : (
-        /* Client WITHOUT a trainer — full autonomy */
         <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
-          {isBlocked ? 'View caution options' : 'Start workout →'}
+          {isBlocked ? tr('checkin.result.viewCautionOptions') : tr('checkin.result.startWorkout')}
         </button>
       )}
 

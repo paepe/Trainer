@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { DNASlider }   from '../components/DNASlider';
@@ -16,7 +17,9 @@ interface Step02Props {
 }
 
 export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
+  const certsLabel = (key: string) => tr(`coachDna.step02.certs.${key}`);
   const toggleCert = (key: string) => {
     const certs = data.certs.includes(key)
       ? data.certs.filter(c => c !== key)
@@ -28,10 +31,10 @@ export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
     <div>
       <StepHeader
         idx={2} total={12}
-        title="Background & experience"
-        sub="How long you've been coaching and your academic / certification base."
+        title={tr('coachDna.step02.title')}
+        sub={tr('coachDna.step02.sub')}
       />
-      <Hint>Your experience shapes the depth of the workouts generated.</Hint>
+      <Hint>{tr('coachDna.step02.hint')}</Hint>
 
       <div style={{
         background: DARK.surface, borderRadius: 14,
@@ -39,16 +42,16 @@ export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
         marginBottom: 20,
       }}>
         <DNASlider
-          label="Years of experience"
+          label={tr('coachDna.step02.yearsLabel')}
           value={data.years}
           onChange={years => onChange({ years })}
           min={0} max={40}
-          suffix=" yrs"
-          color={t.accent}
+          suffix={tr('coachDna.step02.yearsSuffix')}
+          color={theme.accent}
         />
       </div>
 
-      <FieldLabel>Certifications & education</FieldLabel>
+      <FieldLabel>{tr('coachDna.step02.certsLabel')}</FieldLabel>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
         {CERTS.map(cert => (
           <ChoiceCard
@@ -56,14 +59,14 @@ export const Step02Background: React.FC<Step02Props> = ({ data, onChange }) => {
             active={data.certs.includes(cert.key)}
             onClick={() => toggleCert(cert.key)}
             icon={cert.icon}
-            title={cert.label}
-            color={t.accent}
+            title={certsLabel(cert.key)}
+            color={theme.accent}
           />
         ))}
       </div>
 
       <PrivacyNote>
-        Your background informs the AI Coach Engine about the technical depth of the protocols you use.
+        {tr('coachDna.step02.privacyNote')}
       </PrivacyNote>
     </div>
   );

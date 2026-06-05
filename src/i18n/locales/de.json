@@ -1,16 +1,472 @@
 {
   "common": {
     "about": "Über diese App",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "signOut": "Abmelden",
+    "refresh": "Aktualisieren",
+    "updating": "Wird aktualisiert…",
+    "live": "Live",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "action": "Aktion"
+  },
+  "inbox": {
+    "title": "Posteingang",
+    "noAlerts": "Noch keine Warnungen.",
+    "noMessages": "Noch keine Nachrichten.",
+    "approved": "Dein Trainer hat deine Bereitschaft bewertet und grünes Licht gegeben. Starte jetzt dein Training.",
+    "rejected": "Dein Trainer hat deine Bereitschaft bewertet und empfiehlt, die heutige Einheit zu überspringen.",
+    "notification": {
+      "approved_title": "Bereit zum Training! ({{trainer}})",
+      "rejected_title": "Einheitsanpassung empfohlen ({{trainer}})"
+    },
+    "pending_count_one": " ({{count}} ausstehend)",
+    "pending_count_other": " ({{count}} ausstehend)",
+    "loading": "Posteingang wird geladen...",
+    "requestExpires": "Anfrage läuft ab um {{time}}",
+    "actions": {
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "startWorkout": "Training starten"
+    },
+    "responses": {
+      "approved": "Vom Trainer genehmigt",
+      "rejected": "Überspringen vom Trainer empfohlen"
+    },
+    "badges": {
+      "expired": "Abgelaufen",
+      "pending": "Ausstehend",
+      "newPlan": "Neuer Plan",
+      "cancelled": "Storniert",
+      "postponed": "Verschoben",
+      "alert": "Warnung",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "done": "Erledigt"
+    }
+  },
+  "postWorkout": {
+    "title": "Training abgeschlossen!",
+    "titleIncomplete": "Einheitszusammenfassung",
+    "subtitleComplete": "Großartige Leistung — hier ist deine Einheitszusammenfassung",
+    "subtitleIncomplete": "Diese Einheit wurde nicht abgeschlossen",
+    "duration": "Dauer",
+    "exercises": "Übungen",
+    "setsDone": "Absolvierte Sätze",
+    "score": "Bewertung",
+    "sessionPlaceholder": "Wie war die Einheit?",
+    "feelings": [
+      "Schrecklich",
+      "Schlecht",
+      "Ok",
+      "Gut",
+      "Großartig"
+    ],
+    "loading": "Einheit wird geladen…",
+    "feedbackOnlyCompleted": "Feedback ist nur für abgeschlossene Einheiten verfügbar.",
+    "backToHistory": "← Zurück zum Verlauf",
+    "trainerSessionNote": "Aufzeichnung im Namen von {{client}} · Feedback wird im Kundenprofil gespeichert",
+    "clientFallback": "Kunde",
+    "howDidYouFeel": "Wie hast du dich gefühlt?",
+    "energyLevelAfter": "Energieniveau danach — {{energy}}/10",
+    "notesOptional": "Notizen (optional)",
+    "saveSaving": "Wird gespeichert…",
+    "saveTrainerDashboard": "Speichern & zurück zum Dashboard",
+    "saveContinue": "Speichern & weiter"
+  },
+  "perf": {
+    "noData": "Keine Daten verfügbar",
+    "region": "Region",
+    "refreshing": "WIRD AKTUALISIERT…",
+    "viewing": "Ansicht",
+    "calculating": "Indikatoren werden berechnet…",
+    "tabs": {
+      "overview": "Übersicht",
+      "aderencia": "Adhärenz",
+      "performance": "Leistung",
+      "dor": "Schmerz",
+      "scores": "KI-Scores",
+      "voz": "Stimme",
+      "marcos": "Meilensteine"
+    },
+    "overview": {
+      "sub": "Zusammenfassung deines Fortschritts der letzten Wochen.",
+      "adherence": "ADHÄRENZ",
+      "sessions": "Einheiten",
+      "streak": "Serie",
+      "weekSummary": "Wochenzusammenfassung",
+      "frequency": "Frequenz",
+      "checkins": "Check-ins",
+      "perWeek": "pro Woche",
+      "coverage": "Abdeckung",
+      "kicker": "MEIN FORTSCHRITT · {{weeksActive}} WOCHEN",
+      "titleClient": "Fortschritt von {{name}}",
+      "titleOwn": "Du machst Fortschritte.",
+      "pain14d": "Schmerz 14 Tage",
+      "recurrent": "wiederkehrend",
+      "occurrences": "Vorfälle",
+      "weeklyVolume": "Wöchentliches Volumen (t·Wdh.)",
+      "navCards": {
+        "aderencia": {
+          "title": "Adhärenz",
+          "sub": "{{adh}}% · {{streak}} Tage Serie"
+        },
+        "performance": {
+          "title": "Leistung",
+          "sub": "Last, Volumen und empfundene Anstrengung"
+        },
+        "dor": {
+          "title": "Schmerz & Sicherheit",
+          "sub": "{{count}} Vorfall(e) in 14 Tagen"
+        },
+        "scores": {
+          "title": "KI-Analyse",
+          "sub": "9 prädiktive Indikatoren"
+        },
+        "voz": {
+          "title": "Sprachanalyse",
+          "sub": "Frage nach deinem Fortschritt"
+        },
+        "marcos": {
+          "title": "Meilensteine & Erfolge",
+          "sub": "{{unlocked}}/{{total}} freigeschaltet"
+        }
+      },
+      "wks": " Wo.",
+      "partialSessions": " teilweise",
+      "consecutiveDays": "aufeinanderfolgende Tage"
+    },
+    "adherence": {
+      "kicker": "ADHÄRENZ · 6 WOCHEN",
+      "title": "Deine Trainingskonsistenz.",
+      "label": "ADHÄRENZ",
+      "currentWeek": "Aktuelle Woche",
+      "completed": "Abgeschlossen",
+      "partial": "Teilweise",
+      "missed": "Verpasst",
+      "partials": "Teilweise",
+      "consistencyAnalysis": "Konsistenzanalyse",
+      "latestSessions": "Letzte Einheiten",
+      "sessionCompleted": "Abgeschlossen",
+      "sessionPartial": "Teilweise",
+      "sessionAbandoned": "Abgebrochen",
+      "maintainVolume": "Volumen und Frequenz beibehalten",
+      "discussPlan": "Plananpassung mit Trainer besprechen",
+      "excellent": "Hervorragende Konsistenz",
+      "good": "Gute Konsistenz",
+      "underConstruction": "Im Aufbau",
+      "sessionsWeeks": "{{sessions}} Einheiten · {{weeks}} Wochen",
+      "rpePrefix": "RPE ",
+      "painBadge": "⚠ Schmerz",
+      "analysisExcellent": "Adhärenz von {{adh}}% ist ein Indikator für nachhaltige Konsistenz. Gleiche Kadenz beibehalten.",
+      "analysisGood": "Adhärenz von {{adh}}% ist solide. Kleine Plananpassungen können deine Konsistenz weiter steigern.",
+      "analysisLow": "Adhärenz von {{adh}}% zeigt Wachstumspotenzial. Verfügbarkeit mit deinem Trainer überprüfen."
+    },
+    "performance": {
+      "kicker": "LEISTUNG · Last, Volumen, Anstrengung",
+      "title": "Technische Entwicklung.",
+      "totalVolume": "Gesamtes Wochenvolumen",
+      "avgRPE": "Ø RPE",
+      "sessionsPerWeek": "Einheiten pro Woche",
+      "performanceAnalysis": "Leistungsanalyse",
+      "noSetsRecorded": "Noch keine Sätze aufgezeichnet",
+      "logRPE": "RPE in Einheiten erfassen, um den Trend zu sehen",
+      "logRPEActivate": "RPE in Einheiten erfassen, um prädiktive Erschöpfungsanalyse zu aktivieren.",
+      "preventiveDeload": "Präventiven Deload in Betracht ziehen",
+      "maintainProgression": "Aktuelle Progression beibehalten",
+      "tonnesSuffix": "t",
+      "trendRising": "↗ steigend",
+      "trendStable": "↘ stabil",
+      "trendNone": "—",
+      "startLabel": "Start: ",
+      "currentLabel": "Aktuell: ",
+      "analysisRising": "RPE ist in den letzten Wochen um {{rpeDelta}} Punkte gestiegen. Anzeichen kumulierter Erschöpfung beobachten.",
+      "analysisStable": "Volumen und RPE entwickeln sich kompatibel. Gesunde Leistungsindikatoren."
+    },
+    "pain": {
+      "kicker": "SCHMERZ & SICHERHEIT · 14 TAGE",
+      "title": "Risikozeichen-Überwachung.",
+      "noPain": "KEIN SCHMERZ",
+      "recurrence": "Schmerzwiederholungs-Engine",
+      "monitoring": "Schmerzüberwachung",
+      "replaceExercise": "Übung ersetzen und Trainer benachrichtigen",
+      "notifyTrainer": "Trainer benachrichtigen und Intensität in jeder Einheit erfassen",
+      "maintainTechnique": "Auf Ausführungstechnik achten",
+      "history": "Schmerzverlauf",
+      "availableActions": "Verfügbare Aktionen",
+      "replaceRisk": "Risikoübung ersetzen",
+      "notifyPT": "Personal Trainer benachrichtigen",
+      "logPain": "Detaillierten Schmerz erfassen",
+      "occurrencesRecurrence": " Vorfälle. Schmerzwiederholungs-Engine aktiviert.",
+      "occurrencesMonitoring": " Vorfall(e). Entwicklung wird beobachtet.",
+      "occurrencesIn14d": " Vorfälle in den letzten 14 Tagen.",
+      "regionFallback": "Region",
+      "unidentified": "nicht identifiziert",
+      "recurringPain": "Wiederkehrender Schmerz in {{region}} erkannt ...",
+      "hasPainBody": "{{count}} erfasste(r) Vorfall(e). Intensität wird überwacht. Trainer informiert halten.",
+      "noPainBody": "Keine Schmerzepisoden in den letzten 14 Tagen. Weiterhin mit guter Technik trainieren."
+    },
+    "scores": {
+      "sub": "Vorhersage ist keine Diagnose. Probabilistische Indikatoren zur Entscheidungsunterstützung.",
+      "good": "GUT",
+      "warning": "WARNUNG",
+      "low": "NIEDRIG",
+      "fatigueRisk": "Erschöpfungsrisiko",
+      "churnRisk": "Abbruchrisiko",
+      "kicker": "KI-ANALYSE · PRÄDIKTIVE EBENE",
+      "title": "9 prädiktive Indikatoren.",
+      "insights": "Umsetzbare Erkenntnisse · {{count}}",
+      "disclaimerBold": "ℹ Vorhersage ≠ Diagnose.",
+      "disclaimerBody": "Alle Scores sind probabilistisch und dienen zur Unterstützung von Trainerentscheidungen, nicht als Ersatz für professionelle Beurteilung. Sensible Daten werden lokal verarbeitet."
+    },
+    "voice": {
+      "title": "Frage nach deinem Fortschritt.",
+      "sub": "Sprachabfrageoberfläche für deine Leistungsdaten.",
+      "listening": "Hört zu…",
+      "tapSpeak": "Tippen zum Sprechen",
+      "response": "Antwort",
+      "suggestedQuestions": "Vorgeschlagene Fragen",
+      "privacy": "Datenschutz: Sprachabfragen legen keine sensiblen Daten offen",
+      "privacyFull": "Sprachabfragen legen keine sensiblen Daten offen (Gesundheit, Medikamente, physiologischer Zyklus). Daten standardmäßig maskiert. (RV-5.1)",
+      "noData": "Noch keine Leistungsdaten aufgezeichnet.",
+      "kicker": "STIMME · KONVERSATIONSANALYSE",
+      "notSupported": "Spracherkennung in diesem Browser nicht unterstützt. Verwende die Fragen unten.",
+      "suggestions": [
+        "Wie war meine Leistung diese Woche?",
+        "Bin ich erschöpfungsgefährdet?",
+        "Wann kann ich die Last erhöhen?",
+        "Wie viele Einheiten habe ich diesen Monat abgeschlossen?",
+        "Bin ich abbruchgefährdet?",
+        "Erstelle meine monatliche Zusammenfassung."
+      ],
+      "responseSummary": "Zusammenfassung: {{completed}} abgeschlossene Einheiten von {{planned}} geplanten — {{adh}}% Adhärenz. Aktuelle Serie: {{streak}} Tag(e). {{fatigueDesc}}",
+      "responseFatigue": "Erschöpfungsrisiko: {{score}}/100. {{desc}} {{action}}",
+      "responseChurn": "Abbruchrisiko: {{score}}/100. {{desc}} {{action}}",
+      "responseProgression": "Progressionsbereitschaft: {{score}}/100. {{action}}",
+      "responseSessions": "Du hast {{completed}} Einheiten von {{planned}} geplanten abgeschlossen — {{adh}}% Adhärenz. Aktuelle Serie: {{streak}} Tag(e).",
+      "responseWeek": "Diese Woche: {{sessions}} Einheit(en), Ø RPE {{rpe}}, Volumen {{volume}} Sätze.",
+      "responsePainNone": "Keine Schmerzepisoden in den letzten 14 Tagen.",
+      "responsePain": "{{count}} Schmerzepisode(n) in den letzten 14 Tagen. Hauptregion: {{region}}.",
+      "responseSleepEnergy": "Ø Schlaf: {{sleep}}/10. Ø Energie: {{energy}}/10.",
+      "responseFallback": "Ich habe deine Frage nicht verstanden. Versuche: \"Bin ich erschöpfungsgefährdet?\", \"Wie viele Einheiten habe ich diesen Monat abgeschlossen?\", \"Wann kann ich die Last erhöhen?\" oder \"Erstelle meine monatliche Zusammenfassung.\""
+    },
+    "milestones": {
+      "kicker": "MEILENSTEINE · WERTEBELEG",
+      "title": "Deine Erfolge.",
+      "unlocked": "Freigeschaltet",
+      "inProgress": "In Bearbeitung",
+      "proofTitle": "Wertebeleg",
+      "firstSession": "Schließe deine erste Einheit ab, um den ersten Meilenstein freizuschalten. Jedes Training zählt.",
+      "generateReport": "Monatsbericht erstellen — mit Trainer teilen",
+      "startFirst": "Erstes Training starten",
+      "heroSub": "auf dieser Reise freigeschaltete Meilensteine",
+      "milestoneUnlocked_one": "{{count}} Meilenstein freigeschaltet. Jeder Erfolg ist ein Beweis für dein Engagement.",
+      "milestoneUnlocked_other": "{{count}} Meilensteine freigeschaltet. Jeder Erfolg ist ein Beweis für dein Engagement."
+    }
+  },
+  "studio": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "team": "Team",
+      "clients": "Kunden",
+      "protocols": "Protokolle",
+      "signOut": "Abmelden"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "sub": "Studio-Übersicht",
+      "activeClients": "Aktive Kunden",
+      "activeTrainers": "Aktive Trainer",
+      "plansThisWeek": "Pläne diese Woche",
+      "completedThisWeek": "Diese Woche abgeschlossen",
+      "trainers": "Trainer",
+      "noTrainers": "Noch keine Trainer. Zum Team gehen, um einzuladen."
+    },
+    "team": {
+      "title": "Team",
+      "inviteTrainer": "Trainer per E-Mail einladen",
+      "send": "Senden",
+      "cancel": "Abbrechen",
+      "noTrainers": "Noch keine Trainer. Ersten Trainer oben einladen.",
+      "headers": [
+        "Name",
+        "E-Mail",
+        "Rolle",
+        "Aktionen"
+      ],
+      "remove": "Entfernen"
+    },
+    "clients": {
+      "title": "Kunden",
+      "allTrainers": "Alle Trainer",
+      "allLevels": "Alle Niveaus",
+      "headers": [
+        "Kunde",
+        "E-Mail",
+        "Trainer",
+        "Ziel",
+        "Niveau"
+      ],
+      "noClients": "Noch keine aktiven Kunden. Trainer müssen zunächst mit Kunden verknüpft werden.",
+      "noMatch": "Keine Kunden entsprechen den aktuellen Filtern."
+    },
+    "protocols": {
+      "title": "Protokollbibliothek",
+      "newProtocol": "Neues Protokoll",
+      "name": "Name",
+      "objective": "Ziel",
+      "level": "Niveau",
+      "description": "Beschreibung",
+      "createProtocol": "Protokoll erstellen",
+      "cancel": "Abbrechen"
+    },
+    "protocolDetail": {
+      "noExercises": "Noch keine Übungen.",
+      "exercise": "Übung",
+      "muscleGroup": "Muskelgruppe",
+      "sets": "Sätze",
+      "reps": "Wdh."
+    },
+    "auth": {
+      "accessDenied": "Zugriff verweigert",
+      "accessDeniedNote": "Dieses Dashboard erfordert ein Studio-Administrator-Konto.",
+      "signOut": "Abmelden",
+      "signIn": "Anmelden, um dein Studio zu verwalten.",
+      "signInBtn": "Anmelden"
+    },
+    "createStudio": {
+      "title": "Dein Studio erstellen",
+      "note": "Gib deinem Studio einen Namen, um loszulegen. Dies kann später geändert werden.",
+      "errUnknown": "Ein Fehler ist aufgetreten"
+    }
+  },
+  "checkinEnums": {
+    "sleep": {
+      "poor": "Schlecht",
+      "regular": "Mäßig",
+      "good": "Gut",
+      "excellent": "Ausgezeichnet"
+    },
+    "bodyPart": {
+      "neck": "Nacken",
+      "shoulder": "Schulter",
+      "elbow": "Ellbogen",
+      "wrist": "Handgelenk",
+      "upper_back": "Oberer Rücken",
+      "lower_back": "Lendenbereich",
+      "hip": "Hüfte",
+      "knee": "Knie",
+      "ankle": "Knöchel",
+      "other": "Sonstiges"
+    },
+    "location": {
+      "home": "Zuhause",
+      "gym": "Fitnessstudio",
+      "studio": "Studio",
+      "park": "Park",
+      "online": "Online"
+    },
+    "equipment": {
+      "dumbbells": "Hanteln",
+      "resistance_bands": "Widerstandsbänder",
+      "barbell": "Langhantel",
+      "bench": "Bank",
+      "machines": "Maschinen",
+      "treadmill": "Laufband",
+      "kettlebell": "Kettlebell",
+      "none": "Keine"
+    },
+    "signals": {
+      "severe_pain": "Starke Schmerzen",
+      "dizziness": "Schwindel",
+      "shortness_of_breath": "Kurzatmigkeit",
+      "chest_pain": "Brustschmerzen",
+      "malaise": "Unwohlsein",
+      "loss_of_balance": "Gleichgewichtsverlust",
+      "fainting_sensation": "Ohnmachtsgefühl"
+    },
+    "adaptations": {
+      "maintain_normal": "Normal beibehalten",
+      "reduce_intensity": "Intensität reduzieren",
+      "reduce_impact": "Aufprall reduzieren",
+      "increase_rest": "Erholung verlängern",
+      "shorten_session": "Einheit verkürzen",
+      "prioritize_mobility": "Mobilität",
+      "postpone_training": "Training verschieben",
+      "regenerative": "Regenerativ"
+    },
+    "emotional": {
+      "physical": "Körperlich",
+      "mental": "Mental",
+      "both": "Beides"
+    }
+  },
+  "quickCheckin": {
+    "kicker": "SCHNELLER CHECK-IN · 40 SEK",
+    "title": "Fünf Fragen",
+    "energyHint": "Wie fühlst du dich?",
+    "fatigueHint": "wahrgenommene Erschöpfung",
+    "inPainToday": "Ich habe heute Schmerzen",
+    "painDetailHint": "Tippen für Region und Intensität",
+    "intensity": "Intensität",
+    "calculate": "Bereitschaft berechnen →",
+    "back": "← Zurück",
+    "viewing": "Ansicht",
+    "blocks": {
+      "energy": "Energie",
+      "sleep": "Schlaf",
+      "pain": "Schmerz",
+      "fatigue": "Erschöpfung",
+      "time": "Verfügbare Zeit"
+    }
+  },
+  "detailedCheckin": {
+    "kicker": "DETAILLIERTER CHECK-IN · 12 BLÖCKE",
+    "inPainToday": "Ich habe heute Schmerzen",
+    "painDetailHint": "Tippen für Region und Intensität",
+    "floorExercises": "Ich kann heute Bodenübungen machen",
+    "floorNote": "Diese Information hilft dabei, geeignete Übungen zu filtern.",
+    "signalsNote": "Gemeldete Zeichen aktivieren das Safety Gate: KI-geführte Einheiten werden blockiert und eine menschliche Überprüfung wird erforderlich.",
+    "rhythmNote": "Ich möchte heute eine komfortablere Version",
+    "rhythmPrivacy": "Private Anpassung. Wir zeigen niemals Zyklusphase oder Symptome an.",
+    "intensity": "Intensität",
+    "viewing": "Ansicht",
+    "blocks": {
+      "energy": "Energie",
+      "sleep": "Schlaf",
+      "pain": "Schmerz",
+      "fatigue": "Erschöpfung",
+      "emotional": "Emotionaler Zustand",
+      "time": "Zeit",
+      "location": "Heutiger Ort",
+      "equipment": "Verfügbare Ausrüstung heute",
+      "capacity": "Funktionelle Kapazität heute",
+      "signals": "Warnsignale",
+      "rhythm": "Körperrhythmus",
+      "adaptation": "Anpassungspräferenz"
+    }
   },
   "nav": {
     "clients": "Kunden",
     "checkin": "Check-in",
-    "inbox": "Inbox",
+    "inbox": "Posteingang",
     "history": "Verlauf",
     "menu": "Menü",
     "workout": "Training",
-    "progress": "Fortschritt"
+    "progress": "Fortschritt",
+    "cycle": "Zyklus"
+  },
+  "sideMenu": {
+    "smartProfile": "Intelligentes Sportlerprofil",
+    "checkin": "Check-in",
+    "workout": "Training",
+    "history": "Verlauf",
+    "progress": "Fortschritt",
+    "cycle": "Zyklus",
+    "coachDna": "Coach DNA",
+    "trainerStudio": "Trainer Studio",
+    "exerciseLibrary": "Übungsbibliothek",
+    "settings": "Einstellungen"
   },
   "trainer": {
     "dashboard": {
@@ -32,7 +488,10 @@
       "alerts": "Warnungen",
       "tasks": "Aufgaben",
       "ack": "OK",
-      "resolve": "Lösen"
+      "resolve": "Lösen",
+      "loading": "Wird geladen…",
+      "clientFallback": "Kunde",
+      "unknown": "Unbekannt"
     },
     "studio": {
       "title": "Trainer Studio",
@@ -43,7 +502,10 @@
       "feedAI": "KI füttern",
       "exerciseLibrary": "Übungsbibliothek",
       "retrainAI": "KI neu trainieren",
-      "yourClients": "Deine Kunden"
+      "yourClients": "Deine Kunden",
+      "methodology": "Deine Methodik · v3.2",
+      "aiSummary": "42 Workouts · 18 Progressionen · 7 Kundenarchetypen. KI verwendet dies, um Pläne nur für deine Kunden zu erstellen.",
+      "addWorkout": "+ Training hinzufügen"
     },
     "detail": {
       "noCheckins": "Noch keine Check-ins.",
@@ -58,17 +520,54 @@
       "approved": "Genehmigt",
       "rejected": "Abgelehnt",
       "sessionStatus": {
-        "done": "FERTIG", "inProgress": "IN BEARBEITUNG", "paused": "PAUSIERT",
-        "incomplete": "UNVOLLSTÄNDIG", "abandoned": "ABGEBROCHEN",
-        "postponed": "VERSCHOBEN", "cancelled": "STORNIERT", "sent": "GESENDET"
+        "done": "FERTIG",
+        "inProgress": "IN BEARBEITUNG",
+        "paused": "PAUSIERT",
+        "incomplete": "UNVOLLSTÄNDIG",
+        "abandoned": "ABGEBROCHEN",
+        "postponed": "VERSCHOBEN",
+        "cancelled": "STORNIERT",
+        "sent": "GESENDET"
       },
       "profileSections": {
-        "basic_data": "Grunddaten", "objectives": "Ziele",
-        "movement_history": "Bewegungsverlauf", "functional_capacity": "Funktionelle Kapazität",
-        "environment": "Umgebung", "availability": "Verfügbarkeit",
-        "preferences": "Präferenzen", "habits": "Gewohnheiten",
-        "comorbidities": "Begleiterkrankungen", "declared_health": "Angegebene Gesundheit"
-      }
+        "basic_data": "Grunddaten",
+        "objectives": "Ziele",
+        "movement_history": "Bewegungsverlauf",
+        "functional_capacity": "Funktionelle Kapazität",
+        "environment": "Umgebung",
+        "availability": "Verfügbarkeit",
+        "preferences": "Präferenzen",
+        "habits": "Gewohnheiten",
+        "comorbidities": "Begleiterkrankungen",
+        "declared_health": "Angegebene Gesundheit"
+      },
+      "noClientSelected": "Kein Kunde ausgewählt.",
+      "backBtn": "← Zurück",
+      "clientProfile": "Kundenprofil",
+      "clientFallback": "Kunde",
+      "loading": "Wird geladen…",
+      "smartProfileV2": "Intelligentes Profil v2",
+      "complete": "VOLLSTÄNDIG",
+      "t2Conditional": "T2 · BEDINGT",
+      "t3Confidential_one": "{{count}} vertraulicher Abschnitt (T3 — nicht geteilt)",
+      "t3Confidential_other": "{{count}} vertrauliche Abschnitte (T3 — nicht geteilt)",
+      "readinessLast": "Bereitschaft · Letzte {{n}}",
+      "voz": "STIMME",
+      "readinessDecisions": "Bereitschaftsentscheidungen",
+      "recentCheckins": "Aktuelle Check-ins",
+      "energyLabel": "Energie ",
+      "readinessLabel": "Bereitschaft ",
+      "painReportedLabel": "⚠ Schmerz gemeldet",
+      "sleepLabel": "Schlaf: ",
+      "skipped": "übersprungen",
+      "unitSets": "Sätze",
+      "unitReps": "Wdh.",
+      "unitKg": "kg",
+      "unitRest": "s Pause",
+      "planAndWorkout": "Plan & Training",
+      "freeSessions": "Freie Einheiten",
+      "done": "FERTIG",
+      "readinessCheckinFor": "Bereitschafts-Check-in für {{name}}"
     },
     "planner": {
       "noCheckin": "Kein Check-in heute",
@@ -77,11 +576,45 @@
       "sets": "Sätze",
       "reps": "Wdh.",
       "unknownErr": "Unbekannter Fehler",
-      "muscleGroups": ["Brust","Rücken","Schultern","Arme","Core","Beine","Ganzkörper","Cardio"]
+      "muscleGroups": [
+        "Brust",
+        "Rücken",
+        "Schultern",
+        "Arme",
+        "Core",
+        "Beine",
+        "Ganzkörper",
+        "Cardio"
+      ],
+      "clientFallback": "Kunde",
+      "noClientSelected": "Kein Kunde ausgewählt.",
+      "backToClients": "← Zurück zu Kunden",
+      "headerKicker": "Trainingsplan",
+      "sent": "Gesendet ✓",
+      "todaysContext": "Heutiger Kontext",
+      "available": "verfügbar",
+      "goal": "Ziel ",
+      "level": "Niveau ",
+      "exercisesHeader": "Übungen ({{count}})",
+      "addBtn": "Hinzufügen",
+      "emptyHint": "Auf Hinzufügen tippen, um den Plan zu erstellen.",
+      "nameRequired": "Übungsname ist erforderlich.",
+      "loadPlaceholder": "Last (kg)",
+      "restPlaceholder": "Pause (s)",
+      "cancelBtn": "Abbrechen",
+      "addExerciseBtn": "Übung hinzufügen",
+      "trainerNotes": "Trainernotizen",
+      "notesPlaceholder": "Für den Kunden sichtbare Notizen…",
+      "generating": "Wird erstellt…",
+      "askAI": "✦ KI fragen",
+      "sending": "Wird gesendet…",
+      "sendToClient": "An Kunden senden →",
+      "startLiveSession": "Live-Einheit starten",
+      "startLiveSessionHint": "{{name}} jetzt trainieren — öffnet den Trainingsmodus direkt"
     },
     "library": {
       "title": "Übungsbibliothek",
-      "sub": "Übungskatalog, Zugänglichkeitsvarianten und Protokolle verwalten.",
+      "sub": "Übungskatalog, Zugänglichkeitsvarianten und Trainingsprotokoll verwalten.",
       "searchPlaceholder": "Übungen suchen...",
       "muscleGroupLabel": "Muskelgruppe",
       "equipmentLabel": "Ausrüstung",
@@ -95,16 +628,98 @@
       "errMuscleRequired": "Muskelgruppe ist erforderlich.",
       "errSave": "Fehler beim Speichern der Übung",
       "errUnknown": "Ein unbekannter Fehler ist aufgetreten",
-      "levelOpts": { "beginner": "Anfänger", "intermediate": "Fortgeschritten", "advanced": "Profi" },
-      "equipmentOpts": { "dumbbells": "Hanteln", "barbell": "Langhantel", "cables": "Kabel", "machine": "Maschine", "bodyweight": "Eigengewicht" }
+      "levelOpts": {
+        "beginner": "Anfänger",
+        "intermediate": "Fortgeschritten",
+        "advanced": "Profi"
+      },
+      "equipmentOpts": {
+        "dumbbells": "Hanteln",
+        "barbell": "Langhantel",
+        "cables": "Kabel",
+        "machine": "Maschine",
+        "bodyweight": "Eigengewicht"
+      },
+      "tabExercises": "Katalog",
+      "tabProtocols": "Protokolle",
+      "loadingExercises": "Übungskatalog wird geladen...",
+      "noExercises": "Keine Übungen gefunden.",
+      "loadingProtocols": "Protokolle werden geladen...",
+      "noProtocols": "Keine Protokolle gefunden.",
+      "noDescription": "Keine Beschreibung vorhanden.",
+      "protocolExercises": "Protokollübungen:",
+      "noExercisesInProtocol": "Keine Übungen in diesem Protokoll.",
+      "accessibilityTags": {
+        "lowImpact": "Geringer Aufprall",
+        "noFloor": "Kein Boden",
+        "seated": "Sitzend"
+      },
+      "statusOpts": {
+        "active": "Aktiv",
+        "blocked": "Gesperrt",
+        "restricted": "Eingeschränkt",
+        "draft": "Entwurf"
+      },
+      "modal": {
+        "editExercise": "Übung bearbeiten",
+        "newExercise": "Neue Übung",
+        "exerciseDetails": "Übungsdetails",
+        "blockedWarning": "Gesperrte Übung: Diese Übung wurde aufgrund schwerer Sicherheitsrisiken oder Kundenkontraindikationen gesperrt.",
+        "restrictedWarning": "Eingeschränkte Übung: Angemessene Aufsicht und Technikkorrektur sicherstellen.",
+        "exerciseName": "Übungsname",
+        "muscleGroup": "Muskelgruppe",
+        "status": "Status",
+        "equipment": "Ausrüstung",
+        "level": "Niveau",
+        "descriptionInstructions": "Beschreibung & Anweisungen",
+        "videoUrl": "Video-URL",
+        "accessibilityTags": "Zugänglichkeits-Tags (kommagetrennt)",
+        "alternativeExercises": "Alternative Übungen (kommagetrennt)",
+        "cancel": "Abbrechen",
+        "saveChanges": "Änderungen speichern",
+        "instructions": "Anweisungen:",
+        "videoReference": "Videoreferenz:",
+        "viewExecutionVideo": "Ausführungsvideo ansehen",
+        "accessibilityTagsLabel": "Zugänglichkeits-Tags:",
+        "alternativeExercisesLabel": "Alternative Übungen:",
+        "editExerciseBtn": "Übung bearbeiten",
+        "accessibilityPlaceholder": "low_impact, no_floor, seated"
+      },
+      "voiceAssistant": {
+        "title": "KI-Sprachassistent (Modul 8)",
+        "placeholder": "Z.B. \"Aufprallfreie Alternative für Burpees?\"",
+        "simulate": "Simulieren",
+        "analyzing": "Analysiert...",
+        "parsedIntent": "Erkannte Absicht: ",
+        "matchingExercises": "Übereinstimmende Übungen:",
+        "governanceLabel": "Governance-Aktion vorautorisiert (RV-8.3)",
+        "confirmLog": "Aktion bestätigen und protokollieren",
+        "auditLog": "Governance-Auditprotokoll:"
+      }
     }
   },
   "client": {
     "history": {
       "title": "Trainingsverlauf",
       "viewProgress": "Fortschritt anzeigen",
-      "days": ["So","Mo","Di","Mi","Do","Fr","Sa"],
-      "dayLabels": ["S","M","D","M","D","F","S"]
+      "days": [
+        "So",
+        "Mo",
+        "Di",
+        "Mi",
+        "Do",
+        "Fr",
+        "Sa"
+      ],
+      "dayLabels": [
+        "S",
+        "M",
+        "D",
+        "M",
+        "D",
+        "F",
+        "S"
+      ]
     },
     "stats": {
       "title": "Trainingsstatistiken",
@@ -115,14 +730,17 @@
     },
     "goal": {
       "title": "Ziel erreicht",
-      "sessionDuration": "Sitzungsdauer",
+      "sessionDuration": "Einheitsdauer",
       "completed": "Abgeschlossen",
       "duration": "Dauer",
       "exercises": "Übungen",
       "workoutSession": "Trainingseinheit",
-      "sessionSummary": "Sitzungszusammenfassung",
+      "sessionSummary": "Einheitszusammenfassung",
       "viewStats": "Statistiken anzeigen",
-      "exerciseOf": "{{done}} / {{total}} Übungen"
+      "exerciseOf": "{{done}} / {{total}} Übungen",
+      "sessionLasted": "Deine Einheit dauerte <b>{{duration}}</b>. ",
+      "ofPlannedCompleted": "<b>{{pct}}%</b> der geplanten Übungen abgeschlossen. ",
+      "greatWork": "Großartige Arbeit — sieh dir deine Fortschrittstrends an."
     },
     "cycle": {
       "title": "Zyklus",
@@ -147,10 +765,13 @@
       "disabledTitle": "Zyklus-Tracking deaktiviert",
       "disabledNote": "Aktiviere das Zyklus-Tracking in den Einstellungen, um deine Trainingsintensität an deine aktuelle Phase anzupassen.",
       "editAriaLabel": "Aktuellen Zyklustag bearbeiten",
-      "peakWindow": "Höchstfenster"
+      "peakWindow": "Höchstfenster",
+      "todayRecommendation": "Heutige Empfehlung",
+      "youAreInPhase": "Du bist in der <b>{{phase}}</b>-Phase. "
     },
     "workout": {
       "title": "Training starten",
+      "startBtn": "Training starten",
       "yourTrainer": "Dein Trainer",
       "aiPlan": "KI-Plan",
       "trainerPlan": "Trainingsplan des Trainers",
@@ -159,6 +780,7 @@
       "plan": "Plan",
       "sessionAdapted": "Einheit angepasst",
       "cancelPlan": "Diesen Plan stornieren",
+      "cancelLabel": "Abbrechen",
       "retry": "Erneut versuchen",
       "safetyGateTitle": "Safety Gate Aktiv",
       "safetyGateMsg": "Dein Check-in zeigt, dass dies kein sicherer Moment für eine KI-geführte Einheit ist.",
@@ -166,7 +788,38 @@
         "sent": "Gesendet",
         "active": "Unvollständig",
         "postponed": "Verschoben"
-      }
+      },
+      "newPlanFromTrainer": "Neuer Plan von deinem Trainer — tippen zum Laden",
+      "trainerFallback": "Trainer",
+      "by": "von ",
+      "planCount_one": "{{count}} Plan wartet",
+      "planCount_other": "{{count}} Pläne warten",
+      "gymFallback": "Fitnessstudio",
+      "startLabel": "▶ Starten",
+      "resumeLabel": "▶ Fortsetzen",
+      "exerciseCount_one": "{{count}} Übung",
+      "exerciseCount_other": "{{count}} Übungen",
+      "postpone": "Verschieben",
+      "readinessScoreLabel": "Bereitschaftsscore: ",
+      "todaysAiPlan": "Heutiger KI-Plan",
+      "generating": "Dein Plan wird erstellt…",
+      "phaseDay": "{{phase}}-Phase · Tag {{day}}/{{length}}",
+      "cycleAdapted": "· Zyklus-angepasst",
+      "adjustedFor": "Angepasst für: ",
+      "cancelModalTitle": "Diesen Plan stornieren?",
+      "cancelModalFrom": "Der Plan von ",
+      "cancelModalYourTrainer": "deinem Trainer",
+      "cancelModalWillBeCanceled": " wird storniert und dein Trainer wird benachrichtigt.",
+      "cancelModalCannotUndo": "Diese Aktion kann nicht rückgängig gemacht werden.",
+      "keepIt": "Behalten",
+      "yesCancel": "Ja, stornieren",
+      "notificationPlanCancelled": "Plan vom Kunden storniert",
+      "notificationPlanPostponed": "Plan vom Kunden verschoben",
+      "notificationYourClient": "Dein Kunde",
+      "notificationUnknownDate": "unbekanntes Datum",
+      "notificationBodyCancelled": "{{name}} hat den Trainingsplan vom {{planDate}} storniert.",
+      "notificationBodyPostponed": "{{name}} hat den Trainingsplan vom {{planDate}} verschoben.",
+      "unknownError": "Unbekannter Fehler"
     },
     "mode": {
       "finishWorkout": "Training beenden",
@@ -178,16 +831,34 @@
       "skipRest": "Pause überspringen",
       "reportPain": "Schmerz melden",
       "report": "Melden",
-      "skipReasons": ["Schmerz / Verletzung","Fehlende Ausrüstung","Müdigkeit / Energie","Zeitdruck","Sonstiges"],
+      "skipReasons": [
+        "Schmerz / Verletzung",
+        "Fehlende Ausrüstung",
+        "Müdigkeit / Energie",
+        "Zeitdruck",
+        "Sonstiges"
+      ],
       "specifyRequired": "Bitte angeben (erforderlich)",
       "commentsOptional": "Weitere Kommentare (optional)",
       "typeReason": "Grund eingeben...",
       "typeComments": "Kommentare eingeben...",
       "bodyParts": {
-        "neck": "Nacken", "shoulder": "Schulter", "elbow": "Ellbogen", "wrist": "Handgelenk",
-        "upper_back": "Oberer Rücken", "lower_back": "Lendenbereich", "hip": "Hüfte",
-        "knee": "Knie", "ankle": "Knöchel", "other": "Sonstiges"
-      }
+        "neck": "Nacken",
+        "shoulder": "Schulter",
+        "elbow": "Ellbogen",
+        "wrist": "Handgelenk",
+        "upper_back": "Oberer Rücken",
+        "lower_back": "Lendenbereich",
+        "hip": "Hüfte",
+        "knee": "Knie",
+        "ankle": "Knöchel",
+        "other": "Sonstiges"
+      },
+      "logSet": "Satz erfassen",
+      "skip": "Überspringen",
+      "painBtn": "Schmerz",
+      "secondsRemaining": "Sekunden verbleibend",
+      "bodyRegion": "Körperregion"
     }
   },
   "checkin": {
@@ -195,16 +866,30 @@
       "readinessCheckin": "Bereitschafts-Check-in",
       "live": "LIVE",
       "safetyGateActive": "Safety Gate aktiv",
-      "greet": { "morning": "Guten Morgen", "afternoon": "Guten Tag", "evening": "Guten Abend" },
+      "greet": {
+        "morning": "Guten Morgen",
+        "afternoon": "Guten Tag",
+        "evening": "Guten Abend"
+      },
       "beforeStart": "Bevor es losgeht, sag uns kurz, wie du dich heute fühlst.",
       "safetyGateNote": "Schmerzen, Schwindel oder Warnsignale pausieren die KI-geführte Einheit automatisch.",
       "postWorkoutLink": "Heute schon trainiert? Post-Workout-Check-in →",
       "lastCheckin": "Letzter Check-in · {{date}}",
-      "streak": "Streak · {{count}} Tage",
+      "streak": "Serie · {{count}} Tage",
       "options": {
-        "voice":    { "label": "Mit der App sprechen",    "desc": "Der schnellste Weg. Die KI strukturiert deine Sprache in Felder.", "badge": "EMPFOHLEN" },
-        "quick":    { "label": "Schneller Check-in",      "desc": "Fünf wesentliche Fragen: Schlaf, Energie, Schmerz, Müdigkeit, Zeit." },
-        "detailed": { "label": "Detaillierter Check-in",  "desc": "Zwölf Blöcke für mehr Plangenauigkeit." }
+        "voice": {
+          "label": "Mit der App sprechen",
+          "desc": "Der schnellste Weg. Die KI strukturiert deine Sprache in Felder.",
+          "badge": "EMPFOHLEN"
+        },
+        "quick": {
+          "label": "Schneller Check-in",
+          "desc": "Fünf wesentliche Fragen: Schlaf, Energie, Schmerz, Müdigkeit, Zeit."
+        },
+        "detailed": {
+          "label": "Detaillierter Check-in",
+          "desc": "Zwölf Blöcke für mehr Plangenauigkeit."
+        }
       }
     },
     "voice": {
@@ -219,11 +904,38 @@
       "errAnalyze": "Analyse nicht möglich. Versuche erneut zu sprechen."
     },
     "result": {
-      "viewCautionOptions": "Vorsichtsoptionen anzeigen",
-      "startWorkout": "Training starten →",
-      "recovery": "ERHOLUNG"
+      "recovery": "Erholung",
+      "viewCautionOptions": "Vorsichtsoptionen anzeigen →",
+      "startWorkout": "Angepasstes Training starten →"
     },
     "postWorkout": {
+      "kicker": "CHECK-IN · NACH DEM TRAINING",
+      "title": "Wie war das Training?",
+      "subtitle": "Fließt in deine Progression ein und die KI lernt, was für deinen Körper funktioniert.",
+      "overallFeeling": "Gesamteindruck",
+      "completedEverything": "Alles abgeschlossen?",
+      "rpe": "Empfundene Anstrengung (RPE)",
+      "painDuringAfter": "Hattest du Schmerzen während oder danach?",
+      "painEngineNote": "Speist die Schmerzwiederholungs-Engine — drei Vorfälle in 14 Tagen lösen eine Warnung aus.",
+      "noteLabel": "Notiz für KI oder Trainer",
+      "notePlaceholder": "z.B.: Die Kniebeuge hat beim Absenken geschmerzt, aber Beinpresse war ok.",
+      "back": "← Zurück",
+      "saving": "Wird gespeichert…",
+      "saveBtn": "Feedback speichern ✓",
+      "feedbackSaved": "Feedback gespeichert",
+      "feedbackSavedSub": "Die KI verwendet dies, um deine Progression zu verfeinern.",
+      "sensations": {
+        "excellent": "ausgezeichnet",
+        "good": "gut",
+        "ok": "ok",
+        "hard": "hart",
+        "very_hard": "sehr hart"
+      },
+      "completion": {
+        "yes": "Ja",
+        "partially": "Teilweise",
+        "no": "Nein"
+      },
       "partially": "Teilweise"
     }
   },
@@ -264,16 +976,25 @@
       "errMatch": "Die Passwörter stimmen nicht überein."
     },
     "roles": {
-      "client": { "label": "Kunde", "desc": "Ich möchte trainieren" },
-      "trainer": { "label": "Trainer", "desc": "Ich erstelle Workouts" },
-      "studio_admin": { "label": "Studio", "desc": "Ich leite ein Fitnessstudio" }
+      "client": {
+        "label": "Kunde",
+        "desc": "Ich möchte trainieren"
+      },
+      "trainer": {
+        "label": "Trainer",
+        "desc": "Ich erstelle Workouts"
+      },
+      "studio_admin": {
+        "label": "Studio",
+        "desc": "Ich leite ein Fitnessstudio"
+      }
     }
   },
   "wizard": {
     "saving": "Wird gespeichert…",
     "backToProfile": "Zurück zum Profil",
     "yourName": "Dein Name",
-    "smartProfile": "Smart-Profil",
+    "smartProfile": "Intelligentes Profil",
     "goToCheckin": "Zum Check-in",
     "blockPrefix": "BLOCK",
     "step02": {
@@ -295,7 +1016,12 @@
       "sexNote": "Zur Personalisierung verwendet — niemals zur Diagnose.",
       "emergencyContact": "Notfallkontakt",
       "emergencyNamePlaceholder": "Vor- und Nachname",
-      "sex": { "female": "Weiblich", "male": "Männlich", "intersex": "Intersexuell", "prefer_not_to_say": "Keine Angabe" }
+      "sex": {
+        "female": "Weiblich",
+        "male": "Männlich",
+        "intersex": "Intersexuell",
+        "prefer_not_to_say": "Keine Angabe"
+      }
     },
     "goals": {
       "hypertrophy": "Hypertrophie",
@@ -337,8 +1063,8 @@
       },
       "privacy": "Du kannst jederzeit speichern und zurückkehren. Es gehen keine Teildaten verloren. Alle sensiblen Informationen werden maskiert, bevor sie deinen Trainer erreichen.",
       "meta": "≈ 6–9 Min · 14 Blöcke · DSGVO-konform",
-      "ctaEdit": "Smart-Profil bearbeiten",
-      "ctaBuild": "Mein Smart-Profil erstellen"
+      "ctaEdit": "Intelligentes Profil bearbeiten",
+      "ctaBuild": "Mein intelligentes Profil erstellen"
     },
     "sections": {
       "basic_data": "Persönliche Angaben",
@@ -375,6 +1101,791 @@
       "network": "Verbindung verloren. Prüfe dein Internet.",
       "duplicate": "Profil bereits gespeichert.",
       "generic": "Fehler beim Speichern. Prüfe deine Verbindung."
+    },
+    "step04": {
+      "titleMain": "Bewegungsverlauf",
+      "heading1": "Verlauf und Beziehung",
+      "heading2": "zur Bewegung",
+      "subheading": "Um Erfahrung, Adhärenzmuster und Hindernisse auf deinem Weg zu verstehen.",
+      "currentFrequency": "Aktuelle Frequenz",
+      "currentLevel": "Aktuelles Niveau",
+      "practicedModalities": "Praktizierte Sportarten",
+      "frequencyLabel": "Typische Frequenz",
+      "frequencySuffix": "×/Woche",
+      "frequencies": {
+        "irregular": "Keine Regelmäßigkeit",
+        "sometimes": "Manchmal",
+        "not_training": "Kein Training"
+      },
+      "levels": {
+        "beginner": "Anfänger",
+        "intermediate": "Fortgeschritten",
+        "advanced": "Profi"
+      },
+      "modalities": {
+        "weight_training": "Krafttraining",
+        "running": "Laufen",
+        "walking": "Gehen",
+        "yoga": "Yoga",
+        "pilates": "Pilates",
+        "cycling": "Radfahren",
+        "swimming": "Schwimmen",
+        "functional": "Funktionelles Training",
+        "martial_arts": "Kampfsport",
+        "dance": "Tanzen",
+        "crossfit": "CrossFit",
+        "other": "Sonstiges"
+      },
+      "dropoutTitle": "Was hat zum Abbruch geführt?",
+      "dropoutSub": "Kein Urteil. Das hilft dem Plan, dieselben Hindernisse zu umgehen.",
+      "dropoutToggle": "Hast du schon einmal ein Training abgebrochen?",
+      "dropoutHint": "Du kannst das im nächsten Schritt genauer beschreiben.",
+      "churnRiskLabel": "Wie bevorzugst du Fortschritte?",
+      "churnOptions": {
+        "gradual": "Graduell",
+        "moderate": "Moderat",
+        "intense": "Intensiv"
+      },
+      "churnAlert": "Diese Daten speisen die Abbruchrisiko-Engine — intern abgefragt und als 'Fokusgründe' dargestellt.",
+      "negExperiences": "Ich hatte negative Trainingserfahrungen",
+      "afraidInjury": "Ich habe Angst vor Verletzungen",
+      "embarrassed": "Ich fühle mich im Fitnessstudio unwohl",
+      "dropoutReasons": {
+        "lack_of_time": "Zeitmangel",
+        "injury": "Verletzung",
+        "lack_of_results": "Fehlende Ergebnisse",
+        "demotivation": "Demotivation",
+        "cost": "Kosten",
+        "routine_change": "Routineänderung",
+        "discomfort": "Unbehagen",
+        "other": "Sonstiges"
+      },
+      "consistencyLabel": "Was hilft dir bei der Beständigkeit?",
+      "consistencyPlaceholder": "z.B.: Morgentraining, Trainingspartner, Fortschritte sehen…",
+      "disruptedLabel": "Was hat deine Routine früher gestört?",
+      "disruptedPlaceholder": "z.B.: Dienstreise, Verletzung, Zeitmangel…",
+      "voiceNote": "Du kannst es uns in eigenen Worten erzählen.",
+      "voiceContext": "Erzähl uns von deiner Geschichte"
+    },
+    "step05": {
+      "title": "Angegebene Gesundheit",
+      "bodyPre": "Das System ",
+      "bodyBold": "stellt keine Diagnosen",
+      "bodyPost": ". Es verwendet nur das, was du angibst, um den Plan sicher anzupassen.",
+      "disclosurePrompt": "Gibt es eine Erkrankung zu berücksichtigen?",
+      "discloseYes": "Ja, welche",
+      "discloseNo": "Nicht zutreffend",
+      "disclosePrefer": "Keine Angabe",
+      "categoriesLabel": "Kategorien",
+      "categories": {
+        "cardiovascular": "Kardiovaskulär",
+        "metabolic": "Metabolisch",
+        "renal": "Renal",
+        "respiratory": "Respiratorisch",
+        "musculoskeletal": "Muskuloskeletal",
+        "neurological": "Neurologisch",
+        "chronic_pain": "Chronische Schmerzen",
+        "emotional_health": "Emotionale Gesundheit",
+        "pregnancy_postpartum": "Schwangerschaft oder Wochenbett",
+        "post_operative": "Postoperativ",
+        "physical_disability": "Körperliche Behinderung",
+        "other": "Andere Erkrankung"
+      },
+      "freeNoteLabel": "Freinotiz",
+      "freeNotePlaceholder": "z.B.: Knieoperation 2023, für Krafttraining freigegeben",
+      "highRiskAlert": "Sensible Daten. Diese Punkte prüfen, um operative Einschränkungen zu validieren — konservative Progression empfehlen.",
+      "voiceNote": "Erzähl uns von deiner Erkrankung in eigenen Worten.",
+      "voiceContext": "Erzähl uns von deiner Gesundheit"
+    },
+    "step06": {
+      "title": "Begleiterkrankungen und Pflege",
+      "subtitle": "Nur was du bereit bist zu teilen. Beeinflusst Automatisierung und menschliche Validierung.",
+      "conditions": {
+        "hypertension": "Bluthochdruck",
+        "type1_diabetes": "Typ-1-Diabetes",
+        "asthma": "Asthma",
+        "obesity": "Adipositas",
+        "osteoporosis": "Osteoporose",
+        "osteopenia": "Osteopenie",
+        "fibromyalgia": "Fibromyalgie",
+        "chronic_pain": "Chronische Schmerzen",
+        "cardiovascular": "Kardiovaskuläre Erkrankung",
+        "renal_condition": "Nierenerkrankung",
+        "post_operative": "Postoperativ",
+        "pregnancy": "Schwangerschaft",
+        "postpartum": "Wochenbett",
+        "other": "Andere Erkrankung",
+        "prefer_not_to_say": "Keine Angabe"
+      },
+      "voiceNote": "Du kannst deine gesundheitliche Situation in eigenen Worten beschreiben.",
+      "voiceContext": "Erzähl uns von deinen Erkrankungen"
+    },
+    "step07": {
+      "title": "Funktionelle Kapazität",
+      "heading1": "Funktionelle Kapazität",
+      "heading2": "und Zugänglichkeit",
+      "subheading": "Bewegungsfähigkeit vor dem Training. Lass uns sicherstellen, dass der Plan realistisch ist.",
+      "mobility": "Mobilität",
+      "balance": "Gleichgewicht",
+      "autonomy": "Autonomie",
+      "effortTolerance": "Belastungstoleranz",
+      "painLevel": "Übliches Schmerzniveau",
+      "accessToEnv": "Zugang zur Trainingsumgebung",
+      "supportResources": "Verwendete Hilfsmittel",
+      "instructionPreference": "Wie bevorzugst du Anweisungen zu erhalten?",
+      "mobilityLevels": {
+        "low": "Gering",
+        "moderate": "Moderat",
+        "good": "Gut"
+      },
+      "balanceLevels": {
+        "unstable": "Instabil",
+        "assisted": "Mit Hilfe",
+        "stable": "Stabil"
+      },
+      "autonomyLevels": {
+        "assisted": "Mit Hilfe",
+        "partial": "Teilweise",
+        "independent": "Selbstständig"
+      },
+      "supports": {
+        "wheelchair": "Rollstuhl",
+        "cane": "Gehstock",
+        "walker": "Gehwagen",
+        "prosthesis": "Prothese",
+        "nearby_support": "Unterstützung in der Nähe",
+        "none": "Keine"
+      },
+      "painLevels": {
+        "none": "Keine",
+        "mild": "Leicht",
+        "moderate": "Moderat",
+        "severe": "Stark"
+      },
+      "accessLevels": {
+        "full": "Vollständig",
+        "partial": "Teilweise",
+        "limited": "Begrenzt"
+      },
+      "instructionFormats": {
+        "visual": "Visuell",
+        "auditory": "Auditiv",
+        "simplified_text": "Vereinfachter Text",
+        "vibration": "Vibration",
+        "standard": "Standard"
+      },
+      "alert": "Diese Daten erstellen das Funktionelle Kapazitätsprofil und filtern Übungen — wenn du z.B. die Knie nicht beugen kannst, werden weniger Bodenübungen verschrieben."
+    },
+    "step08": {
+      "title": "Gewohnheiten",
+      "heading1": "Einige Routinen können",
+      "heading2": "das Training beeinflussen",
+      "subheading": "Wähle nur aus, was du für relevant hältst. Diese Daten helfen dem Plan, deine Realität zu respektieren.",
+      "habits": {
+        "sedentary": "Anhaltende Bewegungsarmut",
+        "low_hydration": "Geringe Flüssigkeitszufuhr",
+        "intense_routine": "Sehr intensive Routine",
+        "high_stress": "Hohes Stressniveau",
+        "irregular_eating": "Unregelmäßige Ernährung",
+        "frequent_travel": "Häufige Reisen",
+        "caregiving": "Betreuungspflichten",
+        "smoking": "Rauchen",
+        "alcohol": "Regelmäßiger Alkoholkonsum",
+        "transport": "Transportschwierigkeiten",
+        "irregular_sleep": "Unregelmäßiger oder unzureichender Schlaf",
+        "fatigue": "Häufige Erschöpfung",
+        "emotional_eating": "Emotionales Essen",
+        "sedentary_work": "Sehr sitzende Tätigkeit",
+        "financial_stress": "Finanzieller Stress"
+      },
+      "alert": "Diese Daten fließen in interne Erschöpfungs-, Adhärenz- und Erholungsvorhersagen ein. Nichts wird ohne Genehmigung direkt an den Trainer weitergegeben."
+    },
+    "step09": {
+      "title": "Geschützte sensible Faktoren",
+      "subtitle": "Intime Daten sind geschützt. Erscheinen für operative Bewusstsein. Du kannst überprüfen und menschliche Validierung anfordern.",
+      "alert": "Medikamente, freiwillig deklarierte Substanzen, psychologische Vorgeschichte — bleiben privat und werden als 'deklarierter Sicherheitsfaktor' markiert — konservative Progression.",
+      "medicationsTitle": "Regelmäßige Medikamente",
+      "medicationsSub": "Optional — nur wenn es Energie, Schlaf oder Leistung beeinflusst.",
+      "rankingBadge": "RANKING",
+      "medicationNameLabel": "Medikamentenname (optional)",
+      "medicationPlaceholder": "z.B.: Losartan, Metformin, Fluoxetin",
+      "privacyNote": "Private Daten. Werden niemals ohne ausdrückliche Genehmigung an den Trainer weitergegeben.",
+      "psychTitle": "Ich möchte emotionale / psychiatrische Vorgeschichte angeben",
+      "psychDesc": "Hilft nur dabei, dass die KI sicherere Entscheidungen trifft und eine langsamere Progression für die gesamte Reise geplant wird.",
+      "substanceTitle": "Ich möchte den Konsum von Freizeitsubstanzen angeben",
+      "substanceDesc": "Anonym. Beeinflusst Intensitäts- und Überwachungsempfehlungen.",
+      "coreRule": "Grundregel",
+      "ruleText": "Intime Daten = privat. Operative Konsequenz = in maskierter Form geteilt. Du kannst den Zugriff jederzeit in Block 13 widerrufen.",
+      "voiceNote": "Sprich frei — die KI strukturiert es vor dem Speichern.",
+      "voiceContext": "Erzähl uns von sensiblen Faktoren"
+    },
+    "step10": {
+      "title": "Körperrhythmus",
+      "subtitle": "Private Anpassung an den physiologischen Zyklus, wann immer du ihn aktivieren möchtest. Wird niemals eingesehen.",
+      "activateLabel": "Körperrhythmus aktivieren",
+      "activateHint": "Diese Funktion ist opt-in. Du kannst Daten jederzeit deaktivieren und löschen.",
+      "cycleDayLabel": "Aktueller Zyklustag",
+      "cycleDaySuffix": ". Tag",
+      "cycleDurationLabel": "Durchschnittliche Zyklusdauer",
+      "cycleDurationSuffix": " Tage",
+      "periodToday": "Periode beginnt heute",
+      "day1Marked": "Tag 1 markiert — konservative Anpassung aktiviert",
+      "tapDay1": "Tippen, um Zyklustag 1 zu markieren",
+      "adaptationLabel": "Anpassungspräferenz",
+      "adaptations": {
+        "maintain": "Normal beibehalten",
+        "reduce_intensity": "Intensität reduzieren",
+        "reduce_impact": "Aufprall reduzieren",
+        "increase_rest": "Erholung verlängern",
+        "shorten": "Einheit verkürzen",
+        "prioritize_mobility": "Mobilität priorisieren",
+        "postpone": "Training verschieben",
+        "regenerative": "Regenerativ"
+      },
+      "privacyNote": "Wir übernehmen niemals Formulierungen wie \"die Sportlerin hat ihre Periode\". Deine operative Anpassung lautet: \"Vorübergehender biologischer Faktor — moderater Ansatz und geringerer Aufprall empfohlen\"."
+    },
+    "step11": {
+      "title": "Umgebung",
+      "heading1": "Wo du trainierst,",
+      "heading2": "im echten Leben",
+      "subheading": "Um Übungen zu verschreiben, die von der Ausrüstung, dem Platz und der Unterstützung abhängen, die du hast.",
+      "locationsLabel": "Mögliche Orte",
+      "equipmentLabel": "Verfügbare Ausrüstung",
+      "accessibilityLabel": "Zugänglichkeitsbedingungen",
+      "locations": {
+        "home": "Zuhause",
+        "gym": "Fitnessstudio",
+        "studio": "Studio",
+        "park": "Park",
+        "condo": "Wohnanlage",
+        "online": "Online"
+      },
+      "equipment": {
+        "dumbbells": "Hanteln",
+        "bands": "Widerstandsbänder",
+        "barbell": "Langhantel",
+        "bench": "Bank",
+        "treadmill": "Laufband",
+        "bike": "Fahrrad",
+        "machines": "Maschinen",
+        "kettlebell": "Kettlebell",
+        "cable": "Kabel/Seilzug",
+        "none": "Keine"
+      },
+      "accessibility": {
+        "wheelchair": "Rollstuhlgerecht",
+        "support_bars": "Haltestangen",
+        "safe_floor": "Sicherer Boden",
+        "privacy": "Trainingsprivatsphäre",
+        "companion": "Begleitung verfügbar",
+        "adapted": "Angepasste Ausrüstung"
+      }
+    },
+    "step12": {
+      "title": "Verfügbarkeit und Hürden",
+      "subtitle": "Um den Plan innerhalb dessen zu kalibrieren, was du wirklich einhalten kannst.",
+      "daysPerWeek": "Tage pro Woche",
+      "daysSuffix": " Tage/Woche",
+      "durationLabel": "Dauer pro Einheit",
+      "minSuffix": "Min",
+      "bestTime": "Beste Uhrzeit",
+      "preferredDays": "Bevorzugte Tage",
+      "barriers": "Adhärenzhürden",
+      "times": [
+        "Morgen",
+        "Nachmittag",
+        "Abend",
+        "Variabel"
+      ],
+      "days": [
+        "S",
+        "M",
+        "D",
+        "M",
+        "D",
+        "F",
+        "S"
+      ],
+      "barrierItems": {
+        "night_shift": "Nachtschicht",
+        "family_care": "Familienpflege",
+        "frequent_travel": "Häufige Reisen",
+        "treatment_radiation": "Behandlung/Bestrahlung",
+        "transport": "Transport",
+        "cost": "Kosten",
+        "emotional": "Emotional",
+        "time_constraint": "Zeitmangel"
+      }
+    },
+    "step13": {
+      "title": "Präferenzen",
+      "heading1": "Training und",
+      "heading2": "Unterstützungspräferenzen",
+      "subheading": "Definiert den Kommunikationston und passt den Plan an dein Verhaltensprofil an.",
+      "intensityLabel": "Bevorzugte Intensität",
+      "companyLabel": "Allein oder mit Begleitung trainieren?",
+      "languageLabel": "Bevorzugte Sprache",
+      "explanationLabel": "Erklärungsniveau",
+      "focusLabel": "Zielfokus",
+      "supportLabel": "Unterstützungsniveau",
+      "intensities": {
+        "gradual": "Leicht",
+        "moderate": "Moderat",
+        "intense": "Intensiv"
+      },
+      "company": {
+        "solo": "Allein",
+        "accompanied": "Mit Begleitung",
+        "indifferent": "Gleichgültig"
+      },
+      "languages": {
+        "direct": "Direkt",
+        "explanatory": "Erklärend",
+        "technical": "Technisch"
+      },
+      "explanations": {
+        "simple": "Einfach",
+        "detailed": "Detailliert",
+        "technical": "Technisch"
+      },
+      "focuses": {
+        "performance": "Leistung",
+        "health": "Gesundheit",
+        "aesthetics": "Ästhetik",
+        "consistency": "Beständigkeit"
+      },
+      "supports": {
+        "autonomous": "Autonomie",
+        "guided": "Enge Begleitung"
+      }
+    },
+    "step14": {
+      "title": "Einwilligung und Sichtbarkeit",
+      "subtitle": "Du entscheidest, wer was sieht, und kannst jederzeit widerrufen.",
+      "personal": "Persönlich (Trainer)",
+      "studio": "Studio",
+      "rows": {
+        "training_objective": "Trainingsziel",
+        "training_history": "Trainingsverlauf",
+        "pain_operational_restriction": "Schmerz / operative Einschränkung",
+        "relevant_comorbidity": "Relevante Begleiterkrankung",
+        "sensitive_medication": "Sensibles Medikament",
+        "emotional_psychiatric_health": "Emotionale/psychiatrische Gesundheit",
+        "body_rhythm": "Körperrhythmus"
+      },
+      "values": {
+        "share": "TEILEN",
+        "summary": "ZUSAMMENFASSUNG",
+        "authorized_only": "NUR AUTORISIERT",
+        "hidden": "VERSTECKT"
+      },
+      "sensitive": "SENSIBEL",
+      "aiUseLabel": "KI-Nutzung zur Plananpassung erlauben",
+      "aiUseDesc": "Die KI verwendet autorisierte Daten — sie hat keinen Zugriff auf das, was du verborgen hast.",
+      "maintainHistoryLabel": "Zugriffshistorie pflegen",
+      "maintainHistoryDesc": "Du kannst prüfen, wer wann auf was zugegriffen hat.",
+      "revokeNote": "Das Widerrufen der Einwilligung verhindert künftige unbefugte Nutzung und führt ein prüfbares Entscheidungsprotokoll."
+    },
+    "step15": {
+      "title": "Risikoklassifizierung",
+      "subtitle": "Berechnet aus den vorherigen Blöcken. Du kannst überprüfen und menschliche Validierung anfordern.",
+      "bodyPre": "Die Klassifizierung ist ",
+      "bodyBold": "nachvollziehbar",
+      "bodyPost": ": du kannst Details zu den Faktoren anfordern, die in jede Entscheidung eingeflossen sind.",
+      "generating": "Erweitertes Profil wird erstellt…",
+      "generateBtn": "Erweitertes Profil erstellen →"
+    },
+    "voice": {
+      "kicker": "Spracheingabe",
+      "instruction": "Sprich oder schreibe in eigenen Worten. Die KI ordnet die Informationen vor dem Speichern — du bestätigst alles zuerst.",
+      "close": "Schließen",
+      "stopRecording": "Aufnahme stoppen",
+      "startRecording": "Sprachaufnahme starten",
+      "recording": "● Aufnahme… tippen zum Stoppen",
+      "tapToSpeak": "Tippen zum Sprechen",
+      "micDenied": "Mikrofonberechtigung verweigert. Verwende das Textfeld unten.",
+      "audioError": "Fehler bei der Audioaufnahme. Erneut versuchen oder Textfeld verwenden.",
+      "transcribedLabel": "Transkribierter Text (bearbeitbar)",
+      "typeLabel": "Hier eingeben",
+      "transcribedPlaceholder": "Text erscheint hier während du sprichst, oder direkt eingeben…",
+      "typePlaceholder": "In eigenen Worten beschreiben…",
+      "charactersSuffix": " Zeichen",
+      "confirm": "Bestätigen und fortfahren →",
+      "cancel": "Abbrechen"
+    }
+  },
+  "coachDna": {
+    "screen": {
+      "title": "TrAIner · Coach Studio",
+      "dnaActive": "Coach DNA",
+      "phase2Complete": "Phase 2 abgeschlossen",
+      "blockOf": "Block {{step}} von {{total}}",
+      "save": "Speichern",
+      "continue": "Weiter",
+      "complete": "Coach DNA abschließen",
+      "saving": "Wird gespeichert…",
+      "editDna": "Coach DNA bearbeiten",
+      "buildDna": "Mein Coach DNA erstellen",
+      "updateDna": "Coach DNA aktualisieren",
+      "activateDna": "Coach DNA aktivieren"
+    },
+    "intro": {
+      "kicker": "COACH STUDIO · KI FÜTTERN",
+      "title": "Coach DNA",
+      "body": "Erfasse <strong>deine Trainingssignatur</strong>, damit die KI-Coach-Engine Workouts mit deiner echten Methode generiert — keine generischen Empfehlungen.",
+      "features": [
+        "Professionelle Identität und Ausbildung",
+        "Coaching-Stil und methodologische DNA",
+        "Fokusverteilung und Übungsbibliothek",
+        "Kommunikationsstil und Kundenprofil",
+        "Philosophie und KI-Persönlichkeit"
+      ],
+      "privacyNote": "Je genauer dein Profil ist, desto mehr klingen die generierten Workouts, als hättest du sie selbst geschrieben.",
+      "meta": "≈ 5–8 Min · 12 Blöcke · betreibt die KI-Coach-Engine"
+    },
+    "step01": {
+      "title": "Trainer-Identität",
+      "sub": "Grundlegende Informationen, die deine Präsenz in der App identifizieren.",
+      "hint": "Wie stellst du dich deinen Kunden vor?",
+      "fullName": "Vollständiger Name",
+      "namePlaceholder": "z.B. Rafael Mendes",
+      "gender": "Geschlecht",
+      "genders": [
+        "Männlich",
+        "Weiblich",
+        "Divers",
+        "Keine Angabe"
+      ],
+      "age": "Alter",
+      "agePlaceholder": "34",
+      "ageSuffix": "J."
+    },
+    "step02": {
+      "title": "Ausbildung & Erfahrung",
+      "sub": "Wie lange du als Trainer tätig bist und deine akademische / Zertifizierungsbasis.",
+      "hint": "Deine Erfahrung prägt die Tiefe der generierten Workouts.",
+      "yearsLabel": "Berufserfahrung",
+      "yearsSuffix": " J.",
+      "certsLabel": "Zertifizierungen & Ausbildung",
+      "certs": {
+        "pt": "Personal Trainer",
+        "fitness": "Fitness-Trainer",
+        "edfis": "Sportwissenschaft / Sportpädagogik",
+        "physio": "Physiotherapeut",
+        "snc": "Kraft & Konditionierung",
+        "other": "Sonstiges"
+      },
+      "privacyNote": "Deine Ausbildung informiert die KI-Coach-Engine über die technische Tiefe der von dir verwendeten Protokolle."
+    },
+    "step03": {
+      "title": "Dein aktuelles Fitnessniveau",
+      "sub": "Dein persönlicher Konditionierungsreferenzpunkt.",
+      "hint": "Nicht das deiner Kunden — dein eigenes Fitnessniveau heute.",
+      "levels": {
+        "1": {
+          "label": "Elite-Athlet",
+          "sub": "Wettkampf oder Hochleistung"
+        },
+        "2": {
+          "label": "Sehr fit",
+          "sub": "Konsequentes Fortgeschrittenentraining"
+        },
+        "3": {
+          "label": "Fit",
+          "sub": "Regelmäßiges progressives Training"
+        },
+        "4": {
+          "label": "Durchschnittlich",
+          "sub": "Aktiv mit gelegentlich intensiven Workouts"
+        },
+        "5": {
+          "label": "Mäßig aktiv",
+          "sub": "Fokus auf Gesundheit und Wohlbefinden"
+        }
+      },
+      "privacyNote": "Dies kalibriert die Referenzintensität der von dir verschriebenen Workouts, ohne deine persönlichen Daten gegenüber Kunden offenzulegen."
+    },
+    "step04": {
+      "title": "Wie und wo du trainierst",
+      "sub": "Methoden, Umgebungen und allgemeine Intensität, die deine Praxis definieren.",
+      "hint": "Wähle alles aus, was zu deinem täglichen Repertoire gehört.",
+      "methodsLabel": "Trainingsmethoden",
+      "envsLabel": "Bevorzugte Umgebungen",
+      "intensityLabel": "Allgemeine Intensität",
+      "multipleChoice": "Mehrfachauswahl",
+      "methods": [
+        "CrossFit",
+        "Funktionelles Training",
+        "HIIT",
+        "Zirkeltraining",
+        "Krafttraining / Bodybuilding",
+        "Gewichtstraining",
+        "Laufen",
+        "Mobilität",
+        "Athletische Leistung",
+        "Kalistenik",
+        "Maschinentraining",
+        "Sonstiges"
+      ],
+      "envs": [
+        "CrossFit Box",
+        "Kommerzielles Fitnessstudio",
+        "Kalistenikpark",
+        "Im Freien, ohne Ausrüstung",
+        "Im Freien mit Bändern",
+        "Drinnen, ohne Ausrüstung",
+        "Drinnen mit Bändern"
+      ],
+      "intensity": [
+        "Moderat",
+        "Anspruchsvoll",
+        "Variabel",
+        "Hohe Intensität"
+      ],
+      "privacyNote": "Methoden und Umgebungen leiten die KI-Coach-Engine bei der Auswahl von Übungen und Formaten, die zu deinem Kontext passen."
+    },
+    "step05": {
+      "title": "Coaching-Stil",
+      "sub": "Wie du mit deinen Kunden in der Praxis auftrittst.",
+      "badge": "Coach DNA",
+      "hint": "Wähle alle Stile, die deinen Ansatz beschreiben.",
+      "styles": {
+        "motiv": "Motivierend",
+        "prof": "Professionell",
+        "tech": "Technisch",
+        "perf": "Leistungsorientiert",
+        "humor": "Entspannt / Locker",
+        "emp": "Empathisch",
+        "direct": "Direkt",
+        "disc": "Diszipliniert"
+      },
+      "privacyNote": "Coaching-Stil ist der entscheidendste Teil deiner DNA — er definiert den Ton und die Stimme jedes generierten Workouts."
+    },
+    "step06": {
+      "title": "Grundprinzipien",
+      "sub": "Die Überzeugungen, die deine Verschreibungsentscheidungen leiten.",
+      "badge": "Bis zu {{max}} auswählen",
+      "hint": "Was ist der Kern deiner Trainingsphilosophie?",
+      "principles": {
+        "quality": "Qualität vor Intensität",
+        "intensity": "Intensität vor Perfektion",
+        "health": "Gesundheit zuerst",
+        "strength": "Kraft zuerst",
+        "athletics": "Athletik zuerst",
+        "mobility": "Mobilität zuerst",
+        "fun": "Freude und Motivation zuerst",
+        "function": "Funktion über Ästhetik",
+        "progress": "Nachhaltiger Fortschritt"
+      },
+      "privacyNote": "Die gewählten Prinzipien setzen absolute Prioritäten im Generator — was in jeder Verschreibung zuerst erscheint."
+    },
+    "step07": {
+      "title": "Trainingsfokus",
+      "sub": "Wie viel Gewicht hat jede körperliche Fähigkeit in deiner Methode?",
+      "badge": "Coach DNA",
+      "hint": "Verteile den Schwerpunkt auf körperliche Qualitäten. 0 = keine Priorität, 10 = zentraler Pfeiler.",
+      "items": {
+        "strength": "Kraft",
+        "endurance": "Ausdauer",
+        "mobility": "Mobilität",
+        "athletic": "Athletische Leistung",
+        "coord": "Koordination",
+        "balance": "Stabilität / Gleichgewicht"
+      },
+      "notPriority": "0 – Keine Priorität",
+      "centralPillar": "10 – Zentraler Pfeiler"
+    },
+    "step08": {
+      "title": "Übungen & Repertoire",
+      "sub": "Dein Bewegungsvokabular definiert deine Identität als Coach.",
+      "badge": "Coach DNA",
+      "hint": "Füge die Übungen hinzu, die du am meisten verwendest, und die, die du vermeidest. Enter oder Komma drücken zum Bestätigen.",
+      "favoritesLabel": "Lieblingsübungen",
+      "favoritesHint": "unbegrenzt",
+      "favoritesPlaceholder": "z.B. Kniebeuge, Turkish Get-Up…",
+      "avoidLabel": "Zu vermeidende / nicht verwendete Übungen",
+      "avoidHint": "optional",
+      "avoidPlaceholder": "z.B. Beinpresse, traditionelles Sit-up…",
+      "privacyNote": "Dieses Repertoire speist die automatische Übungsauswahl der KI-Coach-Engine."
+    },
+    "step09": {
+      "title": "Einheitsgestaltung",
+      "sub": "Die Formate und die Intensitätskurve, die du bevorzugst.",
+      "badge": "Coach DNA",
+      "hint": "Wähle die Formate, die du verwendest, und die typische Intensitätskurve deiner Einheiten.",
+      "formatsLabel": "Bevorzugte Formate",
+      "formatsHint": "alle verwendeten auswählen",
+      "formats": [
+        "EMOM",
+        "AMRAP",
+        "For Time",
+        "Intervall",
+        "Zirkel",
+        "Supersätze",
+        "Kraft + MetCon",
+        "Nur Kraft",
+        "Nur Konditionierung",
+        "Tabata"
+      ],
+      "curveLabel": "Intensitätskurve",
+      "curves": {
+        "progressive": {
+          "label": "Progressive Steigerung",
+          "sub": "Intensität baut sich während der Einheit auf"
+        },
+        "wave": {
+          "label": "Welle",
+          "sub": "Abwechselnde Höhen und Tiefen"
+        },
+        "peak_early": {
+          "label": "Früher Höhepunkt",
+          "sub": "Am intensivsten zu Beginn"
+        },
+        "peak_late": {
+          "label": "Später Höhepunkt",
+          "sub": "Am intensivsten gegen Ende"
+        },
+        "constant": {
+          "label": "Konstant",
+          "sub": "Gleichmäßige Intensität durchgehend"
+        }
+      }
+    },
+    "step10": {
+      "title": "Einheitsstruktur",
+      "sub": "Definiere die Standardreihenfolge der Blöcke in einer typischen Einheit.",
+      "badge": "Coach DNA",
+      "hint": "Blöcke mit den Pfeilen neu anordnen. Diese Reihenfolge wird die Standardvorlage für deine Workouts.",
+      "blocks": {
+        "mobility": {
+          "label": "Mobilität",
+          "sub": "Gelenkaktivierung"
+        },
+        "warmup": {
+          "label": "Aufwärmen",
+          "sub": "Temperaturerhöhung"
+        },
+        "technique": {
+          "label": "Technik",
+          "sub": "Fokus auf Bewegungsmuster"
+        },
+        "strength": {
+          "label": "Kraft",
+          "sub": "Hauptblock"
+        },
+        "conditioning": {
+          "label": "Konditionierung / WOD",
+          "sub": "Metabolismus & Ausdauer"
+        },
+        "cooldown": {
+          "label": "Abkühlen",
+          "sub": "Erholung & Flexibilität"
+        }
+      }
+    },
+    "step11": {
+      "title": "Zielgruppe & Ton",
+      "sub": "Wen du trainierst und wie du kommunizierst.",
+      "badge": "Coach DNA",
+      "hint": "Alle Kundenprofile auswählen, mit denen du arbeitest, und den vorherrschenden Ton deiner Kommunikation.",
+      "toneLabel": "Kommunikationston",
+      "toneHint": "mehrere",
+      "tones": {
+        "professional": "Professionell",
+        "motivational": "Motivierend",
+        "casual": "Locker",
+        "athletic": "Athletisch",
+        "direct": "Direkt",
+        "technical": "Technisch"
+      },
+      "clientsLabel": "Kundenprofil",
+      "clientsHint": "mehrere",
+      "clients": [
+        "Anfänger",
+        "Fortgeschrittene",
+        "Leistungssportler",
+        "Frauen",
+        "Männer",
+        "Senioren",
+        "Büroangestellte",
+        "Gewichtsabnahme",
+        "Muskelaufbau",
+        "Rehabilitation",
+        "Enthusiasten des funktionellen Fitness",
+        "CrossFit-Athleten"
+      ]
+    },
+    "step12": {
+      "title": "Philosophie & Identität",
+      "sub": "Das Manifest, das jedes Workout leitet, das du erstellst.",
+      "badge": "Coach DNA",
+      "hint": "Das ist der persönlichste Block. Schreibe oder diktiere in eigenen Worten.",
+      "mottoLabel": "Coach-Motto",
+      "mottoHint": "optional",
+      "mottoPlaceholder": "z.B. \"Trainiere mit Absicht, erhol dich mit Intelligenz.\"",
+      "mottoExamples": [
+        "\"Trainiere mit Absicht, erhol dich mit Intelligenz.\"",
+        "\"Jede Wiederholung zählt. Jede Einheit ist wichtig.\"",
+        "\"Leistung ist das Ergebnis der Methode.\"",
+        "\"Bewege dich besser. Bewege dich stärker.\""
+      ],
+      "promptLabel": "Freier Prompt — deine Coach-Stimme für die KI",
+      "promptHint": "optional",
+      "promptPlaceholder": "Beschreibe in eigenen Worten, wie du trainierst, was dir wichtig ist und wie die KI deinen Stil bei der Workout-Erstellung repräsentieren soll...",
+      "privacyNote": "Dieser Prompt ist der wirkungsvollste Kontext in deiner DNA — die KI verwendet diese Wörter wörtlich, um deine Stimme einzufangen."
+    },
+    "output": {
+      "kicker": "Coach DNA · Archetyp",
+      "privacyNote": "Der Archetyp wird automatisch aus deiner DNA abgeleitet und aktualisiert, wenn du dein Profil weiterentwickelst.",
+      "archetypes": {
+        "performance": {
+          "title": "Performance-Coach",
+          "sub": "Hochleistung & messbare Ziele",
+          "desc": "Du trainierst für Ergebnisse. Jede Einheit hat Metriken, jeder Kunde hat Ziele. Deine DNA generiert leistungsorientierte Workouts mit Fokus auf Lastprogression und persönliche Bestleistungen."
+        },
+        "technician": {
+          "title": "Der Techniker",
+          "sub": "Biomechanik & methodologische Präzision",
+          "desc": "Du bist besessen von der Methode. Jede Übung hat einen Grund, jede Phase eine Logik. Deine DNA generiert Workouts mit präzisen technischen Hinweisen und gut strukturierten Progressionen."
+        },
+        "motivator": {
+          "title": "Der Motivator",
+          "sub": "Energie & unvergessliche Erlebnisse",
+          "desc": "Du schaffst Umgebungen, die inspirieren. Deine DNA generiert Workouts mit energetisierender Sprache, Abwechslung und Herausforderungen, die Kunden engagiert halten und zurückbringen."
+        },
+        "guide": {
+          "title": "Der Begleiter",
+          "sub": "Empathie & nachhaltiger Fortschritt",
+          "desc": "Du begleitest jeden Kunden in seinem eigenen Tempo. Deine DNA generiert progressive Workouts, die einfühlsam erklärt werden, mit Fokus auf langfristige Gesundheit und Kundenautonomie."
+        },
+        "drill": {
+          "title": "Drill-Master",
+          "sub": "Disziplin & progressive Strenge",
+          "desc": "Du forderst das Beste von jedem Kunden. Deine DNA generiert anspruchsvolle Workouts mit klar definierten Kraftsequenzen und höchsten Ausführungsstandards bei jeder Wiederholung."
+        },
+        "movement": {
+          "title": "Bewegungsspezialist",
+          "sub": "Funktion, Mobilität & Bewegungsmuster",
+          "desc": "Du siehst den Körper als integriertes System. Deine DNA generiert Workouts mit Schwerpunkt auf Bewegungsqualität, Mobilität und funktionellen Mustern."
+        }
+      }
+    },
+    "components": {
+      "photoSlot": {
+        "photoLabel": "Coach-Profilfoto",
+        "changeImage": "Bild ändern",
+        "uploadImage": "Bild hochladen",
+        "changeLabel": "ÄNDERN"
+      },
+      "voiceBar": {
+        "dictateHint": "An KI diktieren",
+        "stop": "Stoppen",
+        "startRecording": "Aufnahme starten",
+        "stopRecording": "Aufnahme stoppen",
+        "micDenied": "Mikrofonberechtigung verweigert.",
+        "noSpeech": "Keine Sprache erkannt.",
+        "speechError": "Spracherkennungsfehler."
+      }
     }
   },
   "settings": {
@@ -395,33 +1906,104 @@
       "b2b": "B2B / Studio"
     },
     "fields": {
-      "location": { "label": "Standardort", "hint": "Wo du normalerweise trainierst" },
-      "duration": { "label": "Standardsitzung", "hint": "Bevorzugte Trainingsdauer" },
-      "intensity": { "label": "Bevorzugte Intensität", "hint": "Basisaufwand für KI-Pläne" },
-      "planExpiry": { "label": "Automatischer Planablauf", "hint": "Ausstehende Pläne stornieren nach" },
-      "dashboardDepth": { "label": "Dashboard-Tiefe", "hint": "Sitzungen & Pläne pro Kunde geladen" },
-      "readyWindow": { "label": "Bereitschaftsfenster", "hint": "Wie lange deine \"Ich bin bereit\"-Meldung aktiv bleibt" },
-      "historyDepth": { "label": "Verlaufstiefe", "hint": "Vergangene Sitzungen im Verlauf gespeichert" },
-      "lightPalette": { "label": "Helle Palette", "hint": "Wird angewendet, wenn der Dunkelmodus aus ist" },
-      "language": { "hint": "Sprache der App und des KI-Coachings" }
+      "location": {
+        "label": "Standardort",
+        "hint": "Wo du normalerweise trainierst"
+      },
+      "duration": {
+        "label": "Standardsitzung",
+        "hint": "Bevorzugte Trainingsdauer"
+      },
+      "intensity": {
+        "label": "Bevorzugte Intensität",
+        "hint": "Basisaufwand für KI-Pläne"
+      },
+      "planExpiry": {
+        "label": "Automatischer Planablauf",
+        "hint": "Ausstehende Pläne stornieren nach"
+      },
+      "dashboardDepth": {
+        "label": "Dashboard-Tiefe",
+        "hint": "Sitzungen & Pläne pro Kunde geladen"
+      },
+      "readyWindow": {
+        "label": "Bereitschaftsfenster",
+        "hint": "Wie lange deine \"Ich bin bereit\"-Meldung aktiv bleibt"
+      },
+      "historyDepth": {
+        "label": "Verlaufstiefe",
+        "hint": "Vergangene Sitzungen im Verlauf gespeichert"
+      },
+      "lightPalette": {
+        "label": "Helle Palette",
+        "hint": "Wird angewendet, wenn der Dunkelmodus aus ist"
+      },
+      "language": {
+        "hint": "Sprache der App und des KI-Coachings"
+      }
     },
     "opt": {
-      "location": { "gym": "Fitnessstudio", "home": "Zuhause", "outdoor": "Draußen" },
-      "intensity": { "light": "Leicht", "moderate": "Moderat", "hard": "Hart" },
-      "palette": { "arctic": "Arktis", "sand": "Sand" },
-      "focus": { "strength": "Kraft", "endurance": "Ausdauer", "mobility": "Mobilität" }
+      "location": {
+        "gym": "Fitnessstudio",
+        "home": "Zuhause",
+        "outdoor": "Draußen"
+      },
+      "intensity": {
+        "light": "Leicht",
+        "moderate": "Moderat",
+        "hard": "Hart"
+      },
+      "palette": {
+        "arctic": "Arktis",
+        "sand": "Sand"
+      },
+      "focus": {
+        "strength": "Kraft",
+        "endurance": "Ausdauer",
+        "mobility": "Mobilität"
+      }
     },
     "toggle": {
-      "aiWorkouts": { "label": "KI-Workouts", "hint": "Täglicher Plan von deinem Trainer + KI" },
-      "analysis": { "label": "Trainingsanalyse", "hint": "KI-Zusammenfassung nach der Sitzung" },
-      "cycle": { "label": "Zyklus-Tracking", "hint": "Intensität an deine Phase anpassen" },
-      "behaviour": { "label": "Verhaltens-Tracking", "hint": "Aus Abschluss + Feedback lernen" },
-      "push": { "label": "Push-Benachrichtigungen", "hint": "Alle App-Hinweise" },
-      "goals": { "label": "Zielerinnerungen", "hint": "Wöchentliche Meilenstein-Hinweise" },
-      "alerts": { "label": "Aktivitätswarnungen", "hint": "Warnungen bei inaktiven Tagen" },
-      "sounds": { "label": "Töne & Signaltöne", "hint": "Audio-Hinweise im Training" },
-      "darkMode": { "label": "Dunkelmodus", "hint": "Dunkles Design in der ganzen App verwenden" },
-      "whiteLabel": { "label": "White-Label-Modus", "hint": "TrAIner-Marke für dein Studio ausblenden" }
+      "aiWorkouts": {
+        "label": "KI-Workouts",
+        "hint": "Täglicher Plan von deinem Trainer + KI"
+      },
+      "analysis": {
+        "label": "Trainingsanalyse",
+        "hint": "KI-Zusammenfassung nach der Sitzung"
+      },
+      "cycle": {
+        "label": "Zyklus-Tracking",
+        "hint": "Intensität an deine Phase anpassen"
+      },
+      "behaviour": {
+        "label": "Verhaltens-Tracking",
+        "hint": "Aus Abschluss + Feedback lernen"
+      },
+      "push": {
+        "label": "Push-Benachrichtigungen",
+        "hint": "Alle App-Hinweise"
+      },
+      "goals": {
+        "label": "Zielerinnerungen",
+        "hint": "Wöchentliche Meilenstein-Hinweise"
+      },
+      "alerts": {
+        "label": "Aktivitätswarnungen",
+        "hint": "Warnungen bei inaktiven Tagen"
+      },
+      "sounds": {
+        "label": "Töne & Signaltöne",
+        "hint": "Audio-Hinweise im Training"
+      },
+      "darkMode": {
+        "label": "Dunkelmodus",
+        "hint": "Dunkles Design in der ganzen App verwenden"
+      },
+      "whiteLabel": {
+        "label": "White-Label-Modus",
+        "hint": "TrAIner-Marke für dein Studio ausblenden"
+      }
     }
   }
 }

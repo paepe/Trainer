@@ -145,6 +145,7 @@ export interface AIContext {
   stats:          StatsContext;
   library:        LibraryContext;
   task:           TaskContext;
+  locale:         string;
   contextVersion: '1.0';
   builtAt:        string;
 }

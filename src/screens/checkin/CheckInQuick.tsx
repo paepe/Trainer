@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import type { CheckInQuick as CheckInQuickData, SleepQualityV2, PainRegion } from '../../types/checkin-v2';
 import type { LatestCheckinData } from '../../hooks/useLatestCheckin';
@@ -12,29 +13,6 @@ interface CheckInQuickProps {
   onSubmit: (data: CheckInQuickData) => void;
   onBack:   () => void;
 }
-
-const SLEEP_OPTIONS: { value: SleepQualityV2; label: string }[] = [
-  { value: 'poor',      label: 'Poor'    },
-  { value: 'regular',   label: 'Regular' },
-  { value: 'good',      label: 'Good'     },
-  { value: 'excellent', label: 'Excellent'   },
-];
-
-const PAIN_REGIONS: { value: PainRegion; label: string }[] = [
-  { value: 'neck',       label: 'Neck'       }, { value: 'shoulder',   label: 'Shoulder'  },
-  { value: 'elbow',      label: 'Elbow'      }, { value: 'wrist',      label: 'Wrist'     },
-  { value: 'upper_back', label: 'Upper Back' }, { value: 'lower_back', label: 'Lower Back'},
-  { value: 'hip',        label: 'Hip'        }, { value: 'knee',       label: 'Knee'      },
-  { value: 'ankle',      label: 'Ankle'      }, { value: 'other',      label: 'Other'     },
-];
-
-const TIME_PRESETS = [15, 30, 45, 60, 90];
-
-const BLOCK_STYLE = (dark: boolean, accent = false, primary = '') => ({
-  padding: '14px 16px', borderRadius: 14, marginBottom: 12,
-  background: accent ? `${primary}08` : surfRaised(dark),
-  border: `1px solid ${borderSubtle(dark)}`,
-});
 
 function BlockHeader({ num, icon, label, dark }: { num: number; icon: string; label: string; dark: boolean }) {
   return (
@@ -76,6 +54,7 @@ function SliderRow({ label, value, min, max, unit = '', onChange, dark, primary 
 }
 
 export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onSubmit, onBack }: CheckInQuickProps) {
+  const { t: tr } = useTranslation();
   const [energy, setEnergy]             = React.useState(lastCheckin?.energy            ?? 5);
   const [sleep, setSleep]               = React.useState((lastCheckin?.sleep_quality as SleepQualityV2 | undefined) ?? 'regular');
   const [painOn, setPainOn]             = React.useState(false);
@@ -83,6 +62,26 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
   const [painIntensity, setPainIntensity] = React.useState(4);
   const [fatigue, setFatigue]           = React.useState(lastCheckin?.fatigue           ?? 3);
   const [minutes, setMinutes]           = React.useState(lastCheckin?.available_minutes ?? 45);
+
+  const sleepOpts: { value: SleepQualityV2; label: string }[] = [
+    { value: 'poor', label: tr('checkinEnums.sleep.poor') },
+    { value: 'regular', label: tr('checkinEnums.sleep.regular') },
+    { value: 'good', label: tr('checkinEnums.sleep.good') },
+    { value: 'excellent', label: tr('checkinEnums.sleep.excellent') },
+  ];
+
+  const painRegions: { value: PainRegion; label: string }[] = [
+    { value: 'neck', label: tr('checkinEnums.bodyPart.neck') },
+    { value: 'shoulder', label: tr('checkinEnums.bodyPart.shoulder') },
+    { value: 'elbow', label: tr('checkinEnums.bodyPart.elbow') },
+    { value: 'wrist', label: tr('checkinEnums.bodyPart.wrist') },
+    { value: 'upper_back', label: tr('checkinEnums.bodyPart.upper_back') },
+    { value: 'lower_back', label: tr('checkinEnums.bodyPart.lower_back') },
+    { value: 'hip', label: tr('checkinEnums.bodyPart.hip') },
+    { value: 'knee', label: tr('checkinEnums.bodyPart.knee') },
+    { value: 'ankle', label: tr('checkinEnums.bodyPart.ankle') },
+    { value: 'other', label: tr('checkinEnums.bodyPart.other') },
+  ];
 
   const handleSubmit = () => {
     const pain = painOn && painRegion != null
@@ -108,38 +107,40 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
     transition: 'all .12s ease',
   });
 
+  const blockStyle = { padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` };
+
   return (
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       {userName && (
         <div style={{ marginBottom: 12, padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>Viewing</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>{tr('quickCheckin.viewing')}</span>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
         </div>
       )}
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 8 }}>
-        QUICK CHECK-IN · 40 SEC
+        {tr('quickCheckin.kicker')}
       </div>
       <h2 style={{
         margin: '0 0 20px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Five questions
+        {tr('quickCheckin.title')}
       </h2>
 
       {/* 1 Energia */}
-      <div style={BLOCK_STYLE(dark)}>
-        <BlockHeader num={1} icon="⚡" label="Energy" dark={dark}/>
-        <div style={{ fontSize: 11.5, color: textSec(dark), marginBottom: 8 }}>how are you feeling?</div>
+      <div style={blockStyle}>
+        <BlockHeader num={1} icon="⚡" label={tr('quickCheckin.blocks.energy')} dark={dark}/>
+        <div style={{ fontSize: 11.5, color: textSec(dark), marginBottom: 8 }}>{tr('quickCheckin.energyHint')}</div>
         <SliderRow value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
       {/* 2 Sono */}
-      <div style={BLOCK_STYLE(dark)}>
-        <BlockHeader num={2} icon="🌙" label="Sleep" dark={dark}/>
+      <div style={blockStyle}>
+        <BlockHeader num={2} icon="🌙" label={tr('quickCheckin.blocks.sleep')} dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {SLEEP_OPTIONS.map(o => (
+          {sleepOpts.map(o => (
             <button key={o.value} onClick={() => setSleep(o.value)} style={btnBase(sleep === o.value)}>
               {o.label}
             </button>
@@ -149,11 +150,11 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
 
       {/* 3 Dor */}
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
-        <BlockHeader num={3} icon="🔴" label="Pain" dark={dark}/>
+        <BlockHeader num={3} icon="🔴" label={tr('quickCheckin.blocks.pain')} dark={dark}/>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: painOn ? 14 : 0 }}>
           <div>
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark) }}>I'm in pain today</div>
-            {painOn && <div style={{ fontSize: 11, color: textSec(dark), marginTop: 2 }}>Tap to detail region and intensity</div>}
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark) }}>{tr('quickCheckin.inPainToday')}</div>
+            {painOn && <div style={{ fontSize: 11, color: textSec(dark), marginTop: 2 }}>{tr('quickCheckin.painDetailHint')}</div>}
           </div>
           <button
             onClick={() => { setPainOn(v => !v); if (painOn) setPainRegion(undefined); }}
@@ -172,9 +173,8 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
         </div>
         {painOn && (
           <>
-            {/* Region chips */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-              {PAIN_REGIONS.map(r => (
+              {painRegions.map(r => (
                 <button key={r.value} onClick={() => setPainRegion(r.value)} style={{
                   padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 12, fontWeight: 600,
@@ -186,22 +186,22 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
                 </button>
               ))}
             </div>
-            <SliderRow label="Intensity" value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
+            <SliderRow label={tr('quickCheckin.intensity')} value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
           </>
         )}
       </div>
 
       {/* 4 Fadiga */}
-      <div style={BLOCK_STYLE(dark)}>
-        <BlockHeader num={4} icon="🔋" label="Fatigue" dark={dark}/>
-        <SliderRow label="perceived fatigue" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
+      <div style={blockStyle}>
+        <BlockHeader num={4} icon="🔋" label={tr('quickCheckin.blocks.fatigue')} dark={dark}/>
+        <SliderRow label={tr('quickCheckin.fatigueHint')} value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
       </div>
 
       {/* 5 Available Time */}
-      <div style={BLOCK_STYLE(dark)}>
-        <BlockHeader num={5} icon="⏱️" label="Available Time" dark={dark}/>
+      <div style={blockStyle}>
+        <BlockHeader num={5} icon="⏱️" label={tr('quickCheckin.blocks.time')} dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {TIME_PRESETS.map(t => (
+          {[15, 30, 45, 60, 90].map(t => (
             <button key={t} onClick={() => setMinutes(t)} style={btnBase(minutes === t)}>
               {t} min
             </button>
@@ -212,10 +212,10 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
         <button onClick={handleSubmit} style={{ ...primaryBtn(primary), marginBottom: 0 }}>
-          Calculate readiness →
+          {tr('quickCheckin.calculate')}
         </button>
         <button onClick={onBack} style={{ ...outlineBtn(primary), padding: '15px 20px' }}>
-          ← Back
+          {tr('quickCheckin.back')}
         </button>
       </div>
     </div>

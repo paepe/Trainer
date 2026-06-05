@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../../components/Icon';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../../theme';
 import type { ExState } from './types';
@@ -15,6 +16,7 @@ interface ExerciseCardProps {
 }
 
 export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, onSetActive }: ExerciseCardProps) {
+  const { t: tr } = useTranslation();
   const statusColor = ex.status === 'completed' ? t.primary
     : ex.status === 'skipped' ? textMute(dark)
     : ex.status === 'in_progress' ? t.primary
@@ -84,18 +86,18 @@ export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, 
               fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
-              <Icon name="play" size={12} color="#0E1A2B" stroke={2.5}/> Log Set
+              <Icon name="play" size={12} color="#0E1A2B" stroke={2.5}/> {tr('client.mode.logSet')}
             </button>
             <button onClick={(e) => { e.stopPropagation(); onPain(); }} style={{
               flex: 1, padding: '10px 0', borderRadius: 999,
               border: `1.5px solid ${t.accent}55`, background: 'transparent',
               color: t.accent, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-            }}>Pain</button>
+            }}>{tr('client.mode.painBtn')}</button>
             <button onClick={(e) => { e.stopPropagation(); onSkip(); }} style={{
               flex: 1, padding: '10px 0', borderRadius: 999,
               border: `1.5px solid ${borderSubtle(dark)}`, background: 'transparent',
               color: textSec(dark), fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
-            }}>Skip</button>
+            }}>{tr('client.mode.skip')}</button>
           </div>
         </div>
       )}

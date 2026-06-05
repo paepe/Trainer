@@ -269,19 +269,19 @@ export function WorkoutPlanEditorScreen({
       planId:       null,
       exercises:    converted,
       clientUserId: selectedClient.id,
-      clientName:   selectedClient.name ?? 'Client',
+      clientName:   selectedClient.name ?? tr('trainer.planner.clientFallback'),
     });
   };
 
   if (!selectedClient) {
     return (
       <div style={{ padding: '60px 32px', textAlign: 'center', color: textSec(dark), fontSize: 13 }}>
-        No client selected.
+        {tr('trainer.planner.noClientSelected')}
         <button
           onClick={() => nav('trainerDashboard')}
           style={{ ...ghostBtn(dark), display: 'block', margin: '16px auto 0' }}
         >
-          ← Back to clients
+          {tr('trainer.planner.backToClients')}
         </button>
       </div>
     );
@@ -300,15 +300,15 @@ export function WorkoutPlanEditorScreen({
         </button>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.primary }}>
-            Workout Plan
+            {tr('trainer.planner.headerKicker')}
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: textPri(dark), fontFamily: '"Plus Jakarta Sans",sans-serif' }}>
-            {selectedClient.name || 'Client'}
+            {selectedClient.name || tr('trainer.planner.clientFallback')}
           </div>
         </div>
         {saved && (
           <div style={{ padding: '6px 14px', borderRadius: 999, background: `${t.primary}22`, color: t.primary, fontSize: 12, fontWeight: 700 }}>
-            Sent ✓
+            {tr('trainer.planner.sent')}
           </div>
         )}
       </div>
@@ -317,7 +317,7 @@ export function WorkoutPlanEditorScreen({
       {context && (
         <div style={{ margin: '14px 22px 0', padding: '14px 16px', borderRadius: 14, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
-            Today's context
+            {tr('trainer.planner.todaysContext')}
           </div>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             {context.latestCheckin ? (
@@ -332,7 +332,7 @@ export function WorkoutPlanEditorScreen({
                 )}
                 {context.latestCheckin.minutes != null && (
                   <span style={{ fontSize: 12, color: textSec(dark) }}>
-                    <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.latestCheckin.minutes}min</span> available
+                    <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.latestCheckin.minutes}min</span> {tr('trainer.planner.available')}
                   </span>
                 )}
                 {context.latestCheckin.training_location && (
@@ -344,12 +344,12 @@ export function WorkoutPlanEditorScreen({
             )}
             {context.physicalProfile?.primary_goal && (
               <span style={{ fontSize: 12, color: textSec(dark) }}>
-                Goal <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.primary_goal}</span>
+                {tr('trainer.planner.goal')}<span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.primary_goal}</span>
               </span>
             )}
             {context.physicalProfile?.fitness_level && (
               <span style={{ fontSize: 12, color: textSec(dark) }}>
-                Level <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.fitness_level}</span>
+                {tr('trainer.planner.level')}<span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.fitness_level}</span>
               </span>
             )}
           </div>
@@ -360,20 +360,20 @@ export function WorkoutPlanEditorScreen({
       <div style={{ padding: '16px 22px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark) }}>
-            Exercises ({exercises.length})
+            {tr('trainer.planner.exercisesHeader', { count: exercises.length })}
           </div>
           <button onClick={() => setShowAddForm(v => !v)} style={{
             padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
             background: `${t.accent}22`, color: t.accent, border: 'none',
             fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
           }}>
-            <Icon name="plus" size={12} color={t.primary} /> Add
+            <Icon name="plus" size={12} color={t.primary} /> {tr('trainer.planner.addBtn')}
           </button>
         </div>
 
         {exercises.length === 0 && !showAddForm && (
           <div style={{ padding: '18px 0', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
-            Tap Add to build the plan.
+            {tr('trainer.planner.emptyHint')}
           </div>
         )}
 
@@ -416,7 +416,7 @@ export function WorkoutPlanEditorScreen({
               />
               {nameError && (
                 <div style={{ fontSize: 11.5, color: t.accent, marginTop: 4, paddingLeft: 4, fontWeight: 600 }}>
-                  Exercise name is required.
+                  {tr('trainer.planner.nameRequired')}
                 </div>
               )}
             </div>
@@ -465,17 +465,17 @@ export function WorkoutPlanEditorScreen({
               })}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <TextInput icon="bolt"  placeholder="Load (kg)" value={String(draft.load_kg || '')}
+              <TextInput icon="bolt"  placeholder={tr('trainer.planner.loadPlaceholder')} value={String(draft.load_kg || '')}
                 onChange={v => setDraft({ ...draft, load_kg: v })}/>
-              <TextInput icon="clock" placeholder="Rest (s)"  value={String(draft.rest_seconds || '')}
+              <TextInput icon="clock" placeholder={tr('trainer.planner.restPlaceholder')}  value={String(draft.rest_seconds || '')}
                 onChange={v => setDraft({ ...draft, rest_seconds: Number(v) || 60 })}/>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setShowAddForm(false)} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
-                Cancel
+                {tr('trainer.planner.cancelBtn')}
               </button>
               <button onClick={addExercise} style={{ flex: 2, padding: '12px 0', borderRadius: 14, background: t.accent, color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                Add exercise
+                {tr('trainer.planner.addExerciseBtn')}
               </button>
             </div>
           </div>
@@ -485,12 +485,12 @@ export function WorkoutPlanEditorScreen({
       {/* Trainer notes */}
       <div style={{ padding: '14px 22px 0' }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
-          Trainer notes
+          {tr('trainer.planner.trainerNotes')}
         </div>
         <textarea
           value={trainerNotes}
           onChange={e => setTrainerNotes(e.target.value)}
-          placeholder="Notes visible to the client…"
+          placeholder={tr('trainer.planner.notesPlaceholder')}
           rows={2}
           style={{
             width: '100%', padding: '12px 14px', borderRadius: 12, boxSizing: 'border-box',
@@ -520,16 +520,16 @@ export function WorkoutPlanEditorScreen({
           {aiLoading ? (
             <>
               <div style={{ width: 12, height: 12, borderRadius: '50%', border: `2px solid ${t.primary}44`, borderTopColor: t.primary, animation: 'spin 0.7s linear infinite' }}/>
-              Generating…
+              {tr('trainer.planner.generating')}
             </>
-          ) : '✦ Ask AI'}
+          ) : tr('trainer.planner.askAI')}
         </button>
         <button
           onClick={() => sendPlan('sent')}
           disabled={saving || exercises.length === 0}
           style={{ ...primaryBtn(t.primary, saving), marginBottom: 0, opacity: exercises.length === 0 ? 0.4 : saving ? 0.7 : 1 }}
         >
-          {saving ? 'Sending…' : 'Send to client →'}
+          {saving ? tr('trainer.planner.sending') : tr('trainer.planner.sendToClient')}
         </button>
       </div>
 
@@ -544,10 +544,10 @@ export function WorkoutPlanEditorScreen({
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           opacity: saving ? 0.7 : 1,
         }}>
-          <Icon name="play" size={16} color={exercises.length === 0 ? 'rgba(255,255,255,.3)' : '#10B981'}/> Start Live Session
+          <Icon name="play" size={16} color={exercises.length === 0 ? 'rgba(255,255,255,.3)' : '#10B981'}/> {tr('trainer.planner.startLiveSession')}
         </button>
         <div style={{ marginTop: 8, textAlign: 'center', fontSize: 11, color: textSec(dark) }}>
-          Train {selectedClient?.name?.split(' ')[0] || 'client'} now — opens workout mode directly
+          {tr('trainer.planner.startLiveSessionHint', { name: selectedClient?.name?.split(' ')[0] || 'client' })}
         </div>
       </div>
     </>

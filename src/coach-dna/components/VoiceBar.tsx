@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { THEME_VARS as DARK } from '../../theme/tokens';
+import i18n from '../../i18n';
 import { useTheme } from '../../contexts';
 
 interface VoiceBarProps {
@@ -50,9 +52,11 @@ function getSpeechRecognition(): SRCtor | null {
 
 export const VoiceBar: React.FC<VoiceBarProps> = ({
   onTranscript,
-  hint = 'Dictate to AI',
+  hint = undefined,
 }) => {
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
+  const effectiveHint = hint ?? tr('coachDna.components.voiceBar.dictateHint');
   const [active, setActive]   = React.useState(false);
   const [interim, setInterim] = React.useState('');
   const [error, setError]     = React.useState<string | null>(null);
@@ -73,7 +77,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
 
     setError(null);
     const rec = new SR();
-    rec.lang            = 'en-US';
+    rec.lang            = i18n.language || 'en-US';
     rec.continuous      = true;
     rec.interimResults  = true;
     recRef.current = rec;
@@ -94,9 +98,9 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
 
     rec.onerror = (e: Event) => {
       const err = (e as unknown as Record<string, unknown>).error as string | undefined;
-      if (err === 'not-allowed') setError('Microphone permission denied.');
-      else if (err === 'no-speech') setError('No speech detected.');
-      else setError('Speech recognition error.');
+      if (err === 'not-allowed') setError(tr('coachDna.components.voiceBar.micDenied'));
+      else if (err === 'no-speech') setError(tr('coachDna.components.voiceBar.noSpeech'));
+      else setError(tr('coachDna.components.voiceBar.speechError'));
       setActive(false);
     };
 
@@ -121,8 +125,8 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
         gap:          12,
         padding:      '12px 14px',
         borderRadius: 12,
-        border:       `1.5px dashed ${active ? t.accent : DARK.border}`,
-        background:   active ? `${t.accent}08` : 'transparent',
+        border:       `1.5px dashed ${active ? theme.accent : DARK.border}`,
+        background:   active ? `${theme.accent}08` : 'transparent',
         marginBottom: 8,
         cursor:       active ? 'pointer' : 'default',
         transition:   'border-color .2s, background .2s',
@@ -134,17 +138,17 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
           <div style={{
             position:     'absolute', inset: -6,
             borderRadius: '50%',
-            border:       `2px solid ${t.accent}`,
+            border:       `2px solid ${theme.accent}`,
             animation:    'dna-pulse-ring 1.2s ease-out infinite',
             pointerEvents: 'none',
           }}/>
         )}
         <button
           onClick={e => { e.stopPropagation(); toggle(); }}
-          title={active ? 'Stop recording' : 'Start recording'}
+          title={active ? tr('coachDna.components.voiceBar.stopRecording') : tr('coachDna.components.voiceBar.startRecording')}
           style={{
             width: 36, height: 36, borderRadius: '50%', border: 'none',
-            background: active ? t.accent : DARK.surface,
+            background: active ? theme.accent : DARK.surface,
             color:      active ? '#fff' : DARK.textSec,
             display:    'flex', alignItems: 'center', justifyContent: 'center',
             cursor:     'pointer', flexShrink: 0,
@@ -165,7 +169,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} style={{
                 width: 3, borderRadius: 2,
-                background: t.accent,
+                background: theme.accent,
                 animation:  `dna-wave .8s ease-in-out ${i * 0.12}s infinite`,
                 height:     '60%',
               }}/>
@@ -182,7 +186,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
           </div>
         ) : (
           <span style={{ fontSize: 12.5, color: DARK.textMute }}>
-            {error ?? hint}
+            {error ?? effectiveHint}
           </span>
         )}
       </div>
@@ -192,21 +196,21 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
         <div style={{
           display:      'flex', alignItems: 'center', gap: 5,
           padding:      '4px 10px', borderRadius: 20,
-          background:   `${t.accent}22`,
-          border:       `1px solid ${t.accent}55`,
+          background:   `${theme.accent}22`,
+          border:       `1px solid ${theme.accent}55`,
           flexShrink:   0,
         }}>
           <div style={{
             width: 6, height: 6, borderRadius: '50%',
-            background: t.accent,
+            background: theme.accent,
             animation:  'dna-dot-blink .9s ease-in-out infinite',
           }}/>
           <span style={{
             fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em',
-            textTransform: 'uppercase', color: t.accent,
+            textTransform: 'uppercase', color: theme.accent,
             whiteSpace: 'nowrap',
           }}>
-            Stop
+            {tr('coachDna.components.voiceBar.stop')}
           </span>
         </div>
       ) : null}

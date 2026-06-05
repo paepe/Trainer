@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon }          from '../components/Icon';
 import { useCoachDNA }   from '../hooks/useCoachDNA';
 import { THEME_VARS as DARK }          from '../theme/tokens';
@@ -38,7 +39,8 @@ interface CoachDNAScreenProps {
 
 export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNAScreenProps) {
   const trainerId = trainerIdProp ?? user.id;
-  const { t } = useTheme();
+  const { t: theme } = useTheme();
+  const { t: tr } = useTranslation();
   const { fetchCoachDNA, saveCoachDNA } = useCoachDNA(trainerId);
 
   const [step,      setStep]      = React.useState(0);
@@ -167,9 +169,9 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
 
   // ── header subtitle ───────────────────────────────────────────────────────────
   const subtitle = (() => {
-    if (step === 0)           return 'Coach DNA';
-    if (step === OUTPUT_STEP) return 'Phase 2 Complete';
-    return `Block ${step} of ${TOTAL_STEPS}`;
+    if (step === 0)           return tr('coachDna.screen.dnaActive');
+    if (step === OUTPUT_STEP) return tr('coachDna.screen.phase2Complete');
+    return tr('coachDna.screen.blockOf', { step, total: TOTAL_STEPS });
   })();
 
   if (loading) {
@@ -180,7 +182,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
       }}>
         <div style={{
           width: 32, height: 32, borderRadius: '50%',
-          border: `3px solid ${DARK.border}`, borderTopColor: t.accent,
+          border: `3px solid ${DARK.border}`, borderTopColor: theme.accent,
           animation: 'spin .7s linear infinite',
         }}/>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -221,9 +223,9 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
             <div style={{
               fontFamily:    '"JetBrains Mono",ui-monospace,monospace',
               fontSize:      10.5, fontWeight: 700, letterSpacing: '.18em',
-              textTransform: 'uppercase', color: t.accent,
+              textTransform: 'uppercase', color: theme.accent,
             }}>
-              TrAIner · Coach Studio
+              {tr('coachDna.screen.title')}
             </div>
             <div style={{ fontSize: 11.5, color: DARK.textMute, marginTop: 1 }}>
               {subtitle}
@@ -242,7 +244,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               opacity: (step === 0 || step === OUTPUT_STEP) ? 0 : 1, flexShrink: 0,
             }}
           >
-            <Icon name="check" size={16} color={t.accent}/>
+            <Icon name="check" size={16} color={theme.accent}/>
           </button>
         </div>
 
@@ -250,7 +252,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
         <div style={{ height: 3, borderRadius: 2, background: DARK.border }}>
           <div style={{
             height: '100%', borderRadius: 2,
-            background: `linear-gradient(90deg,#C23B22,${t.accent})`,
+            background: `linear-gradient(90deg,#C23B22,${theme.accent})`,
             width: `${progressPct}%`,
             transition: 'width .35s ease',
           }}/>
@@ -283,13 +285,13 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
             style={{
               width: '100%', padding: '16px 20px',
               borderRadius: 14, border: 'none',
-              background: t.accent, color: '#fff',
+              background: theme.accent, color: '#fff',
               fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
               cursor: 'pointer',
-              boxShadow: `0 10px 30px ${t.accent}44`,
+              boxShadow: `0 10px 30px ${theme.accent}44`,
             }}
           >
-            {dnaActive ? 'Edit Coach DNA' : 'Build my Coach DNA'}
+            {dnaActive ? tr('coachDna.screen.editDna') : tr('coachDna.screen.buildDna')}
           </button>
         ) : step === OUTPUT_STEP ? (
           <button
@@ -298,13 +300,13 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
             style={{
               width: '100%', padding: '16px 20px',
               borderRadius: 14, border: 'none',
-              background: t.accent, color: '#fff',
+              background: theme.accent, color: '#fff',
               fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
               cursor: 'pointer', opacity: saving ? 0.6 : 1,
-              boxShadow: `0 10px 30px ${t.accent}44`,
+              boxShadow: `0 10px 30px ${theme.accent}44`,
             }}
           >
-            {saving ? 'Saving…' : dnaActive ? 'Update Coach DNA' : 'Activate Coach DNA'}
+            {saving ? tr('coachDna.screen.saving') : dnaActive ? tr('coachDna.screen.updateDna') : tr('coachDna.screen.activateDna')}
           </button>
         ) : (
           <div style={{ display: 'flex', gap: 10 }}>
@@ -313,13 +315,13 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               disabled={saving}
               style={{
                 flex: 1, padding: '15px 20px', borderRadius: 14,
-                border: `1.5px solid ${t.accent}`,
-                background: 'transparent', color: t.accent,
+                border: `1.5px solid ${theme.accent}`,
+                background: 'transparent', color: theme.accent,
                 fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
                 cursor: 'pointer', opacity: saving ? 0.6 : 1,
               }}
             >
-              Save
+              {tr('coachDna.screen.save')}
             </button>
             <button
               onClick={() => save(true)}
@@ -327,13 +329,13 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
               style={{
                 flex: 2, padding: '15px 20px', borderRadius: 14,
                 border: 'none',
-                background: t.accent, color: '#fff',
+                background: theme.accent, color: '#fff',
                 fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
                 cursor: 'pointer', opacity: saving ? 0.6 : 1,
-                boxShadow: `0 8px 24px ${t.accent}44`,
+                boxShadow: `0 8px 24px ${theme.accent}44`,
               }}
             >
-              {saving ? 'Saving…' : step < TOTAL_STEPS ? 'Continue' : 'Complete Coach DNA'}
+              {saving ? tr('coachDna.screen.saving') : step < TOTAL_STEPS ? tr('coachDna.screen.continue') : tr('coachDna.screen.complete')}
             </button>
           </div>
         )}

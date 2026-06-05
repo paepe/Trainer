@@ -191,6 +191,7 @@ export function buildAIContext(
   stats:   StatsContext,
   library: LibraryContext,
   task:    TaskContext,
+  locale:  string,
 ): AIContext {
   return {
     trainer,
@@ -199,6 +200,7 @@ export function buildAIContext(
     stats,
     library,
     task,
+    locale,
     contextVersion: '1.0',
     builtAt: new Date().toISOString(),
   };

@@ -1,18 +1,19 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { BodyRhythmAdaptation } from '../../../types/profile-v2';
 
-const ADAPTATIONS: { value: BodyRhythmAdaptation; label: string }[] = [
-  { value: 'maintain_normal',    label: 'Maintain normal'       },
-  { value: 'reduce_intensity',   label: 'Reduce intensity' },
-  { value: 'reduce_impact',      label: 'Reduce impact'     },
-  { value: 'increase_rest',      label: 'Increase rest'   },
-  { value: 'shorten_session',    label: 'Shorten session'      },
-  { value: 'prioritize_mobility',label: 'Prioritize mobility' },
-  { value: 'postpone_training',  label: 'Postpone training'        },
-  { value: 'regenerative',       label: 'Regenerative'        },
+const ADAPTATION_KEYS: { value: BodyRhythmAdaptation; i18nKey: string }[] = [
+  { value: 'maintain_normal',    i18nKey: 'maintain' },
+  { value: 'reduce_intensity',   i18nKey: 'reduce_intensity' },
+  { value: 'reduce_impact',      i18nKey: 'reduce_impact' },
+  { value: 'increase_rest',      i18nKey: 'increase_rest' },
+  { value: 'shorten_session',    i18nKey: 'shorten' },
+  { value: 'prioritize_mobility',i18nKey: 'prioritize_mobility' },
+  { value: 'postpone_training',  i18nKey: 'postpone' },
+  { value: 'regenerative',       i18nKey: 'regenerative' },
 ];
 
 interface Step10Props extends WizardStepProps {
@@ -20,12 +21,15 @@ interface Step10Props extends WizardStepProps {
 }
 
 export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps, biologicalSex }: Step10Props) {
+  const { t: tr } = useTranslation();
   const br = data.body_rhythm ?? {
     enabled: false,
     cycle_current_day: 14,
     cycle_duration_days: 28,
     adaptation_preference: [],
   };
+
+  const adaptLabel = (i18nKey: string) => tr(`wizard.step10.adaptations.${i18nKey}`);
 
   const set = (patch: Partial<typeof br>) =>
     onUpdate({ body_rhythm: { ...br, ...patch } });
@@ -41,12 +45,11 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} badge="opt-in" title="Body Rhythm" subtitle="Private adaptation to physiological cycle, whenever you want to activate it. Never inspected." />
+      <WizardHeader currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack} badge="opt-in" title={tr('wizard.step10.title')} subtitle={tr('wizard.step10.subtitle')} />
 
       
       
 
-      {/* Main toggle */}
       <div style={{
         padding: '14px 16px', borderRadius: 14,
         background: surfRaised(dark),
@@ -54,9 +57,9 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
         marginBottom: 20,
       }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Activate Body Rhythm</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>{tr('wizard.step10.activateLabel')}</div>
           <div style={{ fontSize: 11.5, color: textSec(dark), marginTop: 3, lineHeight: 1.4 }}>
-            This feature is opt-in. You can deactivate and delete data at any time.
+            {tr('wizard.step10.activateHint')}
           </div>
         </div>
         <Toggle on={br.enabled} onChange={v => set({ enabled: v })}/>
@@ -65,16 +68,16 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
       {br.enabled && (
         <VStack gap={20}>
           <Slider
-            label="Current cycle day"
+            label={tr('wizard.step10.cycleDayLabel')}
             value={br.cycle_current_day ?? 14}
-            min={1} max={35} suffix=" day"
+            min={1} max={35} suffix={tr('wizard.step10.cycleDaySuffix')}
             onChange={v => set({ cycle_current_day: v })}
           />
 
           <Slider
-            label="Average cycle duration"
+            label={tr('wizard.step10.cycleDurationLabel')}
             value={br.cycle_duration_days ?? 28}
-            min={21} max={35} suffix=" days"
+            min={21} max={35} suffix={tr('wizard.step10.cycleDurationSuffix')}
             onChange={v => set({ cycle_duration_days: v })}
           />
 
@@ -92,21 +95,21 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
             <span style={{ fontSize: 16 }}>🌙</span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: isDay1 ? '#8B5CF6' : textPri(dark) }}>
-                Period starts today
+                {tr('wizard.step10.periodToday')}
               </div>
               <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2 }}>
-                {isDay1 ? 'Day 1 marked — conservative adaptation activated' : 'Tap to mark cycle day 1'}
+                {isDay1 ? tr('wizard.step10.day1Marked') : tr('wizard.step10.tapDay1')}
               </div>
             </div>
           </button>
 
           <div>
-            <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Adaptation preference</Typography>
+            <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step10.adaptationLabel')}</Typography>
             <HStack style={{ flexWrap: 'wrap' }} gap={8}>
-              {ADAPTATIONS.map(a => (
+              {ADAPTATION_KEYS.map(a => (
                 <Chip
                   key={a.value}
-                  label={a.label}
+                  label={adaptLabel(a.i18nKey)}
                   active={(br.adaptation_preference ?? []).includes(a.value)}
                   onClick={() => toggleAdaptation(a.value)}
                 />
@@ -115,7 +118,7 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
           </div>
 
           <p style={{ fontSize: 11.5, color: textMute(dark), lineHeight: 1.5, margin: 0 }}>
-            We never adopt things like "the student is on her period". Your operational adaptation will be: "Temporary biological factor — moderate approach and lower impact recommended".
+            {tr('wizard.step10.privacyNote')}
           </p>
         </VStack>
       )}

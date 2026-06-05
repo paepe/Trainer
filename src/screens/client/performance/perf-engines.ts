@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from '../../../i18n';
 import { supabase } from '../../../supabase';
 import type {
   M5Data, PredictiveScore, PerformanceInsight,
@@ -517,7 +518,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
     const avgRpe = rpeArr.length > 0 ? rpeArr.reduce((a, b) => a + b) / rpeArr.length : null;
     return {
       id:          s.id,
-      date:        new Date(s.started_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }),
+      date:        new Date(s.started_at).toLocaleDateString(i18n.language || 'en-US', { day: '2-digit', month: '2-digit' }),
       completed:   s.status === 'completed',
       partial:     s.status !== 'completed' && s.status !== 'abandoned' && s.completed_at !== null,
       rpe:         avgRpe !== null ? Math.round(avgRpe * 10) / 10 : null,

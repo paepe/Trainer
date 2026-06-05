@@ -1,60 +1,22 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon }        from '../../components/Icon';
 import { PrivacyNote } from '../components/PrivacyNote';
 import { TRAINER_BRAND, THEME_VARS as DARK } from '../../theme/tokens';
 import type { CoachArchetype } from '../../types/coach-dna';
 
 interface ArchetypeMeta {
-  title: string;
-  sub:   string;
-  desc:  string;
   icon:  string;
   color: string;
 }
 
 const ARCHETYPE_META: Record<CoachArchetype, ArchetypeMeta> = {
-  performance: {
-    title: 'Performance Coach',
-    sub:   'High performance & measurable goals',
-    desc:  'You train for results. Every session has metrics, every client has targets. Your DNA generates performance-oriented workouts focused on load progression and personal bests.',
-    icon:  'zap',
-    color: TRAINER_BRAND.accent,
-  },
-  technician: {
-    title: 'The Technician',
-    sub:   'Biomechanics & methodological precision',
-    desc:  'You are obsessed with method. Every exercise has a reason, every phase has logic. Your DNA generates workouts with precise technical cuing and well-structured progressions.',
-    icon:  'gauge',
-    color: TRAINER_BRAND.primarySoft,
-  },
-  motivator: {
-    title: 'The Motivator',
-    sub:   'Energy & memorable experiences',
-    desc:  'You create environments that inspire. Your DNA generates workouts with energizing language, variety, and challenges that keep clients engaged and coming back.',
-    icon:  'flame',
-    color: TRAINER_BRAND.amber,
-  },
-  guide: {
-    title: 'The Guide',
-    sub:   'Empathy & sustainable progress',
-    desc:  'You accompany each client at their own pace. Your DNA generates progressive workouts explained with empathy, focused on long-term health and client autonomy.',
-    icon:  'heart',
-    color: TRAINER_BRAND.success,
-  },
-  drill: {
-    title: 'Drill Master',
-    sub:   'Discipline & progressive rigor',
-    desc:  'You demand the best from every client. Your DNA generates challenging workouts with well-defined strength sequences and maximum execution standards in every rep.',
-    icon:  'shieldCheck',
-    color: TRAINER_BRAND.primary,
-  },
-  movement: {
-    title: 'Movement Specialist',
-    sub:   'Function, mobility & motor patterns',
-    desc:  'You see the body as an integrated system. Your DNA generates workouts emphasizing movement quality, mobility, and functional patterns.',
-    icon:  'wave',
-    color: TRAINER_BRAND.lavender,
-  },
+  performance: { icon: 'zap',          color: TRAINER_BRAND.accent       },
+  technician:  { icon: 'gauge',        color: TRAINER_BRAND.primarySoft  },
+  motivator:   { icon: 'flame',        color: TRAINER_BRAND.amber        },
+  guide:       { icon: 'heart',        color: TRAINER_BRAND.success      },
+  drill:       { icon: 'shieldCheck',  color: TRAINER_BRAND.primary      },
+  movement:    { icon: 'wave',         color: TRAINER_BRAND.lavender     },
 };
 
 interface StepOutputProps {
@@ -62,7 +24,11 @@ interface StepOutputProps {
 }
 
 export const StepOutput: React.FC<StepOutputProps> = ({ archetype }) => {
+  const { t: tr } = useTranslation();
   const meta = ARCHETYPE_META[archetype];
+  const title = tr(`coachDna.output.archetypes.${archetype}.title`);
+  const sub   = tr(`coachDna.output.archetypes.${archetype}.sub`);
+  const desc  = tr(`coachDna.output.archetypes.${archetype}.desc`);
 
   return (
     <div style={{ textAlign: 'center' }}>
@@ -74,7 +40,7 @@ export const StepOutput: React.FC<StepOutputProps> = ({ archetype }) => {
         textTransform: 'uppercase', color: meta.color,
         marginBottom: 24,
       }}>
-        Coach DNA · Archetype
+        {tr('coachDna.output.kicker')}
       </div>
 
       {/* archetype icon */}
@@ -95,13 +61,13 @@ export const StepOutput: React.FC<StepOutputProps> = ({ archetype }) => {
         lineHeight: 1.2, marginBottom: 8,
         animation: 'dna-appear .4s .08s cubic-bezier(.34,1.56,.64,1) both',
       }}>
-        {meta.title}
+        {title}
       </div>
       <div style={{
         fontSize: 13, color: meta.color, fontWeight: 600, marginBottom: 28,
         animation: 'dna-appear .4s .12s ease both',
       }}>
-        {meta.sub}
+        {sub}
       </div>
 
       {/* description card */}
@@ -113,12 +79,12 @@ export const StepOutput: React.FC<StepOutputProps> = ({ archetype }) => {
         animation: 'dna-appear .4s .18s ease both',
       }}>
         <p style={{ fontSize: 14, color: DARK.textSec, lineHeight: 1.7, margin: 0 }}>
-          {meta.desc}
+          {desc}
         </p>
       </div>
 
       <PrivacyNote tone="coach">
-        The archetype is derived automatically from your DNA and updates as you evolve your profile.
+        {tr('coachDna.output.privacyNote')}
       </PrivacyNote>
 
       <style>{`

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StepHeader }    from '../components/StepHeader';
 import { Hint }          from '../components/Hint';
 import { Icon }          from '../../components/Icon';
@@ -11,6 +12,9 @@ interface Step10Props {
 }
 
 export const Step10Structure: React.FC<Step10Props> = ({ structure, onChange }) => {
+  const { t: tr } = useTranslation();
+  const blockLabel = (key: string) => tr(`coachDna.step10.blocks.${key}.label`);
+  const blockSub = (key: string) => tr(`coachDna.step10.blocks.${key}.sub`);
   const move = (idx: number, dir: -1 | 1) => {
     const next   = [...structure];
     const target = idx + dir;
@@ -26,11 +30,11 @@ export const Step10Structure: React.FC<Step10Props> = ({ structure, onChange }) 
     <div>
       <StepHeader
         idx={10} total={12}
-        title="Session structure"
-        sub="Define the default order of blocks in a typical session."
-        badge="Coach DNA"
+        title={tr('coachDna.step10.title')}
+        sub={tr('coachDna.step10.sub')}
+        badge={tr('coachDna.step10.badge')}
       />
-      <Hint>Reorder blocks using the arrows. This sequence will be the default template for your workouts.</Hint>
+      <Hint>{tr('coachDna.step10.hint')}</Hint>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {structure.map((key, idx) => {
@@ -63,8 +67,8 @@ export const Step10Structure: React.FC<Step10Props> = ({ structure, onChange }) 
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: DARK.textPri }}>{block.label}</div>
-                <div style={{ fontSize: 11, color: DARK.textMute, marginTop: 1 }}>{block.sub}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: DARK.textPri }}>{blockLabel(block.key)}</div>
+                <div style={{ fontSize: 11, color: DARK.textMute, marginTop: 1 }}>{blockSub(block.key)}</div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flexShrink: 0 }}>

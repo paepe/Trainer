@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, primaryBtn } from '../../theme';
 import type { NavFn } from '../../types';
@@ -38,14 +39,7 @@ interface WorkoutModeScreenProps {
   sounds?:                     boolean;
 }
 
-const PAIN_REGIONS: { value: string; label: string }[] = [
-  { value: 'neck',       label: 'Neck'       }, { value: 'shoulder',   label: 'Shoulder'  },
-  { value: 'elbow',      label: 'Elbow'      }, { value: 'wrist',      label: 'Wrist'     },
-  { value: 'upper_back', label: 'Upper Back' }, { value: 'lower_back', label: 'Lower Back'},
-  { value: 'hip',        label: 'Hip'        }, { value: 'knee',       label: 'Knee'      },
-  { value: 'ankle',      label: 'Ankle'      }, { value: 'other',      label: 'Other'     },
-];
-const SKIP_OPTIONS = ['Pain / Injury', 'Lack of Equipment', 'Fatigue / Energy', 'Time Constraint', 'Other'];
+const skipOptions: string[] = [];
 
 export function WorkoutModeScreen({
   nav, t, dark, user, planId, exercises, plannedDurationMin, clientUserId, clientName,
@@ -53,6 +47,23 @@ export function WorkoutModeScreen({
   reportWorkoutPain, completeWorkoutSession, updatePainRecurrence,
   sounds = false,
 }: WorkoutModeScreenProps) {
+  const { t: tr } = useTranslation();
+  const skipOptions = React.useMemo(
+    () => tr('client.mode.skipReasons', { returnObjects: true }) as string[],
+    [tr],
+  );
+  const painRegions = React.useMemo(() => [
+    { value: 'neck', label: tr('client.mode.bodyParts.neck') },
+    { value: 'shoulder', label: tr('client.mode.bodyParts.shoulder') },
+    { value: 'elbow', label: tr('client.mode.bodyParts.elbow') },
+    { value: 'wrist', label: tr('client.mode.bodyParts.wrist') },
+    { value: 'upper_back', label: tr('client.mode.bodyParts.upper_back') },
+    { value: 'lower_back', label: tr('client.mode.bodyParts.lower_back') },
+    { value: 'hip', label: tr('client.mode.bodyParts.hip') },
+    { value: 'knee', label: tr('client.mode.bodyParts.knee') },
+    { value: 'ankle', label: tr('client.mode.bodyParts.ankle') },
+    { value: 'other', label: tr('client.mode.bodyParts.other') },
+  ], [tr]);
   const soundsRef = React.useRef(sounds);
   React.useEffect(() => { soundsRef.current = sounds; }, [sounds]);
   const [sessionId,  setSessionId]  = React.useState<string | null>(null);
@@ -364,7 +375,7 @@ export function WorkoutModeScreen({
               }}
             >
               <Icon name="trophy" size={16} color="#0E1A2B"/>
-              {finishing ? 'Saving…' : 'Finish Workout'}
+              {finishing ? tr('client.mode.saving') : tr('client.mode.finishWorkout')}
             </button>
           </div>
         )}
@@ -373,7 +384,7 @@ export function WorkoutModeScreen({
       {/* ── Overlay: Set form ── */}
       {phase === 'set_form' && activeEx && (
         <BottomPanel title={`Set ${activeEx.setsLogged + 1} of ${activeEx.setsPrescribed} — ${activeEx.name}`} dark={dark}>
-          <LabeledInput label="Reps" value={setReps} onChange={setSetReps} type="number" dark={dark}/>
+          <LabeledInput label={tr('client.mode.reps')} value={setReps} onChange={setSetReps} type="number" dark={dark}/>
           <LabeledInput label="Load (kg)" value={setLoad} onChange={setSetLoad} type="number" dark={dark}/>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
@@ -394,40 +405,40 @@ export function WorkoutModeScreen({
             <button onClick={() => setPhase('active')} style={{
               flex: 1, padding: '12px 0', borderRadius: 999, border: `1.5px solid ${borderSubtle(dark)}`,
               background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            }}>Cancel</button>
+            }}>{tr('client.mode.cancel')}</button>
             <button onClick={() => void confirmSet()} style={{
               flex: 2, ...primaryBtn(t.primary),
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            }}>Confirm Set</button>
+            }}>{tr('client.mode.confirmSet')}</button>
           </div>
         </BottomPanel>
       )}
 
       {/* ── Overlay: Rest timer ── */}
       {phase === 'rest' && (
-        <BottomPanel title="Rest" dark={dark}>
+        <BottomPanel title={tr('client.mode.rest')} dark={dark}>
           <div style={{ textAlign: 'center', padding: '8px 0' }}>
             <div style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 52, fontWeight: 700, color: t.primary, lineHeight: 1 }}>
               {String(Math.floor(restSec / 60)).padStart(2,'0')}:{String(restSec % 60).padStart(2,'0')}
             </div>
-            <div style={{ fontSize: 12.5, color: textSec(dark), marginTop: 4 }}>seconds remaining</div>
+            <div style={{ fontSize: 12.5, color: textSec(dark), marginTop: 4 }}>{tr('client.mode.secondsRemaining')}</div>
           </div>
           <button onClick={() => setPhase('active')} style={{
             ...primaryBtn(t.primary),
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          }}>Skip Rest</button>
+          }}>{tr('client.mode.skipRest')}</button>
         </BottomPanel>
       )}
 
       {/* ── Overlay: Pain form ── */}
       {phase === 'pain_form' && (
-        <BottomPanel title="Report Pain" dark={dark}>
+        <BottomPanel title={tr('client.mode.reportPain')} dark={dark}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
-              Body Region
+              {tr('client.mode.bodyRegion')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {PAIN_REGIONS.map(r => (
+              {painRegions.map(r => (
                 <button key={r.value} onClick={() => setPainRegion(r.value)} style={{
                   padding: '7px 12px', borderRadius: 999,
                   background: painRegion === r.value ? `${t.accent}22` : surfRaised(dark),
@@ -457,12 +468,12 @@ export function WorkoutModeScreen({
             <button onClick={() => setPhase('active')} style={{
               flex: 1, padding: '12px 0', borderRadius: 999, border: `1.5px solid ${borderSubtle(dark)}`,
               background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            }}>Cancel</button>
+            }}>{tr('client.mode.cancel')}</button>
             <button onClick={() => void submitPain()} disabled={!painRegion} style={{
               flex: 2, ...primaryBtn(t.accent),
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               opacity: painRegion ? 1 : 0.45,
-            }}>Report</button>
+            }}>{tr('client.mode.report')}</button>
           </div>
         </BottomPanel>
       )}
@@ -475,7 +486,7 @@ export function WorkoutModeScreen({
               Reason for skipping
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {SKIP_OPTIONS.map(opt => (
+              {skipOptions.map(opt => (
                 <button key={opt} onClick={() => setSkipReasonOption(opt)} style={{
                   padding: '7px 12px', borderRadius: 14,
                   background: skipReasonOption === opt ? `${t.primary}22` : surfRaised(dark),
@@ -488,13 +499,13 @@ export function WorkoutModeScreen({
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
-              {skipReasonOption === 'Other' ? 'Please specify (required)' : 'Additional comments (optional)'}
+              {skipReasonOption === 'Other' ? tr('client.mode.specifyRequired') : tr('client.mode.commentsOptional')}
             </div>
             <input
               type="text"
               value={skipCustomReason}
               onChange={e => setSkipCustomReason(e.target.value)}
-              placeholder={skipReasonOption === 'Other' ? 'Type reason...' : 'Type comments...'}
+              placeholder={skipReasonOption === 'Other' ? tr('client.mode.typeReason') : tr('client.mode.typeComments')}
               style={{
                 width: '100%', boxSizing: 'border-box',
                 padding: '10px 14px', borderRadius: 10,
@@ -508,7 +519,7 @@ export function WorkoutModeScreen({
             <button onClick={() => setPhase('active')} style={{
               flex: 1, padding: '12px 0', borderRadius: 14, border: `1.5px solid ${borderSubtle(dark)}`,
               background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            }}>Cancel</button>
+            }}>{tr('client.mode.cancel')}</button>
             <button
               onClick={() => void confirmSkip()}
               disabled={!skipReasonOption || (skipReasonOption === 'Other' && !skipCustomReason.trim())}

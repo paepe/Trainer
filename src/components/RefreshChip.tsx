@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import { Icon } from './Icon';
 
 interface RefreshChipProps {
@@ -18,12 +20,12 @@ function fmtAgo(date: Date | null): string {
   if (s < 60)  return `${s}s ago`;
   const m = Math.floor(s / 60);
   if (m < 60)  return `${m}m ago`;
-  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString(i18n.language || 'en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Small "Updated Xs ago ↻" chip — re-runs the screen's fetch on tap.
-// Used on sensitive screens that are not Realtime-live.
 export function RefreshChip({ onRefresh, loading, lastUpdated, live, color, dark }: RefreshChipProps) {
+  const { t: tr } = useTranslation();
+
   // Tick every 15s so the "Xs ago" label stays current while the screen is open
   const [, force] = React.useState(0);
   React.useEffect(() => {
@@ -58,7 +60,7 @@ export function RefreshChip({ onRefresh, loading, lastUpdated, live, color, dark
         </span>
       )}
       <span style={{ fontSize: 10.5, fontWeight: 600, color: live ? '#4ade80' : muted }}>
-        {live ? 'Live' : loading ? 'Updating…' : fmtAgo(lastUpdated) || 'Refresh'}
+        {live ? tr('common.live') : loading ? tr('common.updating') : fmtAgo(lastUpdated) || tr('common.refresh')}
       </span>
     </button>
   );

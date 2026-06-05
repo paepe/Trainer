@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { FOCUS_ITEMS } from '../constants';
@@ -10,15 +11,18 @@ interface Step07Props {
   onChange: (focus: CoachDNAFocus) => void;
 }
 
-export const Step07Focus: React.FC<Step07Props> = ({ focus, onChange }) => (
+export const Step07Focus: React.FC<Step07Props> = ({ focus, onChange }) => {
+  const { t: tr } = useTranslation();
+  const itemLabel = (key: string) => tr(`coachDna.step07.items.${key}`);
+  return (
   <div>
     <StepHeader
       idx={7} total={12}
-      title="Training focus"
-      sub="How much weight does each physical capacity carry in your method?"
-      badge="Coach DNA"
+      title={tr('coachDna.step07.title')}
+      sub={tr('coachDna.step07.sub')}
+      badge={tr('coachDna.step07.badge')}
     />
-    <Hint>Distribute emphasis across physical qualities. 0 = not a priority, 10 = central pillar.</Hint>
+    <Hint>{tr('coachDna.step07.hint')}</Hint>
 
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {FOCUS_ITEMS.map(item => {
@@ -26,7 +30,7 @@ export const Step07Focus: React.FC<Step07Props> = ({ focus, onChange }) => (
         return (
           <div key={item.key}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ fontSize: 13.5, fontWeight: 600, color: DARK.textPri }}>{item.label}</span>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: DARK.textPri }}>{itemLabel(item.key)}</span>
               <span style={{
                 fontSize: 13, fontWeight: 700, color: item.color,
                 minWidth: 24, textAlign: 'right',
@@ -38,12 +42,13 @@ export const Step07Focus: React.FC<Step07Props> = ({ focus, onChange }) => (
               style={{ width: '100%', accentColor: item.color, cursor: 'pointer' }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-              <span style={{ fontSize: 10, color: DARK.textMute }}>0 – Not a priority</span>
-              <span style={{ fontSize: 10, color: DARK.textMute }}>10 – Central pillar</span>
+              <span style={{ fontSize: 10, color: DARK.textMute }}>{tr('coachDna.step07.notPriority')}</span>
+              <span style={{ fontSize: 10, color: DARK.textMute }}>{tr('coachDna.step07.centralPillar')}</span>
             </div>
           </div>
         );
       })}
     </div>
   </div>
-);
+  );
+};

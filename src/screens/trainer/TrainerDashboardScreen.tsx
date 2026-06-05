@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { TextInput, VStack, HStack, Spacer } from '@/ui';
 import { supabase } from '../../supabase';
 import { useAlerts } from '../../hooks/useAlerts';
@@ -244,7 +245,7 @@ export function TrainerDashboardScreen({
       <VStack padding="0 22px 32px" gap={12}>
         {loading && (
           <div style={{ textAlign: 'center', padding: 40, color: textMute(dark), fontSize: 13 }}>
-            Loading…
+            {tr('trainer.dashboard.loading')}
           </div>
         )}
 
@@ -279,7 +280,7 @@ export function TrainerDashboardScreen({
               }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
-                    {clientNameMap[ev.user_id] || 'Cliente'}
+                    {clientNameMap[ev.user_id] || tr('trainer.dashboard.clientFallback')}
                   </div>
                   <HStack gap={6} flexWrap="wrap" style={{ marginTop: 3 }}>
                     <span style={{
@@ -294,7 +295,7 @@ export function TrainerDashboardScreen({
                   </HStack>
                   {ev.created_at && (
                     <div style={{ fontSize: 10, color: textMute(dark), marginTop: 2 }}>
-                      {new Date(ev.created_at).toLocaleDateString('en-US')}
+                      {new Date(ev.created_at).toLocaleDateString(i18n.language || 'en-US')}
                     </div>
                   )}
                 </div>
@@ -377,7 +378,7 @@ export function TrainerDashboardScreen({
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
-                {tc.client?.name || 'Unknown'}
+                {tc.client?.name || tr('trainer.dashboard.unknown')}
               </div>
               <div style={{
                 fontSize: 12, color: textSec(dark), marginTop: 2,
@@ -555,7 +556,7 @@ function AlertsSection({
                   {alert.severity.toUpperCase()}
                 </span>
                 <span style={{ fontSize: 11, color: textMute(dark) }}>
-                  {clientNameMap[alert.client_id] ?? 'Cliente'}
+                  {clientNameMap[alert.client_id] ?? tr('trainer.dashboard.clientFallback')}
                 </span>
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{alert.title}</div>
@@ -563,7 +564,7 @@ function AlertsSection({
                 <div style={{ fontSize: 11.5, color: textSec(dark), marginTop: 2 }}>{alert.body}</div>
               )}
               <div style={{ fontSize: 10, color: textMute(dark), marginTop: 3 }}>
-                {new Date(alert.created_at).toLocaleDateString('en-US')}
+                {new Date(alert.created_at).toLocaleDateString(i18n.language || 'en-US')}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -658,7 +659,7 @@ function TasksSection({
                 {task.priority.toUpperCase()}
               </span>
               <span style={{ fontSize: 11, color: textMute(dark) }}>
-                {clientNameMap[task.client_id] ?? 'Cliente'}
+                {clientNameMap[task.client_id] ?? tr('trainer.dashboard.clientFallback')}
               </span>
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{task.title}</div>

@@ -134,11 +134,9 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
             <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>{tr('client.goal.sessionSummary')}</div>
           </div>
           <div style={{ fontSize: 12.5, color: textSec(dark), lineHeight: 1.55 }}>
-            {duration ? <>Your session lasted <b style={{ color: textPri(dark) }}>{fmtDuration(duration)}</b>. </> : null}
-            {completePct !== null
-              ? <><b style={{ color: t.primary }}>{completePct}%</b> of planned exercises completed. </>
-              : null}
-            Great work — check your stats for progress trends.
+            <span dangerouslySetInnerHTML={{ __html: duration ? tr('client.goal.sessionLasted', { duration: fmtDuration(duration) }) : '' }} />
+            <span dangerouslySetInnerHTML={{ __html: completePct != null && (total ?? 0) > 0 ? tr('client.goal.ofPlannedCompleted', { pct: completePct }) : '' }} />
+            {tr('client.goal.greatWork')}
           </div>
         </div>
       </div>

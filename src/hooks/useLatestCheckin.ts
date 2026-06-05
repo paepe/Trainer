@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from '../i18n';
 import { supabase } from '../supabase';
 import { useRealtimeTable } from './useRealtimeTable';
 
@@ -27,10 +28,11 @@ function formatLast(ts?: string | null): string {
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   const isYesterday = d.toDateString() === yesterday.toDateString();
-  const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-  if (isToday) return `Today ${time}`;
-  if (isYesterday) return `Yesterday ${time}`;
-  return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${time}`;
+  const locale = i18n.language || 'en-US';
+  const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+  if (isToday) return `${i18n.t('common.today')} ${time}`;
+  if (isYesterday) return `${i18n.t('common.yesterday')} ${time}`;
+  return `${d.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} ${time}`;
 }
 
 export function useLatestCheckin(userId: string | null | undefined) {

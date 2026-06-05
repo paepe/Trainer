@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { C } from './perf-engines';
 import bodyFemaleImg    from '../../../assets/body-female.png';
 import bodyMaleImg      from '../../../assets/body-male.png';
@@ -129,6 +130,7 @@ const TONE_COLORS: Record<string, string> = {
 };
 
 export function AIMessage({ title, body, tone = 'cyan', action }: AIMessageProps) {
+  const { t: tr } = useTranslation();
   const c = TONE_COLORS[tone] || C.cyan;
   return (
     <div style={{
@@ -160,7 +162,7 @@ export function AIMessage({ title, body, tone = 'cyan', action }: AIMessageProps
             background: T.navy, border: `1px dashed ${c}55`,
             fontSize: 12, color: T.textSec,
           }}>
-            <span style={{ color: c }}>→</span> <b style={{ color: T.text }}>Action:</b> {action}
+            <span style={{ color: c }}>→</span> <b style={{ color: T.text }}>{tr('common.action')}:</b> {action}
           </div>
         )}
       </div>

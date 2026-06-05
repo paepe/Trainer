@@ -70,17 +70,16 @@ export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <Icon name="flask" size={18} color="#0E1A2B" stroke={2.4}/>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>Your methodology · v3.2</div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>{tr('trainer.studio.methodology')}</div>
           </div>
           <div style={{ fontSize: 12, opacity: .85, lineHeight: 1.5, marginBottom: 12 }}>
-            42 workouts · 18 progressions · 7 client archetypes.<br/>
-            Last trained: 2 days ago. AI uses this to generate plans only for <b>your</b> clients.
+            {tr('trainer.studio.aiSummary')}
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button style={{
               padding: '9px 14px', borderRadius: 999, border: 'none',
               background: '#0E1A2B', color: t.accent, fontSize: 12, fontWeight: 700, fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer',
-            }}>+ Add workout</button>
+            }}>{tr('trainer.studio.addWorkout')}</button>
             <button onClick={() => nav('trainerLibraryExercises')} style={{
               padding: '9px 14px', borderRadius: 999, border: '1.5px solid rgba(14,26,43,.4)',
               background: 'transparent', color: '#0E1A2B', fontSize: 12, fontWeight: 600, fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer',

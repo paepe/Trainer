@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { Icon } from '../components/Icon';
 import { Typography } from './Typography';
@@ -27,6 +28,7 @@ const TONE_COLORS: Record<string, string> = {
 };
 
 export function Alert({ title, text, body, variant = 'info', action, isAI = false }: AlertProps) {
+  const { t: tr } = useTranslation();
   const content = text || body || '';
   const color = TONE_COLORS[variant] || BRAND.primary;
   
@@ -63,7 +65,7 @@ export function Alert({ title, text, body, variant = 'info', action, isAI = fals
               background: DARK.surface, border: `1px dashed ${color}55`,
               fontSize: 12, color: DARK.textSec,
             }}>
-              <span style={{ color }}>→</span> <b style={{ color: DARK.textPri }}>Action:</b> {action}
+              <span style={{ color }}>→</span> <b style={{ color: DARK.textPri }}>{tr('common.action')}:</b> {action}
             </div>
           )}
         </VStack>

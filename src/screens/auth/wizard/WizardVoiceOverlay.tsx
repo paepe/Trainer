@@ -1,9 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n';
 import { primaryBtn, surfRaised, textPri, textSec, textMute, borderSubtle } from '../../../theme';
 import { HStack } from '../../../ui';
 import { Icon } from '../../../components/Icon';
 
-// ─── Detect browser Speech Recognition ────────────────────────────────────────
 const SpeechRecognitionAPI =
   (typeof window !== 'undefined')
     ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
@@ -13,37 +14,26 @@ interface WizardVoiceOverlayProps {
   dark?: boolean;
   primary?: string;
   context:    string;
-  /** Called with the final transcribed / typed text */
   onConfirm:  (text: string) => void;
   onClose:    () => void;
 }
 
-/**
- * Full-screen voice + text overlay for Profile Wizard steps.
- *
- * Priority order:
- *   1. Web Speech API (if browser supports it) → real microphone
- *   2. Fallback textarea → manual typing
- *
- * On confirm the text is passed to onConfirm() so the parent step
- * can either pre-fill its own fields or ship the text to the AI.
- */
 export function WizardVoiceOverlay({
   dark = true, primary = '#2DD4E0', context, onConfirm, onClose,
 }: WizardVoiceOverlayProps) {
+  const { t: tr } = useTranslation();
   const [text,       setText]       = React.useState('');
   const [listening,  setListening]  = React.useState(false);
   const [supported,  setSupported]  = React.useState(!!SpeechRecognitionAPI);
   const [error,      setError]      = React.useState<string | null>(null);
   const recognitionRef = React.useRef<any>(null);
 
-  // ── Web Speech API ────────────────────────────────────────────────────────
   const startListening = () => {
     if (!SpeechRecognitionAPI) { setSupported(false); return; }
     setError(null);
 
     const rec = new SpeechRecognitionAPI();
-    rec.lang           = 'en-US';
+    rec.lang           = i18n.language || 'en-US';
     rec.continuous     = true;
     rec.interimResults = true;
 
@@ -55,10 +45,10 @@ export function WizardVoiceOverlay({
     };
     rec.onerror = (e: any) => {
       if (e.error === 'not-allowed') {
-        setError('Microphone permission denied. Use the text field below.');
+        setError(tr('wizard.voice.micDenied'));
         setSupported(false);
       } else {
-        setError('Error capturing audio. Try again or use the text field.');
+        setError(tr('wizard.voice.audioError'));
       }
       setListening(false);
     };
@@ -74,12 +64,10 @@ export function WizardVoiceOverlay({
     setListening(false);
   };
 
-  // ── Cleanup on unmount ────────────────────────────────────────────────────
   React.useEffect(() => () => recognitionRef.current?.stop(), []);
 
   const canConfirm = text.trim().length > 3;
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 999,
@@ -89,7 +77,6 @@ export function WizardVoiceOverlay({
       backdropFilter: 'blur(6px)',
       animation: 'fadeIn .2s ease',
     }}>
-      {/* Sheet */}
       <div style={{
         width: '100%', maxWidth: 520,
         background: 'var(--surface)',
@@ -98,11 +85,10 @@ export function WizardVoiceOverlay({
         boxShadow: '0 -8px 40px rgba(0,0,0,.35)',
         animation: 'slideUp .25s ease',
       }}>
-        {/* Header */}
         <HStack justifyContent="space-between" style={{ marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: primary, marginBottom: 2 }}>
-              🎙 Voice Input
+              🎙 {tr('wizard.voice.kicker')}
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, color: textPri(dark) }}>
               {context}
@@ -111,23 +97,21 @@ export function WizardVoiceOverlay({
           <button
             onClick={onClose}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
-            aria-label="Close"
+            aria-label={tr('wizard.voice.close')}
           >
             <Icon name="more" size={20} color={textMute(dark)} stroke={2}/>
           </button>
         </HStack>
 
-        {/* Instruction */}
         <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.55 }}>
-          Speak or write in your own words. The AI organizes the information before saving — you confirm everything first.
+          {tr('wizard.voice.instruction')}
         </p>
 
-        {/* ── Mic button (if supported) ── */}
         {supported && (
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <button
               onClick={listening ? stopListening : startListening}
-              aria-label={listening ? 'Stop recording' : 'Start voice recording'}
+              aria-label={listening ? tr('wizard.voice.stopRecording') : tr('wizard.voice.startRecording')}
               style={{
                 width: 76, height: 76, borderRadius: '50%',
                 background: listening ? '#EF5B3C22' : `${primary}22`,
@@ -139,12 +123,10 @@ export function WizardVoiceOverlay({
               }}
             >
               {listening ? (
-                /* Stop icon */
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="#EF5B3C" stroke="none">
                   <rect x="6" y="6" width="12" height="12" rx="2"/>
                 </svg>
               ) : (
-                /* Mic icon */
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
                   stroke={primary} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="2" width="6" height="12" rx="3"/>
@@ -155,12 +137,11 @@ export function WizardVoiceOverlay({
               )}
             </button>
             <div style={{ fontSize: 12, color: listening ? '#EF5B3C' : textMute(dark), marginTop: 8, fontWeight: 600 }}>
-              {listening ? '● Recording… tap to stop' : 'Tap to speak'}
+              {listening ? tr('wizard.voice.recording') : tr('wizard.voice.tapToSpeak')}
             </div>
           </div>
         )}
 
-        {/* Error */}
         {error && (
           <div style={{
             padding: '10px 14px', borderRadius: 10, marginBottom: 14,
@@ -171,21 +152,20 @@ export function WizardVoiceOverlay({
           </div>
         )}
 
-        {/* ── Textarea (always visible — fallback or supplement) ── */}
         <div style={{ marginBottom: 20 }}>
           <div style={{
             fontSize: 10.5, fontWeight: 700, letterSpacing: '.06em',
             textTransform: 'uppercase', color: textMute(dark), marginBottom: 6,
           }}>
-            {supported ? 'Transcribed text (can edit)' : 'Type here'}
+            {supported ? tr('wizard.voice.transcribedLabel') : tr('wizard.voice.typeLabel')}
           </div>
           <textarea
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder={
               supported
-                ? 'Text appears here while you speak, or type directly…'
-                : 'Describe in your own words…'
+                ? tr('wizard.voice.transcribedPlaceholder')
+                : tr('wizard.voice.typePlaceholder')
             }
             rows={4}
             style={{
@@ -198,17 +178,16 @@ export function WizardVoiceOverlay({
             }}
           />
           <div style={{ fontSize: 11, color: textMute(dark), marginTop: 4, textAlign: 'right' }}>
-            {text.trim().length} characters
+            {text.trim().length}{tr('wizard.voice.charactersSuffix')}
           </div>
         </div>
 
-        {/* ── Actions ── */}
         <button
           onClick={() => { if (canConfirm) onConfirm(text.trim()); }}
           disabled={!canConfirm}
           style={{ ...primaryBtn(primary), marginBottom: 10, opacity: canConfirm ? 1 : 0.45 }}
         >
-          Confirm and continue →
+          {tr('wizard.voice.confirm')}
         </button>
         <button
           onClick={onClose}
@@ -218,7 +197,7 @@ export function WizardVoiceOverlay({
             color: textMute(dark), fontSize: 13, fontFamily: 'inherit', cursor: 'pointer',
           }}
         >
-          Cancel
+          {tr('wizard.voice.cancel')}
         </button>
       </div>
 

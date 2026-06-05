@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { AvatarImage } from './Avatar';
 import type { NavFn, Profile } from '../types';
@@ -16,22 +17,23 @@ interface SideMenuProps {
 }
 
 const MENU_ITEMS: [string, string, string][] = [
-  ['Smart Student Profile', 'profile',                  'brain'],
-  ['Check-in',             'checkin',                  'sparkle'],
-  ['Workout',              'workout',                  'play'],
-  ['History',              'history',                  'history'],
-  ['Progress',             'stats',                    'chart'],
-  ['Cycle',                'cycle',                    'moon'],
-  ['Coach DNA',            'coachDNA',                 'fingerprint'],
-  ['Trainer Studio',       'studio',                   'flask'],
-  ['Exercise Library',     'trainerLibraryExercises',  'dumbbell'],
-  ['Settings',             'settings',                 'settings'],
+  ['smartProfile',      'profile',                  'brain'],
+  ['checkin',           'checkin',                  'sparkle'],
+  ['workout',           'workout',                  'play'],
+  ['history',           'history',                  'history'],
+  ['progress',          'stats',                    'chart'],
+  ['cycle',             'cycle',                    'moon'],
+  ['coachDna',          'coachDNA',                 'fingerprint'],
+  ['trainerStudio',     'studio',                   'flask'],
+  ['exerciseLibrary',   'trainerLibraryExercises',  'dumbbell'],
+  ['settings',          'settings',                 'settings'],
 ];
 
 const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'goal', 'cycle', 'studio']);
 const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA']);
 
 export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
+  const { t: tr } = useTranslation();
   const isTrainerRole = role === 'trainer' || role === 'studio_trainer' || role === 'internal_trainer' || role === 'technical_coordinator' || role === 'studio_admin' || role === 'studio_manager';
   const isMale = user.gender === 'male';
   const items = isTrainerRole
@@ -86,7 +88,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
             opacity: current === screen ? 1 : 0.85,
           }}>
             <Icon name={ic} size={18} color="#0E1A2B" stroke={2}/>
-            {lbl}
+            {tr(`sideMenu.${lbl}`)}
           </button>
         ))}
       </div>
@@ -100,7 +102,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
           cursor: 'pointer', textAlign: 'left', marginTop: 8,
         }}
       >
-        <Icon name="logout" size={18} color="#0E1A2B"/> Sign Out
+        <Icon name="logout" size={18} color="#0E1A2B"/> {tr('common.signOut')}
       </button>
     </div>
   </div>
