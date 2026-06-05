@@ -60,6 +60,25 @@
     "yourName": "Dein Name",
     "smartProfile": "Smart-Profil",
     "goToCheckin": "Zum Check-in",
+    "step01": {
+      "kicker": "MODUL 01 · PRÄDIKTIVE BASIS",
+      "title": "Intelligentes Sportlerprofil",
+      "body1": "Gesundheit, Bewegung, Privatsphäre und prädiktive Basis.",
+      "body2pre": "Erstellen wir dein",
+      "profileName": "Erweitertes Trainierbarkeitsprofil",
+      "body2post": "— die Grundlage, mit der TrAIner Intensität, Sicherheit und Progression deines Plans anpasst.",
+      "features": {
+        "basicData": "Basisdaten, Ziele und Verlauf",
+        "health": "Angegebene Gesundheit — keine Diagnose nötig",
+        "capacity": "Funktionelle Kapazität und Zugänglichkeit",
+        "sensitive": "Sensible Faktoren bleiben geschützt",
+        "rhythm": "Körperrhythmus — optional, immer privat"
+      },
+      "privacy": "Du kannst jederzeit speichern und zurückkehren. Es gehen keine Teildaten verloren. Alle sensiblen Informationen werden maskiert, bevor sie deinen Trainer erreichen.",
+      "meta": "≈ 6–9 Min · 14 Blöcke · DSGVO-konform",
+      "ctaEdit": "Smart-Profil bearbeiten",
+      "ctaBuild": "Mein Smart-Profil erstellen"
+    },
     "sections": {
       "basic_data": "Persönliche Angaben",
       "objectives": "Ziele",

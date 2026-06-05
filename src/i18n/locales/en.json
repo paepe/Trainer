@@ -60,6 +60,25 @@
     "yourName": "Your name",
     "smartProfile": "Smart Profile",
     "goToCheckin": "Go to check-in",
+    "step01": {
+      "kicker": "MODULE 01 · PREDICTIVE BASE",
+      "title": "Smart Student Profile",
+      "body1": "Health, Movement, Privacy and Predictive Base.",
+      "body2pre": "Let's build your",
+      "profileName": "Extended Trainability Profile",
+      "body2post": "— the foundation TrAIner uses to adapt intensity, safety, and progression of your plan.",
+      "features": {
+        "basicData": "Basic data, goals and history",
+        "health": "Declared health — no diagnosis required",
+        "capacity": "Functional capacity and accessibility",
+        "sensitive": "Sensitive factors stay protected",
+        "rhythm": "Body Rhythm — opt-in, always private"
+      },
+      "privacy": "You can save and return at any time. No partial data is lost. All sensitive information is masked before reaching your trainer.",
+      "meta": "≈ 6–9 min · 14 blocks · LGPD compatible",
+      "ctaEdit": "Edit Smart Profile",
+      "ctaBuild": "Build my Smart Profile"
+    },
     "sections": {
       "basic_data": "Personal Information",
       "objectives": "Objectives",

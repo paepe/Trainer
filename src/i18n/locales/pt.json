@@ -60,6 +60,25 @@
     "yourName": "Seu nome",
     "smartProfile": "Perfil Inteligente",
     "goToCheckin": "Ir para o check-in",
+    "step01": {
+      "kicker": "MÓDULO 01 · BASE PREDITIVA",
+      "title": "Perfil Inteligente do Aluno",
+      "body1": "Saúde, Movimento, Privacidade e Base Preditiva.",
+      "body2pre": "Vamos construir seu",
+      "profileName": "Perfil de Treinabilidade Ampliado",
+      "body2post": "— a base que o TrAIner usa para adaptar intensidade, segurança e progressão do seu plano.",
+      "features": {
+        "basicData": "Dados básicos, objetivos e histórico",
+        "health": "Saúde declarada — sem diagnóstico necessário",
+        "capacity": "Capacidade funcional e acessibilidade",
+        "sensitive": "Fatores sensíveis permanecem protegidos",
+        "rhythm": "Ritmo Corporal — opcional, sempre privado"
+      },
+      "privacy": "Você pode salvar e voltar a qualquer momento. Nenhum dado parcial é perdido. Toda informação sensível é mascarada antes de chegar ao seu treinador.",
+      "meta": "≈ 6–9 min · 14 blocos · compatível com LGPD",
+      "ctaEdit": "Editar Perfil Inteligente",
+      "ctaBuild": "Criar meu Perfil Inteligente"
+    },
     "sections": {
       "basic_data": "Informações Pessoais",
       "objectives": "Objetivos",

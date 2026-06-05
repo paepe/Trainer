@@ -1,13 +1,14 @@
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../../components/Icon';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
 import { VStack, Spacer } from '../../../ui';
 
 const FEATURES = [
-  { icon: 'user',     text: 'Basic data, goals and history'           },
-  { icon: 'shield',   text: 'Declared health — no diagnosis required' },
-  { icon: 'activity', text: 'Functional capacity and accessibility'   },
-  { icon: 'lock',     text: 'Sensitive factors stay protected'        },
-  { icon: 'sparkle',  text: 'Body Rhythm — opt-in, always private'   },
+  { icon: 'user',     key: 'basicData' },
+  { icon: 'shield',   key: 'health'    },
+  { icon: 'activity', key: 'capacity'  },
+  { icon: 'lock',     key: 'sensitive' },
+  { icon: 'sparkle',  key: 'rhythm'    },
 ] as const;
 
 interface Step01WelcomeProps {
@@ -18,6 +19,7 @@ interface Step01WelcomeProps {
 }
 
 export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01WelcomeProps) {
+  const { t: tr } = useTranslation();
   const cyanDeep = '#0F8C85';
 
   return (
@@ -46,7 +48,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
         textAlign: 'center',
         animation: 'wp-arrive .35s ease both',
       }}>
-        MODULE 01 · PREDICTIVE BASE
+        {tr('wizard.step01.kicker')}
       </div>
 
       {/* title — centered */}
@@ -57,7 +59,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
         color: textPri(dark), textAlign: 'center',
         animation: 'wp-arrive .4s .06s ease both',
       }}>
-        Smart Student Profile
+        {tr('wizard.step01.title')}
       </h1>
 
       {/* subtitle + body — centered */}
@@ -66,11 +68,11 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
         textAlign: 'center',
         animation: 'wp-arrive .4s .1s ease both',
       }}>
-        Health, Movement, Privacy and Predictive Base.
+        {tr('wizard.step01.body1')}
         <br/><br/>
-        Let's build your{' '}
-        <strong style={{ color: textPri(dark) }}>Extended Trainability Profile</strong>
-        {' '}— the foundation TrAIner uses to adapt intensity, safety, and progression of your plan.
+        {tr('wizard.step01.body2pre')}{' '}
+        <strong style={{ color: textPri(dark) }}>{tr('wizard.step01.profileName')}</strong>
+        {' '}{tr('wizard.step01.body2post')}
       </div>
 
       {/* feature card */}
@@ -82,7 +84,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
         animation: 'wp-arrive .4s .14s ease both',
       }}>
         {FEATURES.map(f => (
-          <div key={f.text} style={{
+          <div key={f.key} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0',
           }}>
             <div style={{
@@ -92,7 +94,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
             }}>
               <Icon name={f.icon} size={14} color={primary} stroke={2}/>
             </div>
-            <span style={{ fontSize: 13, color: textSec(dark) }}>{f.text}</span>
+            <span style={{ fontSize: 13, color: textSec(dark) }}>{tr(`wizard.step01.features.${f.key}`)}</span>
           </div>
         ))}
       </div>
@@ -104,8 +106,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
         fontSize: 11.5, color: textMute(dark), lineHeight: 1.5,
         animation: 'wp-arrive .4s .18s ease both',
       }}>
-        You can save and return at any time. No partial data is lost.
-        All sensitive information is masked before reaching your trainer.
+        {tr('wizard.step01.privacy')}
       </p>
 
       {/* time / LGPD note */}
@@ -115,7 +116,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
         letterSpacing: '.04em',
         animation: 'wp-arrive .4s .2s ease both',
       }}>
-        ≈ 6–9 min · 14 blocks · LGPD compatible
+        {tr('wizard.step01.meta')}
       </div>
 
       <Spacer />
@@ -133,7 +134,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
           animation: 'wp-arrive .4s .22s cubic-bezier(.34,1.56,.64,1) both',
         }}
       >
-        {profileExists ? 'Edit Smart Profile' : 'Build my Smart Profile'} →
+        {profileExists ? tr('wizard.step01.ctaEdit') : tr('wizard.step01.ctaBuild')} →
       </button>
 
       <style>{`
