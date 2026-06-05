@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
@@ -19,7 +20,8 @@ function OAuthButton({ provider, onClick, dark, primary }: {
   provider: 'google'; onClick: () => void; dark: boolean; primary: string;
 }) {
   const [hover, setHover] = React.useState(false);
-  const labels = { google: 'Continue with Google' };
+  const { t: tr } = useTranslation();
+  const labels = { google: tr('auth.oauth.google') };
   const logos: Record<string, React.ReactNode> = {
     google: (
       <svg width="18" height="18" viewBox="0 0 18 18">
@@ -55,8 +57,8 @@ function OAuthButton({ provider, onClick, dark, primary }: {
   );
 }
 
-function OAuthSection({ onProvider, dark, primary, dividerLabel = 'or continue with email' }: {
-  onProvider: (p: 'google') => void; dark: boolean; primary: string; dividerLabel?: string;
+function OAuthSection({ onProvider, dark, primary, dividerLabel }: {
+  onProvider: (p: 'google') => void; dark: boolean; primary: string; dividerLabel: string;
 }) {
   return (
     <>
@@ -73,13 +75,14 @@ function OAuthSection({ onProvider, dark, primary, dividerLabel = 'or continue w
 }
 
 export function LoginScreen({ nav, t, dark, signIn }: LoginScreenProps) {
+  const { t: tr } = useTranslation();
   const [email,   setEmail]   = React.useState('');
   const [pw,      setPw]      = React.useState('');
   const [err,     setErr]     = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
   const submit = async () => {
-    if (!email || !pw) { setErr('Please fill in both fields.'); return; }
+    if (!email || !pw) { setErr(tr('auth.login.errFields')); return; }
     setLoading(true); setErr('');
     const { error } = await signIn(email, pw);
     if (error) { setErr(error.message); setLoading(false); }
@@ -106,24 +109,24 @@ export function LoginScreen({ nav, t, dark, signIn }: LoginScreenProps) {
       </div>
       <div style={{ marginTop: 8 }}>
         <h1 style={{ margin: 0, fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em' }}>
-          Welcome back
+          {tr('auth.login.title')}
         </h1>
-        <div style={{ color: textSec(dark), fontSize: 13, marginTop: 4 }}>Log in to continue your training.</div>
+        <div style={{ color: textSec(dark), fontSize: 13, marginTop: 4 }}>{tr('auth.login.subtitle')}</div>
       </div>
       <div style={{ marginTop: 18 }}>
-        <OAuthSection onProvider={oauth} dark={dark} primary={t.primary}/>
+        <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel={tr('auth.oauth.dividerLogin')}/>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <TextInput icon="mail" placeholder="Email"    type="email"    value={email} onChange={setEmail}/>
-        <TextInput icon="lock" placeholder="Password" type="password" value={pw}    onChange={setPw}/>
+        <TextInput icon="mail" placeholder={tr('auth.common.email')}    type="email"    value={email} onChange={setEmail}/>
+        <TextInput icon="lock" placeholder={tr('auth.common.password')} type="password" value={pw}    onChange={setPw}/>
       </div>
       {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
       <div style={{ flex: 1, minHeight: 12 }}/>
       <button onClick={submit} disabled={loading} style={primaryBtn(t.primary, loading)}>
-        {loading ? 'Logging in…' : 'Log In'}
+        {loading ? tr('auth.login.loading') : tr('auth.common.login')}
       </button>
-      <button onClick={() => alert('A reset link would be sent to your email.')} style={{ ...textBtn(dark), alignSelf: 'center' }}>
-        Forgot Password?
+      <button onClick={() => alert(tr('auth.login.resetAlert'))} style={{ ...textBtn(dark), alignSelf: 'center' }}>
+        {tr('auth.login.forgot')}
       </button>
     </div>
   );

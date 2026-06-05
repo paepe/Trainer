@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { surfRaised, borderSubtle, textPri, textSec, primaryBtn, outlineBtn } from '../../theme';
 import type { NavFn } from '../../types';
@@ -16,6 +17,7 @@ interface WelcomeScreenProps {
 }
 
 export function WelcomeScreen({ nav, t, dark }: WelcomeScreenProps) {
+  const { t: tr } = useTranslation();
   return (
     <div style={{ padding: '40px 28px', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ marginTop: 30, display: 'flex', justifyContent: 'center', position: 'relative' }}>
@@ -44,7 +46,7 @@ export function WelcomeScreen({ nav, t, dark }: WelcomeScreenProps) {
           fontSize: 10.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase',
         }}>
           <Icon name="sparkle" size={11} color={t.accent} stroke={2.4}/>
-          Train smarter, not harder
+          {tr('auth.welcome.tagline')}
         </div>
         <h1 style={{
           margin: '16px 0 4px', fontFamily: '"Plus Jakarta Sans",system-ui,sans-serif',
@@ -53,15 +55,15 @@ export function WelcomeScreen({ nav, t, dark }: WelcomeScreenProps) {
           Tr<span style={{ color: t.primary }}>AI</span>ner
         </h1>
         <div style={{ marginTop: 6, fontSize: 13.5, color: textSec(dark), letterSpacing: '.02em' }}>
-          The PT &amp; ME Experience
+          {tr('auth.welcome.subtitle')}
         </div>
         <p style={{ margin: '18px auto 0', maxWidth: 280, color: textSec(dark), fontSize: 13.5, lineHeight: 1.55 }}>
-          AI-powered workouts built from real trainers — adapted daily to your energy, time and body.
+          {tr('auth.welcome.blurb')}
         </p>
       </div>
       <div style={{ flex: 1 }}/>
-      <button onClick={() => nav('login')}    style={primaryBtn(t.primary)}>Log In</button>
-      <button onClick={() => nav('register')} style={outlineBtn(t.primary)}>Register</button>
+      <button onClick={() => nav('login')}    style={primaryBtn(t.primary)}>{tr('auth.common.login')}</button>
+      <button onClick={() => nav('register')} style={outlineBtn(t.primary)}>{tr('auth.common.register')}</button>
     </div>
   );
 }

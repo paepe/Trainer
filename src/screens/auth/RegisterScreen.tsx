@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
@@ -15,17 +16,19 @@ interface RegisterScreenProps {
   signUp: (email: string, password: string, name: string, role?: string) => Promise<{ data: unknown; error: AuthError | null }>;
 }
 
+// Labels/descriptions are translated at render via auth.roles.<key>.*
 const ROLES = [
-  { key: 'client',       label: 'Client',  icon: 'user',     desc: 'I want to train' },
-  { key: 'trainer',      label: 'Trainer', icon: 'dumbbell', desc: 'I prescribe workouts' },
-  { key: 'studio_admin', label: 'Studio',  icon: 'grad',     desc: 'I run a gym' },
+  { key: 'client',       icon: 'user' },
+  { key: 'trainer',      icon: 'dumbbell' },
+  { key: 'studio_admin', icon: 'grad' },
 ] as const;
 
 function OAuthButton({ provider, onClick, dark, primary }: {
   provider: 'google'; onClick: () => void; dark: boolean; primary: string;
 }) {
   const [hover, setHover] = React.useState(false);
-  const labels = { google: 'Continue with Google' };
+  const { t: tr } = useTranslation();
+  const labels = { google: tr('auth.oauth.google') };
   const logos: Record<string, React.ReactNode> = {
     google: (
       <svg width="18" height="18" viewBox="0 0 18 18">
@@ -79,6 +82,7 @@ function OAuthSection({ onProvider, dark, primary, dividerLabel }: {
 }
 
 export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
+  const { t: tr } = useTranslation();
   const [role,    setRole]    = React.useState<string>('client');
   const [name,    setName]    = React.useState('');
   const [email,   setEmail]   = React.useState('');
@@ -88,14 +92,14 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
   const [loading, setLoading] = React.useState(false);
 
   const submit = async () => {
-    if (!name || !email || !pw) { setErr('All fields are required.'); return; }
-    if (pw !== pw2) { setErr('Passwords do not match.'); return; }
+    if (!name || !email || !pw) { setErr(tr('auth.register.errFields')); return; }
+    if (pw !== pw2) { setErr(tr('auth.register.errMatch')); return; }
     setLoading(true); setErr('');
     const { data, error } = await signUp(email, pw, name, role);
     if (error) { setErr(error.message); setLoading(false); return; }
     const d = data as { session?: unknown } | null;
     if (!d?.session) {
-      setErr('Account created! Check your email to confirm your address before logging in.');
+      setErr(tr('auth.register.confirmEmail'));
       setLoading(false);
       return;
     }
@@ -120,10 +124,10 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
           style={{ width: 90, height: 90, objectFit: 'contain', filter: `drop-shadow(0 8px 20px ${t.primary}55)` }}/>
       </div>
       <h1 style={{ margin: '4px 0 2px', fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 22, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em' }}>
-        Create account
+        {tr('auth.register.title')}
       </h1>
       <div style={{ color: textSec(dark), fontSize: 13, marginBottom: 14 }}>
-        Get a coach in your pocket — backed by real trainers.
+        {tr('auth.register.subtitle')}
       </div>
 
       {/* Role selector */}
@@ -141,28 +145,28 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
               transition: 'border-color .15s, background .15s',
             }}>
               <Icon name={r.icon} size={18} color={on ? t.primary : textSec(dark)} stroke={on ? 2.5 : 2}/>
-              <span style={{ fontSize: 11, fontWeight: on ? 700 : 500 }}>{r.label}</span>
-              <span style={{ fontSize: 9.5, color: on ? t.primary : textMute(dark), textAlign: 'center', lineHeight: 1.3 }}>{r.desc}</span>
+              <span style={{ fontSize: 11, fontWeight: on ? 700 : 500 }}>{tr(`auth.roles.${r.key}.label`)}</span>
+              <span style={{ fontSize: 9.5, color: on ? t.primary : textMute(dark), textAlign: 'center', lineHeight: 1.3 }}>{tr(`auth.roles.${r.key}.desc`)}</span>
             </button>
           );
         })}
       </div>
 
-      <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel="or sign up with email"/>
+      <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel={tr('auth.oauth.dividerRegister')}/>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <TextInput icon="user" placeholder="Full Name"         value={name}  onChange={setName}/>
-        <TextInput icon="mail" placeholder="Email" type="email" value={email} onChange={setEmail}/>
-        <TextInput icon="lock" placeholder="Password"          value={pw}    onChange={setPw}    type="password"/>
-        <TextInput icon="lock" placeholder="Confirm Password"  value={pw2}   onChange={setPw2}   type="password"/>
+        <TextInput icon="user" placeholder={tr('auth.common.fullName')}        value={name}  onChange={setName}/>
+        <TextInput icon="mail" placeholder={tr('auth.common.email')} type="email" value={email} onChange={setEmail}/>
+        <TextInput icon="lock" placeholder={tr('auth.common.password')}        value={pw}    onChange={setPw}    type="password"/>
+        <TextInput icon="lock" placeholder={tr('auth.common.confirmPassword')} value={pw2}   onChange={setPw2}   type="password"/>
       </div>
       {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
       <div style={{ flex: 1, minHeight: 10 }}/>
       <button onClick={submit} disabled={loading} style={primaryBtn(t.primary, loading)}>
-        {loading ? 'Creating account…' : 'Register'}
+        {loading ? tr('auth.register.loading') : tr('auth.common.register')}
       </button>
       <button onClick={() => nav('login')} style={{ ...textBtn(dark), alignSelf: 'center' }}>
-        Already have an account?
+        {tr('auth.register.haveAccount')}
       </button>
     </div>
   );

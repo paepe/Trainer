@@ -12,6 +12,48 @@
     "workout": "Training",
     "progress": "Fortschritt"
   },
+  "auth": {
+    "common": {
+      "login": "Anmelden",
+      "register": "Registrieren",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "fullName": "Vollständiger Name",
+      "confirmPassword": "Passwort bestätigen"
+    },
+    "oauth": {
+      "google": "Mit Google fortfahren",
+      "dividerLogin": "oder mit E-Mail fortfahren",
+      "dividerRegister": "oder mit E-Mail registrieren"
+    },
+    "welcome": {
+      "tagline": "Trainiere klüger, nicht härter",
+      "subtitle": "Das PT & ME Erlebnis",
+      "blurb": "KI-gestützte Workouts von echten Trainern — täglich an deine Energie, Zeit und deinen Körper angepasst."
+    },
+    "login": {
+      "title": "Willkommen zurück",
+      "subtitle": "Melde dich an, um dein Training fortzusetzen.",
+      "loading": "Anmeldung läuft…",
+      "forgot": "Passwort vergessen?",
+      "resetAlert": "Ein Link zum Zurücksetzen würde an deine E-Mail gesendet.",
+      "errFields": "Bitte fülle beide Felder aus."
+    },
+    "register": {
+      "title": "Konto erstellen",
+      "subtitle": "Ein Coach in deiner Tasche — gestützt von echten Trainern.",
+      "loading": "Konto wird erstellt…",
+      "haveAccount": "Hast du bereits ein Konto?",
+      "confirmEmail": "Konto erstellt! Bestätige deine Adresse über die E-Mail, bevor du dich anmeldest.",
+      "errFields": "Alle Felder sind erforderlich.",
+      "errMatch": "Die Passwörter stimmen nicht überein."
+    },
+    "roles": {
+      "client": { "label": "Kunde", "desc": "Ich möchte trainieren" },
+      "trainer": { "label": "Trainer", "desc": "Ich erstelle Workouts" },
+      "studio_admin": { "label": "Studio", "desc": "Ich leite ein Fitnessstudio" }
+    }
+  },
   "settings": {
     "title": "Einstellungen",
     "aboutTagline": "TrAIner v1.1.0 · Das PT & ME Erlebnis",

@@ -12,6 +12,48 @@
     "workout": "Workout",
     "progress": "Progress"
   },
+  "auth": {
+    "common": {
+      "login": "Log In",
+      "register": "Register",
+      "email": "Email",
+      "password": "Password",
+      "fullName": "Full Name",
+      "confirmPassword": "Confirm Password"
+    },
+    "oauth": {
+      "google": "Continue with Google",
+      "dividerLogin": "or continue with email",
+      "dividerRegister": "or sign up with email"
+    },
+    "welcome": {
+      "tagline": "Train smarter, not harder",
+      "subtitle": "The PT & ME Experience",
+      "blurb": "AI-powered workouts built from real trainers — adapted daily to your energy, time and body."
+    },
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Log in to continue your training.",
+      "loading": "Logging in…",
+      "forgot": "Forgot Password?",
+      "resetAlert": "A reset link would be sent to your email.",
+      "errFields": "Please fill in both fields."
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Get a coach in your pocket — backed by real trainers.",
+      "loading": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "confirmEmail": "Account created! Check your email to confirm your address before logging in.",
+      "errFields": "All fields are required.",
+      "errMatch": "Passwords do not match."
+    },
+    "roles": {
+      "client": { "label": "Client", "desc": "I want to train" },
+      "trainer": { "label": "Trainer", "desc": "I prescribe workouts" },
+      "studio_admin": { "label": "Studio", "desc": "I run a gym" }
+    }
+  },
   "settings": {
     "title": "Settings",
     "aboutTagline": "TrAIner v1.1.0 · The PT & ME Experience",

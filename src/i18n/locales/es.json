@@ -12,6 +12,48 @@
     "workout": "Entreno",
     "progress": "Progreso"
   },
+  "auth": {
+    "common": {
+      "login": "Iniciar sesión",
+      "register": "Registrarse",
+      "email": "Correo",
+      "password": "Contraseña",
+      "fullName": "Nombre completo",
+      "confirmPassword": "Confirmar contraseña"
+    },
+    "oauth": {
+      "google": "Continuar con Google",
+      "dividerLogin": "o continúa con correo",
+      "dividerRegister": "o regístrate con correo"
+    },
+    "welcome": {
+      "tagline": "Entrena con inteligencia, no con esfuerzo ciego",
+      "subtitle": "La experiencia PT & ME",
+      "blurb": "Entrenamientos con IA creados por entrenadores reales — adaptados cada día a tu energía, tiempo y cuerpo."
+    },
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión para continuar tu entrenamiento.",
+      "loading": "Iniciando sesión…",
+      "forgot": "¿Olvidaste la contraseña?",
+      "resetAlert": "Se enviaría un enlace de restablecimiento a tu correo.",
+      "errFields": "Completa ambos campos."
+    },
+    "register": {
+      "title": "Crear cuenta",
+      "subtitle": "Un entrenador en tu bolsillo — respaldado por entrenadores reales.",
+      "loading": "Creando cuenta…",
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "confirmEmail": "¡Cuenta creada! Revisa tu correo para confirmar tu dirección antes de iniciar sesión.",
+      "errFields": "Todos los campos son obligatorios.",
+      "errMatch": "Las contraseñas no coinciden."
+    },
+    "roles": {
+      "client": { "label": "Cliente", "desc": "Quiero entrenar" },
+      "trainer": { "label": "Entrenador", "desc": "Prescribo entrenamientos" },
+      "studio_admin": { "label": "Studio", "desc": "Dirijo un gimnasio" }
+    }
+  },
   "settings": {
     "title": "Ajustes",
     "aboutTagline": "TrAIner v1.1.0 · La experiencia PT & ME",
