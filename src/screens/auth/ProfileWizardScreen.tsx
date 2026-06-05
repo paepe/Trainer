@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { supabase } from '../../supabase';
 import { textMute, textPri, surfRaised, borderSubtle, primaryBtn } from '../../theme';
 import { Icon } from '../../components/Icon';
@@ -40,49 +42,49 @@ const STEP_NUM: Partial<Record<ProfileV2Step, number>> = {
 
 // ── Wizard sections shown in the unified profile view ──────────────────────────
 
-const WIZARD_SECTIONS: { step: ProfileV2Step; label: string; icon: string; summary: (d: WizardData) => string | null }[] = [
-  { step: 'basic_data',          label: 'Personal Information',     icon: 'user',
+const WIZARD_SECTIONS: { step: ProfileV2Step; labelKey: string; icon: string; summary: (d: WizardData, tr: TFunction) => string | null }[] = [
+  { step: 'basic_data',          labelKey: 'wizard.sections.basic_data',          icon: 'user',
     summary: d => d.basic_data ? `${d.basic_data.name ?? ''} · ${d.basic_data.age ?? '?'}a · ${d.basic_data.height_cm ?? '?'}cm · ${d.basic_data.weight_kg ?? '?'}kg`.replace(/^ · /, '') : null },
-  { step: 'objectives',          label: 'Objectives',                icon: 'target',
+  { step: 'objectives',          labelKey: 'wizard.sections.objectives',          icon: 'target',
     summary: d => d.objectives?.primary_goal ?? null },
-  { step: 'movement_history',    label: 'Movement History',   icon: 'history',
+  { step: 'movement_history',    labelKey: 'wizard.sections.movement_history',    icon: 'history',
     summary: d => d.movement_history?.fitness_level ?? null },
-  { step: 'declared_health',     label: 'Declared Health',          icon: 'heart',
-    summary: d => d.declared_health != null ? (d.declared_health.has_condition ? 'Reported conditions' : 'No conditions') : null },
-  { step: 'comorbidities',       label: 'Comorbidities',             icon: 'shield',
-    summary: d => d.comorbidities?.conditions?.length ? `${d.comorbidities.conditions.length} condition(s)` : null },
-  { step: 'functional_capacity', label: 'Functional Capacity',     icon: 'activity',
+  { step: 'declared_health',     labelKey: 'wizard.sections.declared_health',     icon: 'heart',
+    summary: (d, tr) => d.declared_health != null ? (d.declared_health.has_condition ? tr('wizard.summary.reportedConditions') : tr('wizard.summary.noConditions')) : null },
+  { step: 'comorbidities',       labelKey: 'wizard.sections.comorbidities',       icon: 'shield',
+    summary: (d, tr) => d.comorbidities?.conditions?.length ? tr('wizard.summary.conditions', { count: d.comorbidities.conditions.length }) : null },
+  { step: 'functional_capacity', labelKey: 'wizard.sections.functional_capacity', icon: 'activity',
     summary: d => d.functional_capacity?.mobility != null
       ? `${d.functional_capacity.mobility} · ${d.functional_capacity.balance}`
       : null },
-  { step: 'habits',              label: 'Habits',                  icon: 'sun',
-    summary: d => d.habits != null
+  { step: 'habits',              labelKey: 'wizard.sections.habits',              icon: 'sun',
+    summary: (d, tr) => d.habits != null
       ? (d.habits.lifestyle_barriers?.length
-          ? `${d.habits.lifestyle_barriers.length} barrier(s)`
-          : 'No barriers')
+          ? tr('wizard.summary.barriers', { count: d.habits.lifestyle_barriers.length })
+          : tr('wizard.summary.noBarriers'))
       : null },
-  { step: 'sensitive_factors',   label: 'Sensitive Factors',        icon: 'lock',
+  { step: 'sensitive_factors',   labelKey: 'wizard.sections.sensitive_factors',   icon: 'lock',
     summary: d => d.sensitive_factors != null ? '' : null },
-  { step: 'body_rhythm',         label: 'Body Rhythm',           icon: 'moon',
-    summary: d => d.body_rhythm != null
-      ? (d.body_rhythm.enabled ? 'Active cycle' : 'Not monitored')
+  { step: 'body_rhythm',         labelKey: 'wizard.sections.body_rhythm',         icon: 'moon',
+    summary: (d, tr) => d.body_rhythm != null
+      ? (d.body_rhythm.enabled ? tr('wizard.summary.activeCycle') : tr('wizard.summary.notMonitored'))
       : null },
-  { step: 'environment',         label: 'Environment',                 icon: 'pin',
-    summary: d => d.environment?.locations?.length
+  { step: 'environment',         labelKey: 'wizard.sections.environment',         icon: 'pin',
+    summary: (d, tr) => d.environment?.locations?.length
       ? d.environment.locations.slice(0, 2).join(' · ')
-      : (d.environment != null ? 'Filled' : null) },
-  { step: 'availability',        label: 'Availability',          icon: 'cal',
+      : (d.environment != null ? tr('wizard.summary.filled') : null) },
+  { step: 'availability',        labelKey: 'wizard.sections.availability',        icon: 'cal',
     summary: d => d.availability?.days_per_week != null
       ? `${d.availability.days_per_week}x · ${d.availability.session_duration_min} min`
       : null },
-  { step: 'preferences',         label: 'Preferences',             icon: 'settings',
+  { step: 'preferences',         labelKey: 'wizard.sections.preferences',         icon: 'settings',
     summary: d => d.preferences?.preferred_intensity != null
       ? `${d.preferences.preferred_intensity} · ${d.preferences.focus}`
       : null },
-  { step: 'consent',             label: 'Consent & Visibility',    icon: 'list',
-    summary: d => d.consent != null ? 'Consent recorded' : null },
-  { step: 'risk_classification', label: 'Risk Classification',     icon: 'shield',
-    summary: d => d.risk?.level != null ? `Level ${d.risk.level}` : null },
+  { step: 'consent',             labelKey: 'wizard.sections.consent',             icon: 'list',
+    summary: (d, tr) => d.consent != null ? tr('wizard.summary.consentRecorded') : null },
+  { step: 'risk_classification', labelKey: 'wizard.sections.risk_classification', icon: 'shield',
+    summary: (d, tr) => d.risk?.level != null ? tr('wizard.summary.level', { level: d.risk.level }) : null },
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -113,6 +115,7 @@ interface ProfileWizardScreenProps {
 type ScreenMode = 'wizard' | 'view';
 
 export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV2, saveUser, user }: ProfileWizardScreenProps) {
+  const { t: tr } = useTranslation();
   const [mode,          setMode]          = React.useState<ScreenMode>('view');
   const [showWelcome,   setShowWelcome]   = React.useState(true);   // arrive screen on every entry
   const [profileExists, setProfileExists] = React.useState(false);
@@ -162,14 +165,14 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
   const userFacingError = (err: unknown): string => {
     const s = (typeof err === 'string' ? err : (err as { message?: string })?.message ?? '').toLowerCase();
     if (s.includes('jwt') || s.includes('expired') || s.includes('token'))
-      return 'Connection expired. Please try again.';
+      return tr('wizard.error.expired');
     if (s.includes('network') || s.includes('fetch') || s.includes('timeout') || s.includes('abort'))
-      return 'Connection lost. Check your internet.';
+      return tr('wizard.error.network');
     if (s.includes('duplicate') || s.includes('unique'))
-      return 'Profile already saved.';
+      return tr('wizard.error.duplicate');
     if (s.includes('foreign') || s.includes('violates') || s.includes('rls'))
-      return 'Connection expired. Please try again.';
-    return 'Error saving. Check your connection.';
+      return tr('wizard.error.expired');
+    return tr('wizard.error.generic');
   };
 
   const isMale = () => dataRef.current.basic_data?.biological_sex === 'male';
@@ -320,7 +323,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       border: '1px solid color-mix(in srgb, var(--signature) 27%, transparent)',
       fontSize: 12, color: 'var(--signature)', fontFamily: 'inherit',
     }}>
-      Saving…
+      {tr('wizard.saving')}
     </div>
   ) : null;
 
@@ -335,7 +338,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       borderBottom: `1px solid ${borderSubtle(dark)}`,
     }}>
       <Icon name="back" size={16} color={t.primary} stroke={2.2}/>
-      Back to Profile
+      {tr('wizard.backToProfile')}
     </button>
   );
 
@@ -378,6 +381,7 @@ interface UnifiedProfileViewProps {
 }
 
 function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: UnifiedProfileViewProps) {
+  const { t: tr } = useTranslation();
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(user?.avatar_url ?? null);
   const [uploading, setUploading] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
@@ -425,7 +429,7 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
             fontSize: 20, fontWeight: 700, color: textPri(dark),
             fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em',
           }}>
-            {user?.name || 'Your name'}
+            {user?.name || tr('wizard.yourName')}
           </div>
           {user?.email && (
             <div style={{ fontSize: 12.5, color: textMute(dark), marginTop: 2 }}>{user.email}</div>
@@ -439,7 +443,7 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
           fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em',
           textTransform: 'uppercase', color: textMute(dark), marginBottom: 12,
         }}>
-          Smart Profile
+          {tr('wizard.smartProfile')}
         </div>
 
         <div style={{
@@ -449,7 +453,7 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
           {WIZARD_SECTIONS
             .filter(s => !(s.step === 'body_rhythm' && data.basic_data?.biological_sex === 'male'))
             .map((section, i, arr) => {
-            const summary = section.summary(data);
+            const summary = section.summary(data, tr);
             const isLast  = i === arr.length - 1;
             const filled  = summary !== null;
             return (
@@ -470,7 +474,7 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: textPri(dark) }}>
-                    {section.label}
+                    {tr(section.labelKey)}
                   </div>
                   {summary && (
                     <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 1, textTransform: 'capitalize' }}>
@@ -487,7 +491,7 @@ function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: 
 
       {/* ── CTA ── */}
       <button onClick={onStart} style={primaryBtn(primary)}>
-        Go to check-in
+        {tr('wizard.goToCheckin')}
       </button>
     </div>
   );

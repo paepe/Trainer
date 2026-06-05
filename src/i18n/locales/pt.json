@@ -54,6 +54,49 @@
       "studio_admin": { "label": "Studio", "desc": "Eu administro uma academia" }
     }
   },
+  "wizard": {
+    "saving": "Salvando…",
+    "backToProfile": "Voltar ao Perfil",
+    "yourName": "Seu nome",
+    "smartProfile": "Perfil Inteligente",
+    "goToCheckin": "Ir para o check-in",
+    "sections": {
+      "basic_data": "Informações Pessoais",
+      "objectives": "Objetivos",
+      "movement_history": "Histórico de Movimento",
+      "declared_health": "Saúde Declarada",
+      "comorbidities": "Comorbidades",
+      "functional_capacity": "Capacidade Funcional",
+      "habits": "Hábitos",
+      "sensitive_factors": "Fatores Sensíveis",
+      "body_rhythm": "Ritmo Corporal",
+      "environment": "Ambiente",
+      "availability": "Disponibilidade",
+      "preferences": "Preferências",
+      "consent": "Consentimento e Visibilidade",
+      "risk_classification": "Classificação de Risco"
+    },
+    "summary": {
+      "reportedConditions": "Condições relatadas",
+      "noConditions": "Sem condições",
+      "conditions_one": "{{count}} condição",
+      "conditions_other": "{{count}} condições",
+      "barriers_one": "{{count}} barreira",
+      "barriers_other": "{{count}} barreiras",
+      "noBarriers": "Sem barreiras",
+      "activeCycle": "Ciclo ativo",
+      "notMonitored": "Não monitorado",
+      "filled": "Preenchido",
+      "consentRecorded": "Consentimento registrado",
+      "level": "Nível {{level}}"
+    },
+    "error": {
+      "expired": "Conexão expirada. Tente novamente.",
+      "network": "Conexão perdida. Verifique sua internet.",
+      "duplicate": "Perfil já salvo.",
+      "generic": "Erro ao salvar. Verifique sua conexão."
+    }
+  },
   "settings": {
     "title": "Configurações",
     "aboutTagline": "TrAIner v1.1.0 · A experiência PT & ME",

@@ -54,6 +54,49 @@
       "studio_admin": { "label": "Studio", "desc": "I run a gym" }
     }
   },
+  "wizard": {
+    "saving": "Saving…",
+    "backToProfile": "Back to Profile",
+    "yourName": "Your name",
+    "smartProfile": "Smart Profile",
+    "goToCheckin": "Go to check-in",
+    "sections": {
+      "basic_data": "Personal Information",
+      "objectives": "Objectives",
+      "movement_history": "Movement History",
+      "declared_health": "Declared Health",
+      "comorbidities": "Comorbidities",
+      "functional_capacity": "Functional Capacity",
+      "habits": "Habits",
+      "sensitive_factors": "Sensitive Factors",
+      "body_rhythm": "Body Rhythm",
+      "environment": "Environment",
+      "availability": "Availability",
+      "preferences": "Preferences",
+      "consent": "Consent & Visibility",
+      "risk_classification": "Risk Classification"
+    },
+    "summary": {
+      "reportedConditions": "Reported conditions",
+      "noConditions": "No conditions",
+      "conditions_one": "{{count}} condition",
+      "conditions_other": "{{count}} conditions",
+      "barriers_one": "{{count}} barrier",
+      "barriers_other": "{{count}} barriers",
+      "noBarriers": "No barriers",
+      "activeCycle": "Active cycle",
+      "notMonitored": "Not monitored",
+      "filled": "Filled",
+      "consentRecorded": "Consent recorded",
+      "level": "Level {{level}}"
+    },
+    "error": {
+      "expired": "Connection expired. Please try again.",
+      "network": "Connection lost. Check your internet.",
+      "duplicate": "Profile already saved.",
+      "generic": "Error saving. Check your connection."
+    }
+  },
   "settings": {
     "title": "Settings",
     "aboutTagline": "TrAIner v1.1.0 · The PT & ME Experience",

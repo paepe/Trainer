@@ -54,6 +54,49 @@
       "studio_admin": { "label": "Studio", "desc": "Ich leite ein Fitnessstudio" }
     }
   },
+  "wizard": {
+    "saving": "Wird gespeichert…",
+    "backToProfile": "Zurück zum Profil",
+    "yourName": "Dein Name",
+    "smartProfile": "Smart-Profil",
+    "goToCheckin": "Zum Check-in",
+    "sections": {
+      "basic_data": "Persönliche Angaben",
+      "objectives": "Ziele",
+      "movement_history": "Bewegungsverlauf",
+      "declared_health": "Angegebene Gesundheit",
+      "comorbidities": "Begleiterkrankungen",
+      "functional_capacity": "Funktionelle Kapazität",
+      "habits": "Gewohnheiten",
+      "sensitive_factors": "Sensible Faktoren",
+      "body_rhythm": "Körperrhythmus",
+      "environment": "Umgebung",
+      "availability": "Verfügbarkeit",
+      "preferences": "Präferenzen",
+      "consent": "Einwilligung & Sichtbarkeit",
+      "risk_classification": "Risikoklassifizierung"
+    },
+    "summary": {
+      "reportedConditions": "Gemeldete Beschwerden",
+      "noConditions": "Keine Beschwerden",
+      "conditions_one": "{{count}} Beschwerde",
+      "conditions_other": "{{count}} Beschwerden",
+      "barriers_one": "{{count}} Hürde",
+      "barriers_other": "{{count}} Hürden",
+      "noBarriers": "Keine Hürden",
+      "activeCycle": "Aktiver Zyklus",
+      "notMonitored": "Nicht überwacht",
+      "filled": "Ausgefüllt",
+      "consentRecorded": "Einwilligung erfasst",
+      "level": "Stufe {{level}}"
+    },
+    "error": {
+      "expired": "Verbindung abgelaufen. Bitte erneut versuchen.",
+      "network": "Verbindung verloren. Prüfe dein Internet.",
+      "duplicate": "Profil bereits gespeichert.",
+      "generic": "Fehler beim Speichern. Prüfe deine Verbindung."
+    }
+  },
   "settings": {
     "title": "Einstellungen",
     "aboutTagline": "TrAIner v1.1.0 · Das PT & ME Erlebnis",

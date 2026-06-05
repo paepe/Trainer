@@ -54,6 +54,49 @@
       "studio_admin": { "label": "Studio", "desc": "Dirijo un gimnasio" }
     }
   },
+  "wizard": {
+    "saving": "Guardando…",
+    "backToProfile": "Volver al Perfil",
+    "yourName": "Tu nombre",
+    "smartProfile": "Perfil Inteligente",
+    "goToCheckin": "Ir al check-in",
+    "sections": {
+      "basic_data": "Información personal",
+      "objectives": "Objetivos",
+      "movement_history": "Historial de movimiento",
+      "declared_health": "Salud declarada",
+      "comorbidities": "Comorbilidades",
+      "functional_capacity": "Capacidad funcional",
+      "habits": "Hábitos",
+      "sensitive_factors": "Factores sensibles",
+      "body_rhythm": "Ritmo corporal",
+      "environment": "Entorno",
+      "availability": "Disponibilidad",
+      "preferences": "Preferencias",
+      "consent": "Consentimiento y visibilidad",
+      "risk_classification": "Clasificación de riesgo"
+    },
+    "summary": {
+      "reportedConditions": "Condiciones reportadas",
+      "noConditions": "Sin condiciones",
+      "conditions_one": "{{count}} condición",
+      "conditions_other": "{{count}} condiciones",
+      "barriers_one": "{{count}} barrera",
+      "barriers_other": "{{count}} barreras",
+      "noBarriers": "Sin barreras",
+      "activeCycle": "Ciclo activo",
+      "notMonitored": "No monitoreado",
+      "filled": "Completado",
+      "consentRecorded": "Consentimiento registrado",
+      "level": "Nivel {{level}}"
+    },
+    "error": {
+      "expired": "Conexión expirada. Inténtalo de nuevo.",
+      "network": "Conexión perdida. Revisa tu internet.",
+      "duplicate": "Perfil ya guardado.",
+      "generic": "Error al guardar. Revisa tu conexión."
+    }
+  },
   "settings": {
     "title": "Ajustes",
     "aboutTagline": "TrAIner v1.1.0 · La experiencia PT & ME",
