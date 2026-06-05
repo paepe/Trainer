@@ -1,16 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { BiologicalSex, ProfileBasicData } from '../../../types/profile-v2';
 import type { Profile } from '../../../types';
 
-const SEX_OPTIONS: { value: BiologicalSex; label: string }[] = [
-  { value: 'female',            label: 'Female'            },
-  { value: 'male',              label: 'Male'           },
-  { value: 'intersex',          label: 'Intersex'           },
-  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
-];
+const SEX_OPTIONS: BiologicalSex[] = ['female', 'male', 'intersex', 'prefer_not_to_say'];
 
 const bioSexToGender = (sex: BiologicalSex | undefined): Profile['gender'] => {
   if (sex === 'female')           return 'female';
@@ -46,6 +42,7 @@ export function Step02BasicData({
   dark, primary, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps,
   user, saveUser,
 }: Step02Props) {
+  const { t: tr } = useTranslation();
   const d = data.basic_data ?? {} as Partial<ProfileBasicData>;
 
   const setBasic = (patch: Partial<ProfileBasicData>) =>
@@ -105,7 +102,7 @@ export function Step02BasicData({
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader currentStep={stepNum} stepPrefix="BLOCK" totalSteps={totalSteps} onBack={onBack} title="Personal Information" subtitle="Fill in your data to adapt the plan to your age, sex, and history." />
+      <WizardHeader currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack} title={tr('wizard.step02.title')} subtitle={tr('wizard.step02.subtitle')} />
 
       
       
@@ -114,7 +111,7 @@ export function Step02BasicData({
 
         {/* ── Identity ── */}
         <TextInput
-          label="Name"
+          label={tr('wizard.step02.name')}
           value={d.name ?? ''}
           onChange={v => setBasic({ name: v })}
           placeholder="Mariana Costa"
@@ -122,13 +119,13 @@ export function Step02BasicData({
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <TextInput
-            label="Email"
+            label={tr('wizard.step02.email')}
             value={email}
             onChange={setEmail}
             type="email" placeholder="you@email.com"
           />
           <TextInput
-            label="Phone"
+            label={tr('wizard.step02.phone')}
             value={phone}
             onChange={v => setPhone(v.replace(/[^\d+\s\-()]/g, ''))}
             type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
@@ -138,10 +135,10 @@ export function Step02BasicData({
         {/* DOB + age (read-only) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <TextInput
-            label="Date of birth"
+            label={tr('wizard.step02.dob')}
             value={dob}
             onChange={setDob}
-            type="date" placeholder="AAAA-MM-DD"
+            type="date" placeholder={tr('wizard.step02.dobPlaceholder')}
           />
           {/* Age: computed, read-only */}
           <div>
@@ -149,7 +146,7 @@ export function Step02BasicData({
               fontSize: 10.5, fontWeight: 700, letterSpacing: '.08em',
               textTransform: 'uppercase', color: textMute(dark), marginBottom: 6,
             }}>
-              Age
+              {tr('wizard.step02.age')}
             </div>
             <div style={{
               padding: '11px 14px', borderRadius: 12,
@@ -158,13 +155,13 @@ export function Step02BasicData({
               fontSize: 15, color: age !== null ? textPri(dark) : textMute(dark),
               fontFamily: 'inherit',
             }}>
-              {age !== null ? `${age} years` : '—'}
+              {age !== null ? tr('wizard.step02.ageValue', { count: age }) : '—'}
             </div>
           </div>
         </div>
 
         <TextInput
-          label="City / Address"
+          label={tr('wizard.step02.cityAddress')}
           value={address}
           onChange={setAddress}
           placeholder="New York, NY"
@@ -173,13 +170,13 @@ export function Step02BasicData({
         {/* ── Training data ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <TextInput
-            label="Height (cm)"
+            label={tr('wizard.step02.height')}
             value={d.height_cm ? String(d.height_cm) : ''}
             onChange={v => setBasic({ height_cm: v ? +v : undefined as unknown as number })}
             type="number" inputMode="decimal" placeholder="165"
           />
           <TextInput
-            label="Current weight (kg)"
+            label={tr('wizard.step02.weight')}
             value={d.weight_kg ? String(d.weight_kg) : ''}
             onChange={v => setBasic({ weight_kg: v ? +v : undefined as unknown as number })}
             type="number" inputMode="decimal" placeholder="64"
@@ -187,7 +184,7 @@ export function Step02BasicData({
         </div>
 
         <TextInput
-          label="Language"
+          label={tr('wizard.step02.language')}
           value={d.language ?? 'English'}
           onChange={v => setBasic({ language: v })}
           placeholder="English"
@@ -195,25 +192,25 @@ export function Step02BasicData({
 
         {/* Biological sex */}
         <div>
-          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>Biological sex</Typography>
+          <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step02.biologicalSex')}</Typography>
           <HStack gap={8} flexWrap="wrap">
             {SEX_OPTIONS.map(o => {
-              const on = d.biological_sex === o.value;
+              const on = d.biological_sex === o;
               return (
-                <button key={o.value} onClick={() => setBasic({ biological_sex: o.value })} style={{
+                <button key={o} onClick={() => setBasic({ biological_sex: o })} style={{
                   padding: '9px 14px', borderRadius: 14,
                   background: on ? `${primary}22` : surfRaised(dark),
                   color: on ? primary : textPri(dark),
                   border: `1.5px solid ${on ? primary : borderSubtle(dark)}`,
                   fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                 }}>
-                  {o.label}
+                  {tr(`wizard.step02.sex.${o}`)}
                 </button>
               );
             })}
           </HStack>
           <p style={{ fontSize: 11, color: textSec(dark), margin: '8px 0 0' }}>
-            Used for personalization — never for diagnosis.
+            {tr('wizard.step02.sexNote')}
           </p>
         </div>
 
@@ -231,17 +228,17 @@ export function Step02BasicData({
               cursor: 'pointer', padding: 0, fontFamily: 'inherit',
             }}
           >
-            <span style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>Emergency contact</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>{tr('wizard.step02.emergencyContact')}</span>
             <span style={{ fontSize: 12, color: textSec(dark) }}>{emergencyOpen ? '▲' : '▼'}</span>
           </button>
           {emergencyOpen && (
             <VStack gap={12} style={{ marginTop: 14 }}>
               <TextInput
-                label="Name" value={d.emergency_contact?.name ?? ''}
-                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { phone: '' }), name: v } })} placeholder="First and last name"
+                label={tr('wizard.step02.name')} value={d.emergency_contact?.name ?? ''}
+                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { phone: '' }), name: v } })} placeholder={tr('wizard.step02.emergencyNamePlaceholder')}
               />
               <TextInput
-                label="Phone" value={d.emergency_contact?.phone ?? ''}
+                label={tr('wizard.step02.phone')} value={d.emergency_contact?.phone ?? ''}
                 onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { name: '' }), phone: v } })} type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
               />
             </VStack>
