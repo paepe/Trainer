@@ -47,7 +47,7 @@ export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect
         </button>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 1 }}>
-            TRAINER · MODULE 02
+            TRAINER · {tr('checkin.hub.moduleLabel')}
           </div>
           <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{tr('checkin.hub.readinessCheckin')}</div>
         </div>

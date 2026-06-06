@@ -1,16 +1,6 @@
 import i18n from '../../i18n';
 import type { CheckInQuick, CheckInDetailed, SafetyGateResult, SafetyGateStatus, SafetySignal } from '../../types/checkin-v2';
 
-const SIGNAL_LABELS: Record<SafetySignal, string> = {
-  severe_pain:          'severe pain',
-  dizziness:            'dizziness',
-  shortness_of_breath:  'shortness of breath',
-  chest_pain:           'chest pain',
-  malaise:              'malaise',
-  loss_of_balance:      'loss of balance',
-  fainting_sensation:   'fainting sensation',
-};
-
 export function computeSafetyGate(data: CheckInQuick | CheckInDetailed): SafetyGateResult {
   const signals: SafetySignal[] = (data as CheckInDetailed).safety_signals ?? [];
   const hasSignals = signals.length > 0;
@@ -37,7 +27,7 @@ export function computeSafetyGate(data: CheckInQuick | CheckInDetailed): SafetyG
   const firstSignal   = signals[0];
 
   const rec = hasSignals && firstSignal
-    ? i18n.t('safetyGate.seekGuidance', { region: data.pain.region ?? '', signal: SIGNAL_LABELS[firstSignal] })
+    ? i18n.t('safetyGate.seekGuidance', { region: data.pain.region ?? '', signal: i18n.t(`checkinEnums.signals.${firstSignal}`) })
     : score < 55
     ? i18n.t('safetyGate.adaptedRecommended')
     : undefined;

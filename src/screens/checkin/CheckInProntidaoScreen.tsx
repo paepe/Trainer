@@ -193,7 +193,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
               <Icon name="back" size={22} color={textMute(dark)}/>
             </button>
             <div>
-              <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>TRAINER · MODULE 02</div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary }}>{tr('checkin.hub.moduleLabel')}</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{tr('checkin.postWorkout.title')}</div>
             </div>
           </div>
@@ -263,8 +263,8 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
               const name  = userName || tr('inbox.notification.yourClient');
               notify(
                 linkedTrainerId,
-                `${name} is ready to train`,
-                `Readiness ${score}/100 \u00b7 Approve or reject their workout request.`,
+                tr('checkin.result.readyPushTitle', { name }),
+                tr('checkin.result.readyPushBody', { score }),
                 undefined,
                 {
                   type: 'workout_ready',

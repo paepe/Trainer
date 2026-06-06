@@ -49,9 +49,6 @@ function ReadinessGauge({ score, color, dark }: { score: number; color: string; 
   );
 }
 
-const PAIN_LABEL: Record<string, string> = { low: 'low', moderate: 'moderate', high: 'high' };
-const REC_LABEL: Record<string, string>  = { stable: 'stable', recovering: 'recovering', at_risk: 'at_risk' };
-
 function StatCell({ label, value, color, dark }: { label: string; value: string; color?: string; dark: boolean }) {
   return (
     <div style={{
@@ -172,12 +169,12 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           <StatCell label={tr('checkin.result.statFatigueRisk')} value={`${result.passage_risk_pct}%`} dark={dark}/>
         )}
         {result.pain_alert_level && (
-          <StatCell label={tr('checkin.result.statPainAlert')} value={PAIN_LABEL[result.pain_alert_level] ?? ''} dark={dark} color={
+          <StatCell label={tr('checkin.result.statPainAlert')} value={tr(`checkin.result.painAlertLevels.${result.pain_alert_level}`, result.pain_alert_level)} dark={dark} color={
             result.pain_alert_level === 'high' ? accent : result.pain_alert_level === 'moderate' ? '#F5A623' : '#4ade80'
           }/>
         )}
         {result.recovery_status && (
-          <StatCell label={tr('checkin.result.statRecovery')} value={REC_LABEL[result.recovery_status] ?? ''} dark={dark} color={
+          <StatCell label={tr('checkin.result.statRecovery')} value={tr(`checkin.result.recoveryStatuses.${result.recovery_status}`, result.recovery_status)} dark={dark} color={
             result.recovery_status === 'stable' ? '#4ade80' : result.recovery_status === 'recovering' ? '#F5A623' : accent
           }/>
         )}

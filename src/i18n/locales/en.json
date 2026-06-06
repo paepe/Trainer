@@ -1051,6 +1051,7 @@
   "checkin": {
     "hub": {
       "readinessCheckin": "Readiness Check-in",
+      "moduleLabel": "MODULE 02",
       "live": "LIVE",
       "safetyGateActive": "Safety Gate ativo",
       "greet": {
@@ -1118,7 +1119,19 @@
       "buildPlan": "Build plan →",
       "notifyTrainerCaution": "⚠ Notify trainer — caution today",
       "notifyTrainerReady": "✦ Notify trainer — I'm ready",
-      "backButton": "← Back"
+      "backButton": "← Back",
+      "painAlertLevels": {
+        "low": "Low",
+        "moderate": "Moderate",
+        "high": "High"
+      },
+      "recoveryStatuses": {
+        "stable": "Stable",
+        "recovering": "Recovering",
+        "at_risk": "At risk"
+      },
+      "readyPushTitle": "{{name}} is ready to train",
+      "readyPushBody": "Readiness {{score}}/100 · Approve or reject their workout request."
     },
     "postWorkout": {
       "kicker": "CHECK-IN · POST-WORKOUT",

@@ -1000,6 +1000,7 @@
   "checkin": {
     "hub": {
       "readinessCheckin": "Check-in de Prontidão",
+      "moduleLabel": "MÓDULO 02",
       "live": "AO VIVO",
       "safetyGateActive": "Safety Gate ativo",
       "greet": {
@@ -1067,7 +1068,19 @@
       "buildPlan": "Criar plano →",
       "notifyTrainerCaution": "⚠ Notificar treinador — cautela hoje",
       "notifyTrainerReady": "✦ Notificar treinador — estou pronto",
-      "backButton": "← Voltar"
+      "backButton": "← Voltar",
+      "painAlertLevels": {
+        "low": "Baixa",
+        "moderate": "Moderada",
+        "high": "Alta"
+      },
+      "recoveryStatuses": {
+        "stable": "Estável",
+        "recovering": "Recuperando",
+        "at_risk": "Em risco"
+      },
+      "readyPushTitle": "{{name}} está pronto para treinar",
+      "readyPushBody": "Prontidão {{score}}/100 · Aprove ou rejeite a solicitação de treino."
     },
     "postWorkout": {
       "kicker": "CHECK-IN · PÓS-TREINO",
