@@ -74,6 +74,19 @@ export default function App() {
   // Keep the active i18n language in sync with the saved/selected preference.
   React.useEffect(() => { void i18n.changeLanguage(prefs.language); }, [prefs.language]);
 
+  // On mount: mark any active workout session older than 24h as abandoned.
+  // Prevents permanently orphaned sessions from force-quits, crashes, or dead batteries.
+  React.useEffect(() => {
+    if (!profile?.id) return;
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    void supabase.from('workout_sessions')
+      .update({ status: 'abandoned' })
+      .eq('user_id', profile.id)
+      .eq('status', 'active')
+      .lt('started_at', cutoff)
+      .then(({ error }) => { if (error) console.error('[App] stale session cleanup:', error); });
+  }, [profile?.id]);
+
   // Seed checkin defaults from live prefs (so changes apply immediately, not just on reload)
   React.useEffect(() => {
     setCheckin(prev => ({

@@ -18,6 +18,14 @@ export function useWorkoutData(userId: string | undefined) {
     const effectiveUserId = input.forUserId ?? userId;
     if (!effectiveUserId) return { data: null, error: 'no user' };
 
+    // Auto-abandon any previous active session for this user.
+    // A new session starting means the old one will never be resumed.
+    void supabase.from('workout_sessions')
+      .update({ status: 'abandoned' })
+      .eq('user_id', effectiveUserId)
+      .eq('status', 'active')
+      .then(({ error }) => { if (error) console.error('[useWorkoutData] abandon stale:', error); });
+
     const { data: session, error: sessionError } = await supabase
       .from('workout_sessions')
       .insert({
