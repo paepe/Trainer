@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
@@ -33,8 +34,15 @@ interface SelectorRow<K extends keyof AppPreferences> {
 }
 
 export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError }: SettingsScreenProps) {
-  const { t: tr } = useTranslation();  // `t` is the theme; `tr` translates
+  const { t: tr } = useTranslation();
   const isAutonomous = !isTrainer && !hasTrainer;
+
+  const handlePrefChange = (p: Partial<AppPreferences>) => {
+    if (p.language != null && p.language !== i18n.language) {
+      void i18n.changeLanguage(p.language);
+    }
+    setPrefs(p);
+  };
 
   // ── Value-preference sections (Tier 1) ───────────────────────────────────────
 
@@ -114,46 +122,46 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
 
         {/* Client Management — trainer only */}
         {isTrainer && (
-          <SelectorSection title={tr('settings.sections.clientMgmt')} rows={trainerMgmt} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SelectorSection title={tr('settings.sections.clientMgmt')} rows={trainerMgmt} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
         )}
 
         {/* Coaching — client with an active trainer */}
         {hasTrainer && !isTrainer && (
-          <SelectorSection title={tr('settings.sections.coaching')} rows={coachingPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SelectorSection title={tr('settings.sections.coaching')} rows={coachingPrefs} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
         )}
 
         {/* AI personalization */}
-        <ToggleSection title={tr('settings.sections.ai')} rows={aiGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+        <ToggleSection title={tr('settings.sections.ai')} rows={aiGroup} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
 
         {/* AI training focus — autonomous clients only */}
         {isAutonomous && (
-          <SliderSection title={tr('settings.sections.aiFocus')} hint={tr('settings.aiFocusHint')} rows={aiFocusRows} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SliderSection title={tr('settings.sections.aiFocus')} hint={tr('settings.aiFocusHint')} rows={aiFocusRows} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
         )}
 
         {/* Appearance — dark toggle + light palette, clients only (trainer always-dark §8) */}
         {!isTrainer && (
           <>
-            <ToggleSection title={tr('settings.sections.appearance')} rows={[['darkMode', tr('settings.toggle.darkMode.label'), tr('settings.toggle.darkMode.hint')]]} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+            <ToggleSection title={tr('settings.sections.appearance')} rows={[['darkMode', tr('settings.toggle.darkMode.label'), tr('settings.toggle.darkMode.hint')]]} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
             {!prefs.darkMode && (
-              <SelectorSection title={tr('settings.sections.lightPalette')} rows={appearancePrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+              <SelectorSection title={tr('settings.sections.lightPalette')} rows={appearancePrefs} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
             )}
           </>
         )}
 
         {/* Language — all roles */}
-        <SelectorSection title={tr('settings.sections.language')} rows={localePrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+        <SelectorSection title={tr('settings.sections.language')} rows={localePrefs} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
 
         {/* Notifications */}
-        <ToggleSection title={tr('settings.sections.notifications')} rows={notifGroup} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+        <ToggleSection title={tr('settings.sections.notifications')} rows={notifGroup} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
 
         {/* Data & History — clients (power-user fetch depth) */}
         {!isTrainer && (
-          <SelectorSection title={tr('settings.sections.data')} rows={dataPrefs} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <SelectorSection title={tr('settings.sections.data')} rows={dataPrefs} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
         )}
 
         {/* B2B / Studio — trainer / studio context */}
         {!isAutonomous && (
-          <ToggleSection title={tr('settings.sections.b2b')} rows={[['whiteLabel', tr('settings.toggle.whiteLabel.label'), tr('settings.toggle.whiteLabel.hint')]]} prefs={prefs} setPrefs={setPrefs} t={t} dark={dark}/>
+          <ToggleSection title={tr('settings.sections.b2b')} rows={[['whiteLabel', tr('settings.toggle.whiteLabel.label'), tr('settings.toggle.whiteLabel.hint')]]} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
         )}
 
         <button onClick={() => alert(tr('settings.aboutTagline'))} style={{
