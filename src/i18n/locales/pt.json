@@ -320,21 +320,51 @@
   "studio": {
     "sidebar": {
       "studioLabel": "Studio",
+      "dashboard": "Painel",
+      "clients": "Clientes",
+      "protocols": "Protocolos",
+      "team": "Equipe",
+      "signOut": "Sair",
       "stats": "{{trainers}} treinador(es) · {{clients}} clientes"
     },
     "dashboard": {
       "protocolsSection": "Protocolos",
-      "noProtocolsYet": "Ainda não há protocolos. Vá em Protocolos para criar."
+      "noProtocolsYet": "Ainda não há protocolos. Vá em Protocolos para criar.",
+      "title": "Painel",
+      "sub": "Visão geral do seu studio",
+      "trainers": "Treinadores",
+      "activeTrainers": "Treinadores Ativos",
+      "activeClients": "Clientes Ativos",
+      "noTrainers": "Nenhum treinador ainda",
+      "plansThisWeek": "Planos Esta Semana",
+      "completedThisWeek": "Concluídos Esta Semana"
     },
     "team": {
       "inviteTrainerBtn": "+ Convidar treinador",
+      "inviteTrainer": "+ Convidar Treinador",
       "emailPlaceholder": "treinador@email.com",
-      "sub": "{{count}} treinador(es)"
+      "sub": "{{count}} treinador(es)",
+      "title": "Equipe",
+      "noTrainers": "Nenhum treinador ainda.",
+      "send": "Enviar",
+      "cancel": "Cancelar",
+      "remove": "Remover",
+      "headers": {
+        "name": "Nome",
+        "email": "Email",
+        "role": "Função",
+        "actions": "Ações"
+      }
     },
     "clients": {
       "searchPlaceholder": "Buscar por nome ou email…",
       "clear": "Limpar ×",
       "sub": "{{visible}} de {{total}} cliente(s) ativo(s)",
+      "title": "Clientes",
+      "allLevels": "Todos os Níveis",
+      "allTrainers": "Todos os Treinadores",
+      "noClients": "Nenhum cliente encontrado.",
+      "noMatch": "Nenhum cliente corresponde aos critérios.",
       "headers": {
         "client": "Cliente",
         "email": "Email",
@@ -345,6 +375,14 @@
     },
     "protocols": {
       "newProtocolHeading": "Novo protocolo",
+      "title": "Protocolos",
+      "newProtocol": "Novo Protocolo",
+      "createProtocol": "Criar Protocolo",
+      "name": "Nome",
+      "objective": "Objetivo",
+      "level": "Nível",
+      "description": "Descrição",
+      "cancel": "Cancelar",
       "durationLabel": "Duração (min)",
       "searchPlaceholder": "Buscar por nome ou objetivo…",
       "sortBy": "Ordenar por:",
@@ -361,6 +399,11 @@
     },
     "protocolDetail": {
       "exercisesCount": "Exercícios ({{count}})",
+      "exercise": "Exercício",
+      "muscleGroup": "Grupo Muscular",
+      "noExercises": "Nenhum exercício neste protocolo.",
+      "sets": "Séries",
+      "reps": "Repetições",
       "loadKg": "Carga (kg)",
       "restS": "Descanso (s)",
       "add": "Adicionar",
@@ -378,6 +421,8 @@
     },
     "createStudio": {
       "btnCreateStudio": "Criar Studio →",
+      "title": "Criar Seu Studio",
+      "note": "Configure seu studio de treinamento para gerenciar treinadores, clientes e protocolos.",
       "namePlaceholder": "Nome do studio (ex.: FitCore Lisboa)",
       "errUnknown": "Ocorreu um erro"
     }

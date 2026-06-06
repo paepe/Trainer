@@ -320,21 +320,51 @@
   "studio": {
     "sidebar": {
       "studioLabel": "Studio",
+      "dashboard": "Dashboard",
+      "clients": "Kunden",
+      "protocols": "Protokolle",
+      "team": "Team",
+      "signOut": "Abmelden",
       "stats": "{{trainers}} Trainer · {{clients}} Kunden"
     },
     "dashboard": {
       "protocolsSection": "Protokolle",
-      "noProtocolsYet": "Noch keine Protokolle. Gehe zu Protokolle zum Erstellen."
+      "noProtocolsYet": "Noch keine Protokolle. Gehe zu Protokolle zum Erstellen.",
+      "title": "Dashboard",
+      "sub": "Übersicht deines Studios",
+      "trainers": "Trainer",
+      "activeTrainers": "Aktive Trainer",
+      "activeClients": "Aktive Kunden",
+      "noTrainers": "Noch keine Trainer",
+      "plansThisWeek": "Pläne diese Woche",
+      "completedThisWeek": "Abgeschlossen diese Woche"
     },
     "team": {
       "inviteTrainerBtn": "+ Trainer einladen",
+      "inviteTrainer": "+ Trainer einladen",
       "emailPlaceholder": "trainer@email.com",
-      "sub": "{{count}} Trainer"
+      "sub": "{{count}} Trainer",
+      "title": "Team",
+      "noTrainers": "Noch keine Trainer.",
+      "send": "Senden",
+      "cancel": "Abbrechen",
+      "remove": "Entfernen",
+      "headers": {
+        "name": "Name",
+        "email": "E-Mail",
+        "role": "Rolle",
+        "actions": "Aktionen"
+      }
     },
     "clients": {
       "searchPlaceholder": "Nach Name oder E-Mail suchen…",
       "clear": "Löschen ×",
       "sub": "{{visible}} von {{total}} aktive(n) Kunde(n)",
+      "title": "Kunden",
+      "allLevels": "Alle Niveaus",
+      "allTrainers": "Alle Trainer",
+      "noClients": "Keine Kunden gefunden.",
+      "noMatch": "Keine Kunden entsprechen den Kriterien.",
       "headers": {
         "client": "Kunde",
         "email": "E-Mail",
@@ -345,6 +375,14 @@
     },
     "protocols": {
       "newProtocolHeading": "Neues Protokoll",
+      "title": "Protokolle",
+      "newProtocol": "Neues Protokoll",
+      "createProtocol": "Protokoll erstellen",
+      "name": "Name",
+      "objective": "Ziel",
+      "level": "Niveau",
+      "description": "Beschreibung",
+      "cancel": "Abbrechen",
       "durationLabel": "Dauer (min)",
       "searchPlaceholder": "Nach Name oder Ziel suchen…",
       "sortBy": "Sortieren nach:",
@@ -361,6 +399,11 @@
     },
     "protocolDetail": {
       "exercisesCount": "Übungen ({{count}})",
+      "exercise": "Übung",
+      "muscleGroup": "Muskelgruppe",
+      "noExercises": "Keine Übungen in diesem Protokoll.",
+      "sets": "Sätze",
+      "reps": "Wiederholungen",
       "loadKg": "Last (kg)",
       "restS": "Pause (s)",
       "add": "Hinzufügen",
@@ -378,6 +421,8 @@
     },
     "createStudio": {
       "btnCreateStudio": "Studio erstellen →",
+      "title": "Studio erstellen",
+      "note": "Richte dein Trainingsstudio ein, um Trainer, Kunden und Protokolle zu verwalten.",
       "namePlaceholder": "Studio-Name (z.B. FitCore Lisboa)",
       "errUnknown": "Ein Fehler ist aufgetreten"
     }
