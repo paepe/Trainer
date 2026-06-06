@@ -46,7 +46,7 @@ export interface WorkoutPlan {
   id:          string;
   created_by:  string;
   user_id:     string;
-  status:      'sent' | 'active' | 'completed';
+  status:      'sent' | 'active' | 'completed' | 'cancelled' | 'postponed';
   exercises:   Exercise[];
   created_at:  string;
 }
@@ -68,7 +68,7 @@ export interface Preferences {
 
 // ── M4 — Real Session Execution ─────────────────────────────────────────────
 
-export type WorkoutSessionStatus  = 'active' | 'paused' | 'completed' | 'abandoned';
+export type WorkoutSessionStatus  = 'active' | 'completed' | 'abandoned';
 export type SessionExerciseStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'substituted';
 
 export interface WorkoutSessionRecord {
@@ -153,7 +153,7 @@ export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
 export type AlertStatus   = 'open' | 'acknowledged' | 'resolved';
 export type TaskType      = 'review_pain' | 'replan' | 'adjust_load' | 'safety_review' | 'general';
 export type TaskPriority  = 'low' | 'medium' | 'high' | 'urgent';
-export type TaskStatus    = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+export type TaskStatus    = 'pending' | 'completed';
 
 export interface SystemEvent {
   id:          string;

@@ -72,7 +72,7 @@ export function TrainerDashboardScreen({
   const [reviewingId, setReviewingId]   = React.useState<string | null>(null);
   const [activeSessions, setActiveSessions] = React.useState<ActiveSession[]>([]);
   const [activeNowOpen, setActiveNowOpen]   = React.useState(false);
-  const [activeNowFilter, setActiveNowFilter] = React.useState<'all' | 'training' | 'paused'>('all');
+  const [activeNowFilter, setActiveNowFilter] = React.useState<'all' | 'training'>('all');
 
   React.useEffect(() => {
     if (!user?.id) {
@@ -96,7 +96,7 @@ export function TrainerDashboardScreen({
             .from('workout_sessions')
             .select('id, user_id, status, started_at')
             .in('user_id', clientIds)
-            .in('status', ['active', 'paused'])
+            .eq('status', 'active')
             .order('started_at', { ascending: false })
             .then(({ data }) => setActiveSessions((data ?? []) as ActiveSession[]));
         }
@@ -161,7 +161,7 @@ export function TrainerDashboardScreen({
         .from('workout_sessions')
         .select('id, user_id, status, started_at')
         .in('user_id', ids)
-        .in('status', ['active', 'paused'])
+        .eq('status', 'active')
         .order('started_at', { ascending: false });
       setActiveSessions(sessions as ActiveSession[]);
     }
@@ -225,13 +225,11 @@ export function TrainerDashboardScreen({
     return map;
   }, [clients]);
 
-  // Derive per-client session status: 'active' wins over 'paused' if multiple sessions exist
+  // Derive per-client session status
   const sessionStatusMap = React.useMemo(() => {
-    const map: Record<string, 'active' | 'paused'> = {};
+    const map: Record<string, 'active' | 'abandoned'> = {};
     for (const s of activeSessions) {
-      if (!map[s.user_id] || s.status !== 'paused') {
-        map[s.user_id] = s.status === 'paused' ? 'paused' : 'active';
-      }
+      map[s.user_id] = s.status as 'active' | 'abandoned';
     }
     return map;
   }, [activeSessions]);
@@ -405,16 +403,6 @@ export function TrainerDashboardScreen({
                   }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse 1.5s ease-in-out infinite' }}/>
                     {tr('trainer.dashboard.training')}
-                  </div>
-                )}
-                {tc.client?.id && sessionStatusMap[tc.client.id] === 'paused' && (
-                  <div style={{
-                    padding: '4px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700,
-                    background: '#F5A62322', color: '#F5A623', letterSpacing: '.05em', textTransform: 'uppercase',
-                    display: 'flex', alignItems: 'center', gap: 5,
-                  }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F5A623' }}/>
-                    {tr('trainer.dashboard.paused')}
                   </div>
                 )}
                 <button
