@@ -132,3 +132,31 @@
 **Total dead values:** 13 across 5 tables.  
 **Total CHECK gaps:** 2 tables (`trainer_alerts`, `operational_tasks`).  
 **Total type mismatches:** 1 (`workout_plans` — TS missing 5 values that SQL allows).
+
+---
+
+## Consolidated Status Reference
+
+| Group | Status | Transition | Trigger |
+|---|---|---|---|
+| **Plan** | `sent` | → `active` | Trainer envia → cliente inicia o plano |
+| | | → `cancelled` | Auto-expiry (> N dias sem ação) ou cliente cancela manualmente |
+| | | → `postponed` | Trainer adia para outra data |
+| | `active` | → `completed` | Cliente finaliza todas as sessões do plano |
+| | `postponed` | → `active` | Cliente reativa plano adiado |
+| | `cancelled` | — | Estado terminal |
+| | `completed` | — | Estado terminal |
+| **Session** | `active` | → `completed` | Cliente executa todos os exercícios e clica "Finalizar" |
+| | | → `abandoned` | Nova sessão inicia (abandona a anterior) OU > 24h sem conclusão |
+| | `completed` | — | Estado terminal |
+| | `abandoned` | — | Estado terminal |
+| **Exercise** | `pending` | → `in_progress` | Cliente abre o formulário de sets para este exercício |
+| | | → `skipped` | Cliente pula o exercício (motivo registrado) |
+| | `in_progress` | → `completed` | Todos os sets são registrados |
+| | `completed` | — | Estado terminal |
+| | `skipped` | — | Estado terminal |
+| **Alert** | `open` | → `acknowledged` | Trainer reconhece o alerta |
+| | `acknowledged` | → `resolved` | Trainer resolve o alerta |
+| | `resolved` | — | Estado terminal |
+| **Task** | `pending` | → `completed` | Trainer marca tarefa como concluída |
+| | `completed` | — | Estado terminal |

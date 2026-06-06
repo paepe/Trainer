@@ -69,7 +69,7 @@ export interface Preferences {
 // ── M4 — Real Session Execution ─────────────────────────────────────────────
 
 export type WorkoutSessionStatus  = 'active' | 'completed' | 'abandoned';
-export type SessionExerciseStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'substituted';
+export type SessionExerciseStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
 
 export interface WorkoutSessionRecord {
   id:                 string;

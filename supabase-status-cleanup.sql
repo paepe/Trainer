@@ -11,7 +11,16 @@ ALTER TABLE workout_sessions
   ADD CONSTRAINT workout_sessions_status_check
     CHECK (status IN ('active', 'completed', 'abandoned'));
 
--- ── 2. operational_tasks — drop 'in_progress' and 'cancelled' (never written) ─
+-- ── 2. workout_session_exercises — drop 'substituted' (never written) ─────────
+
+ALTER TABLE workout_session_exercises
+  DROP CONSTRAINT IF EXISTS workout_session_exercises_status_check;
+
+ALTER TABLE workout_session_exercises
+  ADD CONSTRAINT workout_session_exercises_status_check
+    CHECK (status IN ('pending', 'in_progress', 'completed', 'skipped'));
+
+-- ── 3. operational_tasks — drop 'in_progress' and 'cancelled' (never written) ─
 
 ALTER TABLE operational_tasks
   DROP CONSTRAINT IF EXISTS operational_tasks_status_check;
