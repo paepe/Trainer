@@ -9,7 +9,7 @@ Core rules:
 - Consider the client's primary goal (weight loss, hypertrophy, endurance, mobility) when selecting exercises and rep ranges
 
 Language:
-- Respond ONLY in the language requested in the user prompt. If the user prompt asks for Portuguese, ALL text (including "notes") must be in Portuguese.
+- CRITICAL: You MUST write every field in {lang}. This session is in {lang}. Never write in English when {lang} is requested.
 - If the user prompt asks for Spanish, ALL text must be in Spanish.
 - If the user prompt asks for German, ALL text must be in German.
 - Default to English only if no language is specified.
@@ -170,7 +170,8 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 ex
         model: 'deepseek-chat',
         max_tokens: 1024,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          const langName = locale === 'pt' || locale === 'pt-BR' ? 'Portuguese (Brazil)' : locale === 'es' || locale === 'es-ES' ? 'Spanish' : locale === 'de' || locale === 'de-DE' ? 'German' : 'English';
+          { role: 'system', content: SYSTEM_PROMPT.replace(/{lang}/g, langName) },
           { role: 'user',   content: userContent   },
         ],
       }),
