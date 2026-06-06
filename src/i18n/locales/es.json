@@ -1557,12 +1557,12 @@
       "bestTime": "Mejor horario",
       "preferredDays": "Días preferidos",
       "barriers": "Barreras de adherencia",
-      "times": [
-        "Mañana",
-        "Tarde",
-        "Noche",
-        "Variable"
-      ],
+      "times": {
+        "morning": "Mañana",
+        "afternoon": "Tarde",
+        "evening": "Noche",
+        "variable": "Variable"
+      },
       "days": [
         "D",
         "L",

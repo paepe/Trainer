@@ -1607,12 +1607,12 @@
       "bestTime": "Best time",
       "preferredDays": "Preferred days",
       "barriers": "Adherence barriers",
-      "times": [
-        "Morning",
-        "Afternoon",
-        "Evening",
-        "Variable"
-      ],
+      "times": {
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "evening": "Evening",
+        "variable": "Variable"
+      },
       "days": [
         "S",
         "M",
