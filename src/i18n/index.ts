@@ -30,9 +30,13 @@ export function detectDeviceLanguage(): AppLanguage {
 void i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
+    'en-US': { translation: en },
     pt: { translation: pt },
+    'pt-BR': { translation: pt },
     es: { translation: es },
+    'es-ES': { translation: es },
     de: { translation: de },
+    'de-DE': { translation: de },
   },
   lng: detectDeviceLanguage(),
   fallbackLng: 'en',
