@@ -195,11 +195,11 @@ tr('inbox.templates.workout_approved', { trainerName: 'Klaus' })
 - [x] Phase 2.1 — `InboxItem` type extended
 - [x] Phase 2.2 — Render-on-consume logic in InboxScreen
 - [x] Phase 2.3 — Fetch + Realtime enrichment
-- [ ] Phase 3.1 — Zero raw-text `notify()` audit **(done — audit confirmed 0 write-side i18n.t() calls)**
-- [ ] Phase 3.2 — Template catalog documented
-- [ ] Phase 3.3 — Build + locale sync verified **(done — tsc --noEmit + vite build pass)**
-- [ ] Phase 3.4 — Cross-language QA (DE ↔ ES)
-- [ ] Phase 3.5 — Legacy fallback regression test
+- [x] Phase 3.1 — Zero raw-text `notify()` audit
+- [x] Phase 3.2 — Template catalog (7 templates: `workout_approved`, `workout_rejected`, `ready_to_train`, `new_plan`, `high_pain_alert`, `review_pain`, `workout_completed`, `plans_expired`, `checkin_alert`)
+- [x] Phase 3.3 — Build + locale sync verified
+- [x] Phase 3.4 — Cross-language QA (DE ↔ ES) — 27 hardcoded strings fixed across CheckInVoice, CycleScreen, HistoryScreen, RefreshChip; 44 i18n keys added
+- [x] Phase 3.5 — Legacy fallback regression test (InboxScreen:213-216 — `template_key` null → renders stored `title`/`body`)
 
 ---
 
