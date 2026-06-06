@@ -74,6 +74,15 @@ export default function App() {
   // Keep the active i18n language in sync with the saved/selected preference.
   React.useEffect(() => { void i18n.changeLanguage(prefs.language); }, [prefs.language]);
 
+  // Seed checkin defaults from live prefs (so changes apply immediately, not just on reload)
+  React.useEffect(() => {
+    setCheckin(prev => ({
+      ...prev,
+      location: prefs.defaultLocation ?? prev.location,
+      minutes:  prefs.defaultDurationMin ?? prev.minutes,
+    }));
+  }, [prefs.defaultLocation, prefs.defaultDurationMin]);
+
   const {
     saveCycleConfig, fetchCycleConfig,
     savePreferences, fetchPreferences,
@@ -179,14 +188,14 @@ export default function App() {
       }
       setPrefs({
         notifications:     (data.notifications      as boolean | undefined) ?? true,
-        goals:             (data.goals              as boolean | undefined) ?? true,
+        goals:             (data.goals              as boolean | undefined) ?? true,     // Reserved — future goal-tracking consent
         alerts:            (data.alerts             as boolean | undefined) ?? true,
-        analysis:          (data.analysis           as boolean | undefined) ?? true,
-        behaviour:         (data.behaviour          as boolean | undefined) ?? true,
+        analysis:          (data.analysis           as boolean | undefined) ?? true,     // Reserved — future analytics consent
+        behaviour:         (data.behaviour          as boolean | undefined) ?? true,     // Reserved — future behavioral tracking consent
         sounds:            (data.sounds             as boolean | undefined) ?? false,
         cycle:             (data.cycle_tracking     as boolean | undefined) ?? cyDefault,
         aiPersonalization: (data.ai_personalization as boolean | undefined) ?? true,
-        whiteLabel:        false,
+        whiteLabel:        (data.white_label        as boolean | undefined) ?? false,
         darkMode:          (data.dark_mode          as boolean | undefined) ?? true,
         defaultLocation:       (data.default_location        as AppPreferences['defaultLocation']       | undefined) ?? 'gym',
         defaultDurationMin:    (data.default_duration_min     as AppPreferences['defaultDurationMin']    | undefined) ?? 45,
@@ -348,6 +357,7 @@ export default function App() {
       session_history_limit:    newPrefs.sessionHistoryLimit,
       trainer_dashboard_limit:  newPrefs.trainerDashboardLimit,
       language:                 newPrefs.language,
+      white_label:              newPrefs.whiteLabel,
     });
   };
 

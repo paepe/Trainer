@@ -62,6 +62,7 @@ interface StartWorkoutScreenProps {
     aiFocusStrength?:    number;
     aiFocusEndurance?:   number;
     aiFocusMobility?:    number;
+    aiPersonalization?:  boolean;
   };
 }
 
@@ -352,12 +353,15 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         };
 
         // ── Call smart endpoint ─────────────────────────────────────────────
-        const result = await requestSmartWorkout({
-          trainer: trainerCtx, client: clientCtx,
-          today: todayCtx as any, stats: statsCtx,
-          library: libraryCtx, task: taskCtx,
-          locale: i18n.language,
-        });
+        const useSmart = prefs?.aiPersonalization !== false || !!linkedTrainerId;
+        const result = useSmart
+          ? await requestSmartWorkout({
+              trainer: trainerCtx, client: clientCtx,
+              today: todayCtx as any, stats: statsCtx,
+              library: libraryCtx, task: taskCtx,
+              locale: i18n.language,
+            })
+          : { exercises: [], readinessScore: todayCtx.readinessScore || 60, blocked: false, adaptations: null as any, safetyTitle: null as any, safetyMessage: null as any };
 
         // Update readiness/safety display
         setReadinessScore(result.readinessScore);
