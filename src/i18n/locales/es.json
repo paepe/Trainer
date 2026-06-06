@@ -922,6 +922,7 @@
       "resumeLabel": "▶ Continuar",
       "exerciseCount_one": "{{count}} ejercicio",
       "exerciseCount_other": "{{count}} ejercicios",
+      "exerciseCount": "{{count}} ejercicios",
       "postpone": "Posponer",
       "readinessScoreLabel": "Puntuación de preparación: ",
       "todaysAiPlan": "Plan de IA de hoy",

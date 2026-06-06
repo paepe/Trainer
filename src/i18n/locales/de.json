@@ -923,6 +923,7 @@
       "resumeLabel": "▶ Fortsetzen",
       "exerciseCount_one": "{{count}} Übung",
       "exerciseCount_other": "{{count}} Übungen",
+      "exerciseCount": "{{count}} Übungen",
       "postpone": "Verschieben",
       "readinessScoreLabel": "Bereitschaftsscore: ",
       "todaysAiPlan": "Heutiger KI-Plan",
