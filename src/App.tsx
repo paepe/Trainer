@@ -99,8 +99,24 @@ export default function App() {
   const {
     saveCycleConfig, fetchCycleConfig,
     savePreferences, fetchPreferences,
-    saveProfileV2, fetchProfileV2,
+    saveProfileV2: saveProfileV2Raw, fetchProfileV2,
   } = useProfileData(session?.user?.id);
+
+  const syncCyclePref = (bodyRhythm?: Record<string, unknown> | null) => {
+    if (bodyRhythm?.enabled === true) {
+      setPrefs(prev => (prev.cycle ? prev : { ...prev, cycle: true }));
+      void savePreferences({ cycle_tracking: true } as Parameters<typeof savePreferences>[0]);
+    }
+  };
+
+  const saveProfileV2 = React.useCallback(async (
+    data: Parameters<typeof saveProfileV2Raw>[0],
+    step: string,
+  ) => {
+    const result = await saveProfileV2Raw(data, step);
+    syncCyclePref((data as Record<string, unknown> | null)?.body_rhythm as Record<string, unknown> | null);
+    return result;
+  }, [saveProfileV2Raw, savePreferences]);
 
   const { saveCheckinV2, updatePainRecurrence } = useCheckinData(session?.user?.id, prefs.alerts);
 
@@ -108,8 +124,6 @@ export default function App() {
     startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
     reportWorkoutPain, completeWorkoutSession, savePostWorkoutFeedback,
   } = useWorkoutData(session?.user?.id);
-
-  const [cycleEnabled] = React.useState(true);
 
   const isTrainer = profile?.role != null && (TRAINER_ROLES as readonly string[]).includes(profile.role);
   // Trainer is always dark per coach_dna_system_design.md §8; only the client
@@ -129,11 +143,11 @@ export default function App() {
   const t = {
     ...(isTrainer ? TRAINER_BRAND : BRAND),
     dark,
-    cycleEnabled,
     role: (profile?.role ?? 'client') as UserRole | 'client',
   };
 
   const [screen, setScreen] = React.useState('welcome');
+  const [prefSaveError, setPrefSaveError] = React.useState<string | null>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
   // Null = not yet resolved; empty string = client has no active trainer
   const [linkedTrainerId, setLinkedTrainerId] = React.useState<string | null>(null);
@@ -161,14 +175,13 @@ export default function App() {
     ]).then(([pv2Res, prefsRes]) => {
       const br = pv2Res.data && (pv2Res.data as Record<string, unknown>).body_rhythm as Record<string, unknown> | null;
       if (br && br.enabled && typeof br.cycle_duration_days === 'number') {
-        // Use profile_v2.body_rhythm as source of truth
         const day = (typeof br.cycle_current_day === 'number' ? br.cycle_current_day : 14);
         setCycleConfig({
           length: br.cycle_duration_days as number,
           periodLength: 5,
           lastStartOffset: Math.max(0, day - 1),
         });
-        setPrefsFromApi(prefsRes.data, cycleDefault);
+        setPrefsFromApi(prefsRes.data, true);
         return;
       }
 
@@ -371,6 +384,8 @@ export default function App() {
       trainer_dashboard_limit:  newPrefs.trainerDashboardLimit,
       language:                 newPrefs.language,
       white_label:              newPrefs.whiteLabel,
+    }).then(({ error }) => {
+      if (error) setPrefSaveError(tr('settings.saveFailed'));
     });
   };
 
@@ -428,9 +443,9 @@ export default function App() {
           adaptation_preference: (prev?.adaptation_preference as unknown[]) ?? [],
         },
       } as Parameters<typeof saveProfileV2>[0], 'completed');
+      syncCyclePref({ enabled: true });
     }
 
-    // Also save to legacy cycle_config for backward compat
     void saveCycleConfig(params);
     return { error: null } as { error: unknown };
   }, [saveProfileV2, fetchProfileV2, saveCycleConfig, setCycleConfig]);
@@ -561,7 +576,7 @@ export default function App() {
       );
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
-      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId}/>;
+      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient}/>;

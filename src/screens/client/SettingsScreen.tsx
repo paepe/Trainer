@@ -19,7 +19,9 @@ interface SettingsScreenProps {
   setPrefs:   (p: Partial<AppPreferences>) => void;
   dark:       boolean;
   isTrainer?: boolean;
-  hasTrainer?: boolean;  // client with an active trainer
+  hasTrainer?: boolean;
+  saveError?:       string | null;
+  clearSaveError?:  () => void;
 }
 
 type ToggleRow   = [BooleanPrefKey, string, string];
@@ -30,7 +32,7 @@ interface SelectorRow<K extends keyof AppPreferences> {
   options: { value: AppPreferences[K]; label: string }[];
 }
 
-export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false }: SettingsScreenProps) {
+export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError }: SettingsScreenProps) {
   const { t: tr } = useTranslation();  // `t` is the theme; `tr` translates
   const isAutonomous = !isTrainer && !hasTrainer;
 
@@ -93,6 +95,22 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
     <>
       <ScreenTitle dark={dark}>{tr('settings.title')}</ScreenTitle>
       <div style={{ padding: '0 22px 14px' }}>
+
+        {saveError && (
+          <div style={{
+            marginBottom: 14, padding: '10px 14px', borderRadius: 10,
+            background: '#EF5B3C18', border: '1px solid #EF5B3C44',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <span style={{ fontSize: 12.5, color: '#EF5B3C', fontWeight: 600 }}>{saveError}</span>
+            {clearSaveError && (
+              <button onClick={clearSaveError} style={{
+                background: 'none', border: 'none', color: '#EF5B3C', fontSize: 16,
+                cursor: 'pointer', padding: 0, lineHeight: 1,
+              }}>×</button>
+            )}
+          </div>
+        )}
 
         {/* Client Management — trainer only */}
         {isTrainer && (

@@ -134,12 +134,21 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     if (!fetchProfileV2) { setLoading(false); return; }
     fetchProfileV2().then(({ data: existing }) => {
       if (existing && Object.keys(existing).length > 0) {
-        const { current_step: _step, completed_at: _done, ...profileData } =
-          existing as WizardData & { current_step?: string; completed_at?: string | null };
+        const { current_step, completed_at, ...profileData } =
+          existing as WizardData & { current_step?: string | null; completed_at?: string | null };
         dataRef.current = profileData;
         setData(profileData);
         setProfileExists(true);
-        setMode('view');       // revealed after arrive screen is dismissed
+
+        const resumeStep = current_step ?? null;
+        const resumeIdx = resumeStep ? STEP_SEQUENCE.indexOf(resumeStep as ProfileV2Step) : -1;
+        if (resumeIdx >= 0 && resumeStep !== 'completed') {
+          setCurrentStep(resumeStep as ProfileV2Step);
+          setMode('wizard');
+          setShowWelcome(false);
+        } else {
+          setMode('view');
+        }
       } else {
         setProfileExists(false);
         setMode('wizard');     // revealed after arrive screen is dismissed

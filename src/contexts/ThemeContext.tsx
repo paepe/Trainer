@@ -6,7 +6,6 @@ import type { UserRole } from '../types';
 // carry different colour literals — are both assignable to the active theme.
 export type AppTheme = { -readonly [K in keyof typeof BRAND]: string } & {
   dark:          boolean;
-  cycleEnabled:  boolean;
   role:          UserRole | 'client';
 };
 

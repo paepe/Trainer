@@ -96,10 +96,10 @@ export type ConsentValue = 'share' | 'summary' | 'authorized_only' | 'hidden';
 export type RiskLevel = 'R0' | 'R1' | 'R2' | 'R3' | 'R4';
 
 export type ProfileV2Step =
-  | 'welcome'            | 'basic_data'       | 'objectives'        | 'movement_history'
-  | 'abandon_history'    | 'declared_health'  | 'comorbidities'     | 'functional_capacity'
-  | 'habits'             | 'sensitive_factors'| 'body_rhythm'       | 'environment'
-  | 'availability'       | 'preferences'      | 'consent'           | 'risk_classification'
+  | 'basic_data'       | 'objectives'        | 'movement_history'
+  | 'abandon_history'  | 'declared_health'   | 'comorbidities'     | 'functional_capacity'
+  | 'habits'           | 'sensitive_factors' | 'body_rhythm'        | 'environment'
+  | 'availability'     | 'preferences'       | 'consent'            | 'risk_classification'
   | 'completed';
 
 // ── Block interfaces ──────────────────────────────────────────────────────────
@@ -112,7 +112,6 @@ export interface EmergencyContact {
 export interface ProfileBasicData {
   name:              string;
   age:               number;
-  language:          string;
   height_cm:         number;
   weight_kg:         number;
   biological_sex:    BiologicalSex;

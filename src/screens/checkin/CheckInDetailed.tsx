@@ -357,15 +357,9 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
         </div>
       </div>
 
-      {/* 9 Capacidade funcional */}
-      <div style={block()}>
-        <BlockHeader num={9} icon="🤸" label={tr('detailedCheckin.blocks.capacity')} dark={dark}/>
-        <SliderRow label={tr('detailedCheckin.blocks.capacityLabel')} value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
-      </div>
-
-      {/* 10 Sinais de alerta */}
+      {/* 9 Sinais de alerta */}
       <div style={block({ borderColor: signals.length > 0 ? `${accent}55` : undefined })}>
-        <BlockHeader num={10} icon="⚠️" label={tr('detailedCheckin.blocks.signals')} dark={dark}/>
+        <BlockHeader num={9} icon="⚠️" label={tr('detailedCheckin.blocks.signals')} dark={dark}/>
         <p style={{ fontSize: 11, color: textMute(dark), lineHeight: 1.45, margin: '0 0 10px' }}>
           {tr('detailedCheckin.signalsNote')}
         </p>
@@ -377,9 +371,9 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
         </div>
       </div>
 
-      {/* 11 Body Rhythm */}
+      {/* 10 Body Rhythm */}
       <div style={block()}>
-        <BlockHeader num={11} icon="🌙" label={tr('detailedCheckin.blocks.rhythm')} dark={dark}/>
+        <BlockHeader num={10} icon="🌙" label={tr('detailedCheckin.blocks.rhythm')} dark={dark}/>
         <ToggleRow
           label={tr('detailedCheckin.rhythmNote')}
           sub={tr('detailedCheckin.rhythmPrivacy')}
@@ -387,9 +381,9 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
         />
       </div>
 
-      {/* 12 Adaptacao */}
+      {/* 11 Adaptacao */}
       <div style={block()}>
-        <BlockHeader num={12} icon="🔄" label={tr('detailedCheckin.blocks.adaptation')} dark={dark}/>
+        <BlockHeader num={11} icon="🔄" label={tr('detailedCheckin.blocks.adaptation')} dark={dark}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {adaptations.map(a => (
             <ChipBtn key={a.value} label={a.label} selected={adaptation === a.value}

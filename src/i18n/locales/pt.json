@@ -1176,7 +1176,6 @@
       "cityAddress": "Cidade / Endereço",
       "height": "Altura (cm)",
       "weight": "Peso atual (kg)",
-      "language": "Idioma",
       "biologicalSex": "Sexo biológico",
       "sexNote": "Usado para personalização — nunca para diagnóstico.",
       "emergencyContact": "Contato de emergência",
@@ -1188,7 +1187,6 @@
       "addressPlaceholder": "São Paulo, SP",
       "heightPlaceholder": "165",
       "weightPlaceholder": "64",
-      "languagePlaceholder": "Português",
       "sex": {
         "female": "Feminino",
         "male": "Masculino",
@@ -1666,7 +1664,10 @@
       "bodyBold": "explicável",
       "bodyPost": ": você pode solicitar detalhes dos fatores que pesaram em cada decisão.",
       "generating": "Gerando Perfil Ampliado…",
-      "generateBtn": "Gerar Perfil Ampliado →"
+      "generateBtn": "Gerar Perfil Ampliado →",
+      "confirmBtn": "Eu Entendo — Gerar Mesmo Assim",
+      "confirmationR3": "Seu perfil indica riscos elevados à saúde (R3). Validação humana é altamente recomendada antes de iniciar o treino. Revise os fatores de risco acima e confirme que compreende.",
+      "confirmationR4": "Risco crítico detectado (R4). Treino autônomo NÃO é recomendado. Você deve consultar um profissional de saúde e/ou seu personal trainer antes de prosseguir. Confirme que compreende os riscos."
     },
     "voice": {
       "kicker": "Entrada de Voz",

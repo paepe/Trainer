@@ -19,9 +19,6 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
     support_level: 'guided' as SupportLevel,
   };
 
-  const intensityOpts   = (['gradual','moderate','intense'] as PreferredIntensity[]).map(v => ({ value: v, label: tr(`wizard.step13.intensities.${['Light','Moderate','Intense'].indexOf(String(v === 'gradual' ? 'Light' : v === 'moderate' ? 'Moderate' : 'Intense')) >= 0 ? (v === 'gradual' ? 'Light' : v === 'moderate' ? 'Moderate' : 'Intense') : v}`) }));
-  
-  // Simpler: just use direct tr lookups with value-based keys
   const intensityOpts2    = (['gradual','moderate','intense'] as PreferredIntensity[]).map(v => ({ value: v, label: tr(`wizard.step13.intensities.${v}` as any) }));
   const companyOpts       = (['solo','accompanied','indifferent'] as TrainingCompany[]).map(v => ({ value: v, label: tr(`wizard.step13.company.${v}` as any) }));
   const languageOpts      = (['direct','explanatory','technical'] as PreferredLanguage[]).map(v => ({ value: v, label: tr(`wizard.step13.languages.${v}` as any) }));

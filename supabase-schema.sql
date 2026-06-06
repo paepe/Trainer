@@ -28,6 +28,19 @@ create table preferences (
   cycle_tracking      bool default true,
   ai_personalization  bool default true,
   dark_mode           bool default true,
+  default_location         text    default 'gym',
+  default_duration_min     int     default 45,
+  preferred_intensity      text    default 'moderate',
+  plan_expiry_days         int     default 10,
+  workout_ready_expiry_min int     default 30,
+  light_palette            text    default 'arctic',
+  ai_focus_strength        int     default 5,
+  ai_focus_endurance       int     default 5,
+  ai_focus_mobility        int     default 5,
+  session_history_limit    int     default 50,
+  trainer_dashboard_limit  int     default 10,
+  language                 text    default 'en',
+  white_label              boolean default false,
   updated_at          timestamptz default now()
 );
 

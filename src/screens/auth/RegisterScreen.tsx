@@ -18,9 +18,10 @@ interface RegisterScreenProps {
 
 // Labels/descriptions are translated at render via auth.roles.<key>.*
 const ROLES = [
-  { key: 'client',       icon: 'user' },
-  { key: 'trainer',      icon: 'dumbbell' },
-  { key: 'studio_admin', icon: 'grad' },
+  { key: 'client',         icon: 'user' },
+  { key: 'trainer',        icon: 'dumbbell' },
+  { key: 'studio_trainer', icon: 'grad' },
+  { key: 'studio_admin',   icon: 'grad' },
 ] as const;
 
 function OAuthButton({ provider, onClick, dark, primary }: {
@@ -103,7 +104,7 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
       setLoading(false);
       return;
     }
-    nav(role === 'client' ? 'profileWizard' : 'profile');
+    nav(role === 'client' ? 'profileWizard' : 'trainerDashboard');
   };
 
   const oauth = async (provider: 'google') => {

@@ -19,10 +19,9 @@ export type SafetySignal =
   | 'chest_pain'      | 'malaise'        | 'loss_of_balance'
   | 'fainting_sensation';
 
-export type AdaptationPreference =
-  | 'maintain_normal'    | 'reduce_intensity' | 'reduce_impact'
-  | 'increase_rest'      | 'shorten_session'  | 'prioritize_mobility'
-  | 'postpone_training'  | 'regenerative';
+import type { BodyRhythmAdaptation } from './profile-v2';
+
+export type AdaptationPreference = BodyRhythmAdaptation;
 
 export type WorkoutCompletionStatus = 'yes' | 'partially' | 'no';
 
@@ -105,7 +104,7 @@ export interface CheckInProntidao {
   id:           string;
   user_id:      string;
   variant:      CheckInVariant;
-  input_source: 'voice' | 'form';
+  input_source: 'voice' | 'form' | 'post_workout';
   occurred_at:  string;
   created_at:   string;
 

@@ -66,33 +66,46 @@ interface StartWorkoutScreenProps {
   };
 }
 
+interface PlanCard {
+    id:        string;
+    sentAt:    string | null;
+    status:    string;
+    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null}>;
+  }
+
+type GenPhase = 'idle' | 'loading' | 'success' | 'error' | 'blocked';
+
+type GenState =
+  | { phase: 'idle' }
+  | { phase: 'loading' }
+  | { phase: 'success'; plan: Exercise[]; planId: string; readinessScore: number; adaptations: string[] }
+  | { phase: 'error';   error: string }
+  | { phase: 'blocked'; safetyTitle: string; safetyMessage: string; readinessScore: number };
+
 export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', prefs }: StartWorkoutScreenProps) {
   const { t: tr } = useTranslation();
-  const [plan,       setPlan]       = React.useState<Exercise[] | null>(null);  // AI-generated plan only
-  const [planId,     setPlanId]     = React.useState<string | null>(null);
+  const [genState, setGenState] = React.useState<GenState>({ phase: 'idle' });
   const [planSource, setPlanSource] = React.useState<string | null>(null);
   const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
   const [trainerAvatarUrl, setTrainerAvatarUrl] = React.useState<string | null>(null);
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
-  const [loading,    setLoading]    = React.useState<boolean>(false);
-  const [error,      setError]      = React.useState<string | null>(null);
-  const [safetyBlocked,  setSafetyBlocked]  = React.useState(false);
-  const [safetyTitle,    setSafetyTitle]    = React.useState<string | null>(null);
-  const [safetyMessage,  setSafetyMessage]  = React.useState<string | null>(null);
-  const [readinessScore, setReadinessScore] = React.useState<number | null>(null);
-  const [adaptations,    setAdaptations]    = React.useState<string[]>([]);
-  interface PlanCard {
-    id:        string;
-    sentAt:    string | null;
-    status:    string;  // 'sent' | 'active' | 'postponed'
-    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null}>;
-  }
   const [trainerPlans, setTrainerPlans] = React.useState<PlanCard[]>([]);
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
   const hasTrainerPlans = trainerPlans.length > 0;
+
+  // Derived accessors — single point of truth from discriminated union
+  const loading         = genState.phase === 'loading';
+  const error           = genState.phase === 'error'   ? genState.error                     : null;
+  const plan            = genState.phase === 'success' ? genState.plan                      : null;
+  const planId          = genState.phase === 'success' ? genState.planId                    : null;
+  const safetyBlocked   = genState.phase === 'blocked';
+  const safetyTitle     = genState.phase === 'blocked' ? genState.safetyTitle               : null;
+  const safetyMessage   = genState.phase === 'blocked' ? genState.safetyMessage             : null;
+  const readinessScore  = genState.phase === 'success' || genState.phase === 'blocked' ? genState.readinessScore : null;
+  const adaptations     = genState.phase === 'success' ? genState.adaptations               : ([] as string[]);
 
   // Derive current cycle phase — only for female users with cycle tracking data
   const getCycleContext = () => {
@@ -129,7 +142,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       if (planError) throw planError;
       if (!planRow?.id) return;
 
-      setPlanId(planRow.id);
+      setGenState(prev => prev.phase === 'success' ? { ...prev, planId: planRow.id } : prev);
 
       const { error: exercisesError } = await supabase.from('plan_exercises').insert(
         exercises.map((ex, i) => ({
@@ -162,11 +175,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     }
   }, [user?.id]);
 
+  const mountedRef = React.useRef(true);
+
   const fetchPlan = async () => {
-    setLoading(true);
-    setError(null);
-    setPlan(null);
-    setPlanId(null);
+    if (!mountedRef.current) return;
+    setGenState({ phase: 'loading' });
     setTrainerPlans([]);
     // Auto-cancel stale plans (>10 days); notify trainer
     if (user?.id) void autoExpirePlans(user.id, 'client');
@@ -284,8 +297,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
         // If no profile, fall back to legacy endpoint
         if (!profileData) {
-          const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: i18n.language });
-          setPlan(exercises);
+          const           exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: i18n.language });
+          setGenState({ phase: 'success', plan: exercises, planId: '', readinessScore: -1, adaptations: [] });
           void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile);
           return;
         }
@@ -361,39 +374,43 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               library: libraryCtx, task: taskCtx,
               locale: i18n.language,
             })
-          : { exercises: [], readinessScore: todayCtx.readinessScore || 60, blocked: false, adaptations: null as any, safetyTitle: null as any, safetyMessage: null as any };
+          : { exercises: [], readinessScore: todayCtx.readinessScore || 60, blocked: false, adaptations: [], safetyTitle: null as any, safetyMessage: null as any };
 
-        // Update readiness/safety display
-        setReadinessScore(result.readinessScore);
-        setAdaptations(result.adaptations);
+        const readiness   = result.readinessScore;
+        const adaptResult = result.adaptations;
 
         if (result.blocked) {
-          setSafetyBlocked(true);
-          setSafetyTitle(result.safetyTitle ?? tr('client.workout.safetyGateTitle'));
-          setSafetyMessage(result.safetyMessage ?? tr('client.workout.safetyGateMsg'));
-          setLoading(false);
+          setGenState({
+            phase: 'blocked',
+            readinessScore: readiness,
+            safetyTitle:    result.safetyTitle    ?? tr('client.workout.safetyGateTitle'),
+            safetyMessage:  result.safetyMessage  ?? tr('client.workout.safetyGateMsg'),
+          });
           return;
         }
 
-        setPlan(result.exercises);
+        setGenState({
+          phase:          'success',
+          plan:           result.exercises,
+          planId:         '',
+          readinessScore: readiness,
+          adaptations:    adaptResult,
+        });
         setPlanSource('ai');
         void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile);
       } // end if (user?.id)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : tr('client.workout.unknownError'));
-    } finally {
-      setLoading(false);
+      setGenState({ phase: 'error', error: err instanceof Error ? err.message : tr('client.workout.unknownError') });
     }
   };
 
   React.useEffect(() => {
-    let cancelled = false;
+    mountedRef.current = true;
     const fetch = async () => {
       try { await fetchPlan(); } catch { /* caught internally */ }
-      if (!cancelled) return;
     };
     void fetch();
-    return () => { cancelled = true; };
+    return () => { mountedRef.current = false; };
   }, []);
 
   // Live: a new plan sent by the trainer while this screen is open

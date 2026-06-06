@@ -29,7 +29,7 @@ export function useCheckinData(userId: string | undefined, alertsEnabled = true)
         user_id:           effectiveUserId,
         variant:           data.variant,
         occurred_at:       new Date().toISOString(),
-        input_source:      data.variant === 'voice' ? 'voice' : 'form',
+        input_source:      data.variant === 'voice' ? 'voice' : data.variant === 'post_workout' ? 'post_workout' : 'form',
         quick_data:        toJson(qd),
         detailed_data:     toJson(dd),
         voice_data:        toJson(data.voice_data),

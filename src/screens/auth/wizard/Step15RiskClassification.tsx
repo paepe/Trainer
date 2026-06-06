@@ -58,6 +58,16 @@ interface Step15Props extends WizardStepProps {
 export function Step15RiskClassification({ dark, primary, accent, data, onUpdate, onBack, onSaveLater, stepNum, totalSteps, onGenerate, generating }: Step15Props) {
   const { t: tr } = useTranslation();
   const risk = React.useMemo(() => computeRisk(data), [data]);
+  const [confirmed, setConfirmed] = React.useState(false);
+  const requiresConfirmation = ['R3', 'R4'].includes(risk.level);
+
+  const handleGenerate = () => {
+    if (requiresConfirmation && !confirmed) {
+      setConfirmed(true);
+      return;
+    }
+    onGenerate(risk);
+  };
 
   return (
     <VStack padding="20px 24px 32px" style={{ minHeight: '100%' }}>
@@ -74,14 +84,24 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
         {tr('wizard.step15.bodyPre')}<strong style={{ color: textPri(dark) }}>{tr('wizard.step15.bodyBold')}</strong>{tr('wizard.step15.bodyPost')}
       </p>
 
+      {requiresConfirmation && !confirmed && (
+        <div style={{ marginBottom: 24, padding: 14, borderRadius: 14, border: `1.5px solid ${risk.level === 'R4' ? '#FF4D4D' : '#F5A623'}33`, background: `${risk.level === 'R4' ? '#FF4D4D' : '#F5A623'}0c` }}>
+          <Typography variant="body" color="primary" style={{ fontSize: 13, lineHeight: 1.5 }}>
+            {risk.level === 'R4'
+              ? tr('wizard.step15.confirmationR4')
+              : tr('wizard.step15.confirmationR3')}
+          </Typography>
+        </div>
+      )}
+
       <Spacer />
 
       <button
-        onClick={() => onGenerate(risk)}
+        onClick={handleGenerate}
         disabled={generating}
         style={{
           width: '100%', padding: '18px 20px', borderRadius: 14,
-          background: generating ? `${primary}88` : primary,
+          background: generating ? `${primary}88` : (requiresConfirmation && !confirmed) ? (risk.level === 'R4' ? '#FF4D4D' : '#F5A623') : primary,
           border: 'none', color: '#0E1A2B',
           fontSize: 16, fontWeight: 700, fontFamily: 'inherit',
           cursor: generating ? 'default' : 'pointer',
@@ -96,7 +116,7 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
             {tr('wizard.step15.generating')}
           </>
         ) : (
-          tr('wizard.step15.generateBtn')
+          (requiresConfirmation && !confirmed ? tr('wizard.step15.confirmBtn') : tr('wizard.step15.generateBtn'))
         )}
       </button>
     </VStack>

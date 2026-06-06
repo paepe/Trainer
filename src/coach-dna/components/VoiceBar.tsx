@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { THEME_VARS as DARK } from '../../theme/tokens';
-import i18n from '../../i18n';
+import i18n, { BCP47 } from '../../i18n';
 import { useTheme } from '../../contexts';
 
 interface VoiceBarProps {
@@ -77,7 +77,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
 
     setError(null);
     const rec = new SR();
-    rec.lang            = i18n.language || 'en-US';
+    rec.lang            = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
     rec.continuous      = true;
     rec.interimResults  = true;
     recRef.current = rec;

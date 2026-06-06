@@ -183,7 +183,8 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     await supabase
       .from('notification_log')
       .update({ response, response_at: new Date().toISOString() })
-      .eq('id', item.id);
+      .eq('id', item.id)
+      .is('response', null);
 
     const trainerFirst = userName?.split(' ')[0] || tr('inbox.yourTrainerFallback');
     if (response === 'approved') {

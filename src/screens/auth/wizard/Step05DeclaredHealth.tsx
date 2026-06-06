@@ -22,6 +22,7 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
   const { t: tr } = useTranslation();
   const dh = data.declared_health ?? { has_condition: null, categories: [], free_text: '' };
   const [voiceOpen, setVoiceOpen] = React.useState(false);
+  const savedCategoriesRef = React.useRef<HealthCategory[]>([]);
 
   const disclosure: Disclosure =
     dh.has_condition === null   ? 'prefer_not' :
@@ -29,7 +30,9 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
 
   const setDisclosure = (v: Disclosure) => {
     const has = v === 'yes' ? true : v === 'no' ? false : null;
-    onUpdate({ declared_health: { ...dh, has_condition: has, categories: has ? dh.categories : [] } });
+    const prevCategories = has ? (savedCategoriesRef.current.length > 0 ? savedCategoriesRef.current : dh.categories) : dh.categories;
+    if (!has && dh.categories && dh.categories.length > 0) savedCategoriesRef.current = [...dh.categories];
+    onUpdate({ declared_health: { ...dh, has_condition: has, categories: has ? prevCategories : [] } });
   };
 
   const toggleCategory = (v: HealthCategory) => {

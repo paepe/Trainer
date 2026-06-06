@@ -1227,7 +1227,6 @@
       "cityAddress": "City / Address",
       "height": "Height (cm)",
       "weight": "Current weight (kg)",
-      "language": "Language",
       "biologicalSex": "Biological sex",
       "sexNote": "Used for personalization — never for diagnosis.",
       "emergencyContact": "Emergency contact",
@@ -1239,7 +1238,6 @@
       "addressPlaceholder": "New York, NY",
       "heightPlaceholder": "165",
       "weightPlaceholder": "64",
-      "languagePlaceholder": "English",
       "sex": {
         "female": "Female",
         "male": "Male",
@@ -1717,7 +1715,10 @@
       "bodyBold": "explainable",
       "bodyPost": ": you can request details of the factors that weighed into each decision.",
       "generating": "Generating Amplified Profile…",
-      "generateBtn": "Generate Amplified Profile →"
+      "generateBtn": "Generate Amplified Profile →",
+      "confirmBtn": "I Understand — Generate Anyway",
+      "confirmationR3": "Your profile indicates elevated health risks (R3). Human validation is strongly recommended before starting training. Please review the risk factors above and confirm you understand.",
+      "confirmationR4": "Critical risk detected (R4). Autonomous training is NOT recommended. You must consult a healthcare professional and/or your trainer before proceeding. Confirm you understand the risks."
     },
     "voice": {
       "kicker": "Voice Input",
@@ -2336,7 +2337,8 @@
         "sand": "Warm Sand"
       }
     },
-    "aiFocusHint": "Higher emphasis shapes the AI's exercise selection and rep ranges."
+    "aiFocusHint": "Higher emphasis shapes the AI's exercise selection and rep ranges.",
+    "saveFailed": "Save failed — please try again."
   },
   "profileFields": {
     "age": "Age",

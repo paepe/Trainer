@@ -1175,7 +1175,6 @@
       "cityAddress": "Stadt / Adresse",
       "height": "Größe (cm)",
       "weight": "Aktuelles Gewicht (kg)",
-      "language": "Sprache",
       "biologicalSex": "Biologisches Geschlecht",
       "sexNote": "Zur Personalisierung verwendet — niemals zur Diagnose.",
       "emergencyContact": "Notfallkontakt",
@@ -1187,7 +1186,6 @@
       "addressPlaceholder": "Berlin, Deutschland",
       "heightPlaceholder": "165",
       "weightPlaceholder": "64",
-      "languagePlaceholder": "Deutsch",
       "sex": {
         "female": "Weiblich",
         "male": "Männlich",
@@ -1665,7 +1663,10 @@
       "bodyBold": "nachvollziehbar",
       "bodyPost": ": du kannst Details zu den Faktoren anfordern, die in jede Entscheidung eingeflossen sind.",
       "generating": "Erweitertes Profil wird erstellt…",
-      "generateBtn": "Erweitertes Profil erstellen →"
+      "generateBtn": "Erweitertes Profil erstellen →",
+      "confirmBtn": "Ich Verstehe — Trotzdem Erstellen",
+      "confirmationR3": "Dein Profil zeigt erhöhte Gesundheitsrisiken (R3). Menschliche Validierung wird vor Trainingsbeginn dringend empfohlen. Bitte überprüfe die Risikofaktoren oben und bestätige dein Verständnis.",
+      "confirmationR4": "Kritisches Risiko erkannt (R4). Autonomes Training wird NICHT empfohlen. Du musst vor dem Fortfahren einen Arzt und/oder deinen Personal Trainer konsultieren. Bestätige, dass du die Risiken verstehst."
     },
     "voice": {
       "kicker": "Spracheingabe",

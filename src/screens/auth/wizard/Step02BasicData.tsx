@@ -183,13 +183,6 @@ export function Step02BasicData({
           />
         </div>
 
-        <TextInput
-          label={tr('wizard.step02.language')}
-          value={d.language ?? tr('wizard.step02.languagePlaceholder')}
-          onChange={v => setBasic({ language: v })}
-          placeholder={tr('wizard.step02.languagePlaceholder')}
-        />
-
         {/* Biological sex */}
         <div>
           <Typography variant="overline" color="muted" style={{ marginBottom: 10 }}>{tr('wizard.step02.biologicalSex')}</Typography>

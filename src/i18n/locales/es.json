@@ -1175,7 +1175,6 @@
       "cityAddress": "Ciudad / Dirección",
       "height": "Altura (cm)",
       "weight": "Peso actual (kg)",
-      "language": "Idioma",
       "biologicalSex": "Sexo biológico",
       "sexNote": "Usado para personalización — nunca para diagnóstico.",
       "emergencyContact": "Contacto de emergencia",
@@ -1187,7 +1186,6 @@
       "addressPlaceholder": "Madrid, España",
       "heightPlaceholder": "165",
       "weightPlaceholder": "64",
-      "languagePlaceholder": "Español",
       "sex": {
         "female": "Femenino",
         "male": "Masculino",
@@ -1665,7 +1663,10 @@
       "bodyBold": "explicable",
       "bodyPost": ": puedes solicitar los detalles de los factores que pesaron en cada decisión.",
       "generating": "Generando Perfil Ampliado…",
-      "generateBtn": "Generar Perfil Ampliado →"
+      "generateBtn": "Generar Perfil Ampliado →",
+      "confirmBtn": "Entiendo — Generar de Todos Modos",
+      "confirmationR3": "Tu perfil indica riesgos elevados para la salud (R3). Se recomienda encarecidamente la validación humana antes de comenzar el entrenamiento. Revisa los factores de riesgo y confirma que comprendes.",
+      "confirmationR4": "Riesgo crítico detectado (R4). NO se recomienda el entrenamiento autónomo. Debes consultar a un profesional de la salud y/o a tu entrenador personal antes de continuar. Confirma que comprendes los riesgos."
     },
     "voice": {
       "kicker": "Entrada de Voz",

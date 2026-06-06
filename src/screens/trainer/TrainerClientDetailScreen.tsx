@@ -625,9 +625,7 @@ export function TrainerClientDetailScreen({
               if (s) {
                 if (s.status === 'completed' || s.completed_at) return { label: tr('trainer.detail.sessionStatus.done'),       color: '#10B981' };
                 if (s.status === 'active')                       return { label: tr('trainer.detail.sessionStatus.inProgress'), color: t.primary };
-                if (s.status === 'active')                       return { label: tr('trainer.detail.sessionStatus.active'),    color: '#4ade80' };
                 if (s.status === 'abandoned')                    return { label: tr('trainer.detail.sessionStatus.abandoned'), color: '#F5A623' };
-                if (s.status === 'abandoned')                    return { label: tr('trainer.detail.sessionStatus.abandoned'),  color: t.accent  };
               }
               if (p.status === 'completed') return { label: tr('trainer.detail.sessionStatus.done'),       color: '#10B981' };
               if (p.status === 'active')    return { label: tr('trainer.detail.sessionStatus.inProgress'), color: t.primary };

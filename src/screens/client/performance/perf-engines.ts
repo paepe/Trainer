@@ -397,6 +397,8 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
 
   // ── Adherence ─────────────────────────────────────────────────────────────
   const completedSessions = sessions.filter(s => s.status === 'completed').length;
+  // Detect zombie sessions: completed_at is set but status isn't 'completed' or 'abandoned'.
+  // These are counted as half-completed in adherence; auto-heal runs at fetch-level (StartWorkoutScreen).
   const partialSessions   = sessions.filter(
     s => s.status !== 'completed' && s.status !== 'abandoned' && s.completed_at !== null,
   ).length;

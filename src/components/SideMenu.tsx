@@ -32,9 +32,11 @@ const MENU_ITEMS: [string, string, string][] = [
 const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'goal', 'cycle', 'studio']);
 const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA']);
 
+import { TRAINER_ROLES } from '../types/auth';
+
 export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
   const { t: tr } = useTranslation();
-  const isTrainerRole = role === 'trainer' || role === 'studio_trainer' || role === 'internal_trainer' || role === 'technical_coordinator' || role === 'studio_admin' || role === 'studio_manager';
+  const isTrainerRole = role != null && (TRAINER_ROLES as readonly string[]).includes(role);
   const isMale = user.gender === 'male';
   const items = isTrainerRole
     ? MENU_ITEMS.filter(([, screen]) => !TRAINER_EXCLUDE.has(screen)).sort(([a], [b]) => a.localeCompare(b))

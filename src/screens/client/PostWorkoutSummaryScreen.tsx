@@ -55,8 +55,8 @@ export function PostWorkoutSummaryScreen({
   const [total,          setTotal]          = React.useState(totalProp);
   const [totalSets,      setTotalSets]      = React.useState(totalSetsProp);
   const [startedAt,      setStartedAt]      = React.useState(startedAtProp);
-  // null = unknown (loading), 'completed' = done, anything else = not completed
-  const [sessionStatus, setSessionStatus] = React.useState<string | null>(
+  // Session status: null = not yet loaded; 'completed' = finished; any other string = known incomplete
+  const [sessionStatus, setSessionStatus] = React.useState<'active' | 'completed' | 'abandoned' | null>(
     totalProp > 0 ? 'completed' : null
   );
 
@@ -71,8 +71,8 @@ export function PostWorkoutSummaryScreen({
       .eq('id', sessionId)
       .maybeSingle()
       .then(({ data: s }) => {
-        if (!s) { setSessionStatus('unknown'); return; }
-        setSessionStatus(s.completed_at ? 'completed' : (s.status ?? 'unknown'));
+        if (!s) { setSessionStatus('abandoned'); return; }
+        setSessionStatus((s.completed_at ? 'completed' : (s.status as 'active' | 'completed' | 'abandoned' | undefined) ?? 'abandoned'));
         if (s.total_duration_min) setDurationMin(s.total_duration_min);
         if (s.started_at && !startedAtProp) setStartedAt(s.started_at);
       });

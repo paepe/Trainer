@@ -67,7 +67,7 @@ export interface ClientPhysical {
 
 export interface TrainerClient {
   id:         string;
-  status:     'active' | 'inactive';
+  status:     'active' | 'inactive' | 'pending';
   trainer_id: string;
   client:     ClientProfile | null;
   trainer:    StudioMemberProfile | null;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '../../../i18n';
+import i18n, { BCP47 } from '../../../i18n';
 import { primaryBtn, surfRaised, textPri, textSec, textMute, borderSubtle } from '../../../theme';
 import { HStack } from '../../../ui';
 import { Icon } from '../../../components/Icon';
@@ -33,7 +33,7 @@ export function WizardVoiceOverlay({
     setError(null);
 
     const rec = new SpeechRecognitionAPI();
-    rec.lang           = i18n.language || 'en-US';
+    rec.lang           = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
     rec.continuous     = true;
     rec.interimResults = true;
 
