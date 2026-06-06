@@ -37,11 +37,11 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
   // ── Value-preference sections (Tier 1) ───────────────────────────────────────
   const trainingPrefs: SelectorRow<keyof AppPreferences>[] = [
     { key: 'defaultLocation', label: tr('settings.fields.location.label'), hint: tr('settings.fields.location.hint'),
-      options: [{ value: 'gym', label: tr('settings.opt.location.gym') }, { value: 'home', label: tr('settings.opt.location.home') }, { value: 'outdoor', label: tr('settings.opt.location.outdoor') }] },
+      options: ['home','gym','studio','park','condo','online'].map(v => ({ value: v as AppPreferences['defaultLocation'], label: tr(`wizard.step11.locations.${v}`) })) },
     { key: 'defaultDurationMin', label: tr('settings.fields.duration.label'), hint: tr('settings.fields.duration.hint'),
       options: [30, 45, 60, 75, 90].map(n => ({ value: n as AppPreferences['defaultDurationMin'], label: `${n}m` })) },
     { key: 'preferredIntensity', label: tr('settings.fields.intensity.label'), hint: tr('settings.fields.intensity.hint'),
-      options: [{ value: 'light', label: tr('settings.opt.intensity.light') }, { value: 'moderate', label: tr('settings.opt.intensity.moderate') }, { value: 'hard', label: tr('settings.opt.intensity.hard') }] },
+      options: ['gradual','moderate','intense'].map(v => ({ value: v as AppPreferences['preferredIntensity'], label: tr(`wizard.step13.intensities.${v}`) })) },
   ];
 
   const trainerMgmt: SelectorRow<keyof AppPreferences>[] = [

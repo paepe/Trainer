@@ -6,9 +6,9 @@
 import type { AppLanguage } from '../i18n';
 
 export type LightPalette = 'arctic' | 'sand';
-export type TrainingLocation = 'gym' | 'home' | 'outdoor';
+export type TrainingLocation = 'home' | 'gym' | 'studio' | 'park' | 'condo' | 'online';
 export type SessionDuration  = 30 | 45 | 60 | 75 | 90;
-export type TrainingIntensity = 'light' | 'moderate' | 'hard';
+export type TrainingIntensity = 'gradual' | 'moderate' | 'intense';
 export type PlanExpiryDays   = 7 | 10 | 14 | 21 | 30;
 export type WorkoutReadyExpiryMin = 15 | 30 | 60 | 120;
 export type SessionHistoryLimit   = 25 | 50 | 100 | 200;

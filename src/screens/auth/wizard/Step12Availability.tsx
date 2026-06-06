@@ -8,7 +8,7 @@ import type { PreferredTime, AdherenceBarrier } from '../../../types/profile-v2'
 const TIME_VALUES: PreferredTime[] = ['morning', 'afternoon', 'evening', 'variable'];
 const WEEK_DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const BARRIER_VALUES: AdherenceBarrier[] = ['night_shift', 'family_care', 'frequent_travel', 'treatment_radiation', 'transport', 'cost', 'emotional', 'time_constraint'];
-const SESSION_PRESETS = [30, 45, 60, 90];
+const SESSION_PRESETS = [30, 45, 60, 75, 90];
 
 export function Step12Availability({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();

@@ -2228,6 +2228,58 @@
     "continue": "Weiter",
     "save": "Speichern"
   },
+  "settings": {
+    "title": "Einstellungen",
+    "aboutTagline": "TrAIner v0.1 — KI-gestützter Fitness-Begleiter",
+    "sections": {
+      "training": "Trainingsstandards",
+      "ai": "KI & Datenschutz",
+      "aiFocus": "KI-Trainingsfokus",
+      "notifications": "Benachrichtigungen",
+      "b2b": "Trainer-Funktionen",
+      "coaching": "Coaching-Einstellungen",
+      "data": "Datenlimits",
+      "appearance": "Erscheinungsbild",
+      "language": "Sprache",
+      "clientMgmt": "Kundenverwaltung",
+      "lightPalette": "Helles Farbprofil"
+    },
+    "fields": {
+      "location": { "label": "Standard-Trainingsort", "hint": "Füllt den Check-in-Ort automatisch aus." },
+      "duration": { "label": "Standard-Sitzungsdauer", "hint": "Füllt die Check-in-Dauer automatisch aus." },
+      "intensity": { "label": "Bevorzugte Intensität", "hint": "Leitet die KI-Trainingsgenerierung." },
+      "planExpiry": { "label": "Plan-Ablauf", "hint": "Ältere Pläne werden automatisch storniert." },
+      "dashboardDepth": { "label": "Kundenlimit im Dashboard", "hint": "Maximale Kunden pro Liste." },
+      "historyDepth": { "label": "Sitzungslimit im Verlauf", "hint": "Maximale Sitzungen pro Liste." },
+      "readyWindow": { "label": "Bereitschaftsalarm-Ablauf", "hint": "Trainer-Alarm läuft ohne Aktion ab." },
+      "language": { "label": "Oberflächensprache", "hint": "UI, KI-Ausgabe und Benachrichtigungen folgen dieser Einstellung." },
+      "lightPalette": { "label": "Helles Farbprofil", "hint": "Wähle zwischen Arktisblau und Warmsand." }
+    },
+    "toggle": {
+      "push": { "label": "Push-Benachrichtigungen", "hint": "Erhalte Trainingserinnerungen und Trainer-Alarme." },
+      "goals": { "label": "Zielverfolgung", "hint": "Verfolge den Fortschritt deiner Fitnessziele." },
+      "alerts": { "label": "Sicherheitsalarme", "hint": "Benachrichtige deinen Trainer bei kritischen Bereitschaftswerten." },
+      "analysis": { "label": "Analysefreigabe", "hint": "Teile aggregierte Daten zur Verbesserung der Empfehlungen." },
+      "behaviour": { "label": "Verhaltens-Insights", "hint": "Teile Nutzungsmuster zur Personalisierung." },
+      "cycle": { "label": "Zyklus-Tracking", "hint": "Passe die Trainingsintensität an deine Zyklusphase an." },
+      "aiWorkouts": { "label": "KI-Personalisierung", "hint": "Passe die Trainingsgenerierung an dein Profil und deine Historie an." },
+      "sounds": { "label": "Trainings-Sounds", "hint": "Audio-Hinweise für Pausen, Sätze und Abschluss." },
+      "darkMode": { "label": "Dunkelmodus", "hint": "Wechsle zwischen hellem und dunklem Thema." },
+      "whiteLabel": { "label": "White Label", "hint": "TrAIner-Branding ausblenden." }
+    },
+    "opt": {
+      "focus": {
+        "strength": "Kraft-Fokus",
+        "endurance": "Ausdauer-Fokus",
+        "mobility": "Mobilitäts-Fokus"
+      },
+      "palette": {
+        "arctic": "Arktisblau",
+        "sand": "Warmsand"
+      }
+    },
+    "aiFocusHint": "Höhere Betonung beeinflusst die Übungsauswahl und Wiederholungsbereiche der KI."
+  },
   "profileFields": {
     "age": "Alter",
     "name": "Name",

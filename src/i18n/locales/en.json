@@ -2278,6 +2278,58 @@
     "continue": "Continue",
     "save": "Save"
   },
+  "settings": {
+    "title": "Settings",
+    "aboutTagline": "TrAIner v0.1 — AI-powered fitness companion",
+    "sections": {
+      "training": "Training Defaults",
+      "ai": "AI & Privacy",
+      "aiFocus": "AI Training Focus",
+      "notifications": "Notifications",
+      "b2b": "Trainer Features",
+      "coaching": "Coaching Preferences",
+      "data": "Data Limits",
+      "appearance": "Appearance",
+      "language": "Language",
+      "clientMgmt": "Client Management",
+      "lightPalette": "Light Mode Palette"
+    },
+    "fields": {
+      "location": { "label": "Default Training Location", "hint": "Pre-fills check-in location for every session." },
+      "duration": { "label": "Default Session Duration", "hint": "Pre-fills check-in duration for every session." },
+      "intensity": { "label": "Preferred Intensity", "hint": "Guides AI workout generation intensity curve." },
+      "planExpiry": { "label": "Workout Plan Expiry", "hint": "Plans older than this are auto-cancelled." },
+      "dashboardDepth": { "label": "Dashboard Client Limit", "hint": "Max clients shown per list." },
+      "historyDepth": { "label": "History Session Limit", "hint": "Max sessions shown per list." },
+      "readyWindow": { "label": "Workout Ready Expiry", "hint": "Trainer alert expires if not actioned." },
+      "language": { "label": "Interface Language", "hint": "UI, AI output, and notifications follow this setting." },
+      "lightPalette": { "label": "Light Palette", "hint": "Choose between Arctic Blue and Warm Sand." }
+    },
+    "toggle": {
+      "push": { "label": "Push Notifications", "hint": "Receive workout reminders and trainer alerts." },
+      "goals": { "label": "Goal Tracking", "hint": "Track progress toward fitness goals." },
+      "alerts": { "label": "Safety Alerts", "hint": "Notify your trainer on critical readiness scores." },
+      "analysis": { "label": "Analytics Sharing", "hint": "Share aggregated performance data to improve recommendations." },
+      "behaviour": { "label": "Behavioural Insights", "hint": "Share usage patterns to personalise your experience." },
+      "cycle": { "label": "Cycle Tracking", "hint": "Adapt workout intensity to your menstrual cycle phase." },
+      "aiWorkouts": { "label": "AI Personalisation", "hint": "Tailor workout generation to your profile and history." },
+      "sounds": { "label": "Workout Sounds", "hint": "Audio cues for rests, sets, and workout completion." },
+      "darkMode": { "label": "Dark Mode", "hint": "Toggle between light and dark themes." },
+      "whiteLabel": { "label": "White Label", "hint": "Hide TrAIner branding." }
+    },
+    "opt": {
+      "focus": {
+        "strength": "Strength Focus",
+        "endurance": "Endurance Focus",
+        "mobility": "Mobility Focus"
+      },
+      "palette": {
+        "arctic": "Arctic Blue",
+        "sand": "Warm Sand"
+      }
+    },
+    "aiFocusHint": "Higher emphasis shapes the AI's exercise selection and rep ranges."
+  },
   "profileFields": {
     "age": "Age",
     "name": "Name",

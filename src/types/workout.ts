@@ -10,7 +10,7 @@ export type MuscleGroup =
   | 'cardio';
 
 export type FitnessLevel = 'beginner' | 'intermediate' | 'advanced';
-export type LocationType  = 'gym' | 'home' | 'outdoor';
+export type LocationType  = 'gym' | 'home' | 'outdoor' | 'studio' | 'park' | 'online' | 'condo';
 export type SleepQuality  = 'poor' | 'fair' | 'good';
 
 export interface CheckIn {
