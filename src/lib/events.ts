@@ -1,7 +1,7 @@
 import { supabase } from '../supabase';
-import i18n from '../i18n';
 import type { Json } from '../types/supabase';
 import type { SystemEventType } from '../types/workout';
+import { notify } from './notify';
 
 export async function emitEvent(
   userId: string,
@@ -46,17 +46,21 @@ export async function handlePainReport(
 
   const severity = intensity >= 9 ? 'critical' : 'high';
 
+  const alertParams = { region: bodyRegion, intensity };
+
   const { data: alert, error: alertErr } = await supabase
     .from('trainer_alerts')
     .insert({
-      trainer_id: tc.trainer_id,
-      client_id:  userId,
-      alert_type: 'high_pain',
+      trainer_id:   tc.trainer_id,
+      client_id:    userId,
+      alert_type:   'high_pain',
       severity,
-      title:  i18n.t('events.highPainTitle', { region: bodyRegion }),
-      body:   i18n.t('events.highPainBody', { intensity }),
-      status: 'open',
-      session_id: sessionId,
+      title:        `High pain reported — ${bodyRegion}`,
+      body:         `Intensity ${intensity}/10 during workout session. Review and adjust plan.`,
+      template_key: 'high_pain_alert',
+      params:       alertParams as unknown as Json,
+      status:       'open',
+      session_id:   sessionId,
     })
     .select('id')
     .single();
@@ -65,16 +69,27 @@ export async function handlePainReport(
 
   const alertId = (alert as { id: string } | null)?.id ?? null;
 
+  const taskParams = { region: bodyRegion, intensity };
+
   await supabase.from('operational_tasks').insert({
-    trainer_id:        tc.trainer_id,
-    client_id:         userId,
-    task_type:         'review_pain',
-    title:             i18n.t('events.reviewPainTitle', { region: bodyRegion }),
-    description:       i18n.t('events.reviewPainBody', { intensity, region: bodyRegion }),
-    priority:          intensity >= 9 ? 'urgent' : 'high',
-    status:            'pending',
+    trainer_id:         tc.trainer_id,
+    client_id:          userId,
+    task_type:          'review_pain',
+    title:              `Review pain — ${bodyRegion}`,
+    description:        `Client reported ${intensity}/10 intensity in ${bodyRegion}.`,
+    template_key:       'review_pain',
+    params:             taskParams as unknown as Json,
+    priority:           intensity >= 9 ? 'urgent' : 'high',
+    status:             'pending',
     related_session_id: sessionId,
     related_alert_id:   alertId,
+  });
+
+  // Push-notify trainer via the canonical multilingual pipeline
+  notify(tc.trainer_id, `High pain — ${bodyRegion}`, `Intensity ${intensity}/10`, undefined, {
+    type:        'high_pain',
+    templateKey: 'high_pain_alert',
+    params:      alertParams,
   });
 
   if (alertId) {

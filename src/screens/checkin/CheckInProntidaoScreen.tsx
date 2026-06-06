@@ -181,8 +181,8 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
               const name  = userName || tr('inbox.notification.yourClient');
               notify(
                 linkedTrainerId,
-                tr('inbox.notification.readyToTrainTitle', { name }),
-                tr('inbox.notification.readyToTrainBody', { score }),
+                `${name} is ready to train`,
+                `Readiness ${score}/100 \u00b7 Approve or reject their workout request.`,
                 undefined,
                 {
                   type: 'workout_ready',

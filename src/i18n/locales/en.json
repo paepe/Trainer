@@ -219,7 +219,8 @@
       "startLabel": "start: ",
       "currentLabel": "current: ",
       "analysisRising": "RPE has risen {{rpeDelta}} points in recent weeks. Monitor signs of accumulated fatigue.",
-      "analysisStable": "Volume and RPE progressing in a compatible manner. Healthy performance indicators."
+      "analysisStable": "Volume and RPE progressing in a compatible manner. Healthy performance indicators.",
+      "weekShort": "W{{n}}"
     },
     "pain": {
       "kicker": "PAIN & SAFETY · 14 DAYS",
@@ -425,7 +426,13 @@
     "emotional": {
       "physical": "Physical",
       "mental": "Mental",
-      "both": "Both"
+      "both": "Both",
+      "calm": "Calm",
+      "neutral": "Neutral",
+      "motivated": "Motivated",
+      "stressed": "Stressed",
+      "anxious": "Anxious",
+      "discouraged": "Discouraged"
     }
   },
   "quickCheckin": {
@@ -470,8 +477,15 @@
       "capacity": "Today's functional capacity",
       "signals": "Warning signs",
       "rhythm": "Body Rhythm",
-      "adaptation": "Adaptation preference"
-    }
+      "adaptation": "Adaptation preference",
+      "energyLabel": "how are you feeling?",
+      "sleepLabel": "hours slept",
+      "fatigueLabel": "perceived fatigue",
+      "capacityLabel": "mobility perception",
+      "situationalPainPlaceholder": "e.g.: squat, lift weight"
+    },
+    "title": "Full day context",
+    "description": "For greater precision. Skips fields that don't apply."
   },
   "nav": {
     "clients": "Clients",
@@ -2099,5 +2113,56 @@
   "wizardFooter": {
     "continue": "Continue",
     "save": "Save"
+  },
+  "profileFields": {
+    "age": "Age",
+    "name": "Name",
+    "height_cm": "Height (cm)",
+    "weight_kg": "Weight (kg)",
+    "biological_sex": "Biological sex",
+    "primary_goal": "Primary goal",
+    "secondary_goals": "Secondary goals",
+    "frequency": "Frequency",
+    "modalities": "Modalities",
+    "fitness_level": "Fitness level",
+    "abandoned_before": "Abandoned before",
+    "weekly_frequency": "Weekly frequency",
+    "balance": "Balance",
+    "autonomy": "Autonomy",
+    "mobility": "Mobility",
+    "pain_level": "Pain level",
+    "access_level": "Access level",
+    "effort_tolerance": "Effort tolerance",
+    "support_resources": "Support resources",
+    "instruction_format": "Instruction format",
+    "equipment": "Equipment",
+    "locations": "Locations",
+    "days_per_week": "Days per week",
+    "preferred_days": "Preferred days",
+    "preferred_time": "Preferred time",
+    "adherence_barriers": "Adherence barriers",
+    "session_duration_min": "Session duration (min)",
+    "focus": "Focus",
+    "support_level": "Support level",
+    "training_company": "Training company",
+    "explanation_level": "Explanation level",
+    "preferred_language": "Preferred language",
+    "preferred_intensity": "Preferred intensity",
+    "lifestyle_barriers": "Lifestyle barriers",
+    "conditions": "Conditions",
+    "categories": "Categories",
+    "has_condition": "Has condition",
+    "reasons": "Abandon reasons",
+    "enabled": "Body rhythm enabled",
+    "cycle_current_day": "Current day",
+    "cycle_duration_days": "Cycle duration",
+    "adaptation_preference": "Adaptation preference",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "profileDisclosure": {
+    "yes": "Yes",
+    "no": "No",
+    "prefer_not": "Prefer not to say"
   }
 }

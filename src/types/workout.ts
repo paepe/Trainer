@@ -166,18 +166,20 @@ export interface SystemEvent {
 }
 
 export interface TrainerAlert {
-  id:          string;
-  trainer_id:  string;
-  client_id:   string;
-  alert_type:  AlertType;
-  severity:    AlertSeverity;
-  title:       string;
-  body:        string | null;
-  status:      AlertStatus;
-  session_id:  string | null;
-  event_id:    string | null;
-  created_at:  string;
-  resolved_at: string | null;
+  id:            string;
+  trainer_id:    string;
+  client_id:     string;
+  alert_type:    AlertType;
+  severity:      AlertSeverity;
+  title:         string;
+  body:          string | null;
+  status:        AlertStatus;
+  session_id:    string | null;
+  event_id:      string | null;
+  template_key:  string | null;
+  params:        Record<string, unknown> | null;
+  created_at:    string;
+  resolved_at:   string | null;
 }
 
 export interface OperationalTask {
@@ -192,6 +194,8 @@ export interface OperationalTask {
   due_date:           string | null;
   related_session_id: string | null;
   related_alert_id:   string | null;
+  template_key:       string | null;
+  params:             Record<string, unknown> | null;
   created_at:         string;
   completed_at:       string | null;
 }

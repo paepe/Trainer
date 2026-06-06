@@ -171,6 +171,7 @@ export function useAIContext({ trainerId, clientId }: UseAIContextOptions): UseA
       stats:   context.stats,
       library: context.library,
       task,
+      locale:  context.locale,
     };
 
     try {

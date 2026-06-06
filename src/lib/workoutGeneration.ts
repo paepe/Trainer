@@ -38,6 +38,7 @@ interface RequestWorkoutPlanInput {
   checkin?:         Partial<CheckIn> | null | undefined;
   physicalProfile?: Json | null | undefined;
   cycleContext?:    CycleContext | null | undefined;
+  locale?:          string;
 }
 
 export function resolveWorkoutApiBase(): string {
@@ -58,6 +59,7 @@ export async function requestWorkoutPlan({
   checkin,
   physicalProfile,
   cycleContext,
+  locale,
 }: RequestWorkoutPlanInput): Promise<GeneratedWorkoutExercise[]> {
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 20_000);
@@ -66,7 +68,7 @@ export async function requestWorkoutPlan({
     response = await fetch(`${resolveWorkoutApiBase()}/api/generate-workout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ checkin, physicalProfile, cycleContext }),
+      body: JSON.stringify({ checkin, physicalProfile, cycleContext, locale }),
       signal: ctrl.signal,
     });
   } catch (err) {

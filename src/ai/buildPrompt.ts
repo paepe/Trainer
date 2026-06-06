@@ -1,8 +1,18 @@
 import type { AIContext, TaskContext } from './types';
 
+// ─── Locale → conversational language name (for AI prompt) ────────────────────
+
+const LOCALE_TO_LANG: Record<string, string> = {
+  'en': 'English', 'en-US': 'English', 'en-GB': 'English',
+  'pt': 'Portuguese (Brazil)', 'pt-BR': 'Portuguese (Brazil)', 'pt-PT': 'Portuguese (Portugal)',
+  'es': 'Spanish', 'es-ES': 'Spanish', 'es-MX': 'Spanish (Mexico)',
+  'de': 'German', 'de-DE': 'German',
+};
+
 // ─── System prompt (instructs the model on role, rules, output format) ────────
 
 function buildSystemPrompt(task: TaskContext['type'], locale: string): string {
+  const lang = LOCALE_TO_LANG[locale] ?? locale ?? 'English';
   const base = `You are an AI personal training assistant for TrAIner, a professional fitness coaching platform.
 You receive structured context about the trainer (Coach DNA), the client (profile + history), today's readiness (check-in), performance statistics, and an exercise library.
 
@@ -13,7 +23,7 @@ Rules:
 - Respect equipment and location constraints exactly — never prescribe equipment not listed.
 - Honour the trainer's avoidExercises and client's injury/pain restrictions.
 - Adapt intensity based on readinessScore, fatigueRisk, and intensityCeiling.
-- Respond in ${locale}. All workout titles, coach notes, exercise cues, and adaptation notes must be in ${locale}.
+- Respond in ${lang}. All workout titles, coach notes, exercise cues, descriptions, and adaptation notes MUST be written in ${lang}. Never mix languages.
 - Return ONLY valid JSON matching the required output shape — no markdown fences, no commentary.`;
 
   const shapes: Record<typeof task, string> = {

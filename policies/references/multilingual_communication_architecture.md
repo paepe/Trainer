@@ -186,18 +186,18 @@ tr('inbox.templates.workout_approved', { trainerName: 'Klaus' })
 
 ## 7. Checklist
 
-- [ ] Phase 1.1 — Schema migration (`template_key`, `params`)
-- [ ] Phase 1.2 — `notify()` signature extended
-- [ ] Phase 1.3 — `inbox.templates.*` in `en.json`
-- [ ] Phase 1.4 — Templates translated to pt/es/de
-- [ ] Phase 1.5 — All 8 `notify()` callers updated
-- [ ] Phase 1.6 — `tsc --noEmit` passes
-- [ ] Phase 2.1 — `InboxItem` type extended
-- [ ] Phase 2.2 — Render-on-consume logic in InboxScreen
-- [ ] Phase 2.3 — Fetch + Realtime enrichment
-- [ ] Phase 3.1 — Zero raw-text `notify()` audit
+- [x] Phase 1.1 — Schema migration (`template_key`, `params`) — `supabase-add-template-keys.sql` + `supabase-add-template-keys-events.sql`
+- [x] Phase 1.2 — `notify()` signature extended
+- [x] Phase 1.3 — `inbox.templates.*` in `en.json`
+- [x] Phase 1.4 — Templates translated to pt/es/de
+- [x] Phase 1.5 — All 8 `notify()` callers updated + `events.ts` migrated to canonical English + notify() pipeline
+- [x] Phase 1.6 — `tsc --noEmit` passes
+- [x] Phase 2.1 — `InboxItem` type extended
+- [x] Phase 2.2 — Render-on-consume logic in InboxScreen
+- [x] Phase 2.3 — Fetch + Realtime enrichment
+- [ ] Phase 3.1 — Zero raw-text `notify()` audit **(done — audit confirmed 0 write-side i18n.t() calls)**
 - [ ] Phase 3.2 — Template catalog documented
-- [ ] Phase 3.3 — Build + locale sync verified
+- [ ] Phase 3.3 — Build + locale sync verified **(done — tsc --noEmit + vite build pass)**
 - [ ] Phase 3.4 — Cross-language QA (DE ↔ ES)
 - [ ] Phase 3.5 — Legacy fallback regression test
 

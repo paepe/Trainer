@@ -216,7 +216,8 @@
       "startLabel": "início: ",
       "currentLabel": "atual: ",
       "analysisRising": "O RPE subiu {{rpeDelta}} pontos nas últimas semanas. Monitore sinais de fadiga acumulada.",
-      "analysisStable": "Volume e RPE progredindo de forma compatível. Indicadores de performance saudáveis."
+      "analysisStable": "Volume e RPE progredindo de forma compatível. Indicadores de performance saudáveis.",
+      "weekShort": "S{{n}}"
     },
     "pain": {
       "kicker": "DOR & SEGURANÇA · 14 DIAS",
@@ -425,7 +426,13 @@
     "emotional": {
       "physical": "Físico",
       "mental": "Mental",
-      "both": "Ambos"
+      "both": "Ambos",
+      "calm": "Calmo(a)",
+      "neutral": "Neutro(a)",
+      "motivated": "Motivado(a)",
+      "stressed": "Estressado(a)",
+      "anxious": "Ansioso(a)",
+      "discouraged": "Desanimado(a)"
     }
   },
   "quickCheckin": {
@@ -470,8 +477,15 @@
       "capacity": "Capacidade funcional hoje",
       "signals": "Sinais de alerta",
       "rhythm": "Ritmo Corporal",
-      "adaptation": "Preferência de adaptação"
-    }
+      "adaptation": "Preferência de adaptação",
+      "energyLabel": "como você está se sentindo?",
+      "sleepLabel": "horas dormidas",
+      "fatigueLabel": "fadiga percebida",
+      "capacityLabel": "percepção de mobilidade",
+      "situationalPainPlaceholder": "ex.: agachamento, levantamento de peso"
+    },
+    "title": "Contexto completo do dia",
+    "description": "Para maior precisão. Pula campos que não se aplicam."
   },
   "nav": {
     "clients": "Clientes",
@@ -2100,5 +2114,56 @@
   "wizardFooter": {
     "continue": "Continuar",
     "save": "Salvar"
+  },
+  "profileFields": {
+    "age": "Idade",
+    "name": "Nome",
+    "height_cm": "Altura (cm)",
+    "weight_kg": "Peso (kg)",
+    "biological_sex": "Sexo biológico",
+    "primary_goal": "Objetivo principal",
+    "secondary_goals": "Objetivos secundários",
+    "frequency": "Frequência",
+    "modalities": "Modalidades",
+    "fitness_level": "Nível de condicionamento",
+    "abandoned_before": "Já abandonou antes",
+    "weekly_frequency": "Frequência semanal",
+    "balance": "Equilíbrio",
+    "autonomy": "Autonomia",
+    "mobility": "Mobilidade",
+    "pain_level": "Nível de dor",
+    "access_level": "Nível de acesso",
+    "effort_tolerance": "Tolerância ao esforço",
+    "support_resources": "Recursos de suporte",
+    "instruction_format": "Formato de instrução",
+    "equipment": "Equipamento",
+    "locations": "Locais",
+    "days_per_week": "Dias por semana",
+    "preferred_days": "Dias preferidos",
+    "preferred_time": "Horário preferido",
+    "adherence_barriers": "Barreiras de adesão",
+    "session_duration_min": "Duração (min)",
+    "focus": "Foco",
+    "support_level": "Nível de suporte",
+    "training_company": "Companhia de treino",
+    "explanation_level": "Nível de explicação",
+    "preferred_language": "Linguagem preferida",
+    "preferred_intensity": "Intensidade preferida",
+    "lifestyle_barriers": "Barreiras de estilo de vida",
+    "conditions": "Condições",
+    "categories": "Categorias",
+    "has_condition": "Possui condição",
+    "reasons": "Motivos de abandono",
+    "enabled": "Ritmo corporal ativo",
+    "cycle_current_day": "Dia atual",
+    "cycle_duration_days": "Duração do ciclo",
+    "adaptation_preference": "Preferência de adaptação",
+    "yes": "Sim",
+    "no": "Não"
+  },
+  "profileDisclosure": {
+    "yes": "Sim",
+    "no": "Não",
+    "prefer_not": "Prefiro não informar"
   }
 }

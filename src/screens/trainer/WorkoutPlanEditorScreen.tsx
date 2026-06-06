@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
@@ -124,6 +125,7 @@ export function WorkoutPlanEditorScreen({
           equipment:         pp.equipment          ?? undefined,
           restrictions:      pp.restrictions       ?? undefined,
         } as never : null,
+        locale: i18n.language,
       });
 
       setExercises(generatedExercises.map(ex => ({
@@ -246,7 +248,7 @@ export function WorkoutPlanEditorScreen({
     // Send push notification to client
     if (status === 'sent' && selectedClient?.id) {
       const trainer = user.name?.split(' ')[0] || tr('inbox.yourTrainerFallback');
-      void notify(selectedClient.id, tr('inbox.notification.newPlanTitle'), tr('inbox.notification.newPlanBody', { trainer }),
+      void notify(selectedClient.id, 'New workout plan', `${trainer} sent you a workout plan`,
         undefined, { type: 'plan_sent', templateKey: 'new_plan', params: { trainerName: trainer } });
     }
 

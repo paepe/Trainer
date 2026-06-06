@@ -13,9 +13,19 @@ import {
 } from './performance/perf-atoms';
 import type { M5Data } from './performance/perf-types';
 
-// Converts snake_case / raw DB keys to "Title Case" for display
-function fmtRegion(r: string | null | undefined, fallback = 'Region'): string {
+// Converts snake_case / raw DB keys to localised display string.
+// Tries checkinEnums.bodyPart.<key> via tr first; falls back to Title Case.
+function fmtRegion(
+  r: string | null | undefined,
+  fallback = 'Region',
+  tr?: (key: string) => string,
+): string {
   if (!r) return fallback;
+  if (tr) {
+    const key = `checkinEnums.bodyPart.${r}`;
+    const translated = tr(key);
+    if (translated !== key) return translated;
+  }
   return r.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
@@ -439,7 +449,7 @@ function TelaPerformance({ data }: { data: M5Data }) {
   const { t: tr } = useTranslation();
   const volumeData = data.weeklyStats.map(w => w.volume / 1000);
   const rpeData    = data.weeklyStats.map(w => w.rpe).filter(r => r > 0);
-  const labels     = data.weeklyStats.map(w => w.label);
+  const labels     = data.weeklyStats.map(w => tr('perf.performance.weekShort', { n: w.weekNum }));
   const volDelta   = volumeData.length >= 2
     ? (((volumeData[volumeData.length - 1] ?? 0) - (volumeData[0] ?? 0)) / ((volumeData[0] ?? 0) || 1) * 100).toFixed(0)
     : '0';
@@ -531,7 +541,7 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
         <div>
           {hasPain ? (
             <>
-              <Kicker color={C.coral}>{fmtRegion(data.primaryPainRegion, tr('perf.region')).toUpperCase()}</Kicker>
+              <Kicker color={C.coral}>{fmtRegion(data.primaryPainRegion, tr('perf.region'), tr).toUpperCase()}</Kicker>
               <div style={{
                 fontFamily: FF_DISPLAY, fontSize: 22, fontWeight: 800, color: C.coral,
               }}>
@@ -593,7 +603,7 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
                   ⚠
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{fmtRegion(e.region)}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{fmtRegion(e.region, 'Region', tr)}</div>
                   <div style={{ fontFamily: FF_MONO, fontSize: 10, color: T.textMute }}>{e.date}</div>
                 </div>
                 <div style={{

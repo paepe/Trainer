@@ -230,16 +230,16 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
         margin: '0 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 24, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Full day context
+        {tr('detailedCheckin.title')}
       </h2>
       <p style={{ fontSize: 12, color: textSec(dark), margin: '0 0 20px', lineHeight: 1.5 }}>
-        For greater precision. Skips fields that don't apply.
+        {tr('detailedCheckin.description')}
       </p>
 
       {/* 1 Energia */}
       <div style={block()}>
         <BlockHeader num={1} icon="⚡" label={tr('detailedCheckin.blocks.energy')} dark={dark}/>
-        <SliderRow label="how are you feeling?" value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
+        <SliderRow label={tr('detailedCheckin.blocks.energyLabel')} value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
       {/* 2 Sono */}
@@ -252,7 +252,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
             </button>
           ))}
         </div>
-        <SliderRow label="hours slept" value={sleepHours} min={2} max={12} unit="h" onChange={setSleepHours} dark={dark} primary={primary}/>
+        <SliderRow label={tr('detailedCheckin.blocks.sleepLabel')} value={sleepHours} min={2} max={12} unit="h" onChange={setSleepHours} dark={dark} primary={primary}/>
       </div>
 
       {/* 3 Dor */}
@@ -282,7 +282,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
                 type="text"
                 value={movementTrigger}
                 onChange={e => setMovementTrigger(e.target.value)}
-                placeholder="e.g.: squat, lift weight"
+                placeholder={tr('detailedCheckin.blocks.situationalPainPlaceholder')}
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 8, boxSizing: 'border-box',
                   background: 'var(--sunken)',
@@ -303,7 +303,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
       {/* 4 Fadiga */}
       <div style={block()}>
         <BlockHeader num={4} icon="🔋" label={tr('detailedCheckin.blocks.fatigue')} dark={dark}/>
-        <SliderRow label="perceived fatigue" value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
+        <SliderRow label={tr('detailedCheckin.blocks.fatigueLabel')} value={fatigue} min={1} max={10} onChange={setFatigue} dark={dark} primary={primary}/>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
           {fatigueTypes.map(f => (
             <ChipBtn key={f.value} label={f.label} selected={fatigueType === f.value}
@@ -360,7 +360,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
       {/* 9 Capacidade funcional */}
       <div style={block()}>
         <BlockHeader num={9} icon="🤸" label={tr('detailedCheckin.blocks.capacity')} dark={dark}/>
-        <SliderRow label="mobility perception" value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
+        <SliderRow label={tr('detailedCheckin.blocks.capacityLabel')} value={energy} min={1} max={10} onChange={setEnergy} dark={dark} primary={primary}/>
       </div>
 
       {/* 10 Sinais de alerta */}

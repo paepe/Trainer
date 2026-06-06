@@ -8,6 +8,12 @@ Core rules:
 - Choose exercises appropriate to the reported location and available equipment
 - Consider the client's primary goal (weight loss, hypertrophy, endurance, mobility) when selecting exercises and rep ranges
 
+Language:
+- Respond ONLY in the language requested in the user prompt. If the user prompt asks for Portuguese, ALL text (including "notes") must be in Portuguese.
+- If the user prompt asks for Spanish, ALL text must be in Spanish.
+- If the user prompt asks for German, ALL text must be in German.
+- Default to English only if no language is specified.
+
 Output format:
 Return ONLY a valid JSON array of 4-6 exercises. No markdown fences, no explanation, no preamble.
 Each object must have exactly these keys:
@@ -43,6 +49,7 @@ interface RequestBody {
   checkin?:         CheckInBody;
   physicalProfile?: PhysicalProfileBody;
   cycleContext?:    { phase: string; day: number; cycleLength: number };
+  locale?:          string;
 }
 
 interface VercelRequest {
@@ -92,6 +99,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { checkin, physicalProfile, cycleContext } = req.body || {};
+  const locale = req.body?.locale ?? 'en';
 
   // Build client context
   const lines: string[] = [];
@@ -143,8 +151,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const userContent = lines.length
-    ? `Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 exercises as a JSON array.`
-    : 'Generate a balanced 45-minute intermediate full-body workout. Return 5 exercises as a JSON array.';
+    ? `LANGUAGE: Generate ALL content in ${locale === 'pt' || locale === 'pt-BR' ? 'Portuguese (Brazil)' : locale === 'es' || locale === 'es-ES' ? 'Spanish' : locale === 'de' || locale === 'de-DE' ? 'German' : 'English'}. No English text at all.
+
+Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 exercises as a JSON array.`
+    : `Generate a balanced 45-minute intermediate full-body workout. Return 5 exercises as a JSON array.`;
 
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 25_000);

@@ -21,6 +21,7 @@ export interface PerformanceInsight {
 }
 
 export interface WeeklyStats {
+  weekNum:  number;
   label:    string;
   volume:   number;
   rpe:      number;

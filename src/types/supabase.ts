@@ -674,11 +674,13 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          params: Json | null
           priority: string
           related_alert_id: string | null
           related_session_id: string | null
           status: string
           task_type: string
+          template_key: string | null
           title: string
           trainer_id: string
         }
@@ -689,11 +691,13 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          params?: Json | null
           priority?: string
           related_alert_id?: string | null
           related_session_id?: string | null
           status?: string
           task_type: string
+          template_key?: string | null
           title: string
           trainer_id: string
         }
@@ -704,11 +708,13 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          params?: Json | null
           priority?: string
           related_alert_id?: string | null
           related_session_id?: string | null
           status?: string
           task_type?: string
+          template_key?: string | null
           title?: string
           trainer_id?: string
         }
@@ -1436,10 +1442,12 @@ export type Database = {
           created_at: string
           event_id: string | null
           id: string
+          params: Json | null
           resolved_at: string | null
           session_id: string | null
           severity: string
           status: string
+          template_key: string | null
           title: string
           trainer_id: string
         }
@@ -1450,10 +1458,12 @@ export type Database = {
           created_at?: string
           event_id?: string | null
           id?: string
+          params?: Json | null
           resolved_at?: string | null
           session_id?: string | null
           severity?: string
           status?: string
+          template_key?: string | null
           title: string
           trainer_id: string
         }
@@ -1464,10 +1474,12 @@ export type Database = {
           created_at?: string
           event_id?: string | null
           id?: string
+          params?: Json | null
           resolved_at?: string | null
           session_id?: string | null
           severity?: string
           status?: string
+          template_key?: string | null
           title?: string
           trainer_id?: string
         }

@@ -283,7 +283,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
         // If no profile, fall back to legacy endpoint
         if (!profileData) {
-          const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext });
+          const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: i18n.language });
           setPlan(exercises);
           void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile);
           return;
@@ -356,6 +356,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           trainer: trainerCtx, client: clientCtx,
           today: todayCtx as any, stats: statsCtx,
           library: libraryCtx, task: taskCtx,
+          locale: i18n.language,
         });
 
         // Update readiness/safety display

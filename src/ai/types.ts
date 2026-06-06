@@ -217,6 +217,7 @@ export interface SmartWorkoutRequest {
   stats:   StatsContext;
   library: LibraryContext;
   task:    TaskContext;
+  locale:  string;
 }
 
 export interface SmartWorkoutResponse {

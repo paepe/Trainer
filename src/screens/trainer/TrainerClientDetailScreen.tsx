@@ -18,6 +18,106 @@ import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme }  from '../../hooks/useTrainerTheme';
 import { autoExpirePlans } from '../../lib/autoExpirePlans';
 
+const PROFILE_VALUE_MAP: Record<string, string> = {
+  // Bio
+  female: 'wizard.step02.sex.female', male: 'wizard.step02.sex.male',
+  intersex: 'wizard.step02.sex.intersex', prefer_not_to_say: 'wizard.step02.sex.preferNot',
+  // Goals
+  hypertrophy: 'wizard.goals.hypertrophy', weight_loss: 'wizard.goals.weightLoss',
+  strength_gain: 'wizard.goals.strength', conditioning: 'wizard.goals.conditioning',
+  mobility: 'wizard.goals.mobility', longevity: 'wizard.goals.longevity',
+  return_to_training: 'wizard.goals.returnTraining', emotional_wellbeing: 'wizard.goals.emotions',
+  daily_autonomy: 'wizard.goals.autonomy', body_composition: 'wizard.goals.bodyComp',
+  sports_performance: 'wizard.goals.sportsPerf', balance: 'wizard.goals.balance',
+  consistency: 'wizard.goals.consistency',
+  // Movement
+  irregular: 'wizard.step04.frequencies.irregular', sometimes: 'wizard.step04.frequencies.sometimes',
+  not_training: 'wizard.step04.frequencies.notTraining',
+  beginner: 'wizard.step04.levels.beginner', intermediate: 'wizard.step04.levels.intermediate',
+  advanced: 'wizard.step04.levels.advanced',
+  weight_training: 'wizard.step04.modalities.weights', running: 'wizard.step04.modalities.running',
+  walking: 'wizard.step04.modalities.walk', yoga: 'wizard.step04.modalities.yoga',
+  pilates: 'wizard.step04.modalities.pilates', cycling: 'wizard.step04.modalities.cycling',
+  swimming: 'wizard.step04.modalities.swimming', functional: 'wizard.step04.modalities.functional',
+  martial_arts: 'wizard.step04.modalities.fight', dance: 'wizard.step04.modalities.dance',
+  crossfit: 'wizard.step04.modalities.crossfit', other: 'wizard.step04.modalities.other',
+  // Abandon
+  lack_of_time: 'wizard.step04.dropoutReasons.time', injury: 'wizard.step04.dropoutReasons.injury',
+  lack_of_results: 'wizard.step04.dropoutReasons.noResults', demotivation: 'wizard.step04.dropoutReasons.motivation',
+  cost: 'wizard.step04.dropoutReasons.cost', routine_change: 'wizard.step04.dropoutReasons.routine',
+  discomfort: 'wizard.step04.dropoutReasons.discomfort',
+  // Intensity
+  gradual: 'wizard.step13.intensities.gradual', moderate: 'wizard.step13.intensities.moderate',
+  intense: 'wizard.step13.intensities.intense',
+  // Health categories
+  cardiovascular: 'wizard.step05.categories.cardiovascular', metabolic: 'wizard.step05.categories.metabolic',
+  renal: 'wizard.step05.categories.renal', respiratory: 'wizard.step05.categories.respiratory',
+  musculoskeletal: 'wizard.step05.categories.musculoskeletal', neurological: 'wizard.step05.categories.neurological',
+  chronic_pain: 'wizard.step05.categories.chronicPain', emotional_health: 'wizard.step05.categories.emotionalHealth',
+  pregnancy_postpartum: 'wizard.step05.categories.pregnancy', post_operative: 'wizard.step05.categories.postOp',
+  physical_disability: 'wizard.step05.categories.disability',
+  // Comorbidities
+  hypertension: 'wizard.step06.conditions.hypertension', type1_diabetes: 'wizard.step06.conditions.diabetes',
+  asthma: 'wizard.step06.conditions.asthma', obesity: 'wizard.step06.conditions.obesity',
+  osteoporosis: 'wizard.step06.conditions.osteoporosis', osteopenia: 'wizard.step06.conditions.osteopenia',
+  fibromyalgia: 'wizard.step06.conditions.fibromyalgia', renal_condition: 'wizard.step06.conditions.renal',
+  pregnancy: 'wizard.step06.conditions.pregnancy', postpartum: 'wizard.step06.conditions.postpartum',
+  // Functional
+  low: 'wizard.step07.mobilityLevels.low', good: 'wizard.step07.mobilityLevels.high',
+  unstable: 'wizard.step07.balanceLevels.unstable', assisted: 'wizard.step07.balanceLevels.assist',
+  stable: 'wizard.step07.balanceLevels.stable',
+  partial: 'wizard.step07.autonomyLevels.partial', independent: 'wizard.step07.autonomyLevels.full',
+  mild: 'wizard.step07.painLevels.mild', none: 'wizard.step07.painLevels.none',
+  severe: 'wizard.step07.painLevels.high',
+  full: 'wizard.step07.accessLevels.full', limited: 'wizard.step07.accessLevels.partial',
+  wheelchair: 'wizard.step07.supports.wheelchair', cane: 'wizard.step07.supports.cane',
+  walker: 'wizard.step07.supports.walker', prosthesis: 'wizard.step07.supports.prosthesis',
+  nearby_support: 'wizard.step07.supports.caregiver',
+  visual: 'wizard.step07.instructionFormats.visual', auditory: 'wizard.step07.instructionFormats.audio',
+  simplified_text: 'wizard.step07.instructionFormats.simple', vibration: 'wizard.step07.instructionFormats.haptic',
+  standard: 'wizard.step07.instructionFormats.padrao',
+  // Habits
+  sedentary_prolonged: 'wizard.step08.habits.sedentary', low_hydration: 'wizard.step08.habits.low_hydration',
+  executive_routine: 'wizard.step08.habits.intense_routine', chronic_stress: 'wizard.step08.habits.high_stress',
+  irregular_meals: 'wizard.step08.habits.irregular_eating', frequent_travel: 'wizard.step08.habits.frequent_travel',
+  caregiver_duty: 'wizard.step08.habits.caregiving', smoking: 'wizard.step08.habits.smoking',
+  regular_alcohol: 'wizard.step08.habits.alcohol', transport_barriers: 'wizard.step08.habits.transport',
+  sleep_disorder: 'wizard.step08.habits.irregular_sleep', chronic_fatigue: 'wizard.step08.habits.fatigue',
+  emotional_eating: 'wizard.step08.habits.emotional_eating', sedentary_commute: 'wizard.step08.habits.sedentary_work',
+  financial_stress: 'wizard.step08.habits.financial_stress',
+  // Environment
+  home: 'wizard.step11.locations.home', gym: 'wizard.step11.locations.gym',
+  studio: 'wizard.step11.locations.studio', park: 'wizard.step11.locations.park',
+  condo: 'wizard.step11.locations.condo', online: 'wizard.step11.locations.online',
+  dumbbells: 'wizard.step11.equipment.halteres', resistance_bands: 'wizard.step11.equipment.faixas',
+  barbell: 'wizard.step11.equipment.barbell', bench: 'wizard.step11.equipment.banco',
+  treadmill: 'wizard.step11.equipment.esteira', bike: 'wizard.step11.equipment.bike',
+  machines: 'wizard.step11.equipment.maquinas', kettlebell: 'wizard.step11.equipment.kettle',
+  cable_pulley: 'wizard.step11.equipment.cabo',
+  // Availability
+  morning: 'wizard.step12.times.morning', afternoon: 'wizard.step12.times.afternoon',
+  evening: 'wizard.step12.times.evening', variable: 'wizard.step12.times.flex',
+  night_shift: 'wizard.step12.barrierItems.noturno', family_care: 'wizard.step12.barrierItems.familia',
+  treatment_radiation: 'wizard.step12.barrierItems.tratamento', transport: 'wizard.step12.barrierItems.transporte',
+  emotional: 'wizard.step12.barrierItems.emocional', time_constraint: 'wizard.step12.barrierItems.tempo',
+  // Preferences
+  solo: 'wizard.step13.company.solo', accompanied: 'wizard.step13.company.accompanied',
+  indifferent: 'wizard.step13.company.indifferent',
+  direct: 'wizard.step13.languages.direct', explanatory: 'wizard.step13.languages.explanatory',
+  technical: 'wizard.step13.languages.technical',
+  simple: 'wizard.step13.explanations.simple', detailed: 'wizard.step13.explanations.detailed',
+  performance: 'wizard.step13.focuses.performance', health: 'wizard.step13.focuses.health',
+  aesthetics: 'wizard.step13.focuses.aesthetics',
+  autonomous: 'wizard.step13.supports.autonomous', guided: 'wizard.step13.supports.guided',
+  // Disclosure
+  yes: 'wizard.step05.discloseYes', no: 'wizard.step05.discloseNo', prefer_not: 'wizard.step05.disclosePrefer',
+  // Adaptation
+  maintain_normal: 'wizard.step10.adaptations.maintain', reduce_intensity: 'wizard.step10.adaptations.reduce_intensity',
+  reduce_impact: 'wizard.step10.adaptations.reduce_impact', increase_rest: 'wizard.step10.adaptations.increase_rest',
+  shorten_session: 'wizard.step10.adaptations.shorten', prioritize_mobility: 'wizard.step10.adaptations.prioritize_mobility',
+  postpone_training: 'wizard.step10.adaptations.postpone', regenerative: 'wizard.step10.adaptations.regenerative',
+};
+
 interface ReadinessDecision {
   id:          string;
   response:    string;        // 'approved' | 'rejected'
@@ -194,23 +294,31 @@ export function TrainerClientDetailScreen({
 
 
   const fmtKey = (k: string) =>
-    k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    tr(`profileFields.${k}`);
 
-  const fmtVal = (v: unknown): string | null => {
+  const translateVal = (raw: string): string => {
+    const mapped = PROFILE_VALUE_MAP[raw];
+    return mapped ? tr(mapped) : raw;
+  };
+
+  const fmtVal = (v: unknown, parentKey?: string): string | null => {
     if (v == null || v === '') return null;
-    if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+    if (typeof v === 'boolean') return v ? tr('profileFields.yes') : tr('profileFields.no');
     if (Array.isArray(v)) {
-      const items = v.filter(x => x != null && x !== '');
+      const items = v.filter(x => x != null && x !== '').map(x => translateVal(String(x)));
       return items.length > 0 ? items.join(', ') : null;
     }
     if (typeof v === 'object') return null;
-    return String(v);
+    const str = String(v);
+    if (/^\d+$/.test(str)) return str;
+    if (parentKey === 'has_condition') return tr(`profileDisclosure.${str}`);
+    return translateVal(str);
   };
 
   const renderFields = (data: Record<string, unknown> | null) => {
     if (!data) return null;
     const entries = Object.entries(data)
-      .map(([k, v]): [string, string | null] => [k, fmtVal(v)])
+      .map(([k, v]): [string, string | null] => [k, fmtVal(v, k)])
       .filter((e): e is [string, string] => e[1] != null);
     if (entries.length === 0) return null;
     return (
