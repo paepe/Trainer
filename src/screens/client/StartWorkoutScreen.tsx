@@ -82,6 +82,88 @@ type GenState =
   | { phase: 'error';   error: string }
   | { phase: 'blocked'; safetyTitle: string; safetyMessage: string; readinessScore: number };
 
+// ── Fallback plan generator ──────────────────────────────────────────────────
+// Activated when the AI workout API is unreachable (DeepSeek outage, timeout, etc.)
+// Produces a basic bodyweight circuit based on the user's goal and available time.
+type FallbackTemplate = { name: string; muscle: string; sets: number; reps: number; rest: number };
+
+const GOAL_TEMPLATES: Record<string, FallbackTemplate[]> = {
+  hypertrophy: [
+    { name: 'Push-up',            muscle: 'Chest',      sets: 4, reps: 12, rest: 60 },
+    { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 4, reps: 15, rest: 60 },
+    { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 15, rest: 45 },
+    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, reps: 30, rest: 45 },
+    { name: 'Lunges',             muscle: 'Quadriceps', sets: 3, reps: 12, rest: 45 },
+    { name: 'Tricep Dip',         muscle: 'Triceps',    sets: 3, reps: 12, rest: 45 },
+  ],
+  weight_loss: [
+    { name: 'Burpees',            muscle: 'Full Body',  sets: 4, reps: 12, rest: 30 },
+    { name: 'Mountain Climbers',  muscle: 'Core',       sets: 4, reps: 20, rest: 30 },
+    { name: 'Jump Squats',        muscle: 'Quadriceps', sets: 3, reps: 15, rest: 45 },
+    { name: 'High Knees',         muscle: 'Cardio',     sets: 3, reps: 30, rest: 30 },
+    { name: 'Bicycle Crunches',   muscle: 'Core',       sets: 3, reps: 20, rest: 30 },
+    { name: 'Jumping Jacks',      muscle: 'Full Body',  sets: 3, reps: 30, rest: 20 },
+  ],
+  endurance: [
+    { name: 'Jogging in Place',   muscle: 'Cardio',     sets: 1, reps: 60, rest: 0 },
+    { name: 'Bodyweight Squat',  muscle: 'Quadriceps', sets: 3, reps: 20, rest: 30 },
+    { name: 'Push-up',            muscle: 'Chest',      sets: 3, reps: 15, rest: 30 },
+    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, reps: 40, rest: 30 },
+    { name: 'Walking Lunges',     muscle: 'Quadriceps', sets: 3, reps: 16, rest: 30 },
+    { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 20, rest: 30 },
+  ],
+  mobility: [
+    { name: 'Cat-Cow Stretch',    muscle: 'Spine',      sets: 2, reps: 10, rest: 20 },
+    { name: 'Hip Circles',        muscle: 'Hips',       sets: 2, reps: 10, rest: 20 },
+    { name: 'World\'s Greatest Stretch', muscle: 'Full Body', sets: 2, reps: 6, rest: 30 },
+    { name: 'Downward Dog',       muscle: 'Shoulders',  sets: 2, reps: 30, rest: 20 },
+    { name: 'Child\'s Pose',      muscle: 'Back',       sets: 2, reps: 30, rest: 20 },
+    { name: 'Thoracic Rotation',  muscle: 'Spine',      sets: 2, reps: 8, rest: 20 },
+  ],
+  strength: [
+    { name: 'Push-up',            muscle: 'Chest',      sets: 4, reps: 10, rest: 75 },
+    { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 4, reps: 20, rest: 60 },
+    { name: 'Pull-up or Row',     muscle: 'Back',       sets: 3, reps: 8,  rest: 75 },
+    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, reps: 45, rest: 45 },
+    { name: 'Bulgarian Split Squat', muscle: 'Quadriceps', sets: 3, reps: 10, rest: 60 },
+    { name: 'Pike Push-up',       muscle: 'Shoulders',  sets: 3, reps: 10, rest: 60 },
+  ],
+  general: [
+    { name: 'Push-up',            muscle: 'Chest',      sets: 3, reps: 12, rest: 45 },
+    { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 3, reps: 15, rest: 45 },
+    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, reps: 30, rest: 45 },
+    { name: 'Lunges',             muscle: 'Quadriceps', sets: 3, reps: 10, rest: 45 },
+    { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 15, rest: 45 },
+    { name: 'Superman Hold',      muscle: 'Back',       sets: 3, reps: 15, rest: 45 },
+  ],
+};
+
+function generateFallbackPlan(
+  goal: string | undefined,
+  availableMinutes: number,
+): GeneratedWorkoutExercise[] {
+  const g = (goal ?? '').toLowerCase();
+  let category: keyof typeof GOAL_TEMPLATES = 'general';
+  if (g.includes('hypertrophy'))       category = 'hypertrophy';
+  else if (g.includes('weight') || g.includes('loss') || g.includes('perda') || g.includes('emagrecimento')) category = 'weight_loss';
+  else if (g.includes('strength') || g.includes('força') || g.includes('forca')) category = 'strength';
+  else if (g.includes('endurance') || g.includes('conditioning') || g.includes('resistência') || g.includes('condicionamento')) category = 'endurance';
+  else if (g.includes('mobility') || g.includes('mobilidade') || g.includes('flexibility') || g.includes('alongamento')) category = 'mobility';
+
+  const templates = (GOAL_TEMPLATES[category] ?? GOAL_TEMPLATES.general) as FallbackTemplate[];
+  const exerciseCount = Math.min(templates.length, Math.max(3, Math.floor(availableMinutes / 7)));
+
+  return templates.slice(0, exerciseCount).map(t => ({
+    exercise_name: t.name,
+    muscle_group:  t.muscle,
+    sets:          t.sets,
+    reps:          t.reps,
+    load_kg:       null,
+    rest_seconds:  t.rest,
+    notes:         null,
+  }));
+}
+
 export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', prefs }: StartWorkoutScreenProps) {
   const { t: tr } = useTranslation();
   const [genState, setGenState] = React.useState<GenState>({ phase: 'idle' });
@@ -400,7 +482,18 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile);
       } // end if (user?.id)
     } catch (err: unknown) {
-      setGenState({ phase: 'error', error: err instanceof Error ? err.message : tr('client.workout.unknownError') });
+      console.warn('[start-workout] AI generation failed — using fallback plan', err);
+      const goal    = activeCheckin.goal;
+      const minutes = activeCheckin.minutes ?? 30;
+      const fallback = generateFallbackPlan(goal, minutes);
+      setGenState({
+        phase:          'success',
+        plan:           fallback,
+        planId:         '',
+        readinessScore: 60,
+        adaptations:    [],
+      });
+      setPlanSource('ai');
     }
   };
 

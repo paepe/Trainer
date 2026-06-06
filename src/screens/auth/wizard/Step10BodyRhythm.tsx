@@ -22,6 +22,7 @@ interface Step10Props extends WizardStepProps {
 
 export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps, biologicalSex }: Step10Props) {
   const { t: tr } = useTranslation();
+  const isMale = biologicalSex === 'male';
   const br = data.body_rhythm ?? {
     enabled: false,
     cycle_current_day: 14,
@@ -29,10 +30,16 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
     adaptation_preference: [],
   };
 
+  // Males cannot enable body rhythm under any circumstance.
+  // Force-enabled blocked at render time and in the setter as defense-in-depth.
+  const enabled = isMale ? false : br.enabled;
+
   const adaptLabel = (i18nKey: string) => tr(`wizard.step10.adaptations.${i18nKey}`);
 
-  const set = (patch: Partial<typeof br>) =>
-    onUpdate({ body_rhythm: { ...br, ...patch } });
+  const set = (patch: Partial<typeof br>) => {
+    const safePatch = isMale ? { ...patch, enabled: false } : patch;
+    onUpdate({ body_rhythm: { ...br, ...safePatch, enabled: isMale ? false : (safePatch.enabled ?? br.enabled) } });
+  };
 
   const toggleAdaptation = (v: BodyRhythmAdaptation) => {
     const cur = br.adaptation_preference ?? [];
@@ -62,10 +69,10 @@ export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext
             {tr('wizard.step10.activateHint')}
           </div>
         </div>
-        <Toggle on={br.enabled} onChange={v => set({ enabled: v })}/>
+        <Toggle on={enabled} onChange={v => set({ enabled: v })} disabled={isMale}/>
       </div>
 
-      {br.enabled && (
+      {enabled && (
         <VStack gap={20}>
           <Slider
             label={tr('wizard.step10.cycleDayLabel')}

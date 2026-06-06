@@ -39,27 +39,66 @@ export interface ClientContext {
   name:                string;
   age?:                number | undefined;
   biologicalSex?:      string | undefined;
+  heightCm?:           number | undefined;
+  weightKg?:           number | undefined;
   primaryGoal:         string;
   secondaryGoals:      string[];
+  voiceNote?:          string | undefined;
   fitnessLevel:        string;
   daysPerWeek:         number;
   sessionDuration:     number;
   preferredTime:       string;
+  preferredDays?:      number[] | undefined;
+  adherenceBarriers?:   string[] | undefined;
   modalities:          string[];
   hasHealthCondition:  boolean;
   healthCategories:    string[];
+  healthFreeText?:     string | undefined;
+  healthVoiceNote?:     string | undefined;
   comorbidities:       string[];
+  comorbiditiesNote?:   string | undefined;
   mobilityLevel:       string;
   balanceLevel:        string;
+  autonomyLevel?:      string | undefined;
   effortTolerance:     string;
   baselinePainLevel:   string;
+  accessLevel?:        string | undefined;
+  supportResources?:   string[] | undefined;
+  instructionFormat?:   string[] | undefined;
+  accessibility?:       string[] | undefined;
   locations:           string[];
   equipment:           string[];
   preferenceIntensity: string;
   explanationLevel:    string;
+  preferredLanguage?:  string | undefined;
   trainingFocus:       string;
+  company?:            string | undefined;
+  supportLevel?:       string | undefined;
   riskLevel:           string;
   riskFlags:           string[];
+  lifestyleBarriers?:  string[] | undefined;
+  sensitiveFactors?: {
+    regularMedications?:            string | undefined;
+    emotionalHistory:               boolean;
+    recreationalSubstance:          boolean;
+    voiceNote?:                     string | undefined;
+  } | undefined;
+  bodyRhythm?: {
+    enabled:              boolean;
+    cycleCurrentDay?:     number | undefined;
+    cycleDurationDays?:   number | undefined;
+    adaptationPreference?: string[] | undefined;
+  } | undefined;
+  abandonHistory?: {
+    reasons:               string[];
+    hadNegativeExperience?: boolean | undefined;
+    fearOfInjury?:          boolean | undefined;
+    feltGymConstraint?:     boolean | undefined;
+    whatHelped?:            string | undefined;
+    whatDisrupted?:         string | undefined;
+    voiceNote?:             string | undefined;
+  } | undefined;
+  consentAiAdaptation?: boolean | undefined;
   // Amplified (optional — only present when generate-amplified ran)
   trainabilityTier?:   string | undefined;
   priorityGoal?:       string | undefined;
@@ -90,7 +129,6 @@ export interface TodayContext {
   availableMinutes:  number;
   location:          string;
   equipmentToday?:   string[] | undefined;
-  // Female cycle (optional — NEVER sent to AI raw; stripped to phase label only)
   cycleActive?:      boolean | undefined;
   cyclePhase?:       string | undefined;
   cycleDayOfPhase?:  number | undefined;

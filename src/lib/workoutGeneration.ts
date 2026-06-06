@@ -76,6 +76,11 @@ export async function requestWorkoutPlan({
     if ((err as Error)?.name === 'AbortError') throw new Error('Workout generation timed out.');
     throw new Error('Unable to reach workout service.');
   }
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    const preview = await response.text().catch(() => '');
+    throw new Error(`Workout API returned non-JSON (${response.status}): ${preview.slice(0, 150)}`);
+  }
   const data = await response.json() as WorkoutGenerationResponse;
   clearTimeout(timeout);
   if (!response.ok) throw new Error(data.error || 'Failed to generate workout');
@@ -130,6 +135,12 @@ export async function requestSmartWorkout(
       body:    JSON.stringify(request),
       signal:  ctrl.signal,
     });
+
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!contentType.includes('application/json')) {
+      const preview = await response.text().catch(() => '');
+      throw new Error(`Smart workout API returned non-JSON (${response.status}): ${preview.slice(0, 150)}`);
+    }
 
     const data = await response.json() as SmartWorkoutResponse & { error?: string };
     clearTimeout(timeout);

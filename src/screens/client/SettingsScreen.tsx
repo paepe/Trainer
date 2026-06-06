@@ -23,6 +23,7 @@ interface SettingsScreenProps {
   hasTrainer?: boolean;
   saveError?:       string | null;
   clearSaveError?:  () => void;
+  isMale?:          boolean;
 }
 
 type ToggleRow   = [BooleanPrefKey, string, string];
@@ -33,7 +34,7 @@ interface SelectorRow<K extends keyof AppPreferences> {
   options: { value: AppPreferences[K]; label: string }[];
 }
 
-export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError }: SettingsScreenProps) {
+export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError, isMale = false }: SettingsScreenProps) {
   const { t: tr } = useTranslation();
   const isAutonomous = !isTrainer && !hasTrainer;
 
@@ -89,7 +90,7 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
   const aiGroup: ToggleRow[] = [
     ['aiPersonalization', tr('settings.toggle.aiWorkouts.label'), tr('settings.toggle.aiWorkouts.hint')],
     ['analysis',          tr('settings.toggle.analysis.label'),   tr('settings.toggle.analysis.hint')],
-    ['cycle',             tr('settings.toggle.cycle.label'),      tr('settings.toggle.cycle.hint')],
+    ...(isMale ? [] : [['cycle', tr('settings.toggle.cycle.label'), tr('settings.toggle.cycle.hint')] as ToggleRow]),
     ['behaviour',         tr('settings.toggle.behaviour.label'),  tr('settings.toggle.behaviour.hint')],
   ];
   const notifGroup: ToggleRow[] = [

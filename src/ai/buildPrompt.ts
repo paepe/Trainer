@@ -11,15 +11,15 @@ const LOCALE_TO_LANG: Record<string, string> = {
 
 // ─── System prompt (instructs the model on role, rules, output format) ────────
 
-function buildSystemPrompt(task: TaskContext['type'], locale: string): string {
+function buildSystemPrompt(task: TaskContext['type'], locale: string, isAutonomous: boolean): string {
   const lang = LOCALE_TO_LANG[locale] ?? locale ?? 'English';
   const base = `You are an AI personal training assistant for TrAIner, a professional fitness coaching platform.
-You receive structured context about the trainer (Coach DNA), the client (profile + history), today's readiness (check-in), performance statistics, and an exercise library.
-
+You receive structured context about ${isAutonomous ? 'the client (profile + history), today\'s readiness (check-in), performance statistics, and exercise constraints' : 'the trainer (Coach DNA), the client (profile + history), today\'s readiness (check-in), performance statistics, and an exercise library'}.
+${isAutonomous ? 'This client trains autonomously — there is no trainer profile. Base your recommendations solely on the client\'s profile, goals, preferences, health context, and readiness data.' : ''}
 Rules:
 - Always honour safety: if safetyStatus is "blocked", refuse to generate a workout and return a safety note instead.
-- Never expose raw sensitive fields (body_rhythm details, sensitive_factors, comorbidity specifics beyond generic safety flags).
-- Match the trainer's archetype, coaching style, and communication tone.
+- Never expose raw sensitive fields in public-facing output. However, ALL data in the input context is available for personalisation — use body_rhythm, sensitive_factors, comorbidities, habits, and abandon_history to inform exercise selection, intensity, format, and safety decisions.
+${isAutonomous ? '- Since there is no trainer, generate a plan consistent with the client\'s stated goals, intensity preference, training focus, and fitness level. Use an encouraging, evidence-based coaching voice.' : '- Match the trainer\'s archetype, coaching style, and communication tone.'}
 - Respect equipment and location constraints exactly — never prescribe equipment not listed.
 - Honour the trainer's avoidExercises and client's injury/pain restrictions.
 - Adapt intensity based on readinessScore, fatigueRisk, and intensityCeiling.
@@ -112,52 +112,114 @@ export function buildUserPrompt(ctx: AIContext): string {
 
   const lines: string[] = [];
 
-  // ── Trainer / Coach DNA ──────────────────────────────────────────────────────
-  lines.push('## TRAINER PROFILE (Coach DNA)');
-  lines.push(`Archetype: ${trainer.archetype}`);
-  lines.push(`Name: ${trainer.name}`);
-  lines.push(`Coaching style: ${trainer.coachingStyles.join(', ') || 'not specified'}`);
-  lines.push(`Core values: ${trainer.coreValues.join(', ') || 'not specified'}`);
-  if (trainer.motto) lines.push(`Motto: "${trainer.motto}"`);
-  if (trainer.coachVoice) lines.push(`Coach voice: ${trainer.coachVoice}`);
-  lines.push(`Methods: ${trainer.methods.join(', ') || 'not specified'}`);
-  lines.push(`Preferred environments: ${trainer.environments.join(', ') || 'not specified'}`);
-  lines.push(`Typical intensity: ${trainer.intensity || 'not specified'}`);
-  lines.push(`Focus emphasis (0-10): strength=${trainer.focus.strength}, endurance=${trainer.focus.endurance}, mobility=${trainer.focus.mobility}, athletic=${trainer.focus.athletic}, coord=${trainer.focus.coord}, balance=${trainer.focus.balance}`);
-  lines.push(`Preferred session formats: ${trainer.preferredFormats.join(', ') || 'not specified'}`);
-  lines.push(`Session order: ${trainer.sessionOrder.join(' → ') || 'not specified'}`);
-  lines.push(`Intensity curve: ${trainer.intensityCurve || 'not specified'}`);
-  lines.push(`Communication tone: ${trainer.communicationTone.join(', ') || 'not specified'}`);
-  if (trainer.favoriteExercises.length > 0)
-    lines.push(`Trainer favourite exercises: ${trainer.favoriteExercises.slice(0, 10).join(', ')}`);
-  if (trainer.avoidExercises.length > 0)
-    lines.push(`Trainer avoid exercises: ${trainer.avoidExercises.slice(0, 10).join(', ')}`);
-  lines.push('');
+  const isAutonomous = trainer.id === 'ai-coach';
+
+  // ── Trainer / Coach DNA (skip for autonomous clients) ────────────────────────
+  if (!isAutonomous) {
+    lines.push('## TRAINER PROFILE (Coach DNA)');
+    lines.push(`Archetype: ${trainer.archetype}`);
+    lines.push(`Name: ${trainer.name}`);
+    lines.push(`Coaching style: ${trainer.coachingStyles.join(', ') || 'not specified'}`);
+    lines.push(`Core values: ${trainer.coreValues.join(', ') || 'not specified'}`);
+    if (trainer.motto) lines.push(`Motto: "${trainer.motto}"`);
+    if (trainer.coachVoice) lines.push(`Coach voice: ${trainer.coachVoice}`);
+    lines.push(`Methods: ${trainer.methods.join(', ') || 'not specified'}`);
+    lines.push(`Preferred environments: ${trainer.environments.join(', ') || 'not specified'}`);
+    lines.push(`Typical intensity: ${trainer.intensity || 'not specified'}`);
+    lines.push(`Focus emphasis (0-10): strength=${trainer.focus.strength}, endurance=${trainer.focus.endurance}, mobility=${trainer.focus.mobility}, athletic=${trainer.focus.athletic}, coord=${trainer.focus.coord}, balance=${trainer.focus.balance}`);
+    lines.push(`Preferred session formats: ${trainer.preferredFormats.join(', ') || 'not specified'}`);
+    lines.push(`Session order: ${trainer.sessionOrder.join(' → ') || 'not specified'}`);
+    lines.push(`Intensity curve: ${trainer.intensityCurve || 'not specified'}`);
+    lines.push(`Communication tone: ${trainer.communicationTone.join(', ') || 'not specified'}`);
+    if (trainer.favoriteExercises.length > 0)
+      lines.push(`Trainer favourite exercises: ${trainer.favoriteExercises.slice(0, 10).join(', ')}`);
+    if (trainer.avoidExercises.length > 0)
+      lines.push(`Trainer avoid exercises: ${trainer.avoidExercises.slice(0, 10).join(', ')}`);
+    lines.push('');
+  }
 
   // ── Client ───────────────────────────────────────────────────────────────────
   lines.push('## CLIENT PROFILE');
   lines.push(`Name: ${client.name}`);
-  if (client.age)          lines.push(`Age: ${client.age}`);
-  if (client.biologicalSex) lines.push(`Biological sex: ${client.biologicalSex}`);
+  if (client.age)              lines.push(`Age: ${client.age}`);
+  if (client.biologicalSex)    lines.push(`Biological sex: ${client.biologicalSex}`);
+  if (client.heightCm)         lines.push(`Height: ${client.heightCm} cm`);
+  if (client.weightKg)         lines.push(`Weight: ${client.weightKg} kg`);
   lines.push(`Fitness level: ${client.fitnessLevel}`);
   lines.push(`Primary goal: ${client.primaryGoal}`);
   if (client.secondaryGoals.length > 0)
     lines.push(`Secondary goals: ${client.secondaryGoals.join(', ')}`);
+  if (client.voiceNote)        lines.push(`Goal voice note: "${client.voiceNote}"`);
   lines.push(`Training frequency: ${client.daysPerWeek}x/week, ${client.sessionDuration} min/session`);
   lines.push(`Preferred time: ${client.preferredTime}`);
+  if (client.preferredDays?.length) {
+    const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    lines.push(`Preferred days: ${client.preferredDays.map(d => dayNames[d] ?? d).join(', ')}`);
+  }
+  if (client.adherenceBarriers?.length)
+    lines.push(`Adherence barriers: ${client.adherenceBarriers.join(', ')}`);
   lines.push(`Modalities: ${client.modalities.join(', ') || 'not specified'}`);
   lines.push(`Intensity preference: ${client.preferenceIntensity}`);
   lines.push(`Explanation level: ${client.explanationLevel}`);
   lines.push(`Training focus: ${client.trainingFocus}`);
-  if (client.mobilityLevel)   lines.push(`Mobility: ${client.mobilityLevel}`);
-  if (client.balanceLevel)    lines.push(`Balance: ${client.balanceLevel}`);
-  if (client.effortTolerance) lines.push(`Effort tolerance: ${client.effortTolerance}`);
+  if (client.preferredLanguage) lines.push(`Communication style: ${client.preferredLanguage}`);
+  if (client.company)           lines.push(`Training company: ${client.company}`);
+  if (client.supportLevel)      lines.push(`Support preference: ${client.supportLevel}`);
+  if (client.mobilityLevel)     lines.push(`Mobility: ${client.mobilityLevel}`);
+  if (client.balanceLevel)      lines.push(`Balance: ${client.balanceLevel}`);
+  if (client.autonomyLevel)     lines.push(`Autonomy: ${client.autonomyLevel}`);
+  if (client.effortTolerance)   lines.push(`Effort tolerance: ${client.effortTolerance}`);
   if (client.baselinePainLevel && client.baselinePainLevel !== 'none')
     lines.push(`Baseline pain: ${client.baselinePainLevel}`);
+  if (client.supportResources?.length)
+    lines.push(`Support resources: ${client.supportResources.join(', ')}`);
+  if (client.instructionFormat?.length)
+    lines.push(`Instruction format: ${client.instructionFormat.join(', ')}`);
+  if (client.accessibility?.length)
+    lines.push(`Accessibility needs: ${client.accessibility.join(', ')}`);
+  if (client.accessLevel)       lines.push(`Access level: ${client.accessLevel}`);
   if (client.hasHealthCondition && client.healthCategories.length > 0)
     lines.push(`Health categories: ${client.healthCategories.join(', ')}`);
+  if (client.healthFreeText)  lines.push(`Health notes: "${client.healthFreeText}"`);
+  if (client.healthVoiceNote) lines.push(`Health voice note: "${client.healthVoiceNote}"`);
   if (client.comorbidities.length > 0)
     lines.push(`Comorbidities: ${client.comorbidities.join(', ')}`);
+  if (client.comorbiditiesNote) lines.push(`Comorbidities note: "${client.comorbiditiesNote}"`);
+  // Lifestyle barriers
+  if (client.lifestyleBarriers?.length)
+    lines.push(`Lifestyle barriers: ${client.lifestyleBarriers.join(', ')}`);
+  // Sensitive factors (critical for personalization)
+  if (client.sensitiveFactors) {
+    const sf = client.sensitiveFactors;
+    lines.push('## SENSITIVE FACTORS (for personalization only — never displayed)');
+    if (sf.regularMedications)  lines.push(`Regular medications: ${sf.regularMedications}`);
+    if (sf.emotionalHistory)    lines.push('Emotional health history: declared');
+    if (sf.recreationalSubstance) lines.push('Recreational substance use: declared');
+    if (sf.voiceNote)           lines.push(`Sensitive note: "${sf.voiceNote}"`);
+  }
+  // Body rhythm (fundamental for female cycle-aware training)
+  if (client.bodyRhythm?.enabled) {
+    const br = client.bodyRhythm;
+    lines.push('## MENSTRUAL CYCLE (for phase-aware training)');
+    if (br.cycleDurationDays)   lines.push(`Cycle duration: ${br.cycleDurationDays} days`);
+    if (br.cycleCurrentDay != null) lines.push(`Current cycle day: ${br.cycleCurrentDay}`);
+    if (br.adaptationPreference?.length)
+      lines.push(`Adaptation preferences: ${br.adaptationPreference.join(', ')}`);
+  }
+  // Abandon history (churn risk and previous failures)
+  if (client.abandonHistory) {
+    const ah = client.abandonHistory;
+    lines.push('## TRAINING HISTORY CONTEXT');
+    if (ah.reasons.length > 0) lines.push(`Previous abandon reasons: ${ah.reasons.join(', ')}`);
+    if (ah.hadNegativeExperience)     lines.push('Had negative training experience: yes');
+    if (ah.fearOfInjury)              lines.push('Fear of injury: yes');
+    if (ah.feltGymConstraint)         lines.push('Felt constrained by gym environment: yes');
+    if (ah.whatHelped)                lines.push(`What helped consistency: "${ah.whatHelped}"`);
+    if (ah.whatDisrupted)             lines.push(`What disrupted routine: "${ah.whatDisrupted}"`);
+    if (ah.voiceNote)                 lines.push(`Abandon voice note: "${ah.voiceNote}"`);
+  }
+  if (client.consentAiAdaptation !== undefined)
+    lines.push(`AI adaptation consent: ${client.consentAiAdaptation ? 'granted' : 'not granted'}`);
   lines.push(`Risk level: ${client.riskLevel}`);
   if (client.riskFlags.length > 0) lines.push(`Risk flags: ${client.riskFlags.join(', ')}`);
   // Amplified profile (when available)
@@ -231,8 +293,9 @@ export function buildUserPrompt(ctx: AIContext): string {
 // ─── Prompt pair ─────────────────────────────────────────────────────────────
 
 export function buildPrompt(ctx: AIContext): { system: string; user: string } {
+  const isAutonomous = ctx.trainer.id === 'ai-coach';
   return {
-    system: buildSystemPrompt(ctx.task.type, ctx.locale),
+    system: buildSystemPrompt(ctx.task.type, ctx.locale, isAutonomous),
     user:   buildUserPrompt(ctx),
   };
 }

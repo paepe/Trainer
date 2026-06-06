@@ -178,6 +178,12 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 ex
       signal: ctrl.signal,
     });
 
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!contentType.includes('application/json')) {
+      const text = await response.text().catch(() => '(unreadable body)');
+      throw new Error(`DeepSeek returned non-JSON (${response.status}): ${text.slice(0, 200)}`);
+    }
+
     const data = await response.json();
 
     if (!response.ok) {

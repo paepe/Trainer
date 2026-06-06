@@ -371,7 +371,8 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
         </div>
       </div>
 
-      {/* 10 Body Rhythm */}
+      {/* 10 Body Rhythm — only for persons who may have a menstrual cycle */}
+      {biologicalSex !== 'male' && (
       <div style={block()}>
         <BlockHeader num={10} icon="🌙" label={tr('detailedCheckin.blocks.rhythm')} dark={dark}/>
         <ToggleRow
@@ -380,6 +381,7 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
           on={bodyRhythm} onChange={setBodyRhythm} dark={dark} primary={primary}
         />
       </div>
+      )}
 
       {/* 11 Adaptacao */}
       <div style={block()}>

@@ -84,6 +84,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       signal: ctrl.signal,
     });
 
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!contentType.includes('application/json')) {
+      const text = await response.text().catch(() => '(unreadable body)');
+      throw new Error(`DeepSeek returned non-JSON (${response.status}): ${text.slice(0, 200)}`);
+    }
+
     const data = await response.json() as {
       choices?: { message?: { content?: string } }[];
       usage?:   { prompt_tokens?: number; completion_tokens?: number };
