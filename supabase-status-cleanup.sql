@@ -5,11 +5,10 @@
 -- ── 1. workout_plans — migrate dead values, then drop them from CHECK ──────────
 
 -- Upgrade existing rows so the new CHECK can be applied.
--- draft/pending_review/approved have no write path — they must be pre-production
--- seed data. Map them to the nearest active state.
-UPDATE workout_plans SET status = 'sent'     WHERE status = 'approved';
-UPDATE workout_plans SET status = 'sent'     WHERE status = 'pending_review';
-UPDATE workout_plans SET status = 'draft'    WHERE status = 'draft';  -- no-op safety
+-- Any plan with a non-standard status → 'sent' (safe default: sent but not active).
+UPDATE workout_plans
+  SET status = 'sent'
+  WHERE status NOT IN ('sent', 'active', 'completed', 'cancelled', 'postponed');
 
 ALTER TABLE workout_plans
   DROP CONSTRAINT IF EXISTS workout_plans_status_check;
