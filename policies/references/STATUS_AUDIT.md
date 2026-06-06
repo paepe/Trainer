@@ -109,10 +109,9 @@
 
 | SQL CHECK | TypeScript |
 |---|---|
-| ❌ **Unknown** — no CREATE TABLE SQL exists in repository | `'draft' \| 'pending_review' \| 'active' \| 'restricted' \| 'studio_only' \| 'ai_allowed' \| 'ai_restricted' \| 'blocked' \| 'archived'` (9 values) |
+| ❌ **Unknown** — no CREATE TABLE SQL exists in repository | `'draft' \| 'active' \| 'restricted' \| 'blocked'` (4 values) |
 
-**Only 4 of 9 written by code:** `draft`, `active`, `blocked`, `restricted`.  
-**Dead values:** `pending_review`, `studio_only`, `ai_allowed`, `ai_restricted`, `archived`.
+**All 4 values written by code.** Cleaned of 5 dead values (`pending_review`, `studio_only`, `ai_allowed`, `ai_restricted`, `archived`) on 2026-06-06.
 
 ---
 
