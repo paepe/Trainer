@@ -207,7 +207,7 @@ export interface ExerciseCatalogItem {
   equipment: string[];
   level: FitnessLevel;
   short_instruction?: string | null;
-  status: 'draft' | 'pending_review' | 'active' | 'restricted' | 'studio_only' | 'ai_allowed' | 'ai_restricted' | 'blocked' | 'archived';
+  status: 'draft' | 'active' | 'restricted' | 'blocked';
   alternatives: string[];
   restrictions: string[];
   movement_pattern?: string | null;
