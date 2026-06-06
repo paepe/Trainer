@@ -318,7 +318,7 @@ export function TrainerClientDetailScreen({
   const renderFields = (data: Record<string, unknown> | null) => {
     if (!data) return null;
     const entries = Object.entries(data)
-      .filter(([k]) => k !== 'preferred_language' && k !== 'language')
+      .filter(([k]) => (k as string).toLowerCase() !== 'preferred_language' && (k as string).toLowerCase() !== 'language')
       .map(([k, v]): [string, string | null] => [k, fmtVal(v, k)])
       .filter((e): e is [string, string] => e[1] != null);
     if (entries.length === 0) return null;
