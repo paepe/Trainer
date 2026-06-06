@@ -203,14 +203,14 @@ export function CycleScreen({
               color: textMute(dark), textTransform: 'uppercase',
               display: 'inline-flex', alignItems: 'center', gap: 4,
             }}>
-              <Icon name="edit" size={10} color={textMute(dark)} stroke={2.2}/> tap to set
+              <Icon name="edit" size={10} color={textMute(dark)} stroke={2.2}/> {tr('client.cycle.tapToSet')}
             </div>
           </button>
         </div>
       </div>
 
       <div style={{ padding: '0 22px 4px', textAlign: 'center', fontSize: 11.5, color: textSec(dark) }}>
-        Last period started <b style={{ color: textPri(dark) }}>{lastPeriodDate}</b> &middot; cycle <b style={{ color: textPri(dark) }}>{cycleLen} days</b>
+        {tr('client.cycle.lastPeriodStarted', { date: lastPeriodDate, len: cycleLen })}
       </div>
 
       <div style={{ padding: '12px 22px 8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -274,12 +274,12 @@ export function CycleScreen({
               background: dark ? '#2a3a52' : '#D7DEE7',
               margin: '0 auto 14px',
             }}/>
-            <div style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 18, fontWeight: 700, color: textPri(dark), marginBottom: 2 }}>
-              Set current cycle day
-            </div>
-            <div style={{ fontSize: 12, color: textSec(dark), marginBottom: 14 }}>
-              Where are you in your cycle right now?
-            </div>
+          <div style={{ fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 18, fontWeight: 700, color: textPri(dark), marginBottom: 2 }}>
+            {tr('client.cycle.editDayTitle')}
+          </div>
+          <div style={{ fontSize: 12, color: textSec(dark), marginBottom: 14 }}>
+            {tr('client.cycle.editDaySub')}
+          </div>
 
             <div style={{ textAlign: 'center', marginBottom: 14 }}>
               <div style={{
@@ -291,16 +291,16 @@ export function CycleScreen({
               </div>
             </div>
 
-            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
-              Day in cycle
-            </div>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
+            {tr('client.cycle.dayInCycle')}
+          </div>
             <input
               type="range" min="1" max={draftLen} value={Math.min(draftDay, draftLen)}
               onChange={e => setDraftDay(+e.target.value)}
               style={{ width: '100%', accentColor: t.primary }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: textMute(dark), marginTop: 4 }}>
-              <span>Day 1</span><span>Day {draftLen}</span>
+              <span>{tr('client.cycle.dayLabel', { n: 1 })}</span><span>{tr('client.cycle.dayLabel', { n: draftLen })}</span>
             </div>
 
             <div style={{
@@ -309,13 +309,13 @@ export function CycleScreen({
               <div style={{
                 display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6,
               }}>
-                <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark) }}>
-                  Cycle length
-                </div>
-                <div style={{
-                  fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 18, fontWeight: 700,
-                  color: t.primary, lineHeight: 1,
-                }}>{draftLen}<span style={{ fontSize: 11, color: textMute(dark), marginLeft: 4, fontWeight: 600 }}>days</span></div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: textMute(dark) }}>
+                {tr('client.cycle.cycleLength')}
+              </div>
+              <div style={{
+                fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 18, fontWeight: 700,
+                color: t.primary, lineHeight: 1,
+              }}>{draftLen}<span style={{ fontSize: 11, color: textMute(dark), marginLeft: 4, fontWeight: 600 }}>{tr('client.cycle.days')}</span></div>
               </div>
               <input
                 type="range" min="21" max="35" value={draftLen}

@@ -88,7 +88,7 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-            Viewing
+            {tr('client.history.viewing')}
           </span>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>
             {targetName.split(' ')[0]}
@@ -116,12 +116,12 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
       <div style={{ padding: '8px 14px 28px' }}>
         {loading && (
           <div style={{ padding: '32px 0', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
-            Loading…
+            {tr('client.history.loading')}
           </div>
         )}
         {!loading && filtered.length === 0 && (
           <div style={{ padding: '32px 0', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
-            {`No sessions on ${days[selectedDow]}s yet.`}
+            {tr('client.history.emptyForDay', { day: days[selectedDow] })}
           </div>
         )}
         {!loading && filtered.map((s, i) => (

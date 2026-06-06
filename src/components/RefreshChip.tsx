@@ -16,10 +16,10 @@ interface RefreshChipProps {
 function fmtAgo(date: Date | null): string {
   if (!date) return '';
   const s = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (s < 5)   return 'just now';
-  if (s < 60)  return `${s}s ago`;
+  if (s < 5)   return i18n.t('common.justNow');
+  if (s < 60)  return i18n.t('common.secondsAgo', { s });
   const m = Math.floor(s / 60);
-  if (m < 60)  return `${m}m ago`;
+  if (m < 60)  return i18n.t('common.minutesAgo', { m });
   return date.toLocaleTimeString(i18n.language || 'en-US', { hour: '2-digit', minute: '2-digit' });
 }
 

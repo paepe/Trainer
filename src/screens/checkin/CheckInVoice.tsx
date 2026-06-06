@@ -12,8 +12,6 @@ interface CheckInVoiceProps {
   onBack:   () => void;
 }
 
-const EXAMPLE = '"Slept poorly about 5 hours, energy 4 out of 10, mild lower back pain, I have 30 minutes and I\'ll train at home."';
-
 // Web Speech API — defined locally to avoid lib.dom variance across tsconfigs
 interface RecognitionLike {
   lang: string;
@@ -140,17 +138,17 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
       )}
 
       <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: primary, marginBottom: 16 }}>
-        SCREEN 02 · VOICE INPUT
+        {tr('checkin.voice.kicker')}
       </div>
 
       <h2 style={{
         margin: '0 0 6px', fontFamily: '"Plus Jakarta Sans",sans-serif',
         fontSize: 28, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em',
       }}>
-        Speak freely.
+        {tr('checkin.voice.title')}
       </h2>
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
-        The AI will transform your response into information to adapt the workout. You confirm before saving.
+        {tr('checkin.voice.sub')}
       </p>
 
       {/* Transcription box */}
@@ -163,7 +161,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color: textMute(dark) }}>
-            // LIVE TRANSCRIPTION
+            {tr('checkin.voice.transcriptionLabel')}
           </span>
           <span style={{
             fontSize: 9, fontWeight: 700, letterSpacing: '.08em',
@@ -176,7 +174,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
         <textarea
           value={transcript}
           onChange={e => { setTranscript(e.target.value); setInterim(''); }}
-          placeholder="Tap the microphone and describe how you're feeling today. You can talk about sleep, energy, pain, fatigue, available time, where you'll train…"
+          placeholder={tr('checkin.voice.placeholder')}
           style={{
             flex: 1, background: 'none', border: 'none', outline: 'none',
             fontSize: 14, color: textPri(dark), fontFamily: 'inherit',
@@ -195,7 +193,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16, gap: 10 }}>
         {!supported && (
           <p style={{ fontSize: 11.5, color: textMute(dark), textAlign: 'center', margin: '0 0 8px' }}>
-            Voice recognition not available in this browser. Type below.
+            {tr('checkin.voice.unsupported')}
           </p>
         )}
         {supported && (
@@ -235,9 +233,9 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
         padding: '10px 14px', borderRadius: 10, marginBottom: parseError ? 10 : 24,
         background: `${primary}0C`, border: `1px solid ${primary}22`,
       }}>
-        <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em', color: primary }}>Ex.: </span>
+        <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em', color: primary }}>{tr('checkin.voice.exPrefix')}</span>
         <span style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.5, fontStyle: 'italic' }}>
-          {EXAMPLE}
+          {`"${tr('checkin.voice.example')}"`}
         </span>
       </div>
 
@@ -252,7 +250,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
             onClick={() => { setParseState('idle'); setParseError(''); }}
             style={{ ...outlineBtn(primary), padding: '15px 20px' }}
           >
-            Try again
+            {tr('checkin.voice.tryAgain')}
           </button>
         )}
         <button
@@ -261,13 +259,13 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
           style={{ ...primaryBtn(primary), opacity: canSubmit ? 1 : 0.45 }}
         >
           {parseState === 'parsing' ? (
-            <><Spinner color="#0E1A2B"/> Analyzing…</>
+            <><Spinner color="#0E1A2B"/> {tr('checkin.voice.analyzing')}</>
           ) : (
-            'Confirm and calculate →'
+            tr('checkin.voice.confirm')
           )}
         </button>
         <button onClick={onBack} style={{ ...outlineBtn(primary), padding: '15px 20px' }}>
-          ← Back
+          {tr('checkin.voice.back')}
         </button>
       </div>
     </div>
