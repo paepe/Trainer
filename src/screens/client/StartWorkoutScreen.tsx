@@ -529,7 +529,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             </div>
             <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.55)' : 'rgba(14,26,43,.5)', marginTop: 2 }}>
               {hasTrainerPlans ? (
-                <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{tr('client.workout.planCount', { count: trainerPlans.length })}</>
+                <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{trainerPlans.length === 1 ? tr('client.workout.planCount_one', { count: trainerPlans.length }) : tr('client.workout.planCount_other', { count: trainerPlans.length })}</>
               ) : (
                 <>{activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || tr('client.workout.gymFallback')}</>
               )}
@@ -565,7 +565,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ fontSize: 12.5, fontWeight: 600, color: dark ? '#fff' : '#0E1A2B' }}>{dateLabel}</span>
                         <span style={{ fontSize: 11.5, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginLeft: 8 }}>
-                          {tr('client.workout.exerciseCount', { count: p.exercises.length })}
+                          {p.exercises.length === 1
+                            ? tr('client.workout.exerciseCount_one', { count: p.exercises.length })
+                            : tr('client.workout.exerciseCount_other', { count: p.exercises.length })}
                         </span>
                       </div>
                       <span style={{ fontSize: 10, fontWeight: 700, color: meta.color, letterSpacing: '.06em', textTransform: 'uppercase', flexShrink: 0 }}>
