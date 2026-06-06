@@ -2,17 +2,24 @@
 // The /api/send-notification endpoint handles BOTH:
 //   1. INSERT into notification_log (service role key — no RLS risk)
 //   2. FCM push to all device tokens for userId
+//
+// Multilingual: template + params are stored in canonical English.
+// The recipient's device renders the template in their own locale via i18n.t().
 
 const isNative =
   typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
 const API_BASE = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
 
 interface NotifyOptions {
-  type?:         string; // workout_ready | plan_sent | plan_cancelled | plan_postponed | plan_expired | workout_completed | checkin_alert | safety_gate | custom
+  type?:         string;
   entityType?:   string;
   entityId?:     string;
   fromUserId?:   string;
   expiresInMin?: number;
+  /** i18n template key (canonical EN). Rendered on recipient device in their locale. */
+  templateKey?:  string;
+  /** Template interpolation params. e.g. {trainerName: "Klaus", score: 72} */
+  params?:       Record<string, unknown>;
 }
 
 export function notify(
@@ -33,6 +40,8 @@ export function notify(
   if (opts.entityId)           payload.entityId    = opts.entityId;
   if (opts.fromUserId)         payload.fromUserId  = opts.fromUserId;
   if (expiresAt)               payload.expiresAt   = expiresAt;
+  if (opts.templateKey)        payload.templateKey = opts.templateKey;
+  if (opts.params)             payload.params      = opts.params;
 
   fetch(`${API_BASE}/api/send-notification`, {
     method:  'POST',

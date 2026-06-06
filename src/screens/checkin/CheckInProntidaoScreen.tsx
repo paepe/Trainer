@@ -185,7 +185,9 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
                 tr('inbox.notification.readyToTrainBody', { score }),
                 undefined,
                 {
-                  type:         'workout_ready',
+                  type: 'workout_ready',
+                  templateKey: 'ready_to_train',
+                  params: { name, score },
                   expiresInMin: workoutReadyExpiryMin,
                   ...(user?.id ? { fromUserId: user.id } : {}),
                 }

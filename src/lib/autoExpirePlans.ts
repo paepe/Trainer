@@ -46,7 +46,7 @@ export async function autoExpirePlans(
       i18n.t('inbox.notification.plansAutoCancelledTitle'),
       i18n.t('inbox.notification.plansAutoCancelledBody', { count, expiryDays }),
       undefined,
-      { type: 'plan_expired', entityType: 'workout_plan' }
+      { type: 'plan_expired', templateKey: 'plans_expired', params: { count, expiryDays }, entityType: 'workout_plan' }
     );
   } else {
     // Client opened Workout/History → notify TRAINER
@@ -63,7 +63,7 @@ export async function autoExpirePlans(
         i18n.t('inbox.notification.plansExpiredTitle'),
         i18n.t('inbox.notification.plansExpiredBody', { count, expiryDays }),
         undefined,
-        { type: 'plan_expired', entityType: 'workout_plan' }
+        { type: 'plan_expired', templateKey: 'plans_expired', params: { count, expiryDays }, entityType: 'workout_plan' }
       );
     }
   }

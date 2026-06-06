@@ -59,7 +59,29 @@
       "rejected": "Rejected",
       "done": "Done"
     },
-    "yourTrainerFallback": "Your trainer"
+    "yourTrainerFallback": "Your trainer",
+    "templates": {
+      "workout_approved": "{{trainerName}} approved your workout!",
+      "workout_rejected": "{{trainerName}} returned your workout request.",
+      "ready_to_train": "{{name}} is ready to train",
+      "ready_to_train_body": "Readiness {{score}}/100 — approve or reject their workout request.",
+      "new_plan": "New workout plan from {{trainerName}}",
+      "new_plan_body": "{{trainerName}} sent you a workout plan.",
+      "plan_cancelled": "{{name}} cancelled the workout plan from {{planDate}}.",
+      "plan_postponed": "{{name}} postponed the workout plan from {{planDate}}.",
+      "workout_completed": "Workout completed",
+      "workout_completed_body": "Your client finished a {{duration}}min session.",
+      "safety_gate_blocked": "Safety Gate blocked",
+      "safety_gate_blocked_body": "A client check-in requires human review.",
+      "low_readiness": "Low readiness alert",
+      "low_readiness_body": "Client scored {{score}}/100. Review recommended.",
+      "plans_expired": "Plans expired",
+      "plans_expired_body": "{{count}} pending plan(s) were auto-cancelled after {{expiryDays}} days.",
+      "high_pain_alert": "High pain reported — {{region}}",
+      "high_pain_alert_body": "Intensity {{intensity}}/10 during workout session. Review and adjust plan.",
+      "review_pain": "Review pain — {{region}}",
+      "review_pain_body": "Client reported {{intensity}}/10 intensity in {{region}}."
+    }
   },
   "postWorkout": {
     "title": "Workout Complete!",

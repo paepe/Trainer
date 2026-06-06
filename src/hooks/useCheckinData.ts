@@ -56,9 +56,10 @@ export function useCheckinData(userId: string | undefined, alertsEnabled = true)
         const body  = blocked
           ? i18n.t('inbox.notification.safetyGateBlockedBody')
           : i18n.t('inbox.notification.lowReadinessBody', { score });
+        const template = blocked ? 'safety_gate_blocked' : 'low_readiness';
         void supabase.from('trainer_clients').select('trainer_id').eq('client_id', effectiveUserId).eq('status', 'active').maybeSingle()
           .then(({ data: tc }) => {
-            if (tc?.trainer_id) void notify(tc.trainer_id, title, body, '/dashboard');
+            if (tc?.trainer_id) void notify(tc.trainer_id, title, body, '/dashboard', { type: 'checkin_alert', templateKey: template, params: { score } });
           });
       }
     }

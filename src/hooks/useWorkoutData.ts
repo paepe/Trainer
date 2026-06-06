@@ -141,7 +141,7 @@ export function useWorkoutData(userId: string | undefined) {
       void emitEvent(userId, 'workout_completed', 'workout_session', data.sessionId, { duration_min: data.total_duration_min });
       void supabase.from('trainer_clients').select('trainer_id').eq('client_id', userId).eq('status', 'active').maybeSingle()
         .then(({ data: tc }) => {
-          if (tc?.trainer_id) void notify(tc.trainer_id, i18n.t('inbox.notification.workoutCompletedTitle'), i18n.t('inbox.notification.workoutCompletedBody', { duration: data.total_duration_min }));
+          if (tc?.trainer_id) void notify(tc.trainer_id, i18n.t('inbox.notification.workoutCompletedTitle'), i18n.t('inbox.notification.workoutCompletedBody', { duration: data.total_duration_min }), undefined, { type: 'workout_completed', templateKey: 'workout_completed', params: { duration: data.total_duration_min } });
         });
     }
     return { error };

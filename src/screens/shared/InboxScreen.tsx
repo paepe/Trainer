@@ -25,7 +25,9 @@ export interface InboxItem {
   expires_at:   string | null;
   response:     string | null;
   response_at:  string | null;
-  peer_name?:   string; // resolved name of the other party
+  peer_name?:   string;
+  template_key?: string | null;
+  params?:       Record<string, unknown> | null;
 }
 
 function isExpired(item: InboxItem): boolean {
@@ -105,17 +107,18 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
     supabase
       .from('notification_log')
-      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at, read_at')
+      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at, read_at, template_key, params')
       .eq('to_user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
       .then(async ({ data, error }) => {
         if (error) console.error('[Inbox] load failed:', error.message);
         if (data) {
-          const enriched = await enrichBatch(data as Omit<InboxItem, 'peer_name'>[]);
+          const enriched = await enrichBatch(data as unknown as Omit<InboxItem, 'peer_name'>[]);
           setItems(enriched);
 
-          const unreadIds = data.filter(d => (d as { read_at?: string | null }).read_at == null).map(d => d.id);
+          const rawItems = data as unknown as Array<{ id: string; read_at?: string | null }>;
+          const unreadIds = rawItems.filter(d => d.read_at == null).map(d => d.id);
           if (unreadIds.length) {
             supabase.from('notification_log')
               .update({ read_at: new Date().toISOString() })
@@ -186,11 +189,11 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     if (response === 'approved') {
       notify(item.from_user_id, tr('inbox.notification.approved_title', { trainer: trainerFirst }),
         tr('inbox.approved'),
-        undefined, { type: 'workout_approved', ...(userId ? { fromUserId: userId } : {}) });
+        undefined, { type: 'workout_approved', templateKey: 'workout_approved', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
     } else {
       notify(item.from_user_id, tr('inbox.notification.rejected_title', { trainer: trainerFirst }),
         tr('inbox.rejected'),
-        undefined, { type: 'workout_rejected', ...(userId ? { fromUserId: userId } : {}) });
+        undefined, { type: 'workout_rejected', templateKey: 'workout_rejected', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
     }
 
     setItems(prev => prev.map(i =>
@@ -204,6 +207,13 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
   const pendingCount = items.filter(i => i.type === 'workout_ready' && !i.response && !isExpired(i)).length;
   const title        = tr('inbox.title');
   const titleSuffix  = pendingCount > 0 ? tr('inbox.pending_count', { count: pendingCount }) : '';
+
+  // Render notification text: template keys are resolved in the RECIPIENT's locale.
+  // Legacy rows without template_key fall back to stored title/body.
+  const renderTitle = (item: InboxItem) =>
+    item.template_key ? tr(`inbox.templates.${item.template_key}`, item.params ?? {}) : item.title;
+  const renderBody = (item: InboxItem) =>
+    item.template_key ? tr(`inbox.templates.${item.template_key}_body`, item.params ?? {}) : item.body;
 
   return (
     <>
@@ -272,7 +282,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark), marginBottom: 2 }}>
-                        {item.title}
+                        {renderTitle(item)}
                       </div>
                       <div style={{ fontSize: 11, color: textMute(dark) }}>
                         {item.peer_name && <span style={{ color: textSec(dark), fontWeight: 600 }}>{item.peer_name} · </span>}
@@ -288,7 +298,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                 {open && (
                   <div style={{ padding: '0 16px 14px', background: 'var(--sunken)' }}>
                     <p style={{ margin: '0 0 14px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6 }}>
-                      {item.body}
+                      {renderBody(item)}
                     </p>
 
                     {/* Expiry info */}

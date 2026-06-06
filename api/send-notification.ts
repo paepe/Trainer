@@ -7,7 +7,7 @@
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { userId, title, body, url, type, entityType, entityId, fromUserId, expiresAt } = req.body || {};
+  const { userId, title, body, url, type, entityType, entityId, fromUserId, expiresAt, templateKey, params } = req.body || {};
   if (!userId || !title || !body) return res.status(400).json({ error: 'userId, title, body required' });
 
   const supabaseUrl  = process.env.VITE_SUPABASE_URL        || '';
@@ -25,6 +25,8 @@ export default async function handler(req: any, res: any) {
       entity_type:  entityType   ?? null,
       entity_id:    entityId     ?? null,
       expires_at:   expiresAt    ?? null,
+      template_key: templateKey  ?? null,
+      params:       params       ?? null,
     };
     const logRes = await fetch(`${supabaseUrl}/rest/v1/notification_log`, {
       method:  'POST',

@@ -429,7 +429,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           name: user.name || tr('client.workout.notificationYourClient'),
           planDate: planDate.toString(),
         });
-        notify(tc.trainer_id, title, body, undefined, { type: kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed', entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
+        const template = kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed';
+        notify(tc.trainer_id, title, body, undefined, { type: kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed', templateKey: template, params: { name: user.name || tr('client.workout.notificationYourClient'), planDate: planDate.toString() }, entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
       });
   };
 
