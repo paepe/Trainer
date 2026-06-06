@@ -155,8 +155,15 @@ export function TrainerDashboardScreen({
     }
     fetchSafetyGate(ids);
 
-    // Fetch active sessions for these clients
+    // Clean up stale active sessions (>24h) for all clients before showing them
     if (ids.length > 0) {
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      void supabase.from('workout_sessions')
+        .update({ status: 'abandoned' })
+        .in('user_id', ids)
+        .eq('status', 'active')
+        .lt('started_at', dayAgo);
+
       const { data: sessions } = await supabase
         .from('workout_sessions')
         .select('id, user_id, status, started_at')
