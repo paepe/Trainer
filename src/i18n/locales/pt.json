@@ -1010,6 +1010,7 @@
       "beforeStart": "Antes de começar, nos diga rapidamente como você está se sentindo hoje.",
       "safetyGateNote": "Dor, tontura ou sinais de alerta pausam automaticamente a sessão conduzida pela IA.",
       "postWorkoutLink": "Já treinou hoje? Check-in pós-treino →",
+      "back": "Voltar",
       "lastCheckin": "Último check-in · {{date}}",
       "streak": "sequência · {{count}} dias",
       "options": {
@@ -1096,7 +1097,11 @@
         "partially": "Parcialmente",
         "no": "Não"
       },
-      "partially": "Parcialmente"
+      "noCompletedSessions": "Nenhum treino concluído hoje",
+      "noCompletedSessionsSub": "Conclua uma sessão de treino primeiro para avaliá-la aqui.",
+      "evaluate": "Avaliar",
+      "evaluatingSession": "Sessão {{time}} · {{duration}}",
+      "sessionLabel": "Sessão {{time}}"
     }
   },
   "auth": {

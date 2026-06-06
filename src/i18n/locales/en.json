@@ -1061,6 +1061,7 @@
       "beforeStart": "Before starting, quickly tell us how you're feeling today.",
       "safetyGateNote": "Pain, dizziness, or warning signs automatically pause AI-led.",
       "postWorkoutLink": "Already trained today? Post-workout check-in →",
+      "back": "Back",
       "lastCheckin": "Last check-in · {{date}}",
       "streak": "streak · {{count}} days",
       "options": {
@@ -1146,7 +1147,12 @@
         "yes": "Yes",
         "partially": "Partially",
         "no": "No"
-      }
+      },
+      "noCompletedSessions": "No completed workouts today",
+      "noCompletedSessionsSub": "Complete a workout session first to evaluate it here.",
+      "evaluate": "Evaluate",
+      "evaluatingSession": "Session {{time}} · {{duration}}",
+      "sessionLabel": "Session {{time}}"
     }
   },
   "auth": {

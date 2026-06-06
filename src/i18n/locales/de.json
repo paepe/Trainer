@@ -1009,6 +1009,7 @@
       "beforeStart": "Bevor es losgeht, sag uns kurz, wie du dich heute fühlst.",
       "safetyGateNote": "Schmerzen, Schwindel oder Warnsignale pausieren die KI-geführte Einheit automatisch.",
       "postWorkoutLink": "Heute schon trainiert? Post-Workout-Check-in →",
+      "back": "Zurück",
       "lastCheckin": "Letzter Check-in · {{date}}",
       "streak": "Serie · {{count}} Tage",
       "options": {
@@ -1095,7 +1096,11 @@
         "partially": "Teilweise",
         "no": "Nein"
       },
-      "partially": "Teilweise"
+      "noCompletedSessions": "Keine abgeschlossenen Workouts heute",
+      "noCompletedSessionsSub": "Schließe zuerst eine Trainingseinheit ab, um sie hier zu bewerten.",
+      "evaluate": "Bewerten",
+      "evaluatingSession": "Sitzung {{time}} · {{duration}}",
+      "sessionLabel": "Sitzung {{time}}"
     }
   },
   "auth": {

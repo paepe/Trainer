@@ -7,6 +7,7 @@ interface CheckInPostWorkoutProps {
   dark:     boolean;
   primary:  string;
   accent:   string;
+  sessionInfo?: { id: string; startedAt: string; durationMin: number | null } | null;
   onSubmit: (data: PostWorkoutData) => void;
   onBack:   () => void;
 }
@@ -16,7 +17,7 @@ const SENSATION_EMOJIS: Record<SensationRating, string> = {
   excellent: '😄', good: '😊', ok: '😐', hard: '😓', very_hard: '😖',
 };
 
-export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: CheckInPostWorkoutProps) {
+export function CheckInPostWorkout({ dark, primary, accent, sessionInfo, onSubmit, onBack }: CheckInPostWorkoutProps) {
   const { t: tr } = useTranslation();
   const sensations = React.useMemo(() => SENSATION_VALS.map(v => ({
     value: v, label: tr(`checkin.postWorkout.sensations.${v}`), emoji: SENSATION_EMOJIS[v],
@@ -42,7 +43,7 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
     setSaving(true);
 
     const data: PostWorkoutData = {
-      session_id:           crypto.randomUUID(),
+      session_id:           sessionInfo?.id ?? crypto.randomUUID(),
       sensation,
       completion_status:    completion,
       perceived_effort:     rpe,
@@ -104,6 +105,14 @@ export function CheckInPostWorkout({ dark, primary, accent, onSubmit, onBack }: 
       <p style={{ fontSize: 13, color: textSec(dark), margin: '0 0 24px', lineHeight: 1.55 }}>
         {tr('checkin.postWorkout.subtitle')}
       </p>
+      {sessionInfo && (
+        <div style={{ fontSize: 11.5, color: primary, margin: '-12px 0 20px', fontWeight: 600 }}>
+          {tr('checkin.postWorkout.evaluatingSession', {
+            time: new Date(sessionInfo.startedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+            duration: sessionInfo.durationMin ? `${sessionInfo.durationMin} min` : '',
+          })}
+        </div>
+      )}
 
       <div style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12, background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 14 }}>
