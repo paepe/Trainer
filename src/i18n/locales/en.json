@@ -549,7 +549,8 @@
       "yourClients": "Your clients",
       "methodology": "Your methodology · v3.2",
       "aiSummary": "42 workouts · 18 progressions · 7 client archetypes. AI uses this to generate plans only for your clients.",
-      "addWorkout": "+ Add workout"
+      "addWorkout": "+ Add workout",
+      "inviteCopied": "Invite link copied!"
     },
     "detail": {
       "noCheckins": "No check-ins yet.",

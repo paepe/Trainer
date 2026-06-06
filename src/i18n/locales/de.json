@@ -549,7 +549,8 @@
       "yourClients": "Deine Kunden",
       "methodology": "Deine Methodik · v3.2",
       "aiSummary": "42 Workouts · 18 Progressionen · 7 Kundenarchetypen. KI verwendet dies, um Pläne nur für deine Kunden zu erstellen.",
-      "addWorkout": "+ Training hinzufügen"
+      "addWorkout": "+ Training hinzufügen",
+      "inviteCopied": "Einladungslink kopiert!"
     },
     "detail": {
       "noCheckins": "Noch keine Check-ins.",

@@ -121,7 +121,7 @@ export function TrainerStudioScreen({ nav }: TrainerStudioScreenProps) {
       </div>
 
       <div style={{ padding: '0 22px 28px' }}>
-        <button onClick={() => alert('Invite link copied: trainer.app/coach/frances')} style={{ ...outlineBtn(t.accent), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <button onClick={() => alert(tr('trainer.studio.inviteCopied'))} style={{ ...outlineBtn(t.accent), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <Icon name="plus" size={16} color={t.primary} stroke={2.4}/> {tr('trainer.dashboard.inviteClient')}
         </button>
       </div>

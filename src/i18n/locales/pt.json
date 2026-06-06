@@ -549,7 +549,8 @@
       "yourClients": "Seus clientes",
       "methodology": "Sua metodologia · v3.2",
       "aiSummary": "42 treinos · 18 progressões · 7 arquétipos de clientes. A IA usa isso para gerar planos apenas para seus clientes.",
-      "addWorkout": "+ Adicionar treino"
+      "addWorkout": "+ Adicionar treino",
+      "inviteCopied": "Link de convite copiado!"
     },
     "detail": {
       "noCheckins": "Nenhum check-in ainda.",
