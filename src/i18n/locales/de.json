@@ -918,6 +918,7 @@
       "by": "von ",
       "planCount_one": "{{count}} Plan wartet",
       "planCount_other": "{{count}} Pläne warten",
+      "planCount": "{{count}} Pläne warten",
       "gymFallback": "Fitnessstudio",
       "startLabel": "▶ Starten",
       "resumeLabel": "▶ Fortsetzen",
@@ -2298,7 +2299,8 @@
         "sand": "Warmsand"
       }
     },
-    "aiFocusHint": "Höhere Betonung beeinflusst die Übungsauswahl und Wiederholungsbereiche der KI."
+    "aiFocusHint": "Höhere Betonung beeinflusst die Übungsauswahl und Wiederholungsbereiche der KI.",
+    "saveFailed": "Speichern fehlgeschlagen — bitte erneut versuchen."
   },
   "profileFields": {
     "age": "Alter",

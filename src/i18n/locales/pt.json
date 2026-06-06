@@ -2299,7 +2299,8 @@
         "sand": "Areia Quente"
       }
     },
-    "aiFocusHint": "Maior ênfase influencia a seleção de exercícios e faixas de repetições da IA."
+    "aiFocusHint": "Maior ênfase influencia a seleção de exercícios e faixas de repetições da IA.",
+    "saveFailed": "Falha ao salvar — tente novamente."
   },
   "profileFields": {
     "age": "Idade",

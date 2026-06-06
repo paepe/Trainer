@@ -478,6 +478,116 @@
       "errUnknown": "An error occurred"
     }
   },
+  "studio": {
+    "sidebar": {
+      "studioLabel": "Studio",
+      "dashboard": "Dashboard",
+      "clients": "Clients",
+      "protocols": "Protocols",
+      "team": "Team",
+      "signOut": "Sign Out",
+      "stats": "{{trainers}} trainer(s) · {{clients}} clients"
+    },
+    "dashboard": {
+      "protocolsSection": "Protocols",
+      "noProtocolsYet": "No protocols yet. Go to Protocols to create one.",
+      "title": "Dashboard",
+      "sub": "Your studio overview",
+      "trainers": "Trainers",
+      "activeTrainers": "Active Trainers",
+      "activeClients": "Active Clients",
+      "noTrainers": "No trainers yet",
+      "plansThisWeek": "Plans This Week",
+      "completedThisWeek": "Completed This Week"
+    },
+    "team": {
+      "inviteTrainerBtn": "+ Invite trainer",
+      "inviteTrainer": "+ Invite Trainer",
+      "emailPlaceholder": "trainer@email.com",
+      "sub": "{{count}} trainer(s)",
+      "title": "Team",
+      "noTrainers": "No trainers yet.",
+      "send": "Send",
+      "cancel": "Cancel",
+      "remove": "Remove",
+      "headers": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "actions": "Actions"
+      }
+    },
+    "clients": {
+      "searchPlaceholder": "Search by name or email…",
+      "clear": "Clear ×",
+      "sub": "{{visible}} of {{total}} active client(s)",
+      "title": "Clients",
+      "allLevels": "All Levels",
+      "allTrainers": "All Trainers",
+      "noClients": "No clients found.",
+      "noMatch": "No clients match the criteria.",
+      "headers": {
+        "client": "Client",
+        "email": "Email",
+        "trainer": "Trainer",
+        "goal": "Goal",
+        "level": "Level"
+      }
+    },
+    "protocols": {
+      "newProtocolHeading": "New protocol",
+      "title": "Protocols",
+      "newProtocol": "New Protocol",
+      "createProtocol": "Create Protocol",
+      "name": "Name",
+      "objective": "Objective",
+      "level": "Level",
+      "description": "Description",
+      "cancel": "Cancel",
+      "durationLabel": "Duration (min)",
+      "searchPlaceholder": "Search by name or objective…",
+      "sortBy": "Sort by:",
+      "sortName": "Name",
+      "sortLevel": "Level",
+      "sortDuration": "Duration",
+      "sortExercises": "Exercises",
+      "clearFilters": "Clear filters ×",
+      "noProtocolsYet": "No protocols yet. Create your first protocol above.",
+      "noMatch": "No protocols match the criteria.",
+      "delete": "Delete",
+      "sub": "{{visible}} of {{total}} protocol(s)",
+      "descriptionPlaceholder": "Brief description of this protocol…"
+    },
+    "protocolDetail": {
+      "exercisesCount": "Exercises ({{count}})",
+      "exercise": "Exercise",
+      "muscleGroup": "Muscle Group",
+      "noExercises": "No exercises in this protocol.",
+      "sets": "Sets",
+      "reps": "Reps",
+      "loadKg": "Load (kg)",
+      "restS": "Rest (s)",
+      "add": "Add",
+      "cancel": "Cancel",
+      "addExercise": "+ Add exercise",
+      "loadOptional": "optional"
+    },
+    "auth": {
+      "accessDenied": "Access denied",
+      "accessDeniedNote": "This panel requires a Studio Admin account.",
+      "signOut": "Sign Out",
+      "signIn": "Sign in to manage your studio.",
+      "signInBtn": "Sign In",
+      "brand": "TrAIner Studio"
+    },
+    "createStudio": {
+      "btnCreateStudio": "Create Studio →",
+      "title": "Create Your Studio",
+      "note": "Set up your training studio to manage trainers, clients, and protocols.",
+      "namePlaceholder": "Studio name (e.g. FitCore Lisbon)",
+      "errUnknown": "An error occurred"
+    }
+  },
   "checkinEnums": {
     "sleep": {
       "poor": "Poor",

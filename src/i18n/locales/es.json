@@ -917,6 +917,7 @@
       "by": "por ",
       "planCount_one": "{{count}} plan esperando",
       "planCount_other": "{{count}} planes esperando",
+      "planCount": "{{count}} planes esperando",
       "gymFallback": "gimnasio",
       "startLabel": "▶ Iniciar",
       "resumeLabel": "▶ Continuar",
@@ -2298,7 +2299,8 @@
         "sand": "Arena Cálida"
       }
     },
-    "aiFocusHint": "Un mayor énfasis influye en la selección de ejercicios y rangos de repeticiones de la IA."
+    "aiFocusHint": "Un mayor énfasis influye en la selección de ejercicios y rangos de repeticiones de la IA.",
+    "saveFailed": "Error al guardar — intente nuevamente."
   },
   "profileFields": {
     "age": "Edad",
