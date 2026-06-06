@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui';
 import { supabase } from '../../supabase';
 import { C } from './SharedAtoms';
@@ -13,11 +14,12 @@ interface SidebarProps {
 }
 
 export function Sidebar({ view, setView, profile, data }: SidebarProps) {
+  const { t: tr } = useTranslation();
   const NAV = [
-    { key: 'dashboard', icon: '◈', label: 'Dashboard' },
-    { key: 'team',      icon: '⬡', label: 'Team' },
-    { key: 'clients',   icon: '◉', label: 'Clients' },
-    { key: 'protocols', icon: '▤', label: 'Protocols' },
+    { key: 'dashboard', icon: '◈', label: tr('studio.sidebar.dashboard') },
+    { key: 'team',      icon: '⬡', label: tr('studio.sidebar.team') },
+    { key: 'clients',   icon: '◉', label: tr('studio.sidebar.clients') },
+    { key: 'protocols', icon: '▤', label: tr('studio.sidebar.protocols') },
   ];
 
   return (
@@ -27,14 +29,16 @@ export function Sidebar({ view, setView, profile, data }: SidebarProps) {
           Tr<span style={{ color: C.primary }}>AI</span>ner
         </div>
         <div style={{ fontSize: 10, color: C.textMute, marginTop: 3, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>
-          Studio
+          {tr('studio.sidebar.studioLabel')}
         </div>
       </div>
 
       {data.studio && (
         <div style={{ margin: '0 14px 20px', padding: '12px 14px', borderRadius: 12, background: `${C.primary}12`, border: `1px solid ${C.primary}30` }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: C.primary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{data.studio.name}</div>
-          <div style={{ fontSize: 11, color: C.textMute, marginTop: 2 }}>{data.stats.trainers} trainer{data.stats.trainers !== 1 ? 's' : ''} · {data.stats.clients} clients</div>
+          <div style={{ fontSize: 11, color: C.textMute, marginTop: 2 }}>
+            {tr('studio.sidebar.stats', { trainers: data.stats.trainers, clients: data.stats.clients })}
+          </div>
         </div>
       )}
 
@@ -57,7 +61,7 @@ export function Sidebar({ view, setView, profile, data }: SidebarProps) {
       <div style={{ padding: '16px 18px', borderTop: `1px solid ${C.border}` }}>
         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{profile.name || '—'}</div>
         <div style={{ fontSize: 11, color: C.textMute, marginBottom: 12, overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.email}</div>
-        <Button variant="danger" size="sm" onClick={() => supabase.auth.signOut()} full>Sign out</Button>
+        <Button variant="danger" size="sm" onClick={() => supabase.auth.signOut()} full>{tr('studio.sidebar.signOut')}</Button>
       </div>
     </aside>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Badge, Typography, TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { BRAND, THEME_VARS as DARK } from '../../theme/tokens';
@@ -141,13 +142,14 @@ interface AccessDeniedProps {
 }
 
 export function AccessDenied({ onSignOut }: AccessDeniedProps) {
+  const { t: tr } = useTranslation();
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.bg, color: C.textPri, fontFamily: 'system-ui' }}>
       <div style={{ textAlign: 'center', maxWidth: 360 }}>
         <div style={{ fontSize: 52, marginBottom: 20 }}>🚫</div>
-        <Typography variant="h2" style={{ marginBottom: 10 }}>Access denied</Typography>
-        <Typography variant="body" color="secondary">This dashboard requires a Studio Admin account.</Typography>
-        <Button onClick={onSignOut} full style={{ marginTop: 24 }}>Sign out</Button>
+        <Typography variant="h2" style={{ marginBottom: 10 }}>{tr('studio.auth.accessDenied')}</Typography>
+        <Typography variant="body" color="secondary">{tr('studio.auth.accessDeniedNote')}</Typography>
+        <Button onClick={onSignOut} full style={{ marginTop: 24 }}>{tr('studio.auth.signOut')}</Button>
       </div>
     </div>
   );
@@ -155,6 +157,7 @@ export function AccessDenied({ onSignOut }: AccessDeniedProps) {
 
 // ─── LOGIN VIEW ───────────────────────────────────────────────
 export function LoginView() {
+  const { t: tr } = useTranslation();
   const [email, setEmail] = React.useState('');
   const [pw, setPw] = React.useState('');
   const [err, setErr] = React.useState('');
@@ -169,16 +172,14 @@ export function LoginView() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: C.bg, color: C.textPri }}>
       <div style={{ width: 380 }}>
-        <Typography variant="h1" style={{ marginBottom: 6 }}>
-          Tr<span style={{ color: C.primary }}>AI</span>ner Studio
-        </Typography>
-        <Typography variant="body" color="secondary" style={{ marginBottom: 32 }}>Sign in to manage your studio.</Typography>
+        <Typography variant="h1" style={{ marginBottom: 6 }}>{tr('studio.auth.brand')}</Typography>
+        <Typography variant="body" color="secondary" style={{ marginBottom: 32 }}>{tr('studio.auth.signIn')}</Typography>
         <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 8 }}>
-          <TextInput type="email" value={email} onChange={setEmail} placeholder="Email" />
-          <TextInput type="password" value={pw} onChange={setPw} placeholder="Password" onKeyDown={e => e.key === 'Enter' && login()} />
+          <TextInput type="email" value={email} onChange={setEmail} placeholder={tr('auth.common.email')} />
+          <TextInput type="password" value={pw} onChange={setPw} placeholder={tr('auth.common.password')} onKeyDown={e => e.key === 'Enter' && login()} />
         </div>
         {err && <Typography variant="caption" color="accent" style={{ marginBottom: 12, display: 'block' }}>{err}</Typography>}
-        <Button onClick={login} loading={loading} full>Sign in</Button>
+        <Button onClick={login} loading={loading} full>{tr('studio.auth.signInBtn')}</Button>
       </div>
     </div>
   );

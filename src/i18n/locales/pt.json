@@ -304,7 +304,8 @@
   },
   "studio": {
     "sidebar": {
-      "studioLabel": "Studio"
+      "studioLabel": "Studio",
+      "stats": "{{trainers}} treinador(es) · {{clients}} clientes"
     },
     "dashboard": {
       "protocolsSection": "Protocolos",
@@ -312,11 +313,20 @@
     },
     "team": {
       "inviteTrainerBtn": "+ Convidar treinador",
-      "emailPlaceholder": "treinador@email.com"
+      "emailPlaceholder": "treinador@email.com",
+      "sub": "{{count}} treinador(es)"
     },
     "clients": {
       "searchPlaceholder": "Buscar por nome ou email…",
-      "clear": "Limpar ×"
+      "clear": "Limpar ×",
+      "sub": "{{visible}} de {{total}} cliente(s) ativo(s)",
+      "headers": {
+        "client": "Cliente",
+        "email": "Email",
+        "trainer": "Treinador",
+        "goal": "Objetivo",
+        "level": "Nível"
+      }
     },
     "protocols": {
       "newProtocolHeading": "Novo protocolo",
@@ -330,7 +340,9 @@
       "clearFilters": "Limpar filtros ×",
       "noProtocolsYet": "Ainda não há protocolos. Crie seu primeiro protocolo acima.",
       "noMatch": "Nenhum protocolo corresponde aos critérios.",
-      "delete": "Excluir"
+      "delete": "Excluir",
+      "sub": "{{visible}} de {{total}} protocolo(s)",
+      "descriptionPlaceholder": "Breve descrição deste protocolo…"
     },
     "protocolDetail": {
       "exercisesCount": "Exercícios ({{count}})",
@@ -343,14 +355,16 @@
     },
     "auth": {
       "accessDenied": "Acesso negado",
-      "accessDeniedNote": "Este painel requer uma conta de Administrador de Studio.",
+      "accessDeniedNote": "Este painel requer uma conta Studio Admin.",
       "signOut": "Sair",
-      "signIn": "Entre para gerenciar seu studio.",
-      "signInBtn": "Entrar"
+      "signIn": "Faça login para gerenciar seu studio.",
+      "signInBtn": "Entrar",
+      "brand": "TrAIner Studio"
     },
     "createStudio": {
       "btnCreateStudio": "Criar Studio →",
-      "namePlaceholder": "Nome do studio (ex.: FitCore Lisboa)"
+      "namePlaceholder": "Nome do studio (ex.: FitCore Lisboa)",
+      "errUnknown": "Ocorreu um erro"
     }
   },
   "checkinEnums": {

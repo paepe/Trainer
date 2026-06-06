@@ -304,7 +304,8 @@
   },
   "studio": {
     "sidebar": {
-      "studioLabel": "Studio"
+      "studioLabel": "Studio",
+      "stats": "{{trainers}} trainer(s) · {{clients}} clients"
     },
     "dashboard": {
       "protocolsSection": "Protocols",
@@ -312,11 +313,20 @@
     },
     "team": {
       "inviteTrainerBtn": "+ Invite trainer",
-      "emailPlaceholder": "trainer@email.com"
+      "emailPlaceholder": "trainer@email.com",
+      "sub": "{{count}} trainer(s)"
     },
     "clients": {
       "searchPlaceholder": "Search by name or email…",
-      "clear": "Clear ×"
+      "clear": "Clear ×",
+      "sub": "{{visible}} of {{total}} active client(s)",
+      "headers": {
+        "client": "Client",
+        "email": "Email",
+        "trainer": "Trainer",
+        "goal": "Goal",
+        "level": "Level"
+      }
     },
     "protocols": {
       "newProtocolHeading": "New protocol",
@@ -330,7 +340,9 @@
       "clearFilters": "Clear filters ×",
       "noProtocolsYet": "No protocols yet. Create your first protocol above.",
       "noMatch": "No protocols match your criteria.",
-      "delete": "Delete"
+      "delete": "Delete",
+      "sub": "{{visible}} of {{total}} protocol(s)",
+      "descriptionPlaceholder": "Brief description of this protocol…"
     },
     "protocolDetail": {
       "exercisesCount": "Exercises ({{count}})",
@@ -346,11 +358,13 @@
       "accessDeniedNote": "This dashboard requires a Studio Admin account.",
       "signOut": "Sign out",
       "signIn": "Sign in to manage your studio.",
-      "signInBtn": "Sign in"
+      "signInBtn": "Sign in",
+      "brand": "TrAIner Studio"
     },
     "createStudio": {
       "btnCreateStudio": "Create Studio →",
-      "namePlaceholder": "Studio name (e.g. FitCore Lisboa)"
+      "namePlaceholder": "Studio name (e.g. FitCore Lisboa)",
+      "errUnknown": "An error occurred"
     }
   },
   "checkinEnums": {
