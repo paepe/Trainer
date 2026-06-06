@@ -13,7 +13,18 @@
     "yesterday": "Ontem",
     "action": "Ação",
     "loading": "Carregando…",
-    "optional": "(opcional)"
+    "optional": "(opcional)",
+    "noData": "—",
+    "units": {
+      "kg": "kg",
+      "restSec": "{{seconds}}s descanso",
+      "sets": "séries",
+      "minAbbrev": "min",
+      "hoursAbbrev": "h",
+      "minutesAbbrev": "m",
+      "daysAbbrev": "d",
+      "percent": "%"
+    }
   },
   "inbox": {
     "title": "Mensagens",
@@ -910,6 +921,16 @@
       "commentsOptional": "Comentários adicionais (opcional)",
       "typeReason": "Digite o motivo...",
       "typeComments": "Digite os comentários...",
+      "offlineSaved": "Sessão salva localmente — sincronização online falhou.",
+      "trainerBadge": "Treinando",
+      "exercisesDone": "{{done}}/{{total}} exercícios concluídos",
+      "setFormTitle": "Série {{current}} de {{total}} — {{name}}",
+      "loadKg": "Carga (kg)",
+      "rpeLabel": "RPE — {{value}}",
+      "painIntensityLabel": "Intensidade — {{value}}",
+      "skipTitle": "Pular Exercício — {{name}}",
+      "skipReasonLabel": "Motivo para pular",
+      "confirmSkip": "Confirmar",
       "bodyParts": {
         "neck": "Pescoço",
         "shoulder": "Ombro",
@@ -1108,6 +1129,14 @@
       "sexNote": "Usado para personalização — nunca para diagnóstico.",
       "emergencyContact": "Contato de emergência",
       "emergencyNamePlaceholder": "Nome e sobrenome",
+      "emergencyPhonePlaceholder": "+55 11 99999-0000",
+      "namePlaceholder": "Mariana Costa",
+      "emailPlaceholder": "voce@email.com",
+      "phonePlaceholder": "+55 11 99999-0000",
+      "addressPlaceholder": "São Paulo, SP",
+      "heightPlaceholder": "165",
+      "weightPlaceholder": "64",
+      "languagePlaceholder": "Português",
       "sex": {
         "female": "Feminino",
         "male": "Masculino",

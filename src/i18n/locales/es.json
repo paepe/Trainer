@@ -13,7 +13,18 @@
     "yesterday": "Ayer",
     "action": "Acción",
     "loading": "Cargando…",
-    "optional": "(opcional)"
+    "optional": "(opcional)",
+    "noData": "—",
+    "units": {
+      "kg": "kg",
+      "restSec": "{{seconds}}s descanso",
+      "sets": "series",
+      "minAbbrev": "min",
+      "hoursAbbrev": "h",
+      "minutesAbbrev": "m",
+      "daysAbbrev": "d",
+      "percent": "%"
+    }
   },
   "inbox": {
     "title": "Bandeja de entrada",
@@ -910,6 +921,16 @@
       "commentsOptional": "Comentarios adicionales (opcional)",
       "typeReason": "Escribe el motivo...",
       "typeComments": "Escribe los comentarios...",
+      "offlineSaved": "Sesión guardada localmente — sincronización fallida.",
+      "trainerBadge": "Entrenando",
+      "exercisesDone": "{{done}}/{{total}} ejercicios completados",
+      "setFormTitle": "Serie {{current}} de {{total}} — {{name}}",
+      "loadKg": "Carga (kg)",
+      "rpeLabel": "RPE — {{value}}",
+      "painIntensityLabel": "Intensidad — {{value}}",
+      "skipTitle": "Saltar Ejercicio — {{name}}",
+      "skipReasonLabel": "Motivo para saltar",
+      "confirmSkip": "Confirmar",
       "bodyParts": {
         "neck": "Cuello",
         "shoulder": "Hombro",
@@ -1108,6 +1129,14 @@
       "sexNote": "Usado para personalización — nunca para diagnóstico.",
       "emergencyContact": "Contacto de emergencia",
       "emergencyNamePlaceholder": "Nombre y apellido",
+      "emergencyPhonePlaceholder": "+34 612 345 678",
+      "namePlaceholder": "María García",
+      "emailPlaceholder": "tu@email.com",
+      "phonePlaceholder": "+34 612 345 678",
+      "addressPlaceholder": "Madrid, España",
+      "heightPlaceholder": "165",
+      "weightPlaceholder": "64",
+      "languagePlaceholder": "Español",
       "sex": {
         "female": "Femenino",
         "male": "Masculino",

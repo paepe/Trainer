@@ -100,7 +100,7 @@ export function WorkoutModeScreen({
     if (plannedDurationMin)  sessionInput.planned_duration_min = plannedDurationMin;
     startWorkoutSession(sessionInput).then(({ data, error }) => {
       if (error || !data) {
-        setInitErr('Session saved locally — online sync failed.');
+        setInitErr(tr('client.mode.offlineSaved'));
         const fallback: ExState[] = exercises.map((ex, i) => makeExState(`offline-${i}`, ex, i));
         setExStates(fallback);
       } else {
@@ -300,7 +300,7 @@ export function WorkoutModeScreen({
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-            Training
+            {tr('client.mode.trainerBadge')}
           </span>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>
             {clientName}
@@ -316,7 +316,7 @@ export function WorkoutModeScreen({
           color: t.primary, lineHeight: 1,
         }}>{mm}:{ss}</div>
         <div style={{ fontSize: 12.5, color: textSec(dark), marginTop: 2 }}>
-          {doneCount} / {exStates.length} exercises done
+          {tr('client.mode.exercisesDone', { done: doneCount, total: exStates.length })}
         </div>
         <div style={{ marginTop: 8, height: 4, borderRadius: 4, background: dark ? '#1F2E45' : '#E5EAF1', overflow: 'hidden' }}>
           <div style={{
@@ -383,12 +383,12 @@ export function WorkoutModeScreen({
 
       {/* ── Overlay: Set form ── */}
       {phase === 'set_form' && activeEx && (
-        <BottomPanel title={`Set ${activeEx.setsLogged + 1} of ${activeEx.setsPrescribed} — ${activeEx.name}`} dark={dark}>
+        <BottomPanel title={tr('client.mode.setFormTitle', { current: activeEx.setsLogged + 1, total: activeEx.setsPrescribed, name: activeEx.name })} dark={dark}>
           <LabeledInput label={tr('client.mode.reps')} value={setReps} onChange={setSetReps} type="number" dark={dark}/>
-          <LabeledInput label="Load (kg)" value={setLoad} onChange={setSetLoad} type="number" dark={dark}/>
+          <LabeledInput label={tr('client.mode.loadKg')} value={setLoad} onChange={setSetLoad} type="number" dark={dark}/>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
-              RPE — {setRpe}
+              {tr('client.mode.rpeLabel', { value: setRpe })}
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {[1,2,3,4,5,6,7,8,9,10].map(n => (
@@ -451,7 +451,7 @@ export function WorkoutModeScreen({
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
-              Intensity — {painIntensity}
+              {tr('client.mode.painIntensityLabel', { value: painIntensity })}
             </div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
               {[1,2,3,4,5,6,7,8,9,10].map(n => (
@@ -480,10 +480,10 @@ export function WorkoutModeScreen({
 
       {/* ── Overlay: Skip form ── */}
       {phase === 'skip_form' && activeEx && (
-        <BottomPanel title={`Skip Exercise — ${activeEx.name}`} dark={dark}>
+        <BottomPanel title={tr('client.mode.skipTitle', { name: activeEx.name })} dark={dark}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
-              Reason for skipping
+              {tr('client.mode.skipReasonLabel')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {skipOptions.map(opt => (
@@ -529,7 +529,7 @@ export function WorkoutModeScreen({
                 opacity: (!skipReasonOption || (skipReasonOption === 'Other' && !skipCustomReason.trim())) ? 0.45 : 1,
               }}
             >
-              Confirm Skip
+              {tr('client.mode.confirmSkip')}
             </button>
           </div>
         </BottomPanel>

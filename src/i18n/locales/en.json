@@ -13,7 +13,18 @@
     "yesterday": "Yesterday",
     "action": "Action",
     "loading": "Loading…",
-    "optional": "(optional)"
+    "optional": "(optional)",
+    "noData": "—",
+    "units": {
+      "kg": "kg",
+      "restSec": "{{seconds}}s rest",
+      "sets": "sets",
+      "minAbbrev": "min",
+      "hoursAbbrev": "h",
+      "minutesAbbrev": "m",
+      "daysAbbrev": "d",
+      "percent": "%"
+    }
   },
   "inbox": {
     "title": "Inbox",
@@ -915,6 +926,16 @@
       "commentsOptional": "Additional comments (optional)",
       "typeReason": "Type reason...",
       "typeComments": "Type comments...",
+      "offlineSaved": "Session saved locally — online sync failed.",
+      "trainerBadge": "Training",
+      "exercisesDone": "{{done}}/{{total}} exercises done",
+      "setFormTitle": "Set {{current}} of {{total}} — {{name}}",
+      "loadKg": "Load (kg)",
+      "rpeLabel": "RPE — {{value}}",
+      "painIntensityLabel": "Intensity — {{value}}",
+      "skipTitle": "Skip Exercise — {{name}}",
+      "skipReasonLabel": "Reason for skipping",
+      "confirmSkip": "Confirm Skip",
       "bodyParts": {
         "neck": "Neck",
         "shoulder": "Shoulder",
@@ -1107,6 +1128,14 @@
       "sexNote": "Used for personalization — never for diagnosis.",
       "emergencyContact": "Emergency contact",
       "emergencyNamePlaceholder": "First and last name",
+      "emergencyPhonePlaceholder": "+1 (555) 123-4567",
+      "namePlaceholder": "Jane Smith",
+      "emailPlaceholder": "you@email.com",
+      "phonePlaceholder": "+1 (555) 123-4567",
+      "addressPlaceholder": "New York, NY",
+      "heightPlaceholder": "165",
+      "weightPlaceholder": "64",
+      "languagePlaceholder": "English",
       "sex": {
         "female": "Female",
         "male": "Male",

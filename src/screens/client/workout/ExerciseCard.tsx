@@ -48,8 +48,8 @@ export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, 
             {[
               ex.muscleGroup,
               ex.setsPrescribed && ex.repsPrescribed ? `${ex.setsPrescribed}×${ex.repsPrescribed}` : null,
-              ex.loadPrescribed ? `${ex.loadPrescribed} kg` : null,
-              ex.restSeconds    ? `${ex.restSeconds}s rest`  : null,
+              ex.loadPrescribed ? `${ex.loadPrescribed} ${tr('common.units.kg')}` : null,
+              ex.restSeconds    ? tr('common.units.restSec', { seconds: ex.restSeconds })  : null,
             ].filter(Boolean).join(' · ')}
           </div>
         </div>
@@ -70,7 +70,7 @@ export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, 
                 }}/>
               ))}
               <span style={{ fontSize: 11.5, color: textSec(dark), marginLeft: 4 }}>
-                {ex.setsLogged}/{ex.setsPrescribed} sets
+                {ex.setsLogged}/{ex.setsPrescribed} {tr('common.units.sets')}
               </span>
             </div>
           )}

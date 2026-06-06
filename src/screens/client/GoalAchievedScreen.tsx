@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { supabase } from '../../supabase';
 import { Icon, ScreenTitle, SectionLabel } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, outlineBtn } from '../../theme';
@@ -112,7 +113,7 @@ export function GoalAchievedScreen({ nav, t, dark, sessionData, user }: GoalAchi
       {/* Session summary row */}
       {(completed !== null || duration !== null) && (
         <div style={{ padding: '14px 22px 8px' }}>
-          <SectionDate label={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} dark={dark}/>
+          <SectionDate label={new Date().toLocaleDateString(i18n.language || 'en-US', { weekday: 'long', day: 'numeric', month: 'short' })} dark={dark}/>
           <ActivityRow
             title={tr('client.goal.workoutSession')}
             sub={completed !== null && total !== null ? tr('client.goal.exerciseOf', { done: completed, total }) : tr('client.goal.completed')}

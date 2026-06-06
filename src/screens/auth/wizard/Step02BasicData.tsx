@@ -114,7 +114,7 @@ export function Step02BasicData({
           label={tr('wizard.step02.name')}
           value={d.name ?? ''}
           onChange={v => setBasic({ name: v })}
-          placeholder="Mariana Costa"
+          placeholder={tr('wizard.step02.namePlaceholder')}
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -122,13 +122,13 @@ export function Step02BasicData({
             label={tr('wizard.step02.email')}
             value={email}
             onChange={setEmail}
-            type="email" placeholder="you@email.com"
+            type="email" placeholder={tr('wizard.step02.emailPlaceholder')}
           />
           <TextInput
             label={tr('wizard.step02.phone')}
             value={phone}
             onChange={v => setPhone(v.replace(/[^\d+\s\-()]/g, ''))}
-            type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
+            type="tel" inputMode="tel" placeholder={tr('wizard.step02.phonePlaceholder')}
           />
         </div>
 
@@ -155,7 +155,7 @@ export function Step02BasicData({
               fontSize: 15, color: age !== null ? textPri(dark) : textMute(dark),
               fontFamily: 'inherit',
             }}>
-              {age !== null ? tr('wizard.step02.ageValue', { count: age }) : '—'}
+              {age !== null ? tr('wizard.step02.ageValue', { count: age }) : tr('common.noData')}
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ export function Step02BasicData({
           label={tr('wizard.step02.cityAddress')}
           value={address}
           onChange={setAddress}
-          placeholder="New York, NY"
+          placeholder={tr('wizard.step02.addressPlaceholder')}
         />
 
         {/* ── Training data ── */}
@@ -173,21 +173,21 @@ export function Step02BasicData({
             label={tr('wizard.step02.height')}
             value={d.height_cm ? String(d.height_cm) : ''}
             onChange={v => setBasic({ height_cm: v ? +v : undefined as unknown as number })}
-            type="number" inputMode="decimal" placeholder="165"
+            type="number" inputMode="decimal" placeholder={tr('wizard.step02.heightPlaceholder')}
           />
           <TextInput
             label={tr('wizard.step02.weight')}
             value={d.weight_kg ? String(d.weight_kg) : ''}
             onChange={v => setBasic({ weight_kg: v ? +v : undefined as unknown as number })}
-            type="number" inputMode="decimal" placeholder="64"
+            type="number" inputMode="decimal" placeholder={tr('wizard.step02.weightPlaceholder')}
           />
         </div>
 
         <TextInput
           label={tr('wizard.step02.language')}
-          value={d.language ?? 'English'}
+          value={d.language ?? tr('wizard.step02.languagePlaceholder')}
           onChange={v => setBasic({ language: v })}
-          placeholder="English"
+          placeholder={tr('wizard.step02.languagePlaceholder')}
         />
 
         {/* Biological sex */}
@@ -239,7 +239,7 @@ export function Step02BasicData({
               />
               <TextInput
                 label={tr('wizard.step02.phone')} value={d.emergency_contact?.phone ?? ''}
-                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { name: '' }), phone: v } })} type="tel" inputMode="tel" placeholder="+55 11 99999-0000"
+                onChange={v => setBasic({ emergency_contact: { ...(d.emergency_contact ?? { name: '' }), phone: v } })} type="tel" inputMode="tel" placeholder={tr('wizard.step02.emergencyPhonePlaceholder')}
               />
             </VStack>
           )}

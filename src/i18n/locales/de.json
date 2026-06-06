@@ -13,7 +13,18 @@
     "yesterday": "Gestern",
     "action": "Aktion",
     "loading": "Wird geladen…",
-    "optional": "(optional)"
+    "optional": "(optional)",
+    "noData": "—",
+    "units": {
+      "kg": "kg",
+      "restSec": "{{seconds}}s Pause",
+      "sets": "Sätze",
+      "minAbbrev": "min",
+      "hoursAbbrev": "h",
+      "minutesAbbrev": "m",
+      "daysAbbrev": "d",
+      "percent": "%"
+    }
   },
   "inbox": {
     "title": "Posteingang",
@@ -910,6 +921,16 @@
       "commentsOptional": "Weitere Kommentare (optional)",
       "typeReason": "Grund eingeben...",
       "typeComments": "Kommentare eingeben...",
+      "offlineSaved": "Sitzung lokal gespeichert — Online-Synchronisation fehlgeschlagen.",
+      "trainerBadge": "Training",
+      "exercisesDone": "{{done}}/{{total}} Übungen abgeschlossen",
+      "setFormTitle": "Satz {{current}} von {{total}} — {{name}}",
+      "loadKg": "Last (kg)",
+      "rpeLabel": "RPE — {{value}}",
+      "painIntensityLabel": "Intensität — {{value}}",
+      "skipTitle": "Übung überspringen — {{name}}",
+      "skipReasonLabel": "Grund für Überspringen",
+      "confirmSkip": "Überspringen bestätigen",
       "bodyParts": {
         "neck": "Nacken",
         "shoulder": "Schulter",
@@ -1108,6 +1129,14 @@
       "sexNote": "Zur Personalisierung verwendet — niemals zur Diagnose.",
       "emergencyContact": "Notfallkontakt",
       "emergencyNamePlaceholder": "Vor- und Nachname",
+      "emergencyPhonePlaceholder": "+49 151 12345678",
+      "namePlaceholder": "Anna Müller",
+      "emailPlaceholder": "du@email.de",
+      "phonePlaceholder": "+49 151 12345678",
+      "addressPlaceholder": "Berlin, Deutschland",
+      "heightPlaceholder": "165",
+      "weightPlaceholder": "64",
+      "languagePlaceholder": "Deutsch",
       "sex": {
         "female": "Weiblich",
         "male": "Männlich",
