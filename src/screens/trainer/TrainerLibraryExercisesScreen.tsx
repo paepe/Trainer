@@ -25,6 +25,16 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
   const { t, dark } = useTrainerTheme();
   const { t: tr } = useTranslation();
 
+  const trMuscle = (v: string) => {
+    const arr = tr('trainer.planner.muscleGroups', { returnObjects: true }) as string[];
+    const idx = arr.findIndex((g: string) => g.toLowerCase() === v.toLowerCase());
+    return idx >= 0 ? arr[idx] : v;
+  };
+  const trLvl = (v: string) => tr(`trainer.library.levelOpts.${v}` as any);
+  const trSts = (v: string) => tr(`trainer.library.statusOpts.${v}` as any);
+  const trEq   = (v: string) => tr(`trainer.library.equipmentOpts.${v}` as any);
+  const trAcc  = (v: string) => tr(`trainer.library.accessibilityTags.${v}` as any);
+
   // State
   const [activeTab, setActiveTab] = useState<'exercises' | 'protocols'>('exercises');
   const [exercises, setExercises] = useState<ExerciseCatalogItem[]>([]);
@@ -262,7 +272,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                 }}
               >
                 <Icon name="plus" size={16} color="#fff" />
-                Add
+                {tr('trainer.library.addExercise')}
               </button>
             )}
           </div>
@@ -380,33 +390,33 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 15, color: textPri(dark) }}>{ex.name}</div>
-                      <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 11, color: textMute(dark) }}>
-                        <span>💪 {ex.muscle_group}</span>
-                        {ex.equipment && <span>🔧 {ex.equipment}</span>}
-                        {ex.level && <span>⚡ {ex.level}</span>}
-                      </div>
-                      {ex.accessibility_tags && ex.accessibility_tags.length > 0 && (
-                        <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
-                          {ex.accessibility_tags.map(t => (
-                            <span key={t} style={{
-                              fontSize: 9, padding: '2px 6px', borderRadius: 4,
-                              background: DARK.surface2, color: textSec(dark)
-                            }}>
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                  <div style={{ fontWeight: 700, fontSize: 15, color: textPri(dark) }}>{ex.name}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 11, color: textMute(dark) }}>
+                    <span>💪 {trMuscle(ex.muscle_group)}</span>
+                    {ex.equipment && <span>🔧 {ex.equipment.map((eq: string) => trEq(eq)).join(', ')}</span>}
+                    {ex.level && <span>⚡ {trLvl(ex.level)}</span>}
+                  </div>
+                  {ex.accessibility_tags && ex.accessibility_tags.length > 0 && (
+                    <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                      {ex.accessibility_tags.map(t => (
+                        <span key={t} style={{
+                          fontSize: 9, padding: '2px 6px', borderRadius: 4,
+                          background: DARK.surface2, color: textSec(dark)
+                        }}>
+                          {trAcc(t)}
+                        </span>
+                      ))}
                     </div>
+                  )}
+                </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{
-                        fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-                        padding: '4px 8px', borderRadius: 6, background: badge.bg, color: badge.text
-                      }}>
-                        {ex.status}
-                      </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+                    padding: '4px 8px', borderRadius: 6, background: badge.bg, color: badge.text
+                  }}>
+                    {trSts(ex.status)}
+                  </span>
                       <Icon name="chev" size={16} color={textMute(dark)} />
                     </div>
                   </div>
@@ -448,9 +458,9 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                   </div>
 
                   <div style={{ display: 'flex', gap: 12, fontSize: 11, color: textSec(dark), borderBottom: `1px solid ${borderSubtle(dark)}`, paddingBottom: 10, marginBottom: 10 }}>
-                    <span>🎯 Objective: <b>{p.objective}</b></span>
-                    <span>⏱️ Duration: <b>{p.duration_minutes}m</b></span>
-                    {p.is_public && <span style={{ color: t.primary }}>🌐 Public</span>}
+                    <span>🎯 {tr('trainer.library.objective')}: <b>{p.objective}</b></span>
+                    <span>⏱️ {tr('trainer.library.duration')}: <b>{p.duration_minutes}m</b></span>
+                    {p.is_public && <span style={{ color: t.primary }}>🌐 {tr('trainer.library.public')}</span>}
                   </div>
 
                   {/* Exercises inside protocol */}
@@ -466,15 +476,15 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                           }}
                         >
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>{pe.exercise_name}</div>
-                            <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2 }}>
-                              {pe.sets} sets x {pe.reps} reps | Load: {pe.load_kg || 0}kg | Rest: {pe.rest_seconds || 0}s
+                          <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>{pe.exercise_name}</div>
+                          <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2 }}>
+                            {tr('trainer.library.setsInfo', { sets: pe.sets, reps: pe.reps, load: pe.load_kg || 0, rest: pe.rest_seconds || 0 })}
+                          </div>
+                          {pe.alternative_exercise && (
+                            <div style={{ fontSize: 10, color: '#f2c94c', marginTop: 4 }}>
+                              🔄 {tr('trainer.library.alternative')}: {pe.alternative_exercise}
                             </div>
-                            {pe.alternative_exercise && (
-                              <div style={{ fontSize: 10, color: '#f2c94c', marginTop: 4 }}>
-                                🔄 Alternative: {pe.alternative_exercise}
-                              </div>
-                            )}
+                          )}
                           </div>
                           <span style={{ fontSize: 11, fontWeight: 600, color: textMute(dark) }}>#{pe.order_index + 1}</span>
                         </div>
@@ -570,16 +580,16 @@ function VoiceAssistantPanel({
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
           {[
-            'Low-impact alternative for burpees?',
-            'Search hamstring with dumbbells',
-            'Mark burpee as restricted for beginners',
+            { key: 'lowImpactBurpees', text: tr('trainer.library.voiceAssistant.quickPrompts.lowImpactBurpees') },
+            { key: 'searchHamstring',  text: tr('trainer.library.voiceAssistant.quickPrompts.searchHamstring') },
+            { key: 'restrictBurpee',   text: tr('trainer.library.voiceAssistant.quickPrompts.restrictBurpee') },
           ].map(tpl => (
             <button
-              key={tpl}
-              onClick={() => { onQueryChange(tpl); onSimulate(tpl); }}
+              key={tpl.key}
+              onClick={() => { onQueryChange(tpl.text); onSimulate(tpl.text); }}
               style={{ padding: '4px 8px', borderRadius: 6, border: 'none', background: DARK.surface3, color: textSec(dark), fontSize: 11, cursor: 'pointer' }}
             >
-              "{tpl}"
+              "{tpl.text}"
             </button>
           ))}
         </div>
@@ -706,7 +716,7 @@ function ExerciseDetailModal({
                 <select value={exercise.status || 'draft'} onChange={e => onChange({ ...exercise, status: e.target.value as any })}
                   style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
                 >
-                  {['active','blocked','restricted','draft'].map(s => <option key={s} value={s}>{s}</option>)}
+                  {['active','blocked','restricted','draft'].map(s => <option key={s} value={s}>{tr(`trainer.library.statusOpts.${s}` as any)}</option>)}
                 </select>
               </div>
             </div>
@@ -724,7 +734,7 @@ function ExerciseDetailModal({
                 <select value={exercise.level || 'beginner'} onChange={e => onChange({ ...exercise, level: e.target.value as any })}
                   style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
                 >
-                  {['beginner','intermediate','advanced'].map(l => <option key={l} value={l}>{l}</option>)}
+                  {['beginner','intermediate','advanced'].map(l => <option key={l} value={l}>{tr(`trainer.library.levelOpts.${l}` as any)}</option>)}
                 </select>
               </div>
             </div>
@@ -750,7 +760,7 @@ function ExerciseDetailModal({
             </div>
             <div>
               <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.alternativeExercises')}</label>
-              <input type="text" placeholder="Step Jack, Marcha no Lugar"
+              <input type="text" placeholder={tr('trainer.library.modal.alternativePlaceholder')}
                 value={exercise.alternatives?.join(', ') || ''}
                 onChange={e => onChange({ ...exercise, alternatives: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                 style={{ width: '100%', marginTop: 4, padding: 10, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: DARK.bg, color: textPri(dark) }}
@@ -765,8 +775,8 @@ function ExerciseDetailModal({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: DARK.surface, color: textSec(dark) }}>💪 {exercise.muscle_group}</span>
-              {exercise.equipment && <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: DARK.surface, color: textSec(dark) }}>🔧 {Array.isArray(exercise.equipment) ? exercise.equipment.join(', ') : exercise.equipment}</span>}
-              {exercise.level && <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: DARK.surface, color: textSec(dark) }}>⚡ {exercise.level}</span>}
+              {exercise.equipment && <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: DARK.surface, color: textSec(dark) }}>🔧 {Array.isArray(exercise.equipment) ? (exercise.equipment as string[]).map(e => tr(`trainer.library.equipmentOpts.${e}` as any)).join(', ') : exercise.equipment}</span>}
+              {exercise.level && <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: DARK.surface, color: textSec(dark) }}>⚡ {tr(`trainer.library.levelOpts.${exercise.level}` as any)}</span>}
             </div>
             {exercise.short_instruction && (
               <div>
@@ -785,7 +795,7 @@ function ExerciseDetailModal({
                 <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.accessibilityTagsLabel')}</div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   {exercise.accessibility_tags.map(tag => (
-                    <span key={tag} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', fontWeight: 600 }}>{tag}</span>
+                    <span key={tag} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', fontWeight: 600 }}>{tr(`trainer.library.accessibilityTags.${tag}` as any)}</span>
                   ))}
                 </div>
               </div>

@@ -665,6 +665,7 @@
       "allEquipment": "All Equipment",
       "allLevels": "All Levels",
       "allStatuses": "All Statuses",
+      "addExercise": "Add",
       "errNameRequired": "Name is required.",
       "errMuscleRequired": "Muscle Group is required.",
       "errSave": "Error saving exercise",
@@ -690,6 +691,11 @@
       "noDescription": "No description provided.",
       "protocolExercises": "Protocol Exercises:",
       "noExercisesInProtocol": "No exercises in this protocol.",
+      "objective": "Objective",
+      "duration": "Duration",
+      "public": "Public",
+      "alternative": "Alternative",
+      "setsInfo": "{{sets}} sets x {{reps}} reps | Load: {{load}}kg | Rest: {{rest}}s",
       "accessibilityTags": {
         "lowImpact": "Low Impact",
         "noFloor": "No Floor",
@@ -724,7 +730,8 @@
         "accessibilityTagsLabel": "Accessibility Tags:",
         "alternativeExercisesLabel": "Alternative Exercises:",
         "editExerciseBtn": "Edit exercise",
-        "accessibilityPlaceholder": "low_impact, no_floor, seated"
+        "accessibilityPlaceholder": "low_impact, no_floor, seated",
+        "alternativePlaceholder": "Low-impact burpees, marching in place"
       },
       "voiceAssistant": {
         "title": "AI Voice Assistant (Module 8)",
@@ -735,7 +742,12 @@
         "matchingExercises": "Matching exercises:",
         "governanceLabel": "Governance Action Pre-authorized (RV-8.3)",
         "confirmLog": "Confirm and Log Action",
-        "auditLog": "Governance Audit Log:"
+        "auditLog": "Governance Audit Log:",
+        "quickPrompts": {
+          "lowImpactBurpees": "Low-impact alternative for burpees?",
+          "searchHamstring": "Search hamstring with dumbbells",
+          "restrictBurpee": "Mark burpee as restricted for beginners"
+        }
       }
     }
   },

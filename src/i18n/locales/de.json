@@ -665,6 +665,7 @@
       "allEquipment": "Alle Ausrüstung",
       "allLevels": "Alle Niveaus",
       "allStatuses": "Alle Status",
+      "addExercise": "Hinzufügen",
       "errNameRequired": "Name ist erforderlich.",
       "errMuscleRequired": "Muskelgruppe ist erforderlich.",
       "errSave": "Fehler beim Speichern der Übung",
@@ -690,6 +691,11 @@
       "noDescription": "Keine Beschreibung vorhanden.",
       "protocolExercises": "Protokollübungen:",
       "noExercisesInProtocol": "Keine Übungen in diesem Protokoll.",
+      "objective": "Ziel",
+      "duration": "Dauer",
+      "public": "Öffentlich",
+      "alternative": "Alternative",
+      "setsInfo": "{{sets}} Sätze x {{reps}} Wdh. | Last: {{load}}kg | Pause: {{rest}}s",
       "accessibilityTags": {
         "lowImpact": "Geringer Aufprall",
         "noFloor": "Kein Boden",
@@ -724,7 +730,8 @@
         "accessibilityTagsLabel": "Zugänglichkeits-Tags:",
         "alternativeExercisesLabel": "Alternative Übungen:",
         "editExerciseBtn": "Übung bearbeiten",
-        "accessibilityPlaceholder": "low_impact, no_floor, seated"
+        "accessibilityPlaceholder": "low_impact, no_floor, seated",
+        "alternativePlaceholder": "Aufprallfreie Burpees, Marsch auf der Stelle"
       },
       "voiceAssistant": {
         "title": "KI-Sprachassistent (Modul 8)",
@@ -735,7 +742,12 @@
         "matchingExercises": "Übereinstimmende Übungen:",
         "governanceLabel": "Governance-Aktion vorautorisiert (RV-8.3)",
         "confirmLog": "Aktion bestätigen und protokollieren",
-        "auditLog": "Governance-Auditprotokoll:"
+        "auditLog": "Governance-Auditprotokoll:",
+        "quickPrompts": {
+          "lowImpactBurpees": "Aufprallfreie Alternative für Burpees?",
+          "searchHamstring": "Hamstrings mit Hanteln suchen",
+          "restrictBurpee": "Burpee als eingeschränkt für Anfänger markieren"
+        }
       }
     }
   },

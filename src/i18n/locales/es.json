@@ -665,6 +665,7 @@
       "allEquipment": "Todo el Equipamiento",
       "allLevels": "Todos los Niveles",
       "allStatuses": "Todos los Estados",
+      "addExercise": "Añadir",
       "errNameRequired": "El nombre es obligatorio.",
       "errMuscleRequired": "El grupo muscular es obligatorio.",
       "errSave": "Error al guardar el ejercicio",
@@ -690,6 +691,11 @@
       "noDescription": "Sin descripción.",
       "protocolExercises": "Ejercicios del Protocolo:",
       "noExercisesInProtocol": "No hay ejercicios en este protocolo.",
+      "objective": "Objetivo",
+      "duration": "Duración",
+      "public": "Público",
+      "alternative": "Alternativa",
+      "setsInfo": "{{sets}} series x {{reps}} reps | Carga: {{load}}kg | Descanso: {{rest}}s",
       "accessibilityTags": {
         "lowImpact": "Bajo Impacto",
         "noFloor": "Sin Suelo",
@@ -724,7 +730,8 @@
         "accessibilityTagsLabel": "Etiquetas de Accesibilidad:",
         "alternativeExercisesLabel": "Ejercicios Alternativos:",
         "editExerciseBtn": "Editar ejercicio",
-        "accessibilityPlaceholder": "low_impact, no_floor, seated"
+        "accessibilityPlaceholder": "low_impact, no_floor, seated",
+        "alternativePlaceholder": "Burpees de bajo impacto, marcha en el lugar"
       },
       "voiceAssistant": {
         "title": "Asistente de Voz IA (Módulo 8)",
@@ -735,7 +742,12 @@
         "matchingExercises": "Ejercicios coincidentes:",
         "governanceLabel": "Acción de Gobernanza Pre-autorizada (RV-8.3)",
         "confirmLog": "Confirmar y Registrar Acción",
-        "auditLog": "Registro de Auditoría de Gobernanza:"
+        "auditLog": "Registro de Auditoría de Gobernanza:",
+        "quickPrompts": {
+          "lowImpactBurpees": "¿Alternativa de bajo impacto para burpees?",
+          "searchHamstring": "Buscar isquiotibiales con mancuernas",
+          "restrictBurpee": "Marcar burpee como restringido para principiantes"
+        }
       }
     }
   },
