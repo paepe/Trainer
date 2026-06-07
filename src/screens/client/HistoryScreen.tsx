@@ -153,6 +153,7 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
             <button onClick={() => nav('workoutSummary', {
               sessionId:  s.id,
               durationMin: s.total_duration_min ?? 0,
+              ...(selectedClient ? { forClientId: selectedClient.id, forClientName: selectedClient.name } : {}),
             })} style={{
               padding: '7px 14px', borderRadius: 999,
               border: `1.5px solid ${t.primary}`, background: 'transparent',
