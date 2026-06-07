@@ -256,22 +256,21 @@ export function TrainerDashboardScreen({
 
         <style>{`
           @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-          @keyframes livePulse { 0%, 100% { opacity: 1; box-shadow: 0 0 6px #4ade80; } 50% { opacity: 0.6; box-shadow: 0 0 2px #4ade80; } }
         `}</style>
 
         {/* Safety Gate review queue */}
         {!loading && pendingReviews.length > 0 && (
           <div style={{
             padding: '14px 16px', borderRadius: 16,
-            background: '#EF5B3C0D', border: `1.5px solid #EF5B3C33`,
+            background: `${t.accent}0D`, border: `1.5px solid ${t.accent}33`,
           }}>
             <HStack gap={8} style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#EF5B3C' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.accent }}>
                 {tr('trainer.dashboard.safetyGatePending')}
               </div>
               <div style={{
                 fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-                background: '#EF5B3C', color: '#fff',
+                background: t.accent, color: '#fff',
               }}>
                 {pendingReviews.length}
               </div>
@@ -280,7 +279,7 @@ export function TrainerDashboardScreen({
             {pendingReviews.map((ev, i) => (
               <div key={ev.id} style={{
                 padding: '10px 0',
-                borderBottom: i < pendingReviews.length - 1 ? `1px solid #EF5B3C22` : 'none',
+                borderBottom: i < pendingReviews.length - 1 ? `1px solid ${SEVERITY_COLOR.critical}22` : 'none',
                 display: 'flex', alignItems: 'center', gap: 12,
               }}>
                 <div style={{ flex: 1 }}>
@@ -290,7 +289,7 @@ export function TrainerDashboardScreen({
                   <HStack gap={6} flexWrap="wrap" style={{ marginTop: 3 }}>
                     <span style={{
                       fontSize: 10, fontWeight: 700,
-                      color: ev.status === 'blocked' ? '#EF5B3C' : '#F5A623',
+                      color: ev.status === 'blocked' ? SEVERITY_COLOR.critical : SEVERITY_COLOR.high,
                     }}>
                       {ev.status.toUpperCase()}{ev.readiness_score != null ? ` · ${ev.readiness_score}pts` : ''}
                     </span>
@@ -309,8 +308,8 @@ export function TrainerDashboardScreen({
                   disabled={reviewingId === ev.id}
                   style={{
                     padding: '8px 12px', borderRadius: 10, fontSize: 11, fontWeight: 600,
-                    background: '#4ade8018', color: '#4ade80',
-                    border: `1px solid #4ade8040`, fontFamily: 'inherit', cursor: 'pointer',
+                    background: `${SEVERITY_COLOR.low}18`, color: SEVERITY_COLOR.low,
+                    border: `1px solid ${SEVERITY_COLOR.low}40`, fontFamily: 'inherit', cursor: 'pointer',
                     opacity: reviewingId === ev.id ? 0.5 : 1, flexShrink: 0,
                     transition: 'opacity .15s',
                   }}
@@ -524,13 +523,13 @@ function AlertsSection({
   return (
     <div style={{
       padding: '14px 16px', borderRadius: 16,
-      background: '#EF5B3C0D', border: '1.5px solid #EF5B3C33',
+      background: `${t.accent}0D`, border: `1.5px solid ${t.accent}33`,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#EF5B3C' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: t.accent }}>
           {tr('trainer.dashboard.alerts')}
         </div>
-        <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#EF5B3C', color: '#fff' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: t.accent, color: '#fff' }}>
           {alerts.length}
         </div>
       </div>
@@ -538,15 +537,15 @@ function AlertsSection({
       {alerts.map((alert, i) => (
         <div key={alert.id} style={{
           padding: '10px 0',
-          borderBottom: i < alerts.length - 1 ? '1px solid #EF5B3C22' : 'none',
+          borderBottom: i < alerts.length - 1 ? `1px solid ${t.accent}22` : 'none',
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                 <span style={{
                   fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
-                  background: `${SEVERITY_COLOR[alert.severity] ?? '#F5A623'}22`,
-                  color: SEVERITY_COLOR[alert.severity] ?? '#F5A623',
+                  background: `${SEVERITY_COLOR[alert.severity] ?? SEVERITY_COLOR.high}22`,
+                  color: SEVERITY_COLOR[alert.severity] ?? SEVERITY_COLOR.high,
                 }}>
                   {alert.severity.toUpperCase()}
                 </span>
@@ -569,8 +568,8 @@ function AlertsSection({
                   disabled={busy === alert.id}
                   style={{
                     padding: '6px 10px', borderRadius: 8, fontSize: 10.5, fontWeight: 600,
-                    background: '#F5A62318', color: '#F5A623',
-                    border: '1px solid #F5A62340', fontFamily: 'inherit', cursor: 'pointer',
+                    background: `${SEVERITY_COLOR.high}18`, color: SEVERITY_COLOR.high,
+                    border: `1px solid ${SEVERITY_COLOR.high}40`, fontFamily: 'inherit', cursor: 'pointer',
                     opacity: busy === alert.id ? 0.5 : 1,
                   }}
                 >
@@ -582,8 +581,8 @@ function AlertsSection({
                 disabled={busy === alert.id}
                 style={{
                   padding: '6px 10px', borderRadius: 8, fontSize: 10.5, fontWeight: 600,
-                  background: '#4ade8018', color: '#4ade80',
-                  border: '1px solid #4ade8040', fontFamily: 'inherit', cursor: 'pointer',
+                  background: `${SEVERITY_COLOR.low}18`, color: SEVERITY_COLOR.low,
+                  border: `1px solid ${SEVERITY_COLOR.low}40`, fontFamily: 'inherit', cursor: 'pointer',
                   opacity: busy === alert.id ? 0.5 : 1,
                 }}
               >
@@ -648,8 +647,8 @@ function TasksSection({
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
               <span style={{
                 fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
-                background: `${PRIORITY_COLOR[task.priority] ?? '#2DD4BF'}22`,
-                color: PRIORITY_COLOR[task.priority] ?? '#2DD4BF',
+                background: `${PRIORITY_COLOR[task.priority] ?? PRIORITY_COLOR.medium}22`,
+                color: PRIORITY_COLOR[task.priority] ?? PRIORITY_COLOR.medium,
               }}>
                 {task.priority.toUpperCase()}
               </span>

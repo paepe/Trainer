@@ -140,7 +140,33 @@ claramente separável (não dividir por tamanho, dividir por coesão).
       `110,68,255`), específico do contexto de IA, não do status do exercício;
       convergi-las seria alterar uma decisão visual, não eliminar duplicação real.
       Validado `tsc`/`eslint` (232 warnings, 0 erros)/`build` — todos limpos.
-- [ ] `TrainerDashboardScreen.tsx` (686 linhas, 42 cores hardcoded, acesso direto ao Supabase)
+- [x] `TrainerDashboardScreen.tsx` (686 linhas, 42 cores hardcoded estimadas,
+      acesso direto ao Supabase) — **investigado e convergido 2026-06-07.**
+      Achados: (1) o arquivo já continha dois mapas semânticos locais
+      (`SEVERITY_COLOR`/`PRIORITY_COLOR` — critical/high/medium/low e
+      urgent/high/medium/low) que **coincidiam exatamente** com literais
+      hex repetidos em outros pontos do mesmo arquivo (`#EF5B3C`, `#F5A623`,
+      `#4ade80`, `#2DD4BF`) sem referenciá-los — clássico "abstração já
+      existe, só não é usada consistentemente"; convergidos ~14 literais
+      para `SEVERITY_COLOR.critical/high/low` e `PRIORITY_COLOR.medium`
+      (inclusive os fallbacks `?? '#F5A623'`/`?? '#2DD4BF'` que duplicavam
+      os próprios valores dos mapas); (2) o chrome estático dos painéis
+      "Safety Gate" e "Alerts" (fundo/borda/badge sempre na cor crítica,
+      independente do conteúdo) usava `#EF5B3C` cru — convergido para
+      `t.accent` (idêntico em `BRAND`/`TRAINER_BRAND`), correto porque é
+      a identidade do painel, não uma severidade dinâmica; (3) removido
+      `@keyframes livePulse` órfão (definia `box-shadow` com `#4ade80`
+      desatualizado — nunca era aplicado via `animation:`, o indicador real
+      usa `pulse` + `t.liveAction`); (4) `#fff`/`#FFFFFF` remanescentes são
+      pares de contraste pontuais texto-sobre-superfície-de-marca (mesmo
+      veredito das telas anteriores — não são duplicação de token).
+      As 2 chamadas Supabase (`workout_sessions` cleanup+fetch realtime,
+      `trainer_clients.insert` no convite) estão fortemente acopladas ao
+      fluxo de carregamento/convite desta tela — extrair para hook
+      adicionaria indireção sem reduzir risco; mantidas como estão.
+      Nenhum split de sub-componente — `AlertsSection`/`TasksSection` já
+      são coesos. Validado `tsc`/`eslint` (231 warnings, 0 erros — variação
+      normal da baseline)/`build` — todos limpos.
 - [ ] `TrainerClientDetailScreen.tsx` (890 linhas, 24 cores hardcoded, acesso direto ao Supabase)
 - [ ] `StartWorkoutScreen.tsx` (972 linhas, 44 cores hardcoded, acesso direto ao Supabase)
 - [ ] `PerformanceDashboardScreen.tsx` (1043 linhas — maior arquivo do sistema)
