@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
+import { Spinner } from '../../ui';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTheme } from '../../contexts';
 import { supabase } from '../../supabase';
@@ -77,11 +78,7 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
             </div>
           </>
         ) : loading ? (
-          <div style={{
-            width: 20, height: 20, borderRadius: '50%',
-              border: `2px solid ${DARK.border}`, borderTopColor: theme.accent,
-              animation: 'spin .7s linear infinite',
-            }}/>
+          <Spinner size={20} thickness={2} color={theme.accent} trackColor={DARK.border} />
           ) : name ? (
             <span style={{ fontSize: 26, fontWeight: 800, color: theme.accent }}>
               {initials(name)}
@@ -118,7 +115,6 @@ export const PhotoSlot: React.FC<PhotoSlotProps> = ({ value, onChange, name = ''
         onChange={handleFile}
         style={{ display: 'none' }}
       />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 };

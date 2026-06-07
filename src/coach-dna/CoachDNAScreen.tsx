@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon }          from '../components/Icon';
+import { Spinner }       from '../ui';
 import { useCoachDNA }   from '../hooks/useCoachDNA';
 import { THEME_VARS as DARK }          from '../theme/tokens';
 import { useTheme }      from '../contexts';
@@ -183,12 +184,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
         height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: DARK.bg,
       }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: '50%',
-          border: `3px solid ${DARK.border}`, borderTopColor: theme.accent,
-          animation: 'spin .7s linear infinite',
-        }}/>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <Spinner size={32} thickness={3} color={theme.accent} trackColor={DARK.border} />
       </div>
     );
   }
