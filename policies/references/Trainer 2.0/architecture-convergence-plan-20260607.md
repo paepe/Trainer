@@ -167,7 +167,31 @@ claramente separável (não dividir por tamanho, dividir por coesão).
       Nenhum split de sub-componente — `AlertsSection`/`TasksSection` já
       são coesos. Validado `tsc`/`eslint` (231 warnings, 0 erros — variação
       normal da baseline)/`build` — todos limpos.
-- [ ] `TrainerClientDetailScreen.tsx` (890 linhas, 24 cores hardcoded, acesso direto ao Supabase)
+- [x] `TrainerClientDetailScreen.tsx` (890 linhas, 24 cores hardcoded estimadas,
+      acesso direto ao Supabase) — **investigado e convergido 2026-06-07.**
+      Achados: (1) `'#10B981'` repetido 5× como cor de status "concluído/feito"
+      em três contextos (timeline de sessões, lista de exercícios, sessões
+      livres) — **match exato** de `t.liveAction` (criado na Fase 3 para
+      `WorkoutPlanEditorScreen`/`TrainerDashboardScreen`); convergido
+      diretamente; (2) escala de 3 níveis "bom/moderado/baixo" (`>=70 verde
+      / >=40 âmbar / abaixo vermelho`) duplicada de forma idêntica em 3
+      pontos (gráfico de prontidão, energia do check-in, label de prontidão)
+      — extraída para helper local `tierColor(value, t)` (mesmo padrão de
+      `STATUS_TONES`/`statusTone()` da `TrainerLibraryExercisesScreen`);
+      a cor "baixa" já era `t.accent` num dos três sites — confirmando que
+      os outros dois (`'#EF5B3C'` cru) deveriam convergir para o token, não
+      o inverso; (3) legenda do gráfico e indicador de dor convergidos para
+      `t.accent`/tons do helper; (4) `'#F5B45A'`/`'#FF4D4D'` (status
+      postponed/cancelled, 1 ocorrência cada) eram matches exatos de
+      `t.amber`/`t.criticalRed` — convergidos; (5) `'#F5A623'` da cor
+      "abandoned" mantido como literal — é o mesmo tom usado dentro de
+      `tierColor` mas não corresponde a nenhum token de marca, e introduzir
+      uma segunda constante para 1 uso fora da escala seria over-engineering;
+      (6) `'#FFFFFF'` remanescente é par de contraste texto-sobre-superfície
+      (mesmo veredito de telas anteriores). As 5 chamadas Supabase formam um
+      único `Promise.all` que hidrata o estado desta tela especificamente —
+      extrair para hook relocaria o acoplamento sem reduzi-lo; mantidas como
+      estão. Validado `tsc`/`eslint` (231 warnings, 0 erros)/`build` — limpos.
 - [ ] `StartWorkoutScreen.tsx` (972 linhas, 44 cores hardcoded, acesso direto ao Supabase)
 - [ ] `PerformanceDashboardScreen.tsx` (1043 linhas — maior arquivo do sistema)
 

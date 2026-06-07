@@ -223,6 +223,13 @@ interface TrainerClientDetailScreenProps {
   dashboardLimit?: number;
 }
 
+// Readiness/energy 3-tier scale (good/moderate/low) — repeated across the
+// readiness chart, its legend, and the per-checkin readiness label. `t.accent`
+// is the brand "low" tone (coral); '#4ade80'/'#F5A623' are the matching
+// good/moderate tones without brand-token equivalents.
+const tierColor = (value: number, t: { accent: string }): string =>
+  value >= 70 ? '#4ade80' : value >= 40 ? '#F5A623' : t.accent;
+
 export function TrainerClientDetailScreen({
   nav,
   selectedClient,
@@ -476,16 +483,16 @@ export function TrainerClientDetailScreen({
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                 {[...readiness].reverse().map((r) => {
                   const score     = r.readiness_score ?? 0;
-                  const barColor  = score >= 70 ? '#4ade80' : score >= 40 ? '#F5A623' : '#EF5B3C';
+                  const barColor  = tierColor(score, t);
                   const energyColor = r.energy_level != null
-                    ? (r.energy_level >= 7 ? '#4ade80' : r.energy_level >= 4 ? '#F5A623' : '#EF5B3C')
+                    ? tierColor(r.energy_level * 10, t)
                     : null;
                   return (
                     <div key={r.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                       {/* Pain indicator */}
                       <div style={{ height: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {r.pain_present && (
-                          <span style={{ fontSize: 8, color: '#EF5B3C' }}>●</span>
+                          <span style={{ fontSize: 8, color: t.accent }}>●</span>
                         )}
                       </div>
                       {/* Readiness score */}
@@ -520,10 +527,10 @@ export function TrainerClientDetailScreen({
               {/* Legend */}
               <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
                 {[
-                  { color: '#EF5B3C', dot: true, label: tr('trainer.detail.painReported') },
+                  { color: t.accent, dot: true, label: tr('trainer.detail.painReported') },
                   { color: '#4ade80', label: tr('trainer.detail.highEnergy') },
                   { color: '#F5A623', label: tr('trainer.detail.moderateEnergy') },
-                  { color: '#EF5B3C', label: tr('trainer.detail.lowEnergy') },
+                  { color: t.accent, label: tr('trainer.detail.lowEnergy') },
                 ].map(({ color, dot, label }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     {dot
@@ -545,7 +552,7 @@ export function TrainerClientDetailScreen({
               </div>
               {decisions.map((d, i) => {
                 const approved = d.response === 'approved';
-                const color    = approved ? '#4ade80' : '#EF5B3C';
+                const color    = approved ? '#4ade80' : t.accent;
                 const when     = d.response_at ?? d.created_at;
                 return (
                   <div key={d.id} style={{
@@ -595,7 +602,7 @@ export function TrainerClientDetailScreen({
                     )}
                     {r.readiness_score != null && (
                       <span style={{ fontSize: 12, color: textSec(dark) }}>
-                        {tr('trainer.detail.readinessLabel')}<span style={{ fontWeight: 700, color: r.readiness_score >= 70 ? '#4ade80' : r.readiness_score >= 40 ? '#F5A623' : t.accent }}>{r.readiness_score}</span>
+                        {tr('trainer.detail.readinessLabel')}<span style={{ fontWeight: 700, color: tierColor(r.readiness_score, t) }}>{r.readiness_score}</span>
                       </span>
                     )}
                     {r.pain_present && (
@@ -623,14 +630,14 @@ export function TrainerClientDetailScreen({
 
             const unifiedStatus = (p: WorkoutPlan, s: WorkoutSession | null): { label: string; color: string } => {
               if (s) {
-                if (s.status === 'completed' || s.completed_at) return { label: tr('trainer.detail.sessionStatus.done'),       color: '#10B981' };
+                if (s.status === 'completed' || s.completed_at) return { label: tr('trainer.detail.sessionStatus.done'),       color: t.liveAction };
                 if (s.status === 'active')                       return { label: tr('trainer.detail.sessionStatus.inProgress'), color: t.primary };
                 if (s.status === 'abandoned')                    return { label: tr('trainer.detail.sessionStatus.abandoned'), color: '#F5A623' };
               }
-              if (p.status === 'completed') return { label: tr('trainer.detail.sessionStatus.done'),       color: '#10B981' };
+              if (p.status === 'completed') return { label: tr('trainer.detail.sessionStatus.done'),       color: t.liveAction };
               if (p.status === 'active')    return { label: tr('trainer.detail.sessionStatus.inProgress'), color: t.primary };
-              if (p.status === 'postponed') return { label: tr('trainer.detail.sessionStatus.postponed'),  color: '#F5B45A' };
-              if (p.status === 'cancelled') return { label: tr('trainer.detail.sessionStatus.cancelled'),  color: '#FF4D4D' };
+              if (p.status === 'postponed') return { label: tr('trainer.detail.sessionStatus.postponed'),  color: t.amber };
+              if (p.status === 'cancelled') return { label: tr('trainer.detail.sessionStatus.cancelled'),  color: t.criticalRed };
               return { label: tr('trainer.detail.sessionStatus.sent'), color: t.primary };
             };
 
@@ -639,7 +646,7 @@ export function TrainerClientDetailScreen({
                 const skipped   = ex.status === 'skipped';
                 const completed = ex.status === 'completed';
                 const exColor  = skipped ? textMute(dark) : textPri(dark);
-                const numColor = skipped ? textMute(dark) : completed ? '#10B981' : sessionColor;
+                const numColor = skipped ? textMute(dark) : completed ? t.liveAction : sessionColor;
                 return (
                   <div key={ex.id} style={{
                     padding: '8px 12px', borderRadius: 10, marginBottom: 6,
@@ -656,7 +663,7 @@ export function TrainerClientDetailScreen({
                       <div style={{ fontSize: 12.5, fontWeight: 700, color: exColor }}>
                         {ex.exercise_name}
                         {skipped   && <span style={{ fontSize: 10, marginLeft: 6, color: textMute(dark) }}>{tr('trainer.detail.skipped')}</span>}
-                        {completed && <span style={{ fontSize: 10, marginLeft: 6, color: '#10B981' }}>✓</span>}
+                        {completed && <span style={{ fontSize: 10, marginLeft: 6, color: t.liveAction }}>✓</span>}
                       </div>
                       <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
                         {[
@@ -814,7 +821,7 @@ export function TrainerClientDetailScreen({
                       const exs  = [...(s.workout_session_exercises ?? [])].sort((a, b) => a.order_index - b.order_index);
                       const date = new Date(s.started_at || s.created_at || '').toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                       const isDone = s.status === 'completed' || !!s.completed_at;
-                      const sc   = isDone ? '#10B981' : t.primary;
+                      const sc   = isDone ? t.liveAction : t.primary;
                       const slabel = isDone ? tr('trainer.detail.done') : (s.status ?? '—').toUpperCase();
                       return (
                         <div key={s.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
