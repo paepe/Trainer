@@ -540,14 +540,14 @@ export function WorkoutPlanEditorScreen({
       <div style={{ padding: '12px 22px 32px' }}>
         <button onClick={startSessionNow} disabled={saving || exercises.length === 0} style={{
           width: '100%', padding: '15px 0', borderRadius: 14,
-          background: '#10B98118',
-          color: exercises.length === 0 ? 'var(--text-mute)' : '#10B981',
-          border: `1.5px solid ${exercises.length === 0 ? 'transparent' : '#10B98155'}`,
+          background: `${t.liveAction}18`,
+          color: exercises.length === 0 ? 'var(--text-mute)' : t.liveAction,
+          border: `1.5px solid ${exercises.length === 0 ? 'transparent' : `${t.liveAction}55`}`,
           fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           opacity: saving ? 0.7 : 1,
         }}>
-          <Icon name="play" size={16} color={exercises.length === 0 ? 'rgba(255,255,255,.3)' : '#10B981'}/> {tr('trainer.planner.startLiveSession')}
+          <Icon name="play" size={16} color={exercises.length === 0 ? 'rgba(255,255,255,.3)' : t.liveAction}/> {tr('trainer.planner.startLiveSession')}
         </button>
         <div style={{ marginTop: 8, textAlign: 'center', fontSize: 11, color: textSec(dark) }}>
           {tr('trainer.planner.startLiveSessionHint', { name: selectedClient?.name?.split(' ')[0] || 'client' })}

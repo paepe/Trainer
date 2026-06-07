@@ -107,7 +107,20 @@ dedicado (sem migração funcional especulativa — só onde reduzir acoplamento
 risco real); (c) avaliar split de sub-componentes apenas onde há responsabilidade
 claramente separável (não dividir por tamanho, dividir por coesão).
 
-- [ ] `WorkoutPlanEditorScreen.tsx` (559 linhas, acesso direto ao Supabase)
+- [x] `WorkoutPlanEditorScreen.tsx` (559 linhas, acesso direto ao Supabase) —
+      **investigado e convergido 2026-06-07.** A estimativa original de
+      "44 cores hardcoded" não se sustentou: o arquivo tem apenas 6 literais
+      (`#fff` ×2 — uso pontual em botões, sem padrão a convergir; e uma família
+      `#10B981`/`#10B98118`/`#10B98155` — CTA "iniciar sessão ao vivo"). Esse
+      verde já havia sido visto em `TrainerDashboardScreen.tsx:411` como
+      indicador de "sessão ativa" — **2 ocorrências reais** mudam o veredito da
+      Fase 1 (que adiou a criação de token por ser amostra de 1). Criado
+      `liveAction: '#10B981'` em `BRAND`/`TRAINER_BRAND` (`src/theme/tokens.ts`)
+      e adotado nos dois arquivos via `t.liveAction`. A única chamada Supabase
+      (`plan_exercises.insert`) está fortemente acoplada ao fluxo de salvar —
+      extrair para hook adicionaria indireção sem reduzir risco; mantida como
+      está. Nenhum split de sub-componente — responsabilidades já coesas.
+      Validado `tsc`/`eslint` (232 warnings, 0 erros)/`build` — todos limpos.
 - [ ] `TrainerLibraryExercisesScreen.tsx` (825 linhas, 34 cores hardcoded)
 - [ ] `TrainerDashboardScreen.tsx` (686 linhas, 42 cores hardcoded, acesso direto ao Supabase)
 - [ ] `TrainerClientDetailScreen.tsx` (890 linhas, 24 cores hardcoded, acesso direto ao Supabase)

@@ -16,6 +16,7 @@ export const BRAND = {
   amber:       '#F5B45A',
   success:     '#4ADE80',
   criticalRed: '#FF4D4D',
+  liveAction:  '#10B981', // "active session" / "start now" — distinct from archetype `success`
 } as const;
 
 // TRAINER_BRAND — same shape as BRAND so `t.primary` is profile-correct everywhere.
@@ -29,6 +30,7 @@ export const TRAINER_BRAND = {
   amber:       '#F5B45A', // archetype: Motivator / warm-up icons
   success:     '#4ADE80', // archetype: Guide / cool-down icons
   criticalRed: '#FF4D4D',
+  liveAction:  '#10B981', // "active session" / "start now" — distinct from archetype `success`
 } as const;
 
 // Shape of the `t` brand-theme object assembled in App.tsx (BRAND/TRAINER_BRAND

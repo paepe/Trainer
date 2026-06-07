@@ -405,10 +405,10 @@ export function TrainerDashboardScreen({
                 {tc.client?.id && sessionStatusMap[tc.client.id] === 'active' && (
                   <div style={{
                     padding: '4px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700,
-                    background: '#10B98122', color: '#10B981', letterSpacing: '.05em', textTransform: 'uppercase',
+                    background: `${t.liveAction}22`, color: t.liveAction, letterSpacing: '.05em', textTransform: 'uppercase',
                     display: 'flex', alignItems: 'center', gap: 5,
                   }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse 1.5s ease-in-out infinite' }}/>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: t.liveAction, animation: 'pulse 1.5s ease-in-out infinite' }}/>
                     {tr('trainer.dashboard.training')}
                   </div>
                 )}
