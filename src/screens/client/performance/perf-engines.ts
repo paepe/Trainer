@@ -30,10 +30,11 @@ import { vizSignature, vizSignatureDeep } from '../../../theme/runtimeProfile';
 export const C = {
   get cyan()     { return vizSignature(); },     // profile signature: cyan (client) / coral (trainer)
   get cyanDeep() { return vizSignatureDeep(); },
-  coral:    '#EF5B3C',
-  amber:    '#F5B45A',
-  green:    '#4ADE80',
-  lavender: '#A78BFA',
+  coral:      '#EF5B3C',
+  amber:      '#F5B45A',
+  green:      '#4ADE80',
+  lavender:   '#A78BFA',
+  liveAction: '#10B981', // "viewing as trainer" / active-session badges — matches theme/tokens.ts liveAction
 };
 
 export function band(score: number): string {

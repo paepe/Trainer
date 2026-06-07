@@ -117,13 +117,13 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
       {selectedClient?.name && (
         <div style={{
           margin: '8px 18px 0', padding: '6px 14px', borderRadius: 999,
-          background: '#10B98122', border: '1px solid #10B98155',
+          background: `${C.liveAction}22`, border: `1px solid ${C.liveAction}55`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: C.liveAction, letterSpacing: '.06em', textTransform: 'uppercase' }}>
             {tr('perf.viewing')}
           </span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: C.liveAction }}>
             {selectedClient.name.split(' ')[0]}
           </span>
         </div>

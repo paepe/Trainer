@@ -216,7 +216,33 @@ claramente separável (não dividir por tamanho, dividir por coesão).
       risco. O modal de confirmação de cancelamento (registrado na Fase 2
       como referência única no sistema) permanece intacto. Validado
       `tsc`/`eslint` (231 warnings, 0 erros)/`build` — todos limpos.
-- [ ] `PerformanceDashboardScreen.tsx` (1043 linhas — maior arquivo do sistema)
+- [x] `PerformanceDashboardScreen.tsx` (1043 linhas — maior arquivo do sistema)
+      — **investigado e convergido 2026-06-07.** A estimativa original
+      ("muitas cores hardcoded, acesso direto ao Supabase") não se sustentou:
+      o arquivo **não acessa o Supabase diretamente** — usa `useM5Data()` —, e
+      tem apenas 4 literais hex: (1) `'#10B981'`/variações alpha (3×, badge
+      "visualizando como trainer") — match exato de `liveAction`; como o
+      arquivo não usa `useTrainerTheme()` (só `C`, a paleta local de
+      `perf-engines.ts`), adicionar uma dependência de tema só para 3 usos
+      seria desproporcional — em vez disso, **adicionado `liveAction` à
+      paleta `C`** em `perf-engines.ts` (mecanismo de compartilhamento já
+      estabelecido pelo arquivo), documentando que espelha
+      `theme/tokens.ts:liveAction`; (2) `'#0E1A2B'` (1×, ícone de microfone
+      sobre botão circular ciano) — par de contraste pontual, mesmo veredito
+      das 4 telas anteriores; mantido. O `LoadingState` local (linha 177) já
+      fora convergido na Fase 1 — é uma composição legítima do `Spinner`
+      compartilhado com rótulo traduzido, não uma reimplementação. Nenhuma
+      mudança de Supabase ou split necessária. Validado `tsc`/`eslint`
+      (231 warnings, 0 erros)/`build` — todos limpos.
+
+**Fase 3 concluída — 6/6 telas convergidas.** Padrão consistente em todas:
+as estimativas originais de "cores hardcoded" e "acesso direto ao Supabase"
+foram sistematicamente menores que o estimado após investigação direta — a
+maior parte da duplicação real já tinha mapas/paletas locais não referenciados
+de forma consistente (`SEVERITY_COLOR`, `PRIORITY_COLOR`, `STATUS_TONES`,
+`tierColor`), e o acesso ao Supabase em todas as 6 telas está fortemente
+acoplado aos fluxos de UI específicos — extrair para hooks adicionaria
+indireção sem reduzir risco real, conforme o princípio de execução do plano.
 
 Cada item desta fase é um commit isolado e um ciclo de validação completo
 (`tsc` + `eslint` + `build` + smoke-test manual da tela em EN/PT/ES/DE antes do
