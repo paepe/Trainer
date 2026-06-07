@@ -598,6 +598,15 @@
       "inviteCreatedNoEmail": "Einladung erstellt. Der E-Mail-Versand ist noch nicht konfiguriert — teile den Link manuell.",
       "errAlreadyLinked": "Diese Person ist bereits mit einem anderen Trainer verknüpft.",
       "errInviteFailed": "Die Einladung konnte nicht gesendet werden. Bitte versuche es erneut.",
+      "inviteHistoryTitle": "Letzte Einladungen",
+      "inviteStatus": {
+        "sent": "Ausstehend",
+        "accepted": "Angenommen",
+        "expired": "Abgelaufen",
+        "revoked": "Widerrufen"
+      },
+      "resend": "Erneut senden",
+      "revoke": "Widerrufen",
       "safetyGatePending": "Safety Gate · Ausstehende Überprüfung",
       "alerts": "Warnungen",
       "tasks": "Aufgaben",

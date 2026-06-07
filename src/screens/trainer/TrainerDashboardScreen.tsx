@@ -42,11 +42,32 @@ interface ActiveSession {
   started_at:  string | null;
 }
 
+interface TrainerInvitation {
+  id:            string;
+  invited_email: string;
+  invited_name:  string;
+  status:        string;
+  created_at:    string;
+  expires_at:    string;
+}
+
 interface TrainerDashboardUser {
   id:    string;
   name?: string;
   email?: string;
 }
+
+// trainer_invitations is not yet in the generated Supabase types
+// (added in supabase-trainer-invitations-20260607.sql, pending remote apply + regen).
+interface InvitationQuery {
+  select: (cols: string) => InvitationQuery;
+  eq:     (col: string, val: string) => InvitationQuery;
+  order:  (col: string, opts: { ascending: boolean }) => InvitationQuery;
+  limit:  (n: number) => Promise<{ data: TrainerInvitation[] | null }>;
+  update: (vals: Record<string, unknown>) => InvitationQuery;
+}
+const invitationsTable = () =>
+  (supabase.from as unknown as (table: string) => InvitationQuery)('trainer_invitations');
 
 interface TrainerDashboardScreenProps {
   nav:          NavFn;
@@ -76,6 +97,8 @@ export function TrainerDashboardScreen({
   const [activeSessions, setActiveSessions] = React.useState<ActiveSession[]>([]);
   const [activeNowOpen, setActiveNowOpen]   = React.useState(false);
   const [activeNowFilter, setActiveNowFilter] = React.useState<'all' | 'training'>('all');
+  const [invitations, setInvitations]   = React.useState<TrainerInvitation[]>([]);
+  const [invitationBusyId, setInvitationBusyId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!user?.id) {
@@ -190,45 +213,77 @@ export function TrainerDashboardScreen({
     setReviewingId(null);
   }
 
+  async function fetchInvitations() {
+    if (!user?.id) return;
+    const { data } = await invitationsTable()
+      .select('id, invited_email, invited_name, status, created_at, expires_at')
+      .eq('trainer_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    setInvitations(data ?? []);
+  }
+
+  async function sendInvite(email: string, name: string): Promise<{ ok: boolean; emailSent?: boolean; error?: string }> {
+    if (!user?.id) return { ok: false };
+    const isNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+    const apiBase  = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
+    const res = await fetch(`${apiBase}/api/send-invitation`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trainerId:    user.id,
+        trainerName:  user.name ?? '',
+        invitedEmail: email,
+        invitedName:  name,
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: json?.error };
+    return { ok: true, emailSent: !!json?.emailSent };
+  }
+
   async function invite() {
     if (!inviteEmail || !inviteName || !user?.id) return;
     setInviting(true);
     setInviteErr('');
     setInviteOk('');
     try {
-      const isNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
-      const apiBase  = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
-      const res = await fetch(`${apiBase}/api/send-invitation`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trainerId:    user.id,
-          trainerName:  user.name ?? '',
-          invitedEmail: inviteEmail,
-          invitedName:  inviteName,
-        }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        if (json?.error === 'already_linked_elsewhere') {
-          setInviteErr(tr('trainer.dashboard.errAlreadyLinked'));
-        } else {
-          setInviteErr(tr('trainer.dashboard.errInviteFailed'));
-        }
+      const result = await sendInvite(inviteEmail, inviteName);
+      if (!result.ok) {
+        setInviteErr(result.error === 'already_linked_elsewhere'
+          ? tr('trainer.dashboard.errAlreadyLinked')
+          : tr('trainer.dashboard.errInviteFailed'));
         setInviting(false);
         return;
       }
-
-      setInviteOk(json?.emailSent
+      setInviteOk(result.emailSent
         ? tr('trainer.dashboard.inviteSent')
         : tr('trainer.dashboard.inviteCreatedNoEmail'));
       setInviteName('');
       setInviteEmail('');
       setInviting(false);
+      fetchInvitations();
     } catch (err) {
       setInviteErr(friendlyError(err, tr));
       setInviting(false);
     }
+  }
+
+  async function revokeInvitation(inv: TrainerInvitation) {
+    setInvitationBusyId(inv.id);
+    await invitationsTable().update({ status: 'revoked' }).eq('id', inv.id).eq('status', 'sent').limit(1);
+    await fetchInvitations();
+    setInvitationBusyId(null);
+  }
+
+  async function resendInvitation(inv: TrainerInvitation) {
+    setInvitationBusyId(inv.id);
+    if (inv.status === 'sent') {
+      await invitationsTable().update({ status: 'revoked' }).eq('id', inv.id).eq('status', 'sent').limit(1);
+    }
+    await sendInvite(inv.invited_email, inv.invited_name);
+    await fetchInvitations();
+    setInvitationBusyId(null);
   }
 
   const activeClients  = clients.filter(c => c.status === 'active');
@@ -496,10 +551,55 @@ export function TrainerDashboardScreen({
                 {inviting ? tr('trainer.dashboard.sending') : tr('trainer.dashboard.send')}
               </button>
             </HStack>
+
+            {invitations.length > 0 && (
+              <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${borderSubtle(dark)}` }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
+                  {tr('trainer.dashboard.inviteHistoryTitle')}
+                </div>
+                {invitations.map(inv => {
+                  const isExpired = inv.status === 'sent' && new Date(inv.expires_at) < new Date();
+                  const status = isExpired ? 'expired' : inv.status;
+                  const statusColor = status === 'accepted' ? t.primary
+                    : status === 'sent' ? t.accent
+                    : textMute(dark);
+                  const busy = invitationBusyId === inv.id;
+                  return (
+                    <div key={inv.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {inv.invited_name}
+                        </div>
+                        <div style={{ fontSize: 11, color: textMute(dark), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {inv.invited_email}
+                        </div>
+                      </div>
+                      <div style={{
+                        fontSize: 9.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999,
+                        textTransform: 'uppercase', letterSpacing: '.04em',
+                        background: `${statusColor}1A`, color: statusColor,
+                      }}>
+                        {tr(`trainer.dashboard.inviteStatus.${status}`)}
+                      </div>
+                      {status === 'sent' && (
+                        <button onClick={() => revokeInvitation(inv)} disabled={busy} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11 }}>
+                          {tr('trainer.dashboard.revoke')}
+                        </button>
+                      )}
+                      {(status === 'expired' || status === 'revoked') && (
+                        <button onClick={() => resendInvitation(inv)} disabled={busy} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11 }}>
+                          {tr('trainer.dashboard.resend')}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ) : (
           <button
-            onClick={() => setShowInvite(true)}
+            onClick={() => { setShowInvite(true); fetchInvitations(); }}
             style={{
               padding: '14px 18px', borderRadius: 14,
               border: `1.5px dashed ${DARK.surface}`,

@@ -109,11 +109,11 @@ A diferença entre os dois caminhos é **apenas se o cadastro acontece antes ou 
 ### Fase 4 — Estados de erro, expiração e gestão
 **Objetivo:** cobrir os casos de borda que todo convite assíncrono precisa.
 
-- [ ] Convite expirado → tela informa e oferece "solicitar novo convite ao treinador"
-- [ ] Convite revogado pelo treinador → bloqueia aceitação
-- [ ] E-mail já vinculado a outro treinador → decidir regra de negócio (permitir múltiplos vínculos? bloquear? perguntar ao usuário?) — **requer decisão do usuário/produto antes de implementar**
-- [ ] Reenvio de convite (gera novo token, invalida o anterior)
-- [ ] Painel do treinador mostra histórico de convites (enviados, aceitos, expirados, revogados)
+- [x] Convite expirado → tela informa e instrui a pedir um novo convite ao treinador (`AcceptInvitationScreen`, fase "expired")
+- [x] Convite revogado pelo treinador → bloqueia aceitação (`AcceptInvitationScreen`, fase "revoked"; RPC retorna `revoked` mesmo em re-tentativa)
+- [x] E-mail já vinculado a outro treinador → **decisão tomada na seção 5: vínculo exclusivo**; bloqueado tanto na criação do convite (`api/send-invitation.ts`) quanto na aceitação (RPC `accept_trainer_invitation`)
+- [x] Reenvio de convite (revoga o anterior se ainda pendente, gera novo token via `api/send-invitation.ts`) — `TrainerDashboardScreen.resendInvitation`
+- [x] Painel do treinador mostra histórico de convites (pendente/aceito/expirado/revogado) com ações Revogar/Reenviar — seção "Recent invitations" no painel de convite
 
 ### Fase 5 — Validação e testes
 - [ ] Teste manual E2E caminho A: convidado **com conta** → recebe e-mail → loga → aceita → vínculo ativo

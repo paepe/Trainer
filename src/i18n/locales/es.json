@@ -598,6 +598,15 @@
       "inviteCreatedNoEmail": "Invitación creada. El envío de correo aún no está configurado — comparte el enlace manualmente.",
       "errAlreadyLinked": "Esta persona ya está vinculada a otro entrenador.",
       "errInviteFailed": "No se pudo enviar la invitación. Inténtalo de nuevo.",
+      "inviteHistoryTitle": "Invitaciones recientes",
+      "inviteStatus": {
+        "sent": "Pendiente",
+        "accepted": "Aceptada",
+        "expired": "Caducada",
+        "revoked": "Revocada"
+      },
+      "resend": "Reenviar",
+      "revoke": "Revocar",
       "safetyGatePending": "Safety Gate · Revisión Pendiente",
       "alerts": "Alertas",
       "tasks": "Tareas",

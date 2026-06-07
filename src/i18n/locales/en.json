@@ -759,6 +759,15 @@
       "inviteCreatedNoEmail": "Invitation created. Email delivery is not configured yet — share the link manually.",
       "errAlreadyLinked": "This person is already linked to another trainer.",
       "errInviteFailed": "Couldn't send the invitation. Please try again.",
+      "inviteHistoryTitle": "Recent invitations",
+      "inviteStatus": {
+        "sent": "Pending",
+        "accepted": "Accepted",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "resend": "Resend",
+      "revoke": "Revoke",
       "safetyGatePending": "Safety Gate · Pending Review",
       "alerts": "Alerts",
       "tasks": "Tasks",
