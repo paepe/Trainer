@@ -446,10 +446,18 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           trainerCtx = buildTrainerContext(coachDNA);
         }
 
-        // 6. LibraryContext
+        // 6. LibraryContext — profile-declared equipment is the baseline
+        //    (stable "what I have"), today's check-in equipment is the
+        //    session-specific addition/override (e.g. travelling, hotel gym).
+        //    Soreness/pain exclusions stay check-in-only: that's real-time
+        //    state the profile cannot know about.
+        const equipmentUnion = Array.from(new Set([
+          ...(clientCtx.equipment ?? []),
+          ...(resolvedCheckin.equipment ?? []),
+        ]));
         const libraryCtx = buildLibraryContext({
           excludedRegions:  resolvedCheckin.soreness ?? [],
-          clientEquipment:  resolvedCheckin.equipment ?? [],
+          clientEquipment:  equipmentUnion,
           trainerFavorites: trainerCtx.favoriteExercises,
           trainerAvoid:     trainerCtx.avoidExercises,
         });
