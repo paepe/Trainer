@@ -20,6 +20,28 @@ interface TrainerLibraryExercisesScreenProps {
   };
 }
 
+// Brand "ink" — text/icon colour over a brand-coloured surface (active tabs,
+// selected toggles, badges on amber/accent backgrounds). Same hex as
+// `primaryBtn`'s text colour and `DARK.bg` in theme/tokens — kept local since
+// it's a contrast-pairing rule specific to this screen's badges/tabs, not a
+// general-purpose brand token.
+const INK = '#0E1A2B';
+
+// Exercise lifecycle / voice-assistant status palette — shared between this
+// screen and ExerciseDetailModal (which can't see local closures). Each tone
+// pairs a solid text/icon colour with its translucent background variant,
+// converging the ~16 inline rgba/hex duplicates that previously existed.
+type StatusTone = 'active' | 'blocked' | 'restricted' | 'draft' | 'neutral';
+const STATUS_TONES: Record<StatusTone, { text: string; bg: (alpha: number) => string; border: string }> = {
+  active:     { text: '#27ae60', bg: a => `rgba(39, 174, 96, ${a})`,  border: '#27ae60' },
+  blocked:    { text: '#eb5757', bg: a => `rgba(235, 87, 87, ${a})`,  border: '#eb5757' },
+  restricted: { text: '#f2c94c', bg: a => `rgba(242, 201, 76, ${a})`, border: '#f2c94c' },
+  draft:      { text: '#9b51e0', bg: a => `rgba(155, 81, 224, ${a})`, border: '#9b51e0' },
+  neutral:    { text: '#828282', bg: a => `rgba(120, 120, 120, ${a})`, border: '#828282' },
+};
+const statusTone = (status: string): StatusTone =>
+  status === 'active' || status === 'blocked' || status === 'restricted' || status === 'draft' ? status : 'neutral';
+
 export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExercisesScreenProps) {
   const { fetchExercises, saveExercise, fetchProtocolsList, simulateVoiceAssistant } = useExerciseData();
   const { t, dark } = useTrainerTheme();
@@ -155,17 +177,6 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
     setVoiceResponse(null);
   };
 
-  // Helper styles
-  const badgeColor = (status: string) => {
-    switch (status) {
-      case 'active': return { bg: 'rgba(39, 174, 96, 0.15)', text: '#27ae60' };
-      case 'blocked': return { bg: 'rgba(235, 87, 87, 0.15)', text: '#eb5757' };
-      case 'restricted': return { bg: 'rgba(242, 201, 76, 0.15)', text: '#f2c94c' };
-      case 'draft': return { bg: 'rgba(155, 81, 224, 0.15)', text: '#9b51e0' };
-      default: return { bg: 'rgba(120, 120, 120, 0.15)', text: '#828282' };
-    }
-  };
-
   return (
     <>
       <ScreenTitle dark={dark} sub={tr('trainer.library.sub')}>
@@ -179,12 +190,12 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
           style={{
             flex: 1, padding: '12px', borderRadius: 12, border: 'none',
             background: activeTab === 'exercises' ? t.accent : surfRaised(dark),
-            color: activeTab === 'exercises' ? '#0E1A2B' : textPri(dark),
+            color: activeTab === 'exercises' ? INK : textPri(dark),
             fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
             fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
           }}
         >
-          <Icon name="dumbbell" size={16} color={activeTab === 'exercises' ? '#0E1A2B' : textPri(dark)} />
+          <Icon name="dumbbell" size={16} color={activeTab === 'exercises' ? INK : textPri(dark)} />
           {tr('trainer.library.tabExercises')}
         </button>
         <button
@@ -192,12 +203,12 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
           style={{
             flex: 1, padding: '12px', borderRadius: 12, border: 'none',
             background: activeTab === 'protocols' ? t.accent : surfRaised(dark),
-            color: activeTab === 'protocols' ? '#0E1A2B' : textPri(dark),
+            color: activeTab === 'protocols' ? INK : textPri(dark),
             fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
             fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
           }}
         >
-          <Icon name="history" size={16} color={activeTab === 'protocols' ? '#0E1A2B' : textPri(dark)} />
+          <Icon name="history" size={16} color={activeTab === 'protocols' ? INK : textPri(dark)} />
           {tr('trainer.library.tabProtocols')}
         </button>
       </div>
@@ -242,11 +253,11 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
               style={{
                 padding: '12px', borderRadius: 12, border: `1px solid ${borderSubtle(dark)}`,
                 background: showFilters ? t.accent : surfRaised(dark),
-                color: showFilters ? '#0E1A2B' : textPri(dark),
+                color: showFilters ? INK : textPri(dark),
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}
             >
-              <Icon name="settings" size={18} color={showFilters ? '#0E1A2B' : textPri(dark)} />
+              <Icon name="settings" size={18} color={showFilters ? INK : textPri(dark)} />
             </button>
 
             {isTrainerOrAdmin && (
@@ -378,7 +389,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {filteredExercises.map(ex => {
-                const badge = badgeColor(ex.status);
+                const badge = STATUS_TONES[statusTone(ex.status)];
                 return (
                   <div
                     key={ex.id}
@@ -413,7 +424,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{
                     fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-                    padding: '4px 8px', borderRadius: 6, background: badge.bg, color: badge.text
+                    padding: '4px 8px', borderRadius: 6, background: badge.bg(0.15), color: badge.text
                   }}>
                     {trSts(ex.status)}
                   </span>
@@ -619,7 +630,7 @@ function VoiceAssistantPanel({
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#f2c94c', marginBottom: 6 }}>⚠️ {tr('trainer.library.voiceAssistant.governanceLabel')}</div>
                 <button
                   onClick={() => onGovernance(`${voiceResponse.intent} for query: ${voiceQuery}`)}
-                  style={{ padding: '6px 12px', background: '#f2c94c', color: '#0E1A2B', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}
+                  style={{ padding: '6px 12px', background: '#f2c94c', color: INK, border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}
                 >
                   {tr('trainer.library.voiceAssistant.confirmLog')}
                 </button>
@@ -683,19 +694,19 @@ function ExerciseDetailModal({
         </h3>
 
         {exercise.status === 'blocked' && (
-          <div style={{ background: 'rgba(235, 87, 87, 0.12)', border: '1px solid #eb5757', borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: '#eb5757', lineHeight: 1.4 }}>
+          <div style={{ background: STATUS_TONES.blocked.bg(0.12), border: `1px solid ${STATUS_TONES.blocked.border}`, borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: STATUS_TONES.blocked.text, lineHeight: 1.4 }}>
             <b>⚠️ {tr('trainer.library.modal.blockedWarning')}</b>
           </div>
         )}
         {exercise.status === 'restricted' && (
-          <div style={{ background: 'rgba(242, 201, 76, 0.12)', border: '1px solid #f2c94c', borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: '#f2c94c', lineHeight: 1.4 }}>
+          <div style={{ background: STATUS_TONES.restricted.bg(0.12), border: `1px solid ${STATUS_TONES.restricted.border}`, borderRadius: 10, padding: 10, marginBottom: 16, fontSize: 12, color: STATUS_TONES.restricted.text, lineHeight: 1.4 }}>
             ⚠️ {tr('trainer.library.modal.restrictedWarning')}
           </div>
         )}
 
         {isEditing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {formError && <div style={{ color: '#eb5757', fontSize: 12, fontWeight: 600 }}>{formError}</div>}
+            {formError && <div style={{ color: STATUS_TONES.blocked.text, fontSize: 12, fontWeight: 600 }}>{formError}</div>}
             <div>
               <label style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.exerciseName')}</label>
               <input type="text" value={exercise.name || ''} onChange={e => onChange({ ...exercise, name: e.target.value })}
@@ -795,7 +806,7 @@ function ExerciseDetailModal({
                 <div style={{ fontSize: 11, color: textMute(dark), fontWeight: 600 }}>{tr('trainer.library.modal.accessibilityTagsLabel')}</div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   {exercise.accessibility_tags.map(tag => (
-                    <span key={tag} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: 'rgba(39, 174, 96, 0.1)', color: '#27ae60', fontWeight: 600 }}>{tr(`trainer.library.accessibilityTags.${tag}` as any)}</span>
+                    <span key={tag} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, background: STATUS_TONES.active.bg(0.1), color: STATUS_TONES.active.text, fontWeight: 600 }}>{tr(`trainer.library.accessibilityTags.${tag}` as any)}</span>
                   ))}
                 </div>
               </div>
@@ -813,7 +824,7 @@ function ExerciseDetailModal({
             {isTrainerOrAdmin && (
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                 <button onClick={onStartEdit} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: t.accent, color: '#fff', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Icon name="edit" size={16} color="#0E1A2B" /> {tr('trainer.library.modal.editExerciseBtn')}
+                  <Icon name="edit" size={16} color={INK} /> {tr('trainer.library.modal.editExerciseBtn')}
                 </button>
               </div>
             )}

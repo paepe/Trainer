@@ -121,7 +121,25 @@ claramente separável (não dividir por tamanho, dividir por coesão).
       extrair para hook adicionaria indireção sem reduzir risco; mantida como
       está. Nenhum split de sub-componente — responsabilidades já coesas.
       Validado `tsc`/`eslint` (232 warnings, 0 erros)/`build` — todos limpos.
-- [ ] `TrainerLibraryExercisesScreen.tsx` (825 linhas, 34 cores hardcoded)
+- [x] `TrainerLibraryExercisesScreen.tsx` (825 linhas, 34 cores hardcoded estimadas)
+      — **investigado e convergido 2026-06-07.** Achados:
+      (1) **sem acesso direto ao Supabase** — a estimativa original também não
+      se sustentou aqui (a tela usa `useExerciseData()`, já abstraído);
+      (2) `'#0E1A2B'` ("ink" — texto sobre superfície de marca em abas/badges
+      ativos) repetido 8× — convergido para constante local `INK`, com
+      comentário documentando que é o mesmo hex de `primaryBtn`/`DARK.bg`
+      (mantido local por ser regra de contraste específica desta tela, não
+      um token de marca geral); (3) paleta de status de exercício
+      (active/blocked/restricted/draft/neutral — vermelho/âmbar/verde/roxo/
+      cinza) duplicada 16× entre o `badgeColor()` local e literais inline em
+      `ExerciseDetailModal` (componente irmão, sem acesso ao closure) —
+      convergida para `STATUS_TONES`/`statusTone()` em escopo de módulo,
+      compartilhados pelos dois componentes. As cores roxas do painel de
+      voz/IA (`rgba(110,68,255,...)`) foram **mantidas como estão** — são um
+      tom visualmente próximo mas tecnicamente distinto (`#9b51e0` vs base
+      `110,68,255`), específico do contexto de IA, não do status do exercício;
+      convergi-las seria alterar uma decisão visual, não eliminar duplicação real.
+      Validado `tsc`/`eslint` (232 warnings, 0 erros)/`build` — todos limpos.
 - [ ] `TrainerDashboardScreen.tsx` (686 linhas, 42 cores hardcoded, acesso direto ao Supabase)
 - [ ] `TrainerClientDetailScreen.tsx` (890 linhas, 24 cores hardcoded, acesso direto ao Supabase)
 - [ ] `StartWorkoutScreen.tsx` (972 linhas, 44 cores hardcoded, acesso direto ao Supabase)
