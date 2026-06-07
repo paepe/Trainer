@@ -44,10 +44,40 @@ Scope: src/ (177 TS/TSX), api/ (Vercel functions), repo-root legacy artifacts, S
 - [ ] Wire lint into existing CI/build step if not already present
 
 ### Phase 3 — Workout pipeline consolidation
-- [ ] Decide canonical endpoint (per `workout-generation-centralization-20260523.md` direction — `generate-smart-workout.ts`)
-- [ ] Mark `api/generate-workout.ts` as deprecated fallback with explicit comment + sunset criteria, or remove if `generate-smart-workout.ts` fully covers fallback cases
-- [ ] Collapse `src/lib/workoutGeneration.ts` to a single contract (one `requestWorkoutPlan()` surface), update all call sites (`useAIContext.ts` and others)
-- [ ] Add integration-level test/manual QA pass on workout generation (EN/PT/ES/DE) before removing fallback
+**Status: investigated 2026-06-07 — scope re-baselined, partial execution done.**
+
+Findings (correcting the original audit's assumption — the legacy endpoint is
+**not** dead weight, it's load-bearing for two real flows):
+
+- `api/generate-workout.ts` (legacy/simple DeepSeek) is still the live path for:
+  1. `StartWorkoutScreen.tsx:382` — fallback when the client has **no physical profile**
+  2. `WorkoutPlanEditorScreen.tsx:111` — the **trainer-side "Ask AI"** feature, which has
+     never been migrated to the smart/safety-context pipeline
+- `api/generate-smart-workout.ts` (full safety/context pipeline) powers:
+  - `StartWorkoutScreen.tsx:453` — main client path (when a profile exists)
+- `src/hooks/useAIContext.ts` (190 LOC, including a `callAI` wrapper that called
+  `/api/generate-smart-workout` directly, bypassing `workoutGeneration.ts`) had
+  **zero consumers** anywhere in the codebase — confirmed dead code, not a
+  duplicated/divergent pattern. **Removed** (commit pending push).
+
+Remaining work — requires functional migration + QA, not a mechanical refactor:
+
+- [ ] Decide whether to migrate `WorkoutPlanEditorScreen`'s "Ask AI" to the smart
+      endpoint (requires building full `TrainerContext`/`ClientContext`/etc. on
+      the trainer side — currently only partial context is available there)
+- [ ] Decide whether to migrate the `StartWorkoutScreen` no-profile fallback to
+      the smart endpoint (requires a degraded-context contract on the smart side,
+      or keep the legacy endpoint explicitly as the no-profile fallback)
+- [ ] Once both are resolved, either retire `api/generate-workout.ts` and
+      `requestWorkoutPlan()`, or document them as permanent, intentional
+      fallback paths with explicit sunset/keep criteria
+- [ ] Manual QA pass (EN/PT/ES/DE) on whichever flows change, before deploy
+
+### Phase 3a — Dead code found during investigation (executed)
+
+- [x] Removed `src/hooks/useAIContext.ts` — entire hook unused (190 LOC), confirmed
+      via repo-wide grep with zero references outside the file itself
+- [x] Verified `tsc --noEmit`, `eslint`, and `npm run build` all pass clean post-removal
 
 ### Phase 4 — Error-handling & observability standardization
 - [ ] Introduce `src/lib/logger.ts` (leveled: error/warn/debug, environment-aware — silent in prod unless critical)
