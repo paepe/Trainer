@@ -186,7 +186,7 @@ tr('inbox.templates.workout_approved', { trainerName: 'Klaus' })
 
 ## 7. Checklist
 
-- [x] Phase 1.1 — Schema migration (`template_key`, `params`) — `supabase-add-template-keys.sql` + `supabase-add-template-keys-events.sql`
+- [x] Phase 1.1 — Schema migration (`template_key`, `params`) — `supabase/sql-archive/supabase-add-template-keys.sql` + `supabase/sql-archive/supabase-add-template-keys-events.sql`
 - [x] Phase 1.2 — `notify()` signature extended
 - [x] Phase 1.3 — `inbox.templates.*` in `en.json`
 - [x] Phase 1.4 — Templates translated to pt/es/de

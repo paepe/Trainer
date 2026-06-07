@@ -124,10 +124,21 @@ would be over-engineering relative to the actual gap.
       and `npm run build` all pass clean
 
 ### Phase 6 — SQL migration hygiene
-- [ ] Classify each of the 25 root `supabase-*.sql` files: active migration vs. historical reference
-- [ ] Move active ones into `supabase/migrations/` with proper timestamp-prefixed naming (Supabase CLI convention)
-- [ ] Archive historical/reference-only ones under `policies/references/Trainer 2.0/artifacts/sql-archive/`
-- [ ] Update any scripts/docs pointing to old root paths
+**Status: executed 2026-06-07 — re-baselined.**
+
+Investigation found no `supabase/migrations/`, no `config.toml`, and nothing in
+the codebase invokes the Supabase CLI migration workflow — these 25 files are
+applied manually via the Supabase SQL Editor (confirmed by explicit dashboard-URL
+instructions in `action-plan-pending-tasks-20260530.md`). Adopting the CLI
+migration convention would be a tooling-workflow change beyond simple file
+hygiene, so the original "move to `supabase/migrations/`" step was dropped.
+
+- [x] Archived all 25 `supabase-*.sql` files from repo root to `supabase/sql-archive/`
+      via `git mv` (history preserved)
+- [x] Updated the 2 docs referencing them by filename
+      (`multilingual_communication_architecture.md`,
+      `action-plan-pending-tasks-20260530.md`) to the new path
+- [x] Confirmed via grep: no scripts, configs, or app code reference the old root paths
 
 ### Phase 7 — Naming & module consistency pass
 - [ ] Normalize `src/contexts/index.ts` exports to a single convention (`*Context` for the context object, `*Provider` for the provider component — document the rule in `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` if not already)

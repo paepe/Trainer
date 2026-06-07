@@ -21,10 +21,10 @@
 ## 1. Apply SQL Policies to Supabase Production
 
 ### Context
-File `supabase-add-trainer-write-policies.sql` was incrementally updated with 6 RLS policies. Policy #6 (trainer INSERT on `checkin_prontidao`) was added in commit `6ff76a2` but needs to be re-applied to the production database since incremental changes don't auto-migrate.
+File `supabase/sql-archive/supabase-add-trainer-write-policies.sql` was incrementally updated with 6 RLS policies. Policy #6 (trainer INSERT on `checkin_prontidao`) was added in commit `6ff76a2` but needs to be re-applied to the production database since incremental changes don't auto-migrate.
 
 ### What needs to run
-Copy the entire contents of `supabase-add-trainer-write-policies.sql` into the Supabase SQL Editor at `https://supabase.com/dashboard/project/xbfszzdyskwdctlqzztl/sql` and execute.
+Copy the entire contents of `supabase/sql-archive/supabase-add-trainer-write-policies.sql` into the Supabase SQL Editor at `https://supabase.com/dashboard/project/xbfszzdyskwdctlqzztl/sql` and execute.
 
 ### Policies included
 1. `trainer manages client sessions` — FOR ALL on `workout_sessions`
