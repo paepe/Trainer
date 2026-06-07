@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
+import { Spinner } from '../../ui';
 import { RefreshChip } from '../../components/RefreshChip';
 import i18n, { BCP47 } from '../../i18n';
 import type { NavFn } from '../../types';
@@ -180,15 +181,10 @@ function LoadingState() {
       padding: '60px 0', display: 'flex', flexDirection: 'column',
       alignItems: 'center', gap: 12,
       }}>
-      <div style={{
-        width: 32, height: 32, borderRadius: '50%',
-        border: `3px solid ${T.border}`, borderTopColor: C.cyan,
-        animation: 'spin .7s linear infinite',
-      }}/>
+      <Spinner size={32} thickness={3} color={C.cyan} trackColor={T.border} />
       <span style={{ fontFamily: FF_MONO, fontSize: 11, color: T.textMute }}>
         {tr('perf.calculating')}
       </span>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

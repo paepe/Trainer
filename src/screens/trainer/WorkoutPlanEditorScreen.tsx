@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import { TextInput } from '@/ui';
+import { TextInput, Spinner } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { notify } from '../../lib/notify';
@@ -295,8 +295,7 @@ export function WorkoutPlanEditorScreen({
 
   return (
     <>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      
+
       {/* Header */}
       <div style={{ padding: '20px 22px 0', display: 'flex', alignItems: 'center', gap: 14 }}>
         <button onClick={() => nav('trainerDashboard')} style={{ ...iconBtn(dark), marginLeft: -4 }}>
@@ -523,7 +522,7 @@ export function WorkoutPlanEditorScreen({
         }}>
           {aiLoading ? (
             <>
-              <div style={{ width: 12, height: 12, borderRadius: '50%', border: `2px solid ${t.primary}44`, borderTopColor: t.primary, animation: 'spin 0.7s linear infinite' }}/>
+              <Spinner size={12} thickness={2} color={t.primary} />
               {tr('trainer.planner.generating')}
             </>
           ) : tr('trainer.planner.askAI')}

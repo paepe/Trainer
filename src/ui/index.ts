@@ -14,3 +14,4 @@ export * from './WizardHeader';
 export * from './WizardFooter';
 export * from './VoiceOption';
 export * from './Alert';
+export * from './Spinner';

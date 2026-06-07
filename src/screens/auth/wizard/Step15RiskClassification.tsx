@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle, Spinner } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { RiskLevel, OperationalRiskFlags, RiskClassification } from '../../../types/profile-v2';
 import { RiskCard } from '../../../components/RiskCard';
@@ -120,18 +120,5 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
         )}
       </button>
     </VStack>
-  );
-}
-
-function Spinner({ color }: { color: string }) {
-  return (
-    <div style={{
-      width: 16, height: 16, borderRadius: '50%',
-      border: `2.5px solid ${color}44`,
-      borderTopColor: color,
-      animation: 'spin .6s linear infinite',
-    }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
   );
 }

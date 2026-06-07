@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BCP47 } from '../../i18n';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
+import { Spinner } from '../../ui';
 import type { CheckInVoice as CheckInVoiceData } from '../../types/checkin-v2';
 
 interface CheckInVoiceProps {
@@ -273,18 +274,6 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
           {tr('checkin.voice.back')}
         </button>
       </div>
-    </div>
-  );
-}
-
-function Spinner({ color }: { color: string }) {
-  return (
-    <div style={{
-      width: 16, height: 16, borderRadius: '50%',
-      border: `2.5px solid ${color}44`, borderTopColor: color,
-      animation: 'spin .6s linear infinite',
-    }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }

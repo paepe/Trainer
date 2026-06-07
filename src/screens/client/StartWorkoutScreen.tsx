@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { supabase } from '../../supabase';
 import { Icon, AvatarImage, ScreenTitle, SectionLabel } from '../../components';
+import { Spinner } from '../../ui';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn } from '../../types';
 import type { Json } from '../../types/supabase';
@@ -802,14 +803,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             padding: '28px 0', display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: 12,
           }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              border: `3px solid ${dark ? '#1F2E45' : '#E5EAF1'}`,
-              borderTopColor: t.primary,
-              animation: 'spin 0.7s linear infinite',
-            }}/>
+            <Spinner size={32} thickness={3} color={t.primary} trackColor={dark ? '#1F2E45' : '#E5EAF1'} />
             <div style={{ fontSize: 13, color: textSec(dark) }}>{tr('client.workout.generating')}</div>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components';
+import { Spinner } from '../../ui';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, primaryBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
@@ -337,12 +338,7 @@ export function WorkoutModeScreen({
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 16px' }}>
         {phase === 'init' && (
           <div style={{ padding: '32px 0', display: 'flex', justifyContent: 'center' }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%',
-              border: `3px solid ${dark ? '#1F2E45' : '#E5EAF1'}`, borderTopColor: t.primary,
-              animation: 'spin 0.7s linear infinite',
-            }}/>
-            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            <Spinner size={28} thickness={3} color={t.primary} trackColor={dark ? '#1F2E45' : '#E5EAF1'} />
           </div>
         )}
 

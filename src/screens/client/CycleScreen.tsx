@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../theme';
+import { formatDate } from '../../lib/format';
 import type { NavFn } from '../../types';
 
 interface Theme {
@@ -50,7 +51,7 @@ export function computeCyclePhases(cycleLen: number, palette: Theme): Phase[] {
 export function CycleScreen({
   nav, t, dark, cycleConfig, cycleEnabled, setCycleConfig, saveCycleConfig,
 }: CycleScreenProps) {
-  const { t: tr } = useTranslation();
+  const { t: tr, i18n } = useTranslation();
 
   const cfg = cycleConfig || { length: 28 };
   const cycleLen = cfg.length || 28;
@@ -148,7 +149,7 @@ export function CycleScreen({
   const lastPeriodDate = (() => {
     const d = new Date();
     d.setDate(d.getDate() - (day - 1));
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatDate(d, i18n.language, { day: '2-digit', month: 'short', year: 'numeric' });
   })();
 
   return (

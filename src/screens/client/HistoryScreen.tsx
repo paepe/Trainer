@@ -4,6 +4,7 @@ import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { borderSubtle, textPri, textMute } from '../../theme';
+import { formatTime, formatDate } from '../../lib/format';
 import type { NavFn } from '../../types';
 import { autoExpirePlans } from '../../lib/autoExpirePlans';
 
@@ -34,7 +35,7 @@ interface Session {
 }
 
 export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: HistoryScreenProps) {
-  const { t: tr } = useTranslation();
+  const { t: tr, i18n } = useTranslation();
   const historyLimit = prefs?.sessionHistoryLimit ?? 50;
   const targetUserId = selectedClient?.id ?? user.id;
   const targetName  = selectedClient?.name;
@@ -68,12 +69,11 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
 
   const fmtTime = (iso: string) => {
     if (!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return formatTime(iso, i18n.language);
   };
   const fmtDate = (iso: string) => {
     if (!iso) return '';
-    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    return formatDate(iso, i18n.language, { day: 'numeric', month: 'short' });
   };
 
   return (
