@@ -4,7 +4,7 @@ import type { NavFn } from '../../types';
 import type { CheckInQuick, CheckInDetailed, CheckInVoice, SafetyGateResult } from '../../types/checkin-v2';
 import type { RiskClassification } from '../../types/profile-v2';
 import { computeSafetyGate } from './safetyGate';
-import { useLatestCheckin, type LatestCheckinData } from '../../hooks/useLatestCheckin';
+import { useLatestCheckin } from '../../hooks/useLatestCheckin';
 import { supabase } from '../../supabase';
 import { notify }   from '../../lib/notify';
 import { CheckInHub }        from './CheckInHub';

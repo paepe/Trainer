@@ -66,8 +66,10 @@ export function TrainerDashboardScreen({
   const [clients, setClients]           = React.useState<TrainerClient[]>([]);
   const [loading, setLoading]           = React.useState(true);
   const [showInvite, setShowInvite]     = React.useState(false);
+  const [inviteName, setInviteName]     = React.useState('');
   const [inviteEmail, setInviteEmail]   = React.useState('');
   const [inviteErr, setInviteErr]       = React.useState('');
+  const [inviteOk, setInviteOk]         = React.useState('');
   const [inviting, setInviting]         = React.useState(false);
   const [pendingReviews, setPendingReviews] = React.useState<SafetyGateEvent[]>([]);
   const [reviewingId, setReviewingId]   = React.useState<string | null>(null);
@@ -189,37 +191,44 @@ export function TrainerDashboardScreen({
   }
 
   async function invite() {
-    if (!inviteEmail || !user?.id) return;
+    if (!inviteEmail || !inviteName || !user?.id) return;
     setInviting(true);
     setInviteErr('');
-    const { data: found } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', inviteEmail)
-      .single();
+    setInviteOk('');
+    try {
+      const isNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+      const apiBase  = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
+      const res = await fetch(`${apiBase}/api/send-invitation`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trainerId:    user.id,
+          trainerName:  user.name ?? '',
+          invitedEmail: inviteEmail,
+          invitedName:  inviteName,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (json?.error === 'already_linked_elsewhere') {
+          setInviteErr(tr('trainer.dashboard.errAlreadyLinked'));
+        } else {
+          setInviteErr(tr('trainer.dashboard.errInviteFailed'));
+        }
+        setInviting(false);
+        return;
+      }
 
-    if (!found) {
-      setInviteErr(tr('trainer.dashboard.errNotFound'));
+      setInviteOk(json?.emailSent
+        ? tr('trainer.dashboard.inviteSent')
+        : tr('trainer.dashboard.inviteCreatedNoEmail'));
+      setInviteName('');
+      setInviteEmail('');
       setInviting(false);
-      return;
-    }
-
-    const { error } = await supabase.from('trainer_clients').insert({
-      trainer_id: user.id,
-      client_id: found.id,
-      status: 'pending',
-    });
-
-    if (error) {
-      setInviteErr(friendlyError(error, tr));
+    } catch (err) {
+      setInviteErr(friendlyError(err, tr));
       setInviting(false);
-      return;
     }
-
-    setShowInvite(false);
-    setInviteEmail('');
-    fetchClients();
-    setInviting(false);
   }
 
   const activeClients  = clients.filter(c => c.status === 'active');
@@ -437,20 +446,33 @@ export function TrainerDashboardScreen({
               {tr('trainer.dashboard.inviteByEmail')}
             </div>
             <TextInput
-              icon="mail"
-              placeholder="client@email.com"
-              type="email"
-              value={inviteEmail}
-              onChange={setInviteEmail}
+              icon="user"
+              placeholder={tr('trainer.dashboard.inviteNamePlaceholder')}
+              value={inviteName}
+              onChange={setInviteName}
             />
+            <div style={{ marginTop: 8 }}>
+              <TextInput
+                icon="mail"
+                placeholder="client@email.com"
+                type="email"
+                value={inviteEmail}
+                onChange={setInviteEmail}
+              />
+            </div>
             {inviteErr && (
               <div style={{ color: t.accent, fontSize: 11, marginTop: 8 }}>
                 {inviteErr}
               </div>
             )}
+            {inviteOk && (
+              <div style={{ color: t.primary, fontSize: 11, marginTop: 8 }}>
+                {inviteOk}
+              </div>
+            )}
             <HStack gap={8} style={{ marginTop: 12 }}>
               <button
-                onClick={() => { setShowInvite(false); setInviteEmail(''); setInviteErr(''); }}
+                onClick={() => { setShowInvite(false); setInviteName(''); setInviteEmail(''); setInviteErr(''); setInviteOk(''); }}
                 style={{
                   ...ghostBtn(dark),
                   flex: 1,
@@ -463,11 +485,12 @@ export function TrainerDashboardScreen({
               </button>
               <button
                 onClick={invite}
-                disabled={inviting}
+                disabled={inviting || !inviteName || !inviteEmail}
                 style={{
                   flex: 2, padding: '13px 0', border: 'none', borderRadius: 999,
                   background: t.accent, color: '#FFFFFF', fontSize: 14, fontWeight: 700,
-                  fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer', opacity: inviting ? 0.7 : 1,
+                  fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer',
+                  opacity: (inviting || !inviteName || !inviteEmail) ? 0.7 : 1,
                 }}
               >
                 {inviting ? tr('trainer.dashboard.sending') : tr('trainer.dashboard.send')}
