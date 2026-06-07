@@ -2334,5 +2334,25 @@
     "yes": "Sí",
     "no": "No",
     "prefer_not": "Prefiero no decirlo"
+  },
+  "invite": {
+    "title": "¡Hola, {{invitedName}}!",
+    "body": "{{trainerName}} te invitó a entrenar juntos en TrAIner.",
+    "needAccount": "Necesitas una cuenta de TrAIner para aceptar esta invitación.",
+    "createAccount": "Crear cuenta",
+    "login": "Iniciar sesión",
+    "accept": "Aceptar invitación",
+    "accepting": "Aceptando…",
+    "continue": "Continuar",
+    "acceptedTitle": "¡Estás conectado!",
+    "acceptedBody": "Ahora entrenas con {{trainerName}} en TrAIner.",
+    "unavailable": "Esta invitación no está disponible",
+    "invalid": "Este enlace de invitación no es válido.",
+    "expired": "Esta invitación ha caducado. Pide a tu entrenador que envíe una nueva.",
+    "revoked": "Esta invitación fue revocada por el entrenador.",
+    "errAlreadyLinked": "Ya estás vinculado a otro entrenador. Un cliente solo puede tener un entrenador a la vez.",
+    "goHome": "Ir a TrAIner",
+    "trainerPushTitle": "{{clientName}} aceptó tu invitación",
+    "trainerPushBody": "{{clientName}} ahora es tu cliente en TrAIner."
   }
 }

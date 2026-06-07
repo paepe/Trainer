@@ -89,7 +89,7 @@ grant execute on function get_invitation_by_token(text) to anon, authenticated;
 -- Single point of truth for activating the trainer_clients link, reused by
 -- both "already had an account" and "just signed up" paths.
 create or replace function accept_trainer_invitation(p_token text, p_user_id uuid)
-returns table (result text)
+returns table (result text, trainer_id uuid, trainer_name text)
 language plpgsql
 security definer
 set search_path = public
@@ -97,26 +97,29 @@ as $$
 declare
   v_invite trainer_invitations%rowtype;
   v_existing_trainer uuid;
+  v_trainer_name text;
 begin
   select * into v_invite from trainer_invitations where token = p_token for update;
 
   if not found then
-    return query select 'not_found';
+    return query select 'not_found', null::uuid, null::text;
     return;
   end if;
 
+  select p.name into v_trainer_name from profiles p where p.id = v_invite.trainer_id;
+
   if v_invite.status = 'accepted' and v_invite.accepted_by = p_user_id then
-    return query select 'already_accepted'; -- idempotent re-click
+    return query select 'already_accepted', v_invite.trainer_id, v_trainer_name; -- idempotent re-click
     return;
   end if;
 
   if v_invite.status = 'revoked' then
-    return query select 'revoked';
+    return query select 'revoked', null::uuid, null::text;
     return;
   end if;
 
   if v_invite.status <> 'sent' or v_invite.expires_at < now() then
-    return query select 'expired';
+    return query select 'expired', null::uuid, null::text;
     return;
   end if;
 
@@ -127,7 +130,7 @@ begin
     limit 1;
 
   if v_existing_trainer is not null and v_existing_trainer <> v_invite.trainer_id then
-    return query select 'already_linked_elsewhere';
+    return query select 'already_linked_elsewhere', null::uuid, null::text;
     return;
   end if;
 
@@ -140,7 +143,7 @@ begin
     set status = 'accepted', accepted_at = now(), accepted_by = p_user_id
     where id = v_invite.id;
 
-  return query select 'accepted';
+  return query select 'accepted', v_invite.trainer_id, v_trainer_name;
 end;
 $$;
 

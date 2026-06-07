@@ -36,10 +36,11 @@ const TrainerLibraryExercisesScreen = React.lazy(() => import('./screens/trainer
 const CoachDNAScreen             = React.lazy(() => import('./coach-dna/CoachDNAScreen').then(m => ({ default: m.CoachDNAScreen })));
 const TrainerAlertsScreen        = React.lazy(() => import('./screens/trainer/TrainerAlertsScreen').then(m => ({ default: m.TrainerAlertsScreen })));
 const ClientInboxScreen          = React.lazy(() => import('./screens/client/ClientInboxScreen').then(m => ({ default: m.ClientInboxScreen })));
+const AcceptInvitationScreen     = React.lazy(() => import('./screens/auth/AcceptInvitationScreen').then(m => ({ default: m.AcceptInvitationScreen })));
 
 type NotificationLogRow = Database['public']['Tables']['notification_log']['Row'];
 
-const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
+const PUBLIC_SCREENS = ['welcome', 'login', 'register', 'acceptInvitation'];
 
 interface AppCycleConfig {
   length: number;
@@ -332,17 +333,6 @@ export default function App() {
     return () => { void supabase.removeChannel(ch); };
   }, [isTrainer, profile?.id]);
 
-  // Role-based navigation after login (only when both session and profile are loaded)
-  React.useEffect(() => {
-    if (!session || !profile || !['welcome', 'login'].includes(screen)) return;
-    if (isTrainer) { setScreen('trainerDashboard'); return; }
-    // For clients: check if profile wizard was already completed
-    fetchProfileV2().then(({ data }) => {
-      const completed = data && (data as Record<string, unknown>).completed_at;
-      setScreen(completed ? 'checkin' : 'profile');
-    });
-  }, [session, profile, isTrainer, screen, fetchProfileV2]);
-
   const [screenPayload,  setScreenPayload]  = React.useState<Record<string, unknown> | null>(null);
   const [profileNavKey,  setProfileNavKey]  = React.useState(0);
   const nav = (target: string, payload?: Record<string, unknown>) => {
@@ -352,6 +342,34 @@ export default function App() {
     if (target === 'profile') setProfileNavKey(k => k + 1);
     setScreen(target);
   };
+
+  // Role-based navigation after login (only when both session and profile are loaded)
+  React.useEffect(() => {
+    if (!session || !profile) return;
+    const pendingInviteToken = sessionStorage.getItem('trainer_pending_invite_token');
+    if (pendingInviteToken && ['welcome', 'login', 'register'].includes(screen)) {
+      sessionStorage.removeItem('trainer_pending_invite_token');
+      setScreenPayload({ token: pendingInviteToken });
+      setScreen('acceptInvitation');
+      return;
+    }
+    if (!['welcome', 'login'].includes(screen)) return;
+    if (isTrainer) { setScreen('trainerDashboard'); return; }
+    // For clients: check if profile wizard was already completed
+    fetchProfileV2().then(({ data }) => {
+      const completed = data && (data as Record<string, unknown>).completed_at;
+      setScreen(completed ? 'checkin' : 'profile');
+    });
+  }, [session, profile, isTrainer, screen, fetchProfileV2]);
+
+  // Deep link: /invite/:token → AcceptInvitationScreen (web path; native opens via universal/app links to the same URL)
+  React.useEffect(() => {
+    const m = window.location.pathname.match(/^\/invite\/([^/]+)/);
+    if (m) {
+      window.history.replaceState(null, '', '/');
+      nav('acceptInvitation', { token: m[1] });
+    }
+  }, []);
 
   const selectClient = (client: ClientProfile) => {
     setSelectedClient(client);
@@ -530,6 +548,7 @@ export default function App() {
       case 'welcome':          return <WelcomeScreen           {...common}/>;
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
+      case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile ? { id: profile.id, name: profile.name } : null} token={(screenPayload?.token as string) ?? ''}/>;
       case 'profile':          return <ProfileWizardScreen     key={profileNavKey} nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
       case 'checkin':          return (
         <>

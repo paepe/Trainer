@@ -2334,5 +2334,25 @@
     "yes": "Ja",
     "no": "Nein",
     "prefer_not": "Möchte ich nicht sagen"
+  },
+  "invite": {
+    "title": "Hallo, {{invitedName}}!",
+    "body": "{{trainerName}} hat dich eingeladen, gemeinsam mit TrAIner zu trainieren.",
+    "needAccount": "Du benötigst ein TrAIner-Konto, um diese Einladung anzunehmen.",
+    "createAccount": "Konto erstellen",
+    "login": "Anmelden",
+    "accept": "Einladung annehmen",
+    "accepting": "Wird angenommen…",
+    "continue": "Weiter",
+    "acceptedTitle": "Du bist verbunden!",
+    "acceptedBody": "Du trainierst jetzt mit {{trainerName}} auf TrAIner.",
+    "unavailable": "Diese Einladung ist nicht verfügbar",
+    "invalid": "Dieser Einladungslink ist ungültig.",
+    "expired": "Diese Einladung ist abgelaufen. Bitte deinen Trainer, eine neue zu senden.",
+    "revoked": "Diese Einladung wurde vom Trainer widerrufen.",
+    "errAlreadyLinked": "Du bist bereits mit einem anderen Trainer verbunden. Ein Klient kann nur einen Trainer gleichzeitig haben.",
+    "goHome": "Zu TrAIner",
+    "trainerPushTitle": "{{clientName}} hat deine Einladung angenommen",
+    "trainerPushBody": "{{clientName}} ist jetzt dein Klient auf TrAIner."
   }
 }

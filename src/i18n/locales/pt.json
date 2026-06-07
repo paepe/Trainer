@@ -2334,5 +2334,25 @@
     "yes": "Sim",
     "no": "Não",
     "prefer_not": "Prefiro não informar"
+  },
+  "invite": {
+    "title": "Olá, {{invitedName}}!",
+    "body": "{{trainerName}} convidou você para treinar juntos no TrAIner.",
+    "needAccount": "Você precisa de uma conta no TrAIner para aceitar este convite.",
+    "createAccount": "Criar conta",
+    "login": "Entrar",
+    "accept": "Aceitar convite",
+    "accepting": "Aceitando…",
+    "continue": "Continuar",
+    "acceptedTitle": "Você está conectado!",
+    "acceptedBody": "Agora você treina com {{trainerName}} no TrAIner.",
+    "unavailable": "Este convite não está disponível",
+    "invalid": "Este link de convite é inválido.",
+    "expired": "Este convite expirou. Peça ao seu treinador para enviar um novo.",
+    "revoked": "Este convite foi revogado pelo treinador.",
+    "errAlreadyLinked": "Você já está vinculado a outro treinador. Um aluno só pode ter um treinador por vez.",
+    "goHome": "Ir para o TrAIner",
+    "trainerPushTitle": "{{clientName}} aceitou seu convite",
+    "trainerPushBody": "{{clientName}} agora é seu aluno(a) no TrAIner."
   }
 }

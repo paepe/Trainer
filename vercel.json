@@ -4,6 +4,7 @@
   "framework": null,
   "rewrites": [
     { "source": "/studio",    "destination": "/studio.html" },
-    { "source": "/studio/(.*)", "destination": "/studio.html" }
+    { "source": "/studio/(.*)", "destination": "/studio.html" },
+    { "source": "/invite/(.*)", "destination": "/index.html" }
   ]
 }

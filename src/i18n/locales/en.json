@@ -2495,5 +2495,25 @@
     "yes": "Yes",
     "no": "No",
     "prefer_not": "Prefer not to say"
+  },
+  "invite": {
+    "title": "Hi {{invitedName}}!",
+    "body": "{{trainerName}} invited you to train together on TrAIner.",
+    "needAccount": "You'll need a TrAIner account to accept this invitation.",
+    "createAccount": "Create account",
+    "login": "Log in",
+    "accept": "Accept invitation",
+    "accepting": "Accepting…",
+    "continue": "Continue",
+    "acceptedTitle": "You're connected!",
+    "acceptedBody": "You're now training with {{trainerName}} on TrAIner.",
+    "unavailable": "This invitation isn't available",
+    "invalid": "This invitation link is invalid.",
+    "expired": "This invitation has expired. Ask your trainer to send a new one.",
+    "revoked": "This invitation was revoked by the trainer.",
+    "errAlreadyLinked": "You're already linked to another trainer. A client can only have one trainer at a time.",
+    "goHome": "Go to TrAIner",
+    "trainerPushTitle": "{{clientName}} accepted your invitation",
+    "trainerPushBody": "{{clientName}} is now your client on TrAIner."
   }
 }
