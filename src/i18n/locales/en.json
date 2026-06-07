@@ -838,6 +838,9 @@
       "unitRest": "s rest",
       "planAndWorkout": "Plan & Workout",
       "freeSessions": "Free Sessions",
+      "postWorkoutFeedback": "Self-evaluation",
+      "notYetEvaluated": "Not yet evaluated by client",
+      "energyAfter": "energy",
       "done": "DONE",
       "readinessCheckinFor": "Readiness Check-in for {{name}}"
     },
@@ -1181,7 +1184,6 @@
       },
       "beforeStart": "Before starting, quickly tell us how you're feeling today.",
       "safetyGateNote": "Pain, dizziness, or warning signs automatically pause AI-led.",
-      "postWorkoutLink": "Already trained today? Post-workout check-in →",
       "back": "Back",
       "lastCheckin": "Last check-in · {{date}}",
       "streak": "streak · {{count}} days",
@@ -1252,40 +1254,6 @@
       },
       "readyPushTitle": "{{name}} is ready to train",
       "readyPushBody": "Readiness {{score}}/100 · Approve or reject their workout request."
-    },
-    "postWorkout": {
-      "kicker": "CHECK-IN · POST-WORKOUT",
-      "title": "How was the workout?",
-      "subtitle": "Feeds your progression and the AI learns from what worked in your body.",
-      "overallFeeling": "Overall feeling",
-      "completedEverything": "Completed everything?",
-      "rpe": "Perceived effort (RPE)",
-      "painDuringAfter": "Did you feel pain during or after?",
-      "painEngineNote": "Feeds the Pain Recurrence Engine — three occurrences in 14 days trigger an alert.",
-      "noteLabel": "Note for the AI or trainer",
-      "notePlaceholder": "e.g.: The squat hurt on the descent, but leg press was okay.",
-      "back": "← back",
-      "saving": "Saving…",
-      "saveBtn": "Save feedback ✓",
-      "feedbackSaved": "Feedback saved",
-      "feedbackSavedSub": "The AI will use this to refine your progression.",
-      "sensations": {
-        "excellent": "excellent",
-        "good": "good",
-        "ok": "ok",
-        "hard": "hard",
-        "very_hard": "very hard"
-      },
-      "completion": {
-        "yes": "Yes",
-        "partially": "Partially",
-        "no": "No"
-      },
-      "noCompletedSessions": "No completed workouts today",
-      "noCompletedSessionsSub": "Complete a workout session first to evaluate it here.",
-      "evaluate": "Evaluate",
-      "evaluatingSession": "Session {{time}} · {{duration}}",
-      "sessionLabel": "Session {{time}}"
     }
   },
   "auth": {

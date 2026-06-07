@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../theme';
 import { Icon } from '../../components/Icon';
 
-type Variant = 'voice' | 'quick' | 'detailed' | 'post_workout';
+type Variant = 'voice' | 'quick' | 'detailed';
 
 interface CheckInHubProps {
   dark:         boolean;
@@ -145,19 +145,6 @@ export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect
               {tr('checkin.hub.safetyGateNote')}
             </div>
           </div>
-        </div>
-
-        {/* Post-workout link */}
-        <div style={{ textAlign: 'center' }}>
-          <button
-            onClick={() => onSelect('post_workout')}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 12.5, color: primary, fontFamily: 'inherit', fontWeight: 600,
-            }}
-          >
-            {tr('checkin.hub.postWorkoutLink')}
-          </button>
         </div>
       </div>
 

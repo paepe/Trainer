@@ -1,6 +1,6 @@
 // ── Primitive unions ──────────────────────────────────────────────────────────
 
-export type CheckInVariant = 'voice' | 'quick' | 'detailed' | 'post_workout';
+export type CheckInVariant = 'voice' | 'quick' | 'detailed';
 
 export type SleepQualityV2 = 'poor' | 'regular' | 'good' | 'excellent';
 
@@ -22,10 +22,6 @@ export type SafetySignal =
 import type { BodyRhythmAdaptation } from './profile-v2';
 
 export type AdaptationPreference = BodyRhythmAdaptation;
-
-export type WorkoutCompletionStatus = 'yes' | 'partially' | 'no';
-
-export type SensationRating = 'excellent' | 'good' | 'ok' | 'hard' | 'very_hard';
 
 export type SafetyGateStatus = 'clear' | 'caution' | 'blocked';
 
@@ -69,19 +65,6 @@ export interface CheckInVoice {
   ai_extracted?: Partial<CheckInDetailed>;  // AI parses free-form speech into structured fields
 }
 
-// ── Post-workout check-in ─────────────────────────────────────────────────────
-
-export interface CheckInPostWorkout {
-  session_id:              string;
-  sensation:               SensationRating;
-  completion_status:       WorkoutCompletionStatus;
-  perceived_effort:        number;    // RPE 0–10
-  pain_during_or_after:    boolean;
-  pain_detail?:            PainData;
-  notes_for_ai?:           string;
-  pain_recurrence_alert?:  boolean;  // computed: ≥3 occurrences in 14 days
-}
-
 // ── Safety Gate result ────────────────────────────────────────────────────────
 
 export interface SafetyGateResult {
@@ -104,7 +87,7 @@ export interface CheckInProntidao {
   id:           string;
   user_id:      string;
   variant:      CheckInVariant;
-  input_source: 'voice' | 'form' | 'post_workout';
+  input_source: 'voice' | 'form';
   occurred_at:  string;
   created_at:   string;
 
@@ -123,7 +106,6 @@ export interface CheckInProntidao {
   quick_data?:        CheckInQuick        | null;
   detailed_data?:     CheckInDetailed     | null;
   voice_data?:        CheckInVoice        | null;
-  post_workout_data?: CheckInPostWorkout  | null;
   safety_gate?:       SafetyGateResult    | null;
 }
 

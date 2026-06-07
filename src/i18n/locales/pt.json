@@ -677,6 +677,9 @@
       "unitRest": "s descanso",
       "planAndWorkout": "Plano & Treino",
       "freeSessions": "Sessões Livres",
+      "postWorkoutFeedback": "Autoavaliação",
+      "notYetEvaluated": "Ainda não avaliado pelo aluno",
+      "energyAfter": "energia",
       "done": "FEITO",
       "readinessCheckinFor": "Check-in de Prontidão para {{name}}"
     },
@@ -1020,7 +1023,6 @@
       },
       "beforeStart": "Antes de começar, nos diga rapidamente como você está se sentindo hoje.",
       "safetyGateNote": "Dor, tontura ou sinais de alerta pausam automaticamente a sessão conduzida pela IA.",
-      "postWorkoutLink": "Já treinou hoje? Check-in pós-treino →",
       "back": "Voltar",
       "lastCheckin": "Último check-in · {{date}}",
       "streak": "sequência · {{count}} dias",
@@ -1091,40 +1093,6 @@
       },
       "readyPushTitle": "{{name}} está pronto para treinar",
       "readyPushBody": "Prontidão {{score}}/100 · Aprove ou rejeite a solicitação de treino."
-    },
-    "postWorkout": {
-      "kicker": "CHECK-IN · PÓS-TREINO",
-      "title": "Como foi o treino?",
-      "subtitle": "Alimenta sua progressão e a IA aprende com o que funcionou no seu corpo.",
-      "overallFeeling": "Sensação geral",
-      "completedEverything": "Completou tudo?",
-      "rpe": "Esforço percebido (RPE)",
-      "painDuringAfter": "Sentiu dor durante ou depois?",
-      "painEngineNote": "Alimenta o Motor de Recorrência de Dor — três ocorrências em 14 dias disparam um alerta.",
-      "noteLabel": "Nota para a IA ou treinador",
-      "notePlaceholder": "ex.: O agachamento doeu na descida, mas o leg press foi tranquilo.",
-      "back": "← voltar",
-      "saving": "Salvando…",
-      "saveBtn": "Salvar feedback ✓",
-      "feedbackSaved": "Feedback salvo",
-      "feedbackSavedSub": "A IA usará isso para refinar sua progressão.",
-      "sensations": {
-        "excellent": "excelente",
-        "good": "bom",
-        "ok": "ok",
-        "hard": "difícil",
-        "very_hard": "muito difícil"
-      },
-      "completion": {
-        "yes": "Sim",
-        "partially": "Parcialmente",
-        "no": "Não"
-      },
-      "noCompletedSessions": "Nenhum treino concluído hoje",
-      "noCompletedSessionsSub": "Conclua uma sessão de treino primeiro para avaliá-la aqui.",
-      "evaluate": "Avaliar",
-      "evaluatingSession": "Sessão {{time}} · {{duration}}",
-      "sessionLabel": "Sessão {{time}}"
     }
   },
   "auth": {

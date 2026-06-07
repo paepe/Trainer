@@ -677,6 +677,9 @@
       "unitRest": "s Pause",
       "planAndWorkout": "Plan & Training",
       "freeSessions": "Freie Einheiten",
+      "postWorkoutFeedback": "Selbsteinschätzung",
+      "notYetEvaluated": "Noch nicht vom Klienten bewertet",
+      "energyAfter": "Energie",
       "done": "FERTIG",
       "readinessCheckinFor": "Bereitschafts-Check-in für {{name}}"
     },
@@ -1020,7 +1023,6 @@
       },
       "beforeStart": "Bevor es losgeht, sag uns kurz, wie du dich heute fühlst.",
       "safetyGateNote": "Schmerzen, Schwindel oder Warnsignale pausieren die KI-geführte Einheit automatisch.",
-      "postWorkoutLink": "Heute schon trainiert? Post-Workout-Check-in →",
       "back": "Zurück",
       "lastCheckin": "Letzter Check-in · {{date}}",
       "streak": "Serie · {{count}} Tage",
@@ -1091,40 +1093,6 @@
       },
       "readyPushTitle": "{{name}} ist bereit zu trainieren",
       "readyPushBody": "Bereitschaft {{score}}/100 · Anfrage annehmen oder ablehnen."
-    },
-    "postWorkout": {
-      "kicker": "CHECK-IN · NACH DEM TRAINING",
-      "title": "Wie war das Training?",
-      "subtitle": "Fließt in deine Progression ein und die KI lernt, was für deinen Körper funktioniert.",
-      "overallFeeling": "Gesamteindruck",
-      "completedEverything": "Alles abgeschlossen?",
-      "rpe": "Empfundene Anstrengung (RPE)",
-      "painDuringAfter": "Hattest du Schmerzen während oder danach?",
-      "painEngineNote": "Speist die Schmerzwiederholungs-Engine — drei Vorfälle in 14 Tagen lösen eine Warnung aus.",
-      "noteLabel": "Notiz für KI oder Trainer",
-      "notePlaceholder": "z.B.: Die Kniebeuge hat beim Absenken geschmerzt, aber Beinpresse war ok.",
-      "back": "← Zurück",
-      "saving": "Wird gespeichert…",
-      "saveBtn": "Feedback speichern ✓",
-      "feedbackSaved": "Feedback gespeichert",
-      "feedbackSavedSub": "Die KI verwendet dies, um deine Progression zu verfeinern.",
-      "sensations": {
-        "excellent": "ausgezeichnet",
-        "good": "gut",
-        "ok": "ok",
-        "hard": "hart",
-        "very_hard": "sehr hart"
-      },
-      "completion": {
-        "yes": "Ja",
-        "partially": "Teilweise",
-        "no": "Nein"
-      },
-      "noCompletedSessions": "Keine abgeschlossenen Workouts heute",
-      "noCompletedSessionsSub": "Schließe zuerst eine Trainingseinheit ab, um sie hier zu bewerten.",
-      "evaluate": "Bewerten",
-      "evaluatingSession": "Sitzung {{time}} · {{duration}}",
-      "sessionLabel": "Sitzung {{time}}"
     }
   },
   "auth": {

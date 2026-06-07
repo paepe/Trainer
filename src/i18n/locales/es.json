@@ -677,6 +677,9 @@
       "unitRest": "s descanso",
       "planAndWorkout": "Plan & Entrenamiento",
       "freeSessions": "Sesiones Libres",
+      "postWorkoutFeedback": "Autoevaluación",
+      "notYetEvaluated": "Aún no evaluado por el cliente",
+      "energyAfter": "energía",
       "done": "HECHO",
       "readinessCheckinFor": "Check-in de Preparación para {{name}}"
     },
@@ -1020,7 +1023,6 @@
       },
       "beforeStart": "Antes de empezar, dinos rápidamente cómo te sientes hoy.",
       "safetyGateNote": "Dolor, mareos o señales de alerta pausan automáticamente la sesión dirigida por IA.",
-      "postWorkoutLink": "¿Ya entrenaste hoy? Check-in post-entrenamiento →",
       "back": "Volver",
       "lastCheckin": "Último check-in · {{date}}",
       "streak": "racha · {{count}} días",
@@ -1091,40 +1093,6 @@
       },
       "readyPushTitle": "{{name}} está listo para entrenar",
       "readyPushBody": "Preparación {{score}}/100 · Apruebe o rechace la solicitud de entrenamiento."
-    },
-    "postWorkout": {
-      "kicker": "CHECK-IN · POST-ENTRENAMIENTO",
-      "title": "¿Cómo fue el entrenamiento?",
-      "subtitle": "Alimenta tu progresión y la IA aprende de lo que funcionó en tu cuerpo.",
-      "overallFeeling": "Sensación general",
-      "completedEverything": "¿Completaste todo?",
-      "rpe": "Esfuerzo percibido (RPE)",
-      "painDuringAfter": "¿Sentiste dolor durante o después?",
-      "painEngineNote": "Alimenta el Motor de Recurrencia de Dolor — tres ocurrencias en 14 días disparan una alerta.",
-      "noteLabel": "Nota para la IA o entrenador",
-      "notePlaceholder": "ej.: La sentadilla dolió al bajar, pero la prensa de piernas fue bien.",
-      "back": "← volver",
-      "saving": "Guardando…",
-      "saveBtn": "Guardar feedback ✓",
-      "feedbackSaved": "Feedback guardado",
-      "feedbackSavedSub": "La IA usará esto para refinar tu progresión.",
-      "sensations": {
-        "excellent": "excelente",
-        "good": "bueno",
-        "ok": "ok",
-        "hard": "duro",
-        "very_hard": "muy duro"
-      },
-      "completion": {
-        "yes": "Sí",
-        "partially": "Parcialmente",
-        "no": "No"
-      },
-      "noCompletedSessions": "No hay entrenamientos completados hoy",
-      "noCompletedSessionsSub": "Completa una sesión de entrenamiento primero para evaluarla aquí.",
-      "evaluate": "Evaluar",
-      "evaluatingSession": "Sesión {{time}} · {{duration}}",
-      "sessionLabel": "Sesión {{time}}"
     }
   },
   "auth": {

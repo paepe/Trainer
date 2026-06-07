@@ -1,7 +1,7 @@
 import { supabase } from '../supabase';
 import { emitEvent } from '../lib/events';
 import { notify } from '../lib/notify';
-import type { CheckInVariant, CheckInQuick, CheckInDetailed, CheckInVoice, CheckInPostWorkout, SafetyGateResult } from '../types/checkin-v2';
+import type { CheckInVariant, CheckInQuick, CheckInDetailed, CheckInVoice, SafetyGateResult } from '../types/checkin-v2';
 import type { Json } from '../types/supabase';
 
 interface MutateResult { error: unknown }
@@ -15,7 +15,6 @@ export function useCheckinData(userId: string | undefined, alertsEnabled = true)
     quick_data?:        CheckInQuick;
     detailed_data?:     CheckInDetailed;
     voice_data?:        CheckInVoice;
-    post_workout_data?: CheckInPostWorkout;
     safety_gate?:       SafetyGateResult;
     clientUserId?:      string;
   }): Promise<MutateResult> {
@@ -29,11 +28,10 @@ export function useCheckinData(userId: string | undefined, alertsEnabled = true)
         user_id:           effectiveUserId,
         variant:           data.variant,
         occurred_at:       new Date().toISOString(),
-        input_source:      data.variant === 'voice' ? 'voice' : data.variant === 'post_workout' ? 'post_workout' : 'form',
+        input_source:      data.variant === 'voice' ? 'voice' : 'form',
         quick_data:        toJson(qd),
         detailed_data:     toJson(dd),
         voice_data:        toJson(data.voice_data),
-        post_workout_data: toJson(data.post_workout_data),
         safety_gate:       toJson(data.safety_gate),
         energy_level:      qd?.energy           ?? dd?.energy            ?? null,
         sleep_quality:     qd?.sleep_quality     ?? dd?.sleep_quality     ?? null,

@@ -165,6 +165,14 @@ interface WorkoutSession {
   workout_session_exercises?:   SessionExercise[];
 }
 
+interface PostWorkoutFeedback {
+  session_id:      string;
+  overall_feeling: number;
+  energy_after:    number | null;
+  notes:           string | null;
+  submitted_at:    string;
+}
+
 interface PlanExercise {
   id:            string;
   exercise_name: string;
@@ -227,6 +235,35 @@ interface TrainerClientDetailScreenProps {
 // readiness chart, its legend, and the per-checkin readiness label. `t.accent`
 // is the brand "low" tone (coral); '#4ade80'/'#F5A623' are the matching
 // good/moderate tones without brand-token equivalents.
+// Read-only trainer view of the student's own post-workout self-evaluation.
+// "quem executou avalia" — trainer never edits this, only sees it (parity with HistoryScreen → PostWorkoutSummaryScreen).
+const renderPostWorkoutFeedback = (
+  session: { status?: string | null; completed_at?: string | null },
+  feedback: PostWorkoutFeedback | undefined,
+  dark: boolean,
+  tr: (key: string) => string,
+): React.ReactNode => {
+  const isDone = session.status === 'completed' || !!session.completed_at;
+  if (!isDone) return null;
+  if (!feedback) {
+    return (
+      <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 3, fontStyle: 'italic' }}>
+        {tr('trainer.detail.notYetEvaluated')}
+      </div>
+    );
+  }
+  const truncatedNotes = feedback.notes && feedback.notes.length > 60
+    ? `${feedback.notes.slice(0, 60)}…`
+    : feedback.notes;
+  return (
+    <div style={{ fontSize: 10.5, color: textSec(dark), marginTop: 3 }}>
+      {tr('trainer.detail.postWorkoutFeedback')}: {'⭐'.repeat(Math.max(0, Math.min(5, feedback.overall_feeling)))}
+      {feedback.energy_after != null ? ` · ${tr('trainer.detail.energyAfter')} ${feedback.energy_after}/10` : ''}
+      {truncatedNotes ? <span style={{ color: textMute(dark), fontStyle: 'italic' }}> — "{truncatedNotes}"</span> : null}
+    </div>
+  );
+};
+
 const tierColor = (value: number, t: { accent: string }): string =>
   value >= 70 ? '#4ade80' : value >= 40 ? '#F5A623' : t.accent;
 
@@ -246,6 +283,7 @@ export function TrainerClientDetailScreen({
   const [loading, setLoading]       = React.useState(true);
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const [expandedPlan, setExpandedPlan] = React.useState<string | null>(null);
+  const [feedbackBySession, setFeedbackBySession] = React.useState<Record<string, PostWorkoutFeedback>>({});
 
   const clientId = selectedClient?.id;
 
@@ -253,19 +291,26 @@ export function TrainerClientDetailScreen({
     if (!clientId) return;
     if (showSpinner) setLoading(true);
     void autoExpirePlans(clientId, 'trainer', planExpiryDays);
-    const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes] = await Promise.all([
+    const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes, feedbackRes] = await Promise.all([
       supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', clientId).maybeSingle(),
       supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(7),
       // C — trainer's past approve/reject decisions for this client (RLS scopes to_user_id = this trainer)
       supabase.from('notification_log').select('id,response,response_at,created_at,body').eq('from_user_id', clientId).eq('type', 'workout_ready').not('response', 'is', null).order('response_at', { ascending: false }).limit(8),
+      // Read-only: student's own post-workout self-evaluations (trainer never edits — "quem executou avalia")
+      supabase.from('post_workout_feedback').select('session_id,overall_feeling,energy_after,notes,submitted_at').eq('user_id', clientId).order('submitted_at', { ascending: false }),
     ]);
     setSessions(sessionsRes.data || []);
     setPlans(plansRes.data || []);
     setProfileV2(profV2Res.data as unknown as ProfileV2Row | null);
     setReadiness((readinessRes.data || []) as CheckInReadiness[]);
     setDecisions((decisionsRes.data || []) as ReadinessDecision[]);
+    const feedbackMap: Record<string, PostWorkoutFeedback> = {};
+    for (const f of (feedbackRes.data || []) as PostWorkoutFeedback[]) {
+      if (!feedbackMap[f.session_id]) feedbackMap[f.session_id] = f;
+    }
+    setFeedbackBySession(feedbackMap);
     setLastUpdated(new Date());
     setLoading(false);
   }, [clientId, planExpiryDays, dashboardLimit]);
@@ -280,6 +325,7 @@ export function TrainerClientDetailScreen({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'checkin_prontidao', filter: `user_id=eq.${clientId}` }, () => void load(false))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_sessions',  filter: `user_id=eq.${clientId}` }, () => void load(false))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_plans',      filter: `assigned_to=eq.${clientId}` }, () => void load(false))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_workout_feedback', filter: `user_id=eq.${clientId}` }, () => void load(false))
       .subscribe();
 
     return () => { void supabase.removeChannel(channel); };
@@ -756,6 +802,7 @@ export function TrainerClientDetailScreen({
                               {!session && p.trainer_notes ? ` · ${p.trainer_notes.slice(0, 30)}${p.trainer_notes.length > 30 ? '…' : ''}` : ''}
                               {linkedSessions.length > 1 ? ` · ${linkedSessions.length} sessions` : ''}
                             </div>
+                            {session && renderPostWorkoutFeedback(session, feedbackBySession[session.id], dark, tr)}
                           </div>
                           <span style={{
                             padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700,
@@ -839,6 +886,7 @@ export function TrainerClientDetailScreen({
                                 {exs.length > 0 ? `${exs.length} exercise${exs.length !== 1 ? 's' : ''}` : 'No exercise data'}
                                 {s.duration_minutes ? ` · ${s.duration_minutes} min` : ''}
                               </div>
+                              {renderPostWorkoutFeedback(s, feedbackBySession[s.id], dark, tr)}
                             </div>
                             <span style={{
                               padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 700,
