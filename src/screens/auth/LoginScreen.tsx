@@ -6,6 +6,7 @@ import { Icon } from '../../components/Icon';
 import { iconBtn, borderSubtle, textPri, textSec, textMute, primaryBtn, textBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { AuthError } from '@supabase/supabase-js';
+import { friendlyError } from '../../lib/friendlyError';
 
 interface Theme { primary: string; accent: string; }
 
@@ -85,7 +86,7 @@ export function LoginScreen({ nav, t, dark, signIn }: LoginScreenProps) {
     if (!email || !pw) { setErr(tr('auth.login.errFields')); return; }
     setLoading(true); setErr('');
     const { error } = await signIn(email, pw);
-    if (error) { setErr(error.message); setLoading(false); }
+    if (error) { setErr(friendlyError(error, tr)); setLoading(false); }
   };
 
   const oauth = async (provider: 'google') => {
@@ -93,7 +94,7 @@ export function LoginScreen({ nav, t, dark, signIn }: LoginScreenProps) {
       provider,
       options: { redirectTo: window.location.origin },
     });
-    if (error) setErr(error.message);
+    if (error) setErr(friendlyError(error, tr));
   };
 
   return (

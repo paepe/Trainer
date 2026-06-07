@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BCP47 } from '../../i18n';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import { Spinner } from '../../ui';
+import { friendlyError } from '../../lib/friendlyError';
 import type { CheckInVoice as CheckInVoiceData } from '../../types/checkin-v2';
 
 interface CheckInVoiceProps {
@@ -123,8 +124,8 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
       onSubmit({ transcript: text, ai_extracted: extracted });
     } catch (err: unknown) {
       setParseState('error');
-      const msg = err instanceof Error ? err.message : '';
-      setParseError(msg || tr('checkin.voice.errAnalyze'));
+      void friendlyError(err, tr);
+      setParseError(tr('checkin.voice.errAnalyze'));
     } finally {
       clearTimeout(timeout);
     }

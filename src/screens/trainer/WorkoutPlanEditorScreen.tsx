@@ -21,6 +21,7 @@ import {
 import type { NavFn } from '../../types';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
+import { friendlyError } from '../../lib/friendlyError';
 
 interface ClientProfile {
   id:    string;
@@ -138,7 +139,7 @@ export function WorkoutPlanEditorScreen({
         notes:         ex.notes || '',
       })));
     } catch (err: unknown) {
-      setAiError(err instanceof Error ? err.message : tr('trainer.planner.unknownErr'));
+      setAiError(friendlyError(err, tr));
     } finally {
       setAiLoading(false);
     }

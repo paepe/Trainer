@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui';
 import { C } from './SharedAtoms';
+import { friendlyError } from '../../lib/friendlyError';
 
 interface CreateStudioViewProps {
   onCreate: (name: string) => Promise<{ error: unknown }>;
@@ -18,7 +19,7 @@ export default function CreateStudioView({ onCreate }: CreateStudioViewProps) {
     setLoading(true);
     const { error } = await onCreate(name.trim());
     if (error) {
-      setErr(error instanceof Error ? error.message : tr('studio.createStudio.errUnknown'));
+      setErr(friendlyError(error, tr));
       setLoading(false);
     }
   }

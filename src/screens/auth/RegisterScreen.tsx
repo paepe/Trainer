@@ -6,6 +6,7 @@ import { Icon } from '../../components/Icon';
 import { iconBtn, borderSubtle, textPri, textSec, textMute, primaryBtn, textBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { AuthError } from '@supabase/supabase-js';
+import { friendlyError } from '../../lib/friendlyError';
 
 interface Theme { primary: string; accent: string; }
 
@@ -97,7 +98,7 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
     if (pw !== pw2) { setErr(tr('auth.register.errMatch')); return; }
     setLoading(true); setErr('');
     const { data, error } = await signUp(email, pw, name, role);
-    if (error) { setErr(error.message); setLoading(false); return; }
+    if (error) { setErr(friendlyError(error, tr)); setLoading(false); return; }
     const d = data as { session?: unknown } | null;
     if (!d?.session) {
       setErr(tr('auth.register.confirmEmail'));
@@ -112,7 +113,7 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
       provider,
       options: { redirectTo: window.location.origin },
     });
-    if (error) setErr(error.message);
+    if (error) setErr(friendlyError(error, tr));
   };
 
   return (

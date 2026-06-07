@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Badge, Typography, TextInput } from '@/ui';
 import { supabase } from '../../supabase';
 import { BRAND, THEME_VARS as DARK } from '../../theme/tokens';
+import { friendlyError } from '../../lib/friendlyError';
 
 export const C = {
   primary:  BRAND.primary,
@@ -166,7 +167,7 @@ export function LoginView() {
   async function login() {
     setLoading(true); setErr('');
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
-    if (error) { setErr(error.message); setLoading(false); }
+    if (error) { setErr(friendlyError(error, tr)); setLoading(false); }
   }
 
   return (

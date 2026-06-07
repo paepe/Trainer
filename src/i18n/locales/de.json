@@ -24,6 +24,16 @@
       "minutesAbbrev": "m",
       "daysAbbrev": "d",
       "percent": "%"
+    },
+    "errors": {
+      "invalidCredentials": "Falsche E-Mail-Adresse oder falsches Passwort.",
+      "userExists": "Es existiert bereits ein Konto mit dieser E-Mail-Adresse.",
+      "emailNotConfirmed": "Bitte bestätige deine E-Mail-Adresse, bevor du dich anmeldest.",
+      "weakPassword": "Bitte wähle ein stärkeres Passwort.",
+      "rateLimited": "Zu viele Versuche. Bitte warte einen Moment und versuche es erneut.",
+      "networkError": "Verbindungsproblem. Bitte überprüfe dein Netzwerk und versuche es erneut.",
+      "duplicateEntry": "Das gibt es bereits.",
+      "generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
     }
   },
   "inbox": {

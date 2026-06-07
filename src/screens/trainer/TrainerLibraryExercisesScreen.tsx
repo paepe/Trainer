@@ -10,6 +10,7 @@ import type { NavFn, ExerciseCatalogItem } from '../../types';
 import { TRAINER_ROLES } from '../../types/auth';
 
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
+import { friendlyError } from '../../lib/friendlyError';
 
 interface TrainerLibraryExercisesScreenProps {
   nav: NavFn;
@@ -152,7 +153,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
         await loadData();
       }
     } catch (err: any) {
-      setFormError(err.message || tr('trainer.library.errUnknown'));
+      setFormError(friendlyError(err, tr));
     }
   };
 

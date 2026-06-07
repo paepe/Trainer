@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, TextInput } from '@/ui';
 import type { Protocol, CreateProtocolPayload, FitnessLevel, ProtocolExercise } from '../../types';
 import { PageHeader, Empty, C } from './SharedAtoms';
+import { friendlyError } from '../../lib/friendlyError';
 import { ProtocolDetail } from './ProtocolDetail';
 
 interface ProtocolsViewProps {
@@ -61,7 +62,7 @@ export function ProtocolsView({ data }: ProtocolsViewProps) {
     if (!form.name.trim()) return;
     setLoading(true); setErr('');
     const { error } = await data.createProtocol(form);
-    if (error) { setErr(error instanceof Error ? error.message : String(error)); setLoading(false); return; }
+    if (error) { setErr(friendlyError(error, tr)); setLoading(false); return; }
     setForm({ name: '', objective: '', level: 'beginner', duration_minutes: 45, description: '', contraindications: null, tags: null });
     setShowCreate(false); setLoading(false);
   }

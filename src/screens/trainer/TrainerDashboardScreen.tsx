@@ -11,6 +11,7 @@ import type { NavFn } from '../../types';
 import type { TrainerAlert, OperationalTask } from '../../types/workout';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
+import { friendlyError } from '../../lib/friendlyError';
 
 interface ClientProfile {
   id:    string;
@@ -210,7 +211,7 @@ export function TrainerDashboardScreen({
     });
 
     if (error) {
-      setInviteErr(error.message);
+      setInviteErr(friendlyError(error, tr));
       setInviting(false);
       return;
     }

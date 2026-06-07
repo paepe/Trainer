@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Badge } from '@/ui';
 import type { StudioMember, StudioStats } from '../../types';
 import { PageHeader, C, Empty, Table } from './SharedAtoms';
+import { friendlyError } from '../../lib/friendlyError';
 
 interface TeamData {
   stats: StudioStats;
@@ -28,7 +29,7 @@ export default function TeamView({ data }: TeamViewProps) {
     setErr('');
     const { error } = await data.inviteTrainer(email);
     if (error) {
-      setErr(error instanceof Error ? error.message : String(error));
+      setErr(friendlyError(error, tr));
       setLoading(false);
       return;
     }

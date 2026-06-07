@@ -24,6 +24,16 @@
       "minutesAbbrev": "m",
       "daysAbbrev": "d",
       "percent": "%"
+    },
+    "errors": {
+      "invalidCredentials": "Correo o contraseña incorrectos.",
+      "userExists": "Ya existe una cuenta con este correo.",
+      "emailNotConfirmed": "Confirma tu dirección de correo antes de iniciar sesión.",
+      "weakPassword": "Elige una contraseña más segura.",
+      "rateLimited": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+      "networkError": "Problema de conexión. Verifica tu red e inténtalo de nuevo.",
+      "duplicateEntry": "Esto ya existe.",
+      "generic": "Algo salió mal. Inténtalo de nuevo."
     }
   },
   "inbox": {
