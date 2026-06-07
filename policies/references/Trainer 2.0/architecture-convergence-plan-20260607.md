@@ -250,10 +250,40 @@ próximo item).
 
 ## Fase 4 — Triagem das supressões `exhaustive-deps`
 
-- [ ] Localizar as 5 ocorrências de `eslint-disable ... react-hooks/exhaustive-deps`
-      remanescentes e avaliar individualmente: supressão justificada (documentar
-      o porquê inline) ou bug latente (corrigir as dependências)
-- [ ] Commit isolado: `fix(hooks): triage remaining exhaustive-deps suppressions`
+**Status: executado 2026-06-07.**
+
+- [x] `App.tsx:342` — **bug real corrigido**. `fetchProfileV2` era chamado no
+      efeito mas faltava no array de deps; já é referência estável (vinda de
+      `useProfileData`, usada em deps de outro efeito na mesma linha 247) —
+      adicionada ao array, supressão removida. Validado: contagem de warnings
+      `exhaustive-deps` permanece 9 antes/depois (nenhuma nova violação
+      introduzida, a alteração realmente fechou o gap)
+- [x] `ProfileWizardScreen.tsx:158` — **supressão justificada, comentário
+      adicionado**. Efeito "carregar rascunho do wizard uma única vez no
+      mount"; `fetchProfileV2` é prop e pode não ser referencialmente estável
+      entre renders do pai — incluí-la arriscaria reset do progresso do wizard
+      em re-renders não relacionados
+- [x] `WorkoutModeScreen.tsx:123` — **supressão justificada, comentário
+      adicionado**. Efeito "iniciar sessão de treino uma única vez ao montar
+      a tela"; reexecutar em mudanças de prop (exercises/planId) durante o
+      treino criaria sessões duplicadas e resetaria o progresso
+- [x] `CoachDNAScreen.tsx:84` — **supressão justificada (com fragilidade
+      latente documentada), comentário adicionado**. `fetchCoachDNA` vem de
+      `useCoachDNA` como função plain (não memoizada com `useCallback`) —
+      ganha nova identidade a cada render; incluí-la causaria refetch
+      contínuo. O array `[trainerId]` é o gatilho correto. **Nota para
+      revisão futura**: `useCoachDNA` deveria memoizar `fetchCoachDNA`
+      com `useCallback([trainerId])` — não corrigido aqui por estar fora do
+      escopo desta tela (mudaria o contrato do hook, usado em outros lugares)
+- [x] `useRealtimeTable.ts:68` — **supressão exemplar, sem alteração**. Já
+      usa o padrão de `ref` (`onRefreshRef`) para evitar re-subscrição por
+      mudança de identidade do callback, e já tem comentário explicando o
+      array de deps deliberado (`table`/`filter.column`/`filter.value`/
+      `enabled`) — referência de como as demais supressões devem ser
+      documentadas
+- [x] Validado `tsc`/`eslint` (231 warnings, 0 erros — mesma contagem de
+      `exhaustive-deps` antes/depois: 9)/`build` — todos limpos
+- [x] Commit: `fix(hooks): triage remaining exhaustive-deps suppressions`
 
 ## Fase 5 — Verificação de convergência (fechamento)
 

@@ -81,6 +81,9 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
       }
       setLoading(false);
     });
+  // `fetchCoachDNA` is a plain (non-memoized) function from useCoachDNA, so it
+  // gets a new identity every render — including it would re-run this effect
+  // (and re-fetch) on every render. Re-fetch only when `trainerId` changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trainerId]);
 

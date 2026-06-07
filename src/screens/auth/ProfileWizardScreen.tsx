@@ -155,6 +155,10 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
       }
       setLoading(false);
     });
+  // Intentional run-once-on-mount: loads the existing wizard draft a single
+  // time. `fetchProfileV2` is a prop and may not be referentially stable
+  // across parent renders — including it would risk re-fetching and
+  // resetting in-progress wizard state on unrelated parent re-renders.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

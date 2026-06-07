@@ -120,6 +120,9 @@ export function WorkoutModeScreen({
       }
       setPhase('active');
     });
+  // Intentional run-once-on-mount: starts the workout session exactly once
+  // when entering this screen. Re-running on prop changes (e.g. exercises,
+  // planId) mid-session would create duplicate sessions and reset progress.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

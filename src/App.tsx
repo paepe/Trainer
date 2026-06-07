@@ -339,8 +339,7 @@ export default function App() {
       const completed = data && (data as Record<string, unknown>).completed_at;
       setScreen(completed ? 'checkin' : 'profile');
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, profile, isTrainer, screen]);
+  }, [session, profile, isTrainer, screen, fetchProfileV2]);
 
   const [screenPayload,  setScreenPayload]  = React.useState<Record<string, unknown> | null>(null);
   const [profileNavKey,  setProfileNavKey]  = React.useState(0);
