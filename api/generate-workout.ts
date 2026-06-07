@@ -159,6 +159,8 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 ex
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 25_000);
 
+  const langName = locale === 'pt' || locale === 'pt-BR' ? 'Portuguese (Brazil)' : locale === 'es' || locale === 'es-ES' ? 'Spanish' : locale === 'de' || locale === 'de-DE' ? 'German' : 'English';
+
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -170,7 +172,6 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 ex
         model: 'deepseek-chat',
         max_tokens: 1024,
         messages: [
-          const langName = locale === 'pt' || locale === 'pt-BR' ? 'Portuguese (Brazil)' : locale === 'es' || locale === 'es-ES' ? 'Spanish' : locale === 'de' || locale === 'de-DE' ? 'German' : 'English';
           { role: 'system', content: SYSTEM_PROMPT.replace(/{lang}/g, langName) },
           { role: 'user',   content: userContent   },
         ],
