@@ -156,7 +156,6 @@ export function useAIContext({ trainerId, clientId }: UseAIContextOptions): UseA
 
     load();
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trainerId, clientId, tick, m5Data]);
 
   // ── callAI: send context + task to generate-smart-workout ────────────────────

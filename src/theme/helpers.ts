@@ -7,14 +7,12 @@ import { BRAND } from './tokens';
 // via data-theme (App.tsx). The `dark` param is kept so the hundreds of existing
 // call sites compile unchanged; it is intentionally ignored — the root theme
 // decides. (Trainer is always-dark §8; client toggles client-dark|client-light.)
-/* eslint-disable @typescript-eslint/no-unused-vars */
 export const surfRaised   = (_dark?: boolean): string => 'var(--surface)';
 export const surfSunken   = (_dark?: boolean): string => 'var(--sunken)';
 export const borderSubtle = (_dark?: boolean): string => 'var(--border)';
 export const textPri      = (_dark?: boolean): string => 'var(--text-pri)';
 export const textSec      = (_dark?: boolean): string => 'var(--text-sec)';
 export const textMute     = (_dark?: boolean): string => 'var(--text-mute)';
-/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export const iconBtn = (_dark?: boolean): CSSProperties => ({
   background:   'none',

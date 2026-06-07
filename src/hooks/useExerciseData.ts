@@ -41,7 +41,7 @@ export function useExerciseData() {
   async function simulateVoiceAssistant(query: string, _role: string): Promise<{ intent: string; reply: string; parsedData: any; exercises: any[] }> {
     const normalized = query.toLowerCase();
     let intent = 'unknown';
-    let reply  = '';
+    let reply: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let parsedData: any = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,7 +49,7 @@ export function useExerciseData() {
 
     if (normalized.includes('alternative') || normalized.includes('substitute') || normalized.includes('replace')) {
       intent = 'find_alternative';
-      const exerciseMatch = normalized.match(/(?:for|of|instead of)\s+([a-zA-Z\s\-]+?)(?:\s+without|\s+with|$)/);
+      const exerciseMatch = normalized.match(/(?:for|of|instead of)\s+([a-zA-Z\s-]+?)(?:\s+without|\s+with|$)/);
       const originalExercise = exerciseMatch?.[1]?.trim() ?? 'burpee';
       let constraint = 'none';
       if (normalized.includes('no impact') || normalized.includes('low impact')) constraint = 'low_impact';
@@ -91,7 +91,7 @@ export function useExerciseData() {
 
     } else if (normalized.includes('search') || normalized.includes('find') || normalized.includes('show me')) {
       intent = 'exercise_search_query';
-      let muscle = normalized.includes('hamstring') || normalized.includes('posterior chain') ? 'Legs'
+      const muscle = normalized.includes('hamstring') || normalized.includes('posterior chain') ? 'Legs'
         : normalized.includes('shoulder') || normalized.includes('overhead') ? 'shoulders'
         : 'legs';
       const equip = normalized.includes('dumbbell') || normalized.includes('db') ? 'dumbbell' : normalized.includes('barbell') || normalized.includes('bar') ? 'barbell' : '';

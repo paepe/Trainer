@@ -266,7 +266,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     // Auto-cancel stale plans (>10 days); notify trainer
     if (user?.id) void autoExpirePlans(user.id, 'client');
     try {
-      let physicalProfile: Json | null = null;
+      const physicalProfile: Json | null = null;
       let resolvedCheckin = checkin;
       if (user?.id) {
         // Load ALL actionable trainer plans (sent / active / postponed) into one unified list.

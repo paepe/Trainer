@@ -73,8 +73,8 @@ export async function requestWorkoutPlan({
     });
   } catch (err) {
     clearTimeout(timeout);
-    if ((err as Error)?.name === 'AbortError') throw new Error('Workout generation timed out.');
-    throw new Error('Unable to reach workout service.');
+    if ((err as Error)?.name === 'AbortError') throw new Error('Workout generation timed out.', { cause: err });
+    throw new Error('Unable to reach workout service.', { cause: err });
   }
   const contentType = response.headers.get('content-type') ?? '';
   if (!contentType.includes('application/json')) {
@@ -178,7 +178,7 @@ export async function requestSmartWorkout(
 
   } catch (err) {
     clearTimeout(timeout);
-    if ((err as Error)?.name === 'AbortError') throw new Error('Smart workout timed out.');
+    if ((err as Error)?.name === 'AbortError') throw new Error('Smart workout timed out.', { cause: err });
     throw err;
   }
 }

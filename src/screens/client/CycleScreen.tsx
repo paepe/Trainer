@@ -51,36 +51,6 @@ export function CycleScreen({
   nav, t, dark, cycleConfig, cycleEnabled, setCycleConfig, saveCycleConfig,
 }: CycleScreenProps) {
   const { t: tr } = useTranslation();
-  if (cycleEnabled === false) {
-    return (
-      <>
-        <ScreenTitle dark={dark}>{tr('client.cycle.title')}</ScreenTitle>
-        <div style={{ padding: '40px 22px', textAlign: 'center' }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: 20, margin: '0 auto 16px',
-            background: 'var(--surface-3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 28,
-          }}>
-            🌙
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: textPri(dark), marginBottom: 8 }}>
-            {tr('client.cycle.disabledTitle')}
-          </div>
-          <p style={{ fontSize: 13, color: textSec(dark), lineHeight: 1.55, maxWidth: 280, margin: '0 auto 16px' }}>
-            {tr('client.cycle.disabledNote')}
-          </p>
-          <button onClick={() => nav('settings')} style={{
-            padding: '11px 24px', borderRadius: 999, border: 'none',
-            background: t.primary, color: '#0E1A2B',
-            fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-          }}>
-            {tr('nav.menu')}
-          </button>
-        </div>
-      </>
-    );
-  }
 
   const cfg = cycleConfig || { length: 28 };
   const cycleLen = cfg.length || 28;
@@ -143,6 +113,37 @@ export function CycleScreen({
     if (dragRef.current) handlePointer(e.clientX, e.clientY);
   };
   const onUp = () => { dragRef.current = false; };
+
+  if (cycleEnabled === false) {
+    return (
+      <>
+        <ScreenTitle dark={dark}>{tr('client.cycle.title')}</ScreenTitle>
+        <div style={{ padding: '40px 22px', textAlign: 'center' }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 20, margin: '0 auto 16px',
+            background: 'var(--surface-3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 28,
+          }}>
+            🌙
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: textPri(dark), marginBottom: 8 }}>
+            {tr('client.cycle.disabledTitle')}
+          </div>
+          <p style={{ fontSize: 13, color: textSec(dark), lineHeight: 1.55, maxWidth: 280, margin: '0 auto 16px' }}>
+            {tr('client.cycle.disabledNote')}
+          </p>
+          <button onClick={() => nav('settings')} style={{
+            padding: '11px 24px', borderRadius: 999, border: 'none',
+            background: t.primary, color: '#0E1A2B',
+            fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          }}>
+            {tr('nav.menu')}
+          </button>
+        </div>
+      </>
+    );
+  }
 
   const lastPeriodDate = (() => {
     const d = new Date();
