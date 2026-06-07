@@ -41,25 +41,60 @@ que o estimado, re-baselinear e documentar (padrão já validado no ciclo anteri
 - [x] Validado `tsc --noEmit` (limpo), `eslint` (232 warnings, 0 erros — mesma
       baseline pré-existente, nenhum novo problema introduzido), `npm run build`
       (sucesso)
-- [ ] Commit isolado: `feat(ui): add shared Spinner and i18n-aware date/number formatters`
+- [x] Commit: `feat(ui): add shared Spinner and i18n-aware date/number formatters` (`bec5cb8`)
 
 ## Fase 2 — Inspeção dirigida de Empty States e confirmações destrutivas
 
-A varredura por grep não confirmou se existe (ou não) um padrão de Empty State
-e de confirmação de ações destrutivas — requer leitura direta das telas.
+**Status: investigado 2026-06-07 — fechado, sem mudança de código.**
 
-- [ ] Inspecionar amostra representativa de telas com listas/dados assíncronos
-      (`InboxScreen`, `HistoryScreen`, `TrainerClientDetailScreen`,
-      `StartWorkoutScreen`, `PerformanceDashboardScreen`) e registrar como cada
-      uma trata o estado "sem dados"
-- [ ] Inspecionar telas com ações destrutivas (cancelar plano, remover cliente,
-      descartar treino) e registrar se usam um padrão de confirmação comum ou
-      overlays ad-hoc
-- [ ] Decidir, com base no levantamento real (não na suposição): criar
-      `EmptyState`/`ConfirmDialog` em `src/ui/` somente se houver duplicação
-      genuína — caso contrário, documentar como não-problema e encerrar a fase
-- [ ] Se aplicável: criar componente(s) e listar pontos de substituição
-- [ ] Commit isolado (se houver mudança de código): `feat(ui): add shared EmptyState/ConfirmDialog where duplication confirmed`
+### Empty States
+
+Inspecionadas as 5 telas amostradas. Todas tratam "sem dados" — não há
+ausência de tratamento —, mas cada uma com sua própria marcação inline:
+
+| Tela | Implementação | Estilo |
+| --- | --- | --- |
+| `InboxScreen.tsx:232` | `<div padding:'48px 22px' textAlign:'center'>` + `<Icon name="bell"/>` + texto | Com ícone |
+| `HistoryScreen.tsx:122` | `<div padding:'32px 0' textAlign:'center'>` + texto | Só texto |
+| `TrainerClientDetailScreen.tsx:578,711` | `<div color:textMute fontSize:12>` + texto | Só texto, inline na lista |
+| `PerformanceDashboardScreen.tsx:83` | `<div padding:60 textAlign:'center' fontFamily:FF_MONO>` + texto | Só texto, fonte distinta |
+| `StartWorkoutScreen.tsx` | Não possui — tela sempre tem conteúdo (fallback de plano) | N/A |
+
+**Achado:** existe duplicação real (4 variações de "centralizar texto cinza
+muted em padding"), mas o impacto visual é baixo — todas convergem
+visualmente para "texto muted centralizado", com pequenas variações de
+padding/fonte/ícone que refletem o contexto de cada tela (lista cheia vs.
+dashboard vs. inbox). Criar um componente `EmptyState` agora exigiria definir
+uma API genérica o bastante para cobrir "com ícone", "sem ícone", "inline em
+lista" e "full-bleed dashboard" — abstração prematura para 4 ocorrências que já
+funcionam e não geram confusão ao usuário. **Decisão: não criar componente
+agora; registrar o padrão para quando uma 5ª variação aparecer** (sinal de que
+a abstração se pagaria).
+
+### Confirmações de ação destrutiva
+
+Varredura completa por handlers `onClick`/`handle*` de cancelar/remover/excluir
+em `src/screens/` encontrou **apenas uma** confirmação de ação destrutiva real
+em todo o sistema: o modal de cancelamento de plano em
+`StartWorkoutScreen.tsx:889-940` (bottom-sheet com overlay, título, corpo
+explicativo "não pode ser desfeito" e botões Manter/Cancelar). O único outro
+hit (`TrainerLibraryExercisesScreen.tsx:770`) é um botão "Cancelar" de
+formulário de edição — não uma ação destrutiva, não precisa de confirmação.
+
+**Achado:** não há padrão a convergir porque não há duplicação — existe um
+único caso de confirmação destrutiva no sistema inteiro. Construir um
+`ConfirmDialog` compartilhado agora seria abstrair a partir de uma amostra de
+1, o oposto do que os pilares de modularidade pedem. **Decisão: não criar
+componente; o modal existente em `StartWorkoutScreen` serve como referência de
+padrão para o *próximo* caso que surgir** (nesse momento, com 2 ocorrências
+reais, a extração para `src/ui/` se justifica).
+
+- [x] Empty States — 5 telas inspecionadas, padrão registrado, decisão:
+      não criar componente agora (duplicação real, mas baixo impacto e
+      variações legítimas de contexto — abstração prematura)
+- [x] Confirmações destrutivas — varredura completa, decisão: não criar
+      componente (amostra de 1, sem duplicação a convergir)
+- [x] Nenhuma mudança de código necessária — fase fechada por investigação
 
 ## Fase 3 — Convergência das 6 telas concentradoras (uma por vez)
 
