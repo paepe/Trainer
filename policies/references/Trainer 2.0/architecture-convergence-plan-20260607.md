@@ -192,7 +192,30 @@ claramente separável (não dividir por tamanho, dividir por coesão).
       único `Promise.all` que hidrata o estado desta tela especificamente —
       extrair para hook relocaria o acoplamento sem reduzi-lo; mantidas como
       estão. Validado `tsc`/`eslint` (231 warnings, 0 erros)/`build` — limpos.
-- [ ] `StartWorkoutScreen.tsx` (972 linhas, 44 cores hardcoded, acesso direto ao Supabase)
+- [x] `StartWorkoutScreen.tsx` (972 linhas, 44 cores hardcoded estimadas,
+      acesso direto ao Supabase) — **investigado e convergido 2026-06-07.**
+      Achados: (1) par `dark ? '#fff' : '#0E1A2B'` repetido 7× idêntico —
+      extraído para helper local `inkPri(dark)`; **não** reconciliado com o
+      `textPri(dark)` já importado (que resolve `--text-pri`, um navy
+      diferente em temas claros) para evitar mudança visual não intencional —
+      documentado inline para revisão de design futura; (2) família de tons
+      com sufixo alpha — `#EF5B3C`/`#FF4D4D`/`#F5B45A`/`#A78BFA`/`#10B981`
+      (14 ocorrências) — eram **matches exatos** de `t.accent`/`t.criticalRed`/
+      `t.amber`/`t.lavender`/`t.liveAction`; convergidos diretamente
+      (precisou estender a interface `Theme` local, que só declarava
+      `primary`/`primarySoft`/`accent`, com as 4 chaves novas); (3) `'#F5A623'`
+      (status "active" do plano, 1 ocorrência) mantido como literal — não
+      corresponde a nenhum token de marca, amostra única; (4) `#6b7a90`/
+      `#aab`/`#9aa` (tons de texto secundário/muted com pequenas variações de
+      alfa entre si) mantidos — não são duplicação real, são ajustes pontuais
+      de hierarquia tipográfica por contexto. As 13 chamadas Supabase cobrem
+      4 fluxos distintos (geração/salvamento de plano, carregamento de sessão
+      via `Promise.all`, ações de ciclo de vida do plano start/postpone/cancel,
+      lookup de vínculo com trainer) — todas fortemente acopladas aos seus
+      fluxos de UI específicos; extrair adicionaria indireção sem reduzir
+      risco. O modal de confirmação de cancelamento (registrado na Fase 2
+      como referência única no sistema) permanece intacto. Validado
+      `tsc`/`eslint` (231 warnings, 0 erros)/`build` — todos limpos.
 - [ ] `PerformanceDashboardScreen.tsx` (1043 linhas — maior arquivo do sistema)
 
 Cada item desta fase é um commit isolado e um ciclo de validação completo

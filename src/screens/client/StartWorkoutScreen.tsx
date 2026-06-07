@@ -15,6 +15,14 @@ import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { notify }            from '../../lib/notify';
 
+// Primary text colour over this screen's plan/exercise list surfaces — repeated
+// identically (white in dark mode, navy `#0E1A2B` in light) across the plan
+// header, exercise rows, and modal titles. Distinct from the shared `textPri`
+// (which resolves to `--text-pri`, a different navy in light themes); kept
+// local rather than reconciled with the design-system token to avoid an
+// unintended visual change — flagged here for design review.
+const inkPri = (dark: boolean): string => (dark ? '#fff' : '#0E1A2B');
+
 // Default AI trainer used when client has no linked trainer
 const DEFAULT_AI_TRAINER: TrainerContext = {
   id: 'ai-coach', name: 'AI Coach', archetype: 'performance',
@@ -31,6 +39,10 @@ interface Theme {
   primary:     string;
   primarySoft: string;
   accent:      string;
+  amber:       string;
+  lavender:    string;
+  criticalRed: string;
+  liveAction:  string;
 }
 
 interface AppUser {
@@ -531,7 +543,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const STATUS_META: Record<string, { label: string; color: string }> = {
     sent:      { label: tr('client.workout.planStatus.sent'),      color: t.primary },
     active:    { label: tr('client.workout.planStatus.active'),    color: '#F5A623' },
-    postponed: { label: tr('client.workout.planStatus.postponed'), color: '#F5B45A' },
+    postponed: { label: tr('client.workout.planStatus.postponed'), color: t.amber },
   };
 
   const notifyTrainerAction = (p: PlanCard, kind: 'cancelled' | 'postponed') => {
@@ -591,10 +603,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             onClick={() => { setNewPlanArrived(false); void fetchPlan(); }}
             style={{
               width: '100%', padding: '12px 16px', borderRadius: 12,
-              background: '#10B981', color: '#fff', border: 'none',
+              background: t.liveAction, color: '#fff', border: 'none',
               fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              boxShadow: '0 6px 18px #10B98155',
+              boxShadow: `0 6px 18px ${t.liveAction}55`,
             }}
           >
             <Icon name="sparkle" size={15} color="#fff" stroke={2.4}/>
@@ -632,7 +644,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               </div>
             </div>
             <div style={{
-              fontSize: 17, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B',
+              fontSize: 17, fontWeight: 700, color: inkPri(dark),
               fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
@@ -674,7 +686,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                       background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
                     }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: 12.5, fontWeight: 600, color: dark ? '#fff' : '#0E1A2B' }}>{dateLabel}</span>
+                        <span style={{ fontSize: 12.5, fontWeight: 600, color: inkPri(dark) }}>{dateLabel}</span>
                         <span style={{ fontSize: 11.5, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginLeft: 8 }}>
                           {p.exercises.length === 1
                             ? tr('client.workout.exerciseCount_one', { count: p.exercises.length })
@@ -692,8 +704,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                       onClick={() => setConfirmCancelPlan(p)}
                       style={{
                         flexShrink: 0, padding: '3px 9px', borderRadius: 999,
-                        background: '#FF4D4D22', color: '#FF4D4D',
-                        border: '1px solid #FF4D4D44', fontSize: 10, fontWeight: 700,
+                        background: `${t.criticalRed}22`, color: t.criticalRed,
+                        border: `1px solid ${t.criticalRed}44`, fontSize: 10, fontWeight: 700,
                         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '.04em',
                       }}
                     >
@@ -717,7 +729,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                             color: t.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}>{ei + 1}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B' }}>{ex.exercise_name}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: inkPri(dark) }}>{ex.exercise_name}</div>
                             <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
                               {[
                                 ex.sets        ? `${ex.sets} sets`         : null,
@@ -738,8 +750,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                           <button
                             onClick={() => postponePlan(p)}
                             style={{
-                              flex: 1, padding: '10px 0', borderRadius: 10, border: `1.5px solid #F5B45A55`,
-                              background: '#F5B45A18', color: '#F5B45A', fontSize: 12, fontWeight: 700,
+                              flex: 1, padding: '10px 0', borderRadius: 10, border: `1.5px solid ${t.amber}55`,
+                              background: `${t.amber}18`, color: t.amber, fontSize: 12, fontWeight: 700,
                               cursor: 'pointer', fontFamily: 'inherit',
                             }}
                           >
@@ -769,16 +781,16 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
       {/* Safety Gate block — shown when ai_led_blocked */}
       {safetyBlocked && (
-        <div style={{ margin: '0 22px 16px', padding: '18px 18px', borderRadius: 16, background: '#EF5B3C12', border: '1.5px solid #EF5B3C44' }}>
+        <div style={{ margin: '0 22px 16px', padding: '18px 18px', borderRadius: 16, background: `${t.accent}12`, border: `1.5px solid ${t.accent}44` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#EF5B3C22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Icon name="heart" size={18} color="#EF5B3C" stroke={2.2}/>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: `${t.accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="heart" size={18} color={t.accent} stroke={2.2}/>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#EF5B3C' }}>{safetyTitle}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: t.accent }}>{safetyTitle}</div>
           </div>
           <p style={{ margin: '0 0 12px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6 }}>{safetyMessage}</p>
           {readinessScore !== null && (
-            <div style={{ fontSize: 11, color: '#EF5B3C', fontWeight: 600 }}>
+            <div style={{ fontSize: 11, color: t.accent, fontWeight: 600 }}>
               {tr('client.workout.readinessScoreLabel')}{readinessScore}/100
             </div>
           )}
@@ -838,10 +850,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 5,
                 marginBottom: 10, padding: '4px 10px', borderRadius: 999,
-                background: '#A78BFA22', border: '1px solid #A78BFA55',
+                background: `${t.lavender}22`, border: `1px solid ${t.lavender}55`,
               }}>
                 <span style={{ fontSize: 11 }}>🌙</span>
-                <span style={{ fontSize: 11.5, fontWeight: 600, color: '#A78BFA' }}>
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: t.lavender }}>
                   {tr('client.workout.phaseDay', { phase: cycleCtx.phase, day: cycleCtx.day, length: cycleCtx.cycleLength })}{tr('client.workout.cycleAdapted')}
                 </span>
               </div>
@@ -902,12 +914,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               border: `1px solid ${borderSubtle(dark)}`,
             }}
           >
-            <div style={{ fontSize: 17, fontWeight: 700, color: dark ? '#fff' : '#0E1A2B', marginBottom: 8, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: inkPri(dark), marginBottom: 8, fontFamily: '"Plus Jakarta Sans",sans-serif' }}>
               {tr('client.workout.cancelModalTitle')}
             </div>
             <div style={{ fontSize: 13, color: textSec(dark), lineHeight: 1.55, marginBottom: 22 }}>
               {tr('client.workout.cancelModalFrom')}
-              <b style={{ color: dark ? '#fff' : '#0E1A2B' }}>
+              <b style={{ color: inkPri(dark) }}>
                 {confirmCancelPlan.sentAt
                   ? new Date(confirmCancelPlan.sentAt).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric' })
                   : tr('client.workout.cancelModalYourTrainer')}
@@ -921,7 +933,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 style={{
                   flex: 1, padding: '13px 0', borderRadius: 14,
                   background: 'transparent', border: `1.5px solid ${borderSubtle(dark)}`,
-                  color: dark ? '#fff' : '#0E1A2B', fontSize: 14, fontWeight: 600,
+                  color: inkPri(dark), fontSize: 14, fontWeight: 600,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
@@ -931,7 +943,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 onClick={() => { cancelPlan(confirmCancelPlan); setConfirmCancelPlan(null); }}
                 style={{
                   flex: 1, padding: '13px 0', borderRadius: 14,
-                  background: '#FF4D4D', border: 'none',
+                  background: t.criticalRed, border: 'none',
                   color: '#fff', fontSize: 14, fontWeight: 700,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}
