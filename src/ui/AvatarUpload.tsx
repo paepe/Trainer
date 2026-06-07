@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon';
 import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { HStack, VStack } from './Layout';
 import { Typography } from './Typography';
+import { Spinner } from './Spinner';
 
 export interface AvatarUploadProps {
   value: string | null;
@@ -102,16 +103,7 @@ export function AvatarUpload({
             </div>
           </>
         ) : loading ? (
-          <div
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: '50%',
-              border: `2px solid ${DARK.border}`,
-              borderTopColor: BRAND.accent,
-              animation: 'spin .7s linear infinite',
-            }}
-          />
+          <Spinner size={20} thickness={2} color={BRAND.accent} trackColor={DARK.border} />
         ) : name ? (
           <span style={{ fontSize: 26, fontWeight: 800, color: BRAND.accent }}>
             {getInitials(name)}
@@ -154,7 +146,6 @@ export function AvatarUpload({
         onChange={handleFile}
         style={{ display: 'none' }}
       />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </HStack>
   );
 }
