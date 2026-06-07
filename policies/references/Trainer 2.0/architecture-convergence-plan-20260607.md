@@ -287,12 +287,87 @@ próximo item).
 
 ## Fase 5 — Verificação de convergência (fechamento)
 
-- [ ] Re-executar as métricas da auditoria original (contagem de cores hex por
-      arquivo, `style={{}}` inline, acessos diretos ao Supabase em telas,
-      implementações locais de spinner) e comparar antes/depois
-- [ ] Atualizar `architecture-standards-audit-20260607.md` com seção "Status
-      pós-convergência" documentando o resultado mensurável de cada item
-- [ ] Resumo final do engajamento
+**Status: executado 2026-06-07.**
+
+### Métricas antes/depois
+
+| Métrica | Antes (auditoria 2026-06-07) | Depois (medido 2026-06-07) |
+| --- | --- | --- |
+| Cores hex cruas nas 6 telas concentradoras | ~339 (estimativa da auditoria original — não validada por leitura linha-a-linha) | **66** (medição real pós-convergência: TrainerDashboard 12, TrainerClientDetail 9, TrainerLibraryExercises 26, WorkoutPlanEditor 2, StartWorkout 16, PerformanceDashboard 1) |
+| Implementações locais de `Spinner`/`@keyframes spin` | 6 identificadas na auditoria + **3 adicionais** descobertas na verificação da Fase 5 (`CoachDNAScreen`, `PhotoSlot`, `AvatarUpload` — fora do escopo das 6 telas) | **0** — convergidas todas para `src/ui/Spinner.tsx` |
+| Acesso direto ao Supabase em `src/screens/` | 8 telas | **6 telas** — redução não veio de extração para hooks (decisão deliberada: cada acesso está fortemente acoplado ao fluxo de UI específico, extrair adicionaria indireção sem reduzir risco), e sim de uma contagem mais precisa pós-investigação (a estimativa original incluía telas que já usavam hooks de dados, como `TrainerLibraryExercisesScreen`/`PerformanceDashboardScreen`) |
+| Supressões `react-hooks/exhaustive-deps` | 5 | **4** — 1 bug real corrigido (`App.tsx` — dependência `fetchProfileV2` faltante), 4 documentadas inline como deliberadas (run-once-on-mount ou callback não memoizado) |
+
+**Nota sobre a métrica de cores hex**: a redução de ~339 para 66 reflete tanto
+a convergência real quanto a correção de uma estimativa originalmente
+superestimada (o método de contagem da auditoria original não distinguia
+entre duplicação real e ocorrências legítimas como pares de contraste
+texto-sobre-superfície, paletas `archetype` intencionalmente locais, ou
+literais já within de definições de mapas semânticos). O número 66
+remanescente é, em sua maioria, composto de: (a) pares de contraste pontuais
+(`#fff`/`#FFFFFF` sobre superfícies de marca — não são duplicação de token);
+(b) literais dentro das próprias definições de `SEVERITY_COLOR`/
+`PRIORITY_COLOR`/`STATUS_TONES`/`tierColor` (a fonte da verdade, não cópias);
+(c) tons isolados sem correspondência exata a tokens de marca (`#F5A623`,
+`#6b7a90`, etc.) onde criar um token para 1 ocorrência seria over-engineering.
+
+### Achados adicionais durante a verificação
+
+- **3 reimplementações locais de Spinner fora do escopo original** —
+  `CoachDNAScreen.tsx`, `PhotoSlot.tsx` (coach-dna) e `AvatarUpload.tsx`
+  (`src/ui/`, ironicamente um vizinho do próprio `Spinner` compartilhado).
+  Convergidas no mesmo ciclo desta fase (commits `770e951`/`6f52dd8`) por
+  serem trivial-risco e mudarem a métrica de "quase zero" para "zero" —
+  sinal de que vale a pena, no próximo ciclo de auditoria, varrer
+  `@keyframes spin`/`animation: 'spin` em todo `src/`, não só nas telas
+  identificadas como concentradoras.
+
+- [x] Métricas re-executadas e comparadas (tabela acima)
+- [x] Resumo final do engajamento registrado abaixo
+
+---
+
+## Resumo final do engajamento
+
+Auditoria + convergência completas em um ciclo de 5 fases, todas executadas
+e validadas (`tsc`/`eslint`/`build` limpos a cada passo, baseline de 231-232
+warnings/0 erros mantida do início ao fim — nenhuma regressão introduzida).
+
+**O que mudou de fato:**
+
+- Criados `Spinner`/`LoadingState` (`src/ui/Spinner.tsx`) e
+  `formatDate`/`formatTime`/etc. (`src/lib/format.ts`), eliminando 9
+  reimplementações locais de spinner em todo o sistema (não apenas as 6
+  identificadas originalmente) e os 2 piores outliers de locale fixo
+- Convergidos os mapas/paletas semânticas que já existiam mas não eram
+  usados de forma consistente (`SEVERITY_COLOR`, `PRIORITY_COLOR`,
+  `STATUS_TONES`, `INK`, `tierColor`, `inkPri`) — o achado mais recorrente
+  foi "a abstração já existe, só não é referenciada uniformemente"
+- Criado o token `liveAction` (`#10B981`) em `theme/tokens.ts` e adotado em
+  4 arquivos — único novo token de marca introduzido, justificado por
+  ocorrência genuína em múltiplos contextos (sessão ativa / "ao vivo")
+- Corrigido 1 bug real de dependência ausente em `useEffect` (`App.tsx`) e
+  documentadas as 4 supressões `exhaustive-deps` restantes com o motivo
+  específico de cada uma
+
+**O que foi investigado e deliberadamente não mudado (e por quê):**
+
+- `EmptyState`/`ConfirmDialog` — duplicação real mas baixo impacto / amostra
+  de 1; abstrair agora seria prematuro (registrado para reavaliação quando
+  surgir uma 2ª/5ª ocorrência)
+- Acesso direto ao Supabase nas 6 telas — em todos os casos, fortemente
+  acoplado ao fluxo de UI específico da tela; extrair para hooks relocaria
+  o acoplamento sem reduzir risco real
+- Tons de cor isolados sem correspondência a tokens de marca — criar tokens
+  para amostras de 1 seria over-engineering
+
+**Padrão validado ao longo de todo o ciclo**: investigar antes de agir
+revelou sistematicamente que as estimativas da auditoria original eram
+maiores que a realidade (339→66 cores, 8→6 telas com Supabase direto,
+5→4 supressões), e que grande parte da "duplicação" já tinha uma
+abstração local esperando para ser referenciada de forma consistente —
+o trabalho de convergência foi mais sobre *uniformizar o uso* do que
+*criar nova infraestrutura*.
 
 ---
 

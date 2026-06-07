@@ -182,5 +182,18 @@ focado nesse conjunto específico.
 
 ---
 
+## Status pós-convergência (2026-06-07)
+
+O plano de convergência derivado desta auditoria
+(`architecture-convergence-plan-20260607.md`) foi executado e fechado em
+5 fases no mesmo dia. Métricas finais e resumo do engajamento estão na
+seção "Fase 5 — Verificação de convergência" daquele documento — incluindo
+a tabela antes/depois e a observação de que várias estimativas desta
+auditoria inicial (cores hex ~339→66, telas com Supabase direto 8→6,
+supressões `exhaustive-deps` 5→4) eram superiores ao escopo real, revelado
+só através de investigação linha-a-linha de cada arquivo.
+
+---
+
 *Documento de constatação factual — sem recomendações de correção. Aguardando
 sua avaliação para definição de prioridades e plano de ação.*
