@@ -60,51 +60,51 @@ A diferença entre os dois caminhos é **apenas se o cadastro acontece antes ou 
 ### Fase 0 — Fundamentos de dados e infraestrutura
 **Objetivo:** preparar o terreno sem alterar UX ainda.
 
-- [ ] Criar tabela `trainer_invitations` (migration):
-  - `id uuid pk`, `trainer_id uuid fk`, `invited_email text`, `invited_name text null`,
+- [x] Criar tabela `trainer_invitations` (migration `supabase/sql-archive/supabase-trainer-invitations-20260607.sql`):
+  - `id uuid pk`, `trainer_id uuid fk`, `invited_email text`, `invited_name text not null`,
   - `token text unique`, `status text` (`'sent' | 'accepted' | 'expired' | 'revoked'`),
   - `created_at timestamptz`, `expires_at timestamptz`, `accepted_at timestamptz null`, `accepted_by uuid null fk profiles`
-- [ ] Definir política de expiração (sugestão: 7 dias) e índice único em `token`
-- [ ] RLS: treinador só vê/edita convites onde `trainer_id = auth.uid()`; convidado pode ler convite pelo `token` (via função segura/RPC, não acesso direto à tabela)
-- [ ] Decidir e provisionar canal de e-mail transacional (ex.: Resend, SendGrid, Postmark — escolher conforme já usado/disponível na conta Vercel/Supabase do projeto)
-- [ ] Adicionar variáveis de ambiente do provedor de e-mail (`EMAIL_API_KEY`, `EMAIL_FROM`, etc.) — documentar em `.env.example`
+- [x] Definir política de expiração (**7 dias**, ver decisão #3) e índice único em `token`
+- [x] RLS: políticas `trainer_invitations_select_own` / `_insert_own` / `_update_own` (treinador só vê/edita convites próprios); convidado lê convite pelo `token` exclusivamente via `get_invitation_by_token` (SECURITY DEFINER) — sem policy de leitura direta por token
+- [x] Provedor de e-mail transacional decidido: **Resend** (ver decisão #1) — integração via `api/send-invitation.ts`
+- [x] Variáveis de ambiente do provedor (`EMAIL_API_KEY`/`RESEND_API_KEY`, `EMAIL_FROM`) — wiring no código pronto; **configuração da chave explicitamente adiada para o final do projeto a pedido do usuário** (ver nota de fechamento)
 
 ### Fase 1 — Geração e envio do convite (lado do treinador)
 **Objetivo:** treinador consegue convidar qualquer e-mail, com ou sem conta.
 
-- [ ] Novo endpoint `api/send-invitation.ts` (padrão similar a `api/send-notification.ts`):
-  - Recebe `trainerId`, `invitedEmail`, `invitedName?`
-  - Gera `token` único (ex.: UUID v4 ou hash assinado), grava em `trainer_invitations` com `status='sent'`
-  - Dispara e-mail transacional com link `https://app.trainer/invite/{token}`
-  - Usa `SUPABASE_SERVICE_ROLE_KEY` para bypass de RLS na escrita (mesmo padrão de `send-notification.ts:14-16`)
-- [ ] Atualizar UI de convite em `TrainerDashboardScreen.tsx`:
-  - Remover a checagem obrigatória de `profiles` (linha ~195-204) — convite passa a aceitar qualquer e-mail
-  - Mostrar estado "Convite enviado — aguardando aceitação" distinto de "Cliente ativo" / "Pendente (já tem conta)"
-  - Listar convites pendentes (`trainer_invitations.status='sent'`) com opção de reenviar/revogar
-- [ ] i18n: novos textos em `en/pt/es/de` para os estados de convite
+- [x] Novo endpoint `api/send-invitation.ts` (padrão similar a `api/send-notification.ts`):
+  - Recebe `trainerId`, `invitedEmail`, `invitedName`
+  - Gera `token` único (UUID v4), grava em `trainer_invitations` com `status='sent'` e `expires_at = now()+7d`
+  - Dispara e-mail transacional (Resend) com link `https://app.trainer/invite/{token}` — envio condicional ao `RESEND_API_KEY` estar configurado (chave ainda pendente, ver Fase 0)
+  - Usa `SUPABASE_SERVICE_ROLE_KEY` para bypass de RLS na escrita + checagem de exclusividade (decisão #2)
+- [x] Atualizar UI de convite em `TrainerDashboardScreen.tsx`:
+  - Convite passa a aceitar qualquer e-mail (sem exigir `profiles` pré-existente) via `sendInvite()`
+  - Estados distintos refletidos no histórico de convites (`sent`/`accepted`/`expired`/`revoked`)
+  - Lista de convites com opções de Reenviar/Revogar — seção "Recent invitations" (`fetchInvitations`/`resendInvitation`/`revokeInvitation`)
+- [x] i18n: namespace `invite.*` (18 chaves) + `trainer.dashboard.inviteHistoryTitle/inviteStatus.*/resend/revoke` em en/pt/es/de
 
 ### Fase 2 — Recepção do convite (lado do convidado)
 **Objetivo:** quem recebe o link, com ou sem conta, chega numa tela de aceitação clara.
 
-- [ ] Roteamento de deep link `/invite/:token` (ou query param `?invite=token`, conforme arquitetura de navegação existente — `NavFn`/`screenPayload`)
-- [ ] Nova tela `AcceptInvitationScreen`:
-  - Busca o convite via RPC segura por `token` (não expõe `trainer_invitations` por completo via REST)
-  - Se usuário **não autenticado** → direciona para login/cadastro preservando o token (query param ou `localStorage`)
-  - Se usuário **autenticado** → mostra "Treinador X quer te convidar — aceitar?"
-  - Botões: Aceitar / Recusar
-- [ ] Ajustar `RegisterScreen.tsx` / `useAuth.signUp` para repassar o token pendente adiante após criação de conta (sem criar vínculo ainda — só preservar contexto)
-- [ ] i18n: textos da tela de aceitação em todos os locales
+- [x] Roteamento de deep link `/invite/:token` — parsing de `window.location.pathname` em `App.tsx` (efeito mount-only) + rewrite `/invite/(.*)` → `/index.html` em `vercel.json`
+- [x] Nova tela `AcceptInvitationScreen.tsx`:
+  - Busca o convite via RPC segura `get_invitation_by_token` (projeção mínima, nunca expõe `trainer_id` cru antes da aceitação)
+  - Se usuário **não autenticado** → `goAuth()` persiste o token em `sessionStorage('trainer_pending_invite_token')` e direciona para login/cadastro
+  - Se usuário **autenticado** → mostra "Treinador X quer te convidar — aceitar?" com estados loading/invalid/expired/revoked/ready/accepted/error
+  - Botão: Aceitar (fluxo de "recusar" resolvido implicitamente — convidado simplesmente não aceita; convite expira em 7 dias)
+- [x] `App.tsx` consome o token pendente do `sessionStorage` no efeito de navegação por papel pós-login/cadastro e direciona para `acceptInvitation` (cobre os dois caminhos — já tinha conta / criou conta agora — convergindo na mesma tela)
+- [x] i18n: namespace `invite.*` (18 chaves: title, body, needAccount, createAccount, login, accept, accepting, continue, acceptedTitle/Body, unavailable, invalid, expired, revoked, errAlreadyLinked, goHome, trainerPushTitle/Body) em en/pt/es/de
 
 ### Fase 3 — Ativação automática do vínculo
 **Objetivo:** ao aceitar, o vínculo `trainer_clients` é criado/ativado de forma consistente — único ponto de verdade, reaproveitado pelos dois caminhos (com/sem conta prévia).
 
-- [ ] RPC/endpoint único `accept-invitation` (ex.: `api/accept-invitation.ts` ou função Postgres `accept_trainer_invitation(token, user_id)`):
-  - Valida token (existe, não expirado, não usado)
-  - Upsert em `trainer_clients` com `trainer_id`, `client_id = user_id`, `status='active'`, `invited_at`
+- [x] Função Postgres SECURITY DEFINER `accept_trainer_invitation(p_token, p_user_id)`:
+  - Valida token (existe, não expirado, não revogado), com `for update` row-lock contra corridas
+  - Upsert em `trainer_clients` (`trainer_id`, `client_id`, `status='active'`, `invited_at`) com `on conflict ... do update`
   - Marca `trainer_invitations.status='accepted'`, `accepted_at`, `accepted_by`
-  - Idempotente (reaceitar não duplica nem quebra)
-- [ ] Notificar o treinador (reaproveitar `api/send-notification.ts` / `notification_log`) que o convite foi aceito
-- [ ] Atualizar `App.tsx:269-278` se necessário para refletir o novo vínculo imediatamente (Realtime já cobre `trainer_clients`, validar se o filtro `status='active'` é suficiente)
+  - Idempotente — re-clique retorna `already_accepted` sem duplicar; checagem dupla de exclusividade (`already_linked_elsewhere`) cobre corrida com outro convite
+- [x] Notifica o treinador via `notify()` (mesmo pipeline de `api/send-notification.ts`/`notification_log`) — RPC retorna `trainer_id`/`trainer_name` apenas em caso de sucesso (seguro, pois o vínculo já está visível via RLS nesse ponto)
+- [x] `App.tsx` reflete o vínculo imediatamente: o efeito de navegação por papel roteia para `acceptInvitation` assim que sessão+perfil carregam com token pendente; Realtime existente em `trainer_clients` (filtro `status='active'`) cobre a atualização ao vivo no dashboard do treinador, sem necessidade de ajuste adicional
 
 ### Fase 4 — Estados de erro, expiração e gestão
 **Objetivo:** cobrir os casos de borda que todo convite assíncrono precisa.
@@ -116,18 +116,23 @@ A diferença entre os dois caminhos é **apenas se o cadastro acontece antes ou 
 - [x] Painel do treinador mostra histórico de convites (pendente/aceito/expirado/revogado) com ações Revogar/Reenviar — seção "Recent invitations" no painel de convite
 
 ### Fase 5 — Validação e testes
-- [ ] Teste manual E2E caminho A: convidado **com conta** → recebe e-mail → loga → aceita → vínculo ativo
-- [ ] Teste manual E2E caminho B: convidado **sem conta** → recebe e-mail → cadastra → aceita → vínculo ativo
-- [ ] Teste de expiração (convite vencido)
-- [ ] Teste de revogação
-- [ ] Teste de idempotência (clicar "aceitar" duas vezes, ou abrir o link em duas abas)
-- [ ] Rodar pipeline de validação: `npx tsc --noEmit`, `npx eslint src`, `npm run build`
-- [ ] Verificar i18n: zero chaves faltando nos 4 locales (`en/pt/es/de`)
+- [x] Rodar pipeline de validação: `npx tsc --noEmit -p tsconfig.json` (limpo, 0 erros), `npx eslint src` (0 erros, 231 warnings — todos de categorias pré-existentes do baseline), `npm run build` (✓ build em ~1.1s)
+- [x] Verificar i18n: zero chaves faltando/sobrando nos 4 locales (`en/pt/es/de`) — checagem automatizada confirmou paridade total para `invite.*` (18 chaves) e `trainer.dashboard.*` novas (6 chaves, incl. `inviteStatus` aninhado)
+- [ ] Teste manual E2E caminho A: convidado **com conta** → recebe e-mail → loga → aceita → vínculo ativo *(requer migration aplicada no Supabase remoto + `RESEND_API_KEY` configurada — bloqueado até a configuração da chave, ver nota de fechamento)*
+- [ ] Teste manual E2E caminho B: convidado **sem conta** → recebe e-mail → cadastra → aceita → vínculo ativo *(mesmo bloqueio acima)*
+- [ ] Teste de expiração (convite vencido) *(requer ambiente live — mesmo bloqueio)*
+- [ ] Teste de revogação *(requer ambiente live — mesmo bloqueio)*
+- [ ] Teste de idempotência (clicar "aceitar" duas vezes, ou abrir o link em duas abas) *(requer ambiente live — mesmo bloqueio; lógica idempotente já validada por leitura de código no RPC — `already_accepted` / row-lock `for update`)*
+
+> Os 5 testes manuais E2E acima dependem de (a) aplicar `supabase-trainer-invitations-20260607.sql` no projeto remoto e regenerar `src/types/supabase.ts`, e (b) configurar `RESEND_API_KEY` — ambos passos operacionais que tocam infraestrutura compartilhada e a chave foi explicitamente adiada pelo usuário para o final do projeto. A lógica foi validada estaticamente (RPC idempotente com row-lock, máquina de estados da `AcceptInvitationScreen` cobre os 7 estados, `resendInvitation`/`revokeInvitation` testados via leitura de código + tipos).
 
 ### Fase 6 — Documentação e encerramento
-- [ ] Atualizar `trainer_system_design.md` (ou doc equivalente) com o novo fluxo de convites
-- [ ] Registrar decisões de negócio tomadas na Fase 4 (ex.: regra de múltiplos vínculos)
-- [ ] Commit final com `Co-Authored-By`
+- [x] Checklist do plano atualizado de ponta a ponta (Fases 0–5 marcadas, decisões registradas na seção 5)
+- [x] Decisões de negócio da Fase 4 já registradas na seção 5 (regra de exclusividade #2, validade #3, nome obrigatório #4) e referenciadas nos itens de checklist correspondentes
+- [ ] Atualizar `trainer_system_design.md` (ou doc equivalente) com o novo fluxo de convites — *não localizado um doc de design canônico para o sistema de treinadores; este próprio plano serve como registro de arquitetura até que um seja criado*
+- [x] Commit final com `Co-Authored-By` (este commit)
+
+> **Nota de fechamento — chave Resend pendente:** a integração de e-mail está com o código pronto e funcional (condicionalmente sem-op se `RESEND_API_KEY` ausente), conforme combinado: *"ainda não tenho a chave Resend deste projeto, então siga com o projeto e deixaremos a configuração da chave para o final."* Passos finais pendentes (fora do escopo desta sessão, aguardando o usuário): (1) usuário fornece `RESEND_API_KEY`/`EMAIL_FROM`; (2) configurar as env vars no Vercel; (3) aplicar a migration `supabase-trainer-invitations-20260607.sql` no Supabase remoto e regenerar `src/types/supabase.ts` (e então remover os wrappers tipados temporários `rpc`/`invitationsTable` em `AcceptInvitationScreen.tsx`/`TrainerDashboardScreen.tsx`); (4) rodar os 5 testes E2E manuais da Fase 5.
 
 ---
 
