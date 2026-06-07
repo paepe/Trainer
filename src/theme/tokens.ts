@@ -31,6 +31,12 @@ export const TRAINER_BRAND = {
   criticalRed: '#FF4D4D',
 } as const;
 
+// Shape of the `t` brand-theme object assembled in App.tsx (BRAND/TRAINER_BRAND
+// spread plus runtime fields). Used where components only need brand colours.
+export type BrandTheme = (typeof BRAND | typeof TRAINER_BRAND) & {
+  dark: boolean;
+  role: string;
+};
 
 export const DARK = {
   bg:         '#0E1A2B',

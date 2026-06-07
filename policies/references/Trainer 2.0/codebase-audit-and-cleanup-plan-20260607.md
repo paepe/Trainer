@@ -98,10 +98,30 @@ would be over-engineering relative to the actual gap.
 - [x] Verified `tsc --noEmit`, `eslint`, and `npm run build` all pass clean
 
 ### Phase 5 — Type-safety hardening
-- [ ] Replace Realtime payload `as any` casts in `App.tsx:293,297,323` with typed `RealtimePostgresChangesPayload<T>` generics
-- [ ] Type `PushListener({ push })` and `NotificationContext`'s `t` properly (use `i18next.TFunction`)
-- [ ] Replace `undefined as unknown as PrimaryGoal`-style wizard-step initializers with a typed factory/default-value pattern (e.g., `Partial<WizardState>` + explicit optional fields)
-- [ ] Remove remaining `as unknown as` in `InboxScreen.tsx`, `CheckInVoice.tsx`
+**Status: executed 2026-06-07.**
+
+- [x] `App.tsx:293,297,323` — replaced `(p.new as any)` with a `NotificationLogRow`
+      type alias derived from the generated `Database['public']['Tables']` types
+- [x] `App.tsx:627` — typed `PushListener({ push })` as `ReturnType<typeof usePushNotifications>`
+      (note: `t` in `NotificationContext` is the **brand/theme** object, not an
+      i18n `TFunction` — added an exported `BrandTheme` type to `theme/tokens.ts`
+      derived from `BRAND`/`TRAINER_BRAND` and used it there)
+- [x] Wizard steps (`Step02BasicData`, `Step03Objectives`, `Step04MovementHistory`,
+      `Step07FunctionalCapacity`) — replaced `undefined as unknown as X` initializers
+      with `Partial<ProfileXxx>` typed locals (all consumers already null-checked).
+      Required an explicit merge-and-assert at each `onUpdate` boundary because
+      `exactOptionalPropertyTypes: true` doesn't let `Partial<T>` substitute for `T`
+      — documented the invariant (gated by `nextDisabled`) inline at each site.
+      `Step02BasicData` additionally needed a `setNumericField` helper since
+      `exactOptionalPropertyTypes` forbids assigning `undefined` to optional
+      `number` fields — clearing now deletes the key instead
+- [x] `InboxScreen.tsx` — added missing `read_at` to the `InboxItem` interface
+      (the actual root cause of the workaround casts), collapsing two
+      `as unknown as` sites into one and removing a redundant intersection type
+- [x] `CheckInVoice.tsx` — replaced `window as unknown as Record<string, unknown>`
+      with a proper `WindowWithSpeechRecognition` ambient-style interface
+- [x] Verified `tsc --noEmit`, `eslint` (232 warnings, down from 237; 0 errors),
+      and `npm run build` all pass clean
 
 ### Phase 6 — SQL migration hygiene
 - [ ] Classify each of the 25 root `supabase-*.sql` files: active migration vs. historical reference

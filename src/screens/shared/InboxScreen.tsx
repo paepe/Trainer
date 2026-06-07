@@ -25,6 +25,7 @@ export interface InboxItem {
   expires_at:   string | null;
   response:     string | null;
   response_at:  string | null;
+  read_at:      string | null;
   peer_name?:   string;
   template_key?: string | null;
   params?:       Record<string, unknown> | null;
@@ -114,11 +115,11 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
       .then(async ({ data, error }) => {
         if (error) console.error('[Inbox] load failed:', error.message);
         if (data) {
-          const enriched = await enrichBatch(data as unknown as Omit<InboxItem, 'peer_name'>[]);
+          const rows = data as unknown as Omit<InboxItem, 'peer_name'>[];
+          const enriched = await enrichBatch(rows);
           setItems(enriched);
 
-          const rawItems = data as unknown as Array<{ id: string; read_at?: string | null }>;
-          const unreadIds = rawItems.filter(d => d.read_at == null).map(d => d.id);
+          const unreadIds = rows.filter(d => d.read_at == null).map(d => d.id);
           if (unreadIds.length) {
             supabase.from('notification_log')
               .update({ read_at: new Date().toISOString() })
@@ -151,8 +152,8 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${userId}` },
         (payload) => {
-          const old = payload.old as InboxItem & { read_at?: string | null };
-          const upd = payload.new as InboxItem & { read_at?: string | null };
+          const old = payload.old as InboxItem;
+          const upd = payload.new as InboxItem;
 
           // skip self-triggered mark-as-read updates (only read_at changed)
           const onlyReadAtChanged =

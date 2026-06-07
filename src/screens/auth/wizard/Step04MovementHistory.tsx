@@ -6,7 +6,7 @@ import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type {
   TrainingFrequency, FitnessLevelV2, TrainingModality, AbandonReason, PreferredIntensity,
-  ProfileAbandonHistory,
+  ProfileAbandonHistory, ProfileMovementHistory,
 } from '../../../types/profile-v2';
 
 const FREQ_VALUES: TrainingFrequency[] = ['irregular', 'sometimes', 'not_training'];
@@ -20,9 +20,7 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
   const [page, setPage] = React.useState(0);
   const [voiceOpen, setVoiceOpen] = React.useState(false);
 
-  const mh = data.movement_history ?? {
-    frequency: undefined as unknown as TrainingFrequency,
-    fitness_level: undefined as unknown as FitnessLevelV2,
+  const mh: Partial<ProfileMovementHistory> = data.movement_history ?? {
     weekly_frequency: 3,
     modalities: [],
     abandoned_before: false,
@@ -38,7 +36,12 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
   const levelOpts   = LEVEL_VALUES.map(v => ({ value: v, label: tr(`wizard.step04.levels.${v}`) }));
   const intensityOpts = INTENSITY_VALUES.map(v => ({ value: v, label: tr(`wizard.step04.churnOptions.${v}`) }));
 
-  const setMH = (p: typeof mh) => onUpdate({ movement_history: p });
+  // mh starts partial (frequency/fitness_level unset until chosen). Each call site
+  // either preserves an already-set required field or is setting it for the first
+  // time, so the merged result is always complete by the time `nextDisabled` allows
+  // the user to advance — but TS needs an explicit assertion at the merge boundary.
+  const setMH = (p: Partial<ProfileMovementHistory>) =>
+    onUpdate({ movement_history: { ...mh, ...p } as ProfileMovementHistory });
   const setAH = (p: ProfileAbandonHistory) => onUpdate({ abandon_history: p });
 
   const toggleModality = (v: TrainingModality) => {

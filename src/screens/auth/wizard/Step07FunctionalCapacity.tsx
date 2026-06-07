@@ -6,6 +6,7 @@ import type { WizardStepProps } from './types';
 import type {
   MobilityLevel, BalanceLevel, AutonomyLevel, EffortTolerance,
   PainLevel, AccessLevel, SupportResource, InstructionFormat,
+  ProfileFunctionalCapacity,
 } from '../../../types/profile-v2';
 
 const MOBILITY_VALUES: MobilityLevel[] = ['low', 'moderate', 'good'];
@@ -19,11 +20,7 @@ const INSTRUCTION_VALUES: InstructionFormat[] = ['visual', 'auditory', 'simplifi
 
 export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
-  const fc = data.functional_capacity ?? {
-    mobility: undefined as unknown as MobilityLevel,
-    balance: undefined as unknown as BalanceLevel,
-    autonomy: undefined as unknown as AutonomyLevel,
-    effort_tolerance: undefined as unknown as EffortTolerance,
+  const fc: Partial<ProfileFunctionalCapacity> = data.functional_capacity ?? {
     support_resources: [],
     instruction_format: [],
   };
@@ -36,7 +33,12 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
   const accessOpts      = ACCESS_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.accessLevels.${v}`) }));
   const instructionOpts = INSTRUCTION_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.instructionFormats.${v}`) }));
 
-  const set = (patch: Partial<typeof fc>) => onUpdate({ functional_capacity: { ...fc, ...patch } });
+  // fc starts partial (mobility/balance/autonomy/effort_tolerance unset until
+  // chosen). nextDisabled gates progression until all required fields are set,
+  // so the merged object is complete by the time it's persisted — but TS needs
+  // an explicit assertion at the merge boundary (see Step04 for the same shape).
+  const set = (patch: Partial<ProfileFunctionalCapacity>) =>
+    onUpdate({ functional_capacity: { ...fc, ...patch } as ProfileFunctionalCapacity });
 
   const toggleSupport = (v: SupportResource) => {
     let next: SupportResource[];

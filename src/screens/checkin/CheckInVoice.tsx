@@ -25,10 +25,15 @@ interface RecognitionLike {
 }
 interface RecognitionCtor { new(): RecognitionLike }
 
+interface WindowWithSpeechRecognition {
+  SpeechRecognition?:        RecognitionCtor;
+  webkitSpeechRecognition?:  RecognitionCtor;
+}
+
 function getSpeechRecognition(): RecognitionCtor | null {
   if (typeof window === 'undefined') return null;
-  const w = window as unknown as Record<string, unknown>;
-  return (w['SpeechRecognition'] ?? w['webkitSpeechRecognition'] ?? null) as RecognitionCtor | null;
+  const w = window as unknown as WindowWithSpeechRecognition;
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
 type ParseState = 'idle' | 'parsing' | 'done' | 'error';

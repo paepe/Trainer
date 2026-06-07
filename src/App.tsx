@@ -1,5 +1,6 @@
 import React from 'react';
 import { supabase } from './supabase';
+import type { Database } from './types/supabase';
 import { BRAND, TRAINER_BRAND, setVizProfile } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { useProfileData }  from './hooks/useProfileData';
@@ -33,6 +34,8 @@ const TrainerLibraryExercisesScreen = React.lazy(() => import('./screens/trainer
 const CoachDNAScreen             = React.lazy(() => import('./coach-dna/CoachDNAScreen').then(m => ({ default: m.CoachDNAScreen })));
 const TrainerAlertsScreen        = React.lazy(() => import('./screens/trainer/TrainerAlertsScreen').then(m => ({ default: m.TrainerAlertsScreen })));
 const ClientInboxScreen          = React.lazy(() => import('./screens/client/ClientInboxScreen').then(m => ({ default: m.ClientInboxScreen })));
+
+type NotificationLogRow = Database['public']['Tables']['notification_log']['Row'];
 
 const PUBLIC_SCREENS = ['welcome', 'login', 'register'];
 
@@ -290,11 +293,11 @@ export default function App() {
       .channel(`alerts_badge:${profile.id}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        (p) => { if ((p.new as any).type === 'workout_ready') setPendingAlerts(n => n + 1); }
+        (p) => { if ((p.new as NotificationLogRow).type === 'workout_ready') setPendingAlerts(n => n + 1); }
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        (p) => { if ((p.new as any).response != null) setPendingAlerts(n => Math.max(0, n - 1)); }
+        (p) => { if ((p.new as NotificationLogRow).response != null) setPendingAlerts(n => Math.max(0, n - 1)); }
       )
       .subscribe();
 
@@ -320,7 +323,7 @@ export default function App() {
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        (p) => { if ((p.new as any).read_at != null) setPendingInbox(n => Math.max(0, n - 1)); }
+        (p) => { if ((p.new as NotificationLogRow).read_at != null) setPendingInbox(n => Math.max(0, n - 1)); }
       )
       .subscribe();
 
@@ -621,7 +624,7 @@ export default function App() {
   );
 }
 
-function PushListener({ push }: { push: any }) {
+function PushListener({ push }: { push: ReturnType<typeof usePushNotifications> }) {
   const { showNotification } = useNotification();
   React.useEffect(() => {
     if (push.status !== 'registered') return;

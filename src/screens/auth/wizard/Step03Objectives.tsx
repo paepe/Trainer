@@ -4,7 +4,7 @@ import { textPri, textSec } from '../../../theme';
 import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
-import type { PrimaryGoal, SecondaryGoal } from '../../../types/profile-v2';
+import type { PrimaryGoal, SecondaryGoal, ProfileObjectives } from '../../../types/profile-v2';
 
 // Labels resolved at render via wizard.goals.<value>
 const PRIMARY_GOALS: { value: PrimaryGoal; icon: string }[] = [
@@ -26,15 +26,16 @@ const SECONDARY_GOALS: SecondaryGoal[] = [
 
 export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
-  const obj = data.objectives ?? { primary_goal: undefined as unknown as PrimaryGoal, secondary_goals: [] };
+  const obj: Partial<ProfileObjectives> = data.objectives ?? { secondary_goals: [] };
+  const secondaryGoals = obj.secondary_goals ?? [];
 
   const setPrimary = (v: PrimaryGoal) =>
-    onUpdate({ objectives: { ...obj, primary_goal: v } });
+    onUpdate({ objectives: { ...obj, primary_goal: v, secondary_goals: secondaryGoals } });
 
   const toggleSecondary = (v: SecondaryGoal) => {
-    const current = obj.secondary_goals ?? [];
-    const next = current.includes(v) ? current.filter(x => x !== v) : [...current, v];
-    onUpdate({ objectives: { ...obj, secondary_goals: next } });
+    if (!obj.primary_goal) return;
+    const next = secondaryGoals.includes(v) ? secondaryGoals.filter(x => x !== v) : [...secondaryGoals, v];
+    onUpdate({ objectives: { ...obj, primary_goal: obj.primary_goal, secondary_goals: next } });
   };
 
   const availableSecondary = SECONDARY_GOALS.filter(g => g !== obj.primary_goal);
@@ -101,7 +102,9 @@ export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext
         <WizardVoiceOverlay dark={dark} primary={primary}
           context={tr('wizard.step03.voiceContext')}
           onConfirm={(text) => {
-            onUpdate({ objectives: { ...obj, voice_note: text } });
+            if (obj.primary_goal) {
+              onUpdate({ objectives: { ...obj, primary_goal: obj.primary_goal, secondary_goals: secondaryGoals, voice_note: text } });
+            }
             setVoiceOpen(false);
             if (canAdvance) onNext();
           }}

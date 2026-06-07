@@ -48,6 +48,16 @@ export function Step02BasicData({
   const setBasic = (patch: Partial<ProfileBasicData>) =>
     onUpdate({ basic_data: { ...d, ...patch } as ProfileBasicData });
 
+  // Merge a numeric field, removing the key entirely when cleared — required
+  // under exactOptionalPropertyTypes, which forbids assigning `undefined` to
+  // an optional `number` property.
+  const setNumericField = (key: 'height_cm' | 'weight_kg', raw: string) => {
+    const next: Partial<ProfileBasicData> = { ...d };
+    if (raw) next[key] = +raw;
+    else delete next[key];
+    onUpdate({ basic_data: next as ProfileBasicData });
+  };
+
   // Personal fields (profiles table)
   const [email,   setEmail]   = React.useState(user?.email    ?? '');
   const [phone,   setPhone]   = React.useState(user?.phone    ?? '');
@@ -172,13 +182,13 @@ export function Step02BasicData({
           <TextInput
             label={tr('wizard.step02.height')}
             value={d.height_cm ? String(d.height_cm) : ''}
-            onChange={v => setBasic({ height_cm: v ? +v : undefined as unknown as number })}
+            onChange={v => setNumericField('height_cm', v)}
             type="number" inputMode="decimal" placeholder={tr('wizard.step02.heightPlaceholder')}
           />
           <TextInput
             label={tr('wizard.step02.weight')}
             value={d.weight_kg ? String(d.weight_kg) : ''}
-            onChange={v => setBasic({ weight_kg: v ? +v : undefined as unknown as number })}
+            onChange={v => setNumericField('weight_kg', v)}
             type="number" inputMode="decimal" placeholder={tr('wizard.step02.weightPlaceholder')}
           />
         </div>

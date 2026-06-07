@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useRef, useCallback, useMem
 import { HStack } from '../ui';
 
 import { vibrate } from '../lib/haptics';
+import type { BrandTheme } from '../theme';
 
 interface NotificationContextValue {
   showNotification: (title: string, body: string) => void;
@@ -12,7 +13,7 @@ const NotificationContext = createContext<NotificationContextValue | null>(null)
 
 interface NotificationProviderProps {
   children: React.ReactNode;
-  t: any;
+  t: BrandTheme;
 }
 
 export function NotificationProvider({ children, t }: NotificationProviderProps) {
