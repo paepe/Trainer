@@ -47,7 +47,7 @@ export function AvatarUpload({
         setFailed(false);
       }
     } catch (err) {
-      console.error('Upload failed:', err);
+      console.error('[AvatarUpload] upload failed:', err);
     } finally {
       setLoading(false);
     }

@@ -80,9 +80,22 @@ Remaining work — requires functional migration + QA, not a mechanical refactor
 - [x] Verified `tsc --noEmit`, `eslint`, and `npm run build` all pass clean post-removal
 
 ### Phase 4 — Error-handling & observability standardization
-- [ ] Introduce `src/lib/logger.ts` (leveled: error/warn/debug, environment-aware — silent in prod unless critical)
-- [ ] Replace ad-hoc `console.error('[Module] ...')` calls with `logger.error('Module', ...)`
-- [ ] Audit the ~24 silent `{ error }` Supabase result sites; ensure each either logs or surfaces user-facing feedback — no silent failures on health/workout data paths (Privacy & Stability pillars)
+**Status: investigated and executed 2026-06-07 — re-baselined, smaller than estimated.**
+
+Re-examination found the original estimate (a "no unified strategy" / ~24 silent
+sites) overstated the problem: of 63 `console.*` call sites in `src/`, ~58 already
+follow a consistent `[Module] context:` prefix convention with `console.error`.
+There is no silent-failure epidemic — nearly every Supabase `{ error }` result is
+already logged. Introducing a formal `logger.ts` abstraction (levels, env-awareness)
+would be over-engineering relative to the actual gap.
+
+- [x] Identified the 5 true outliers breaking the existing convention:
+      `TrainerLibraryExercisesScreen.tsx:79,145` (bare `console.error(e)`),
+      `CheckInProntidaoScreen.tsx:102,134` (`.catch(console.error)` with no context),
+      `AvatarUpload.tsx:50` (missing `[Module]` prefix)
+- [x] Aligned all 5 to the existing `[Module] context:` convention — no new
+      abstraction introduced, consistency achieved with minimal surface change
+- [x] Verified `tsc --noEmit`, `eslint`, and `npm run build` all pass clean
 
 ### Phase 5 — Type-safety hardening
 - [ ] Replace Realtime payload `as any` casts in `App.tsx:293,297,323` with typed `RealtimePostgresChangesPayload<T>` generics

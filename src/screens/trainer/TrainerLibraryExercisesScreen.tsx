@@ -76,7 +76,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
       const ptRes = await fetchProtocolsList();
       if (ptRes.data) setProtocols(ptRes.data);
     } catch (e) {
-      console.error(e);
+      console.error('[TrainerLibraryExercises] load failed:', e);
     } finally {
       setLoading(false);
     }
@@ -142,7 +142,7 @@ export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExerc
       const response = await simulateVoiceAssistant(queryText, user.role);
       setVoiceResponse(response);
     } catch (e) {
-      console.error(e);
+      console.error('[TrainerLibraryExercises] voice assistant failed:', e);
     } finally {
       setVoiceLoading(false);
     }

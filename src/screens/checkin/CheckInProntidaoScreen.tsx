@@ -99,7 +99,8 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
   };
 
   const persist = (payload: Parameters<SaveCheckinV2Fn>[0]) => {
-    if (saveCheckinV2) saveCheckinV2(clientUserId ? { ...payload, clientUserId } : payload).catch(console.error);
+    if (saveCheckinV2) saveCheckinV2(clientUserId ? { ...payload, clientUserId } : payload)
+      .catch(err => console.error('[CheckInProntidao] persist failed:', err));
   };
 
   const handleQuickSubmit = (data: CheckInQuick) => {
@@ -131,7 +132,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
     persist({ variant: 'post_workout', post_workout_data: data });
     if (data.pain_during_or_after && updatePainRecurrence) {
       const region = data.pain_detail?.region ?? 'other';
-      updatePainRecurrence(region).catch(console.error);
+      updatePainRecurrence(region).catch(err => console.error('[CheckInProntidao] pain recurrence update failed:', err));
     }
     setStage('hub');
   };
