@@ -4,7 +4,7 @@
 // 2. Creates a trainer_invitations row (service role — bypasses RLS, generates token)
 // 3. Sends a transactional email via Resend with the accept-invite deep link
 // Requires: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY,
-//           RESEND_FROM_EMAIL, VITE_API_URL in env.
+//           EMAIL_FROM, VITE_API_URL in env.
 // See: policies/references/Trainer 2.0/trainer-invitation-flow-plan-20260607.md
 
 import { randomUUID } from 'crypto';
@@ -70,10 +70,10 @@ export default async function handler(req: any, res: any) {
     // ── 3. Send transactional email via Resend ─────────────────────────────────
     const inviteUrl  = `${appUrl}/invite/${token}`;
     const resendKey  = process.env.RESEND_API_KEY    || '';
-    const fromEmail  = process.env.RESEND_FROM_EMAIL || '';
+    const fromEmail  = process.env.EMAIL_FROM || '';
 
     if (!resendKey || !fromEmail) {
-      console.warn('[send-invitation] RESEND_API_KEY/RESEND_FROM_EMAIL not set — invitation created but email NOT sent');
+      console.warn('[send-invitation] RESEND_API_KEY/EMAIL_FROM not set — invitation created but email NOT sent');
       return res.status(200).json({ ok: true, emailSent: false, token });
     }
 
