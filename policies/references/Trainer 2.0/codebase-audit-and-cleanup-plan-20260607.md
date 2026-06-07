@@ -141,8 +141,26 @@ hygiene, so the original "move to `supabase/migrations/`" step was dropped.
 - [x] Confirmed via grep: no scripts, configs, or app code reference the old root paths
 
 ### Phase 7 — Naming & module consistency pass
-- [ ] Normalize `src/contexts/index.ts` exports to a single convention (`*Context` for the context object, `*Provider` for the provider component — document the rule in `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` if not already)
-- [ ] Spot-check hooks/screens/components for convention drift introduced post-TS-conversion
+**Status: investigated 2026-06-07 — closed, no action needed.**
+
+The original audit's "8 contexts with mixed naming" claim doesn't hold —
+`src/contexts/` has only 2 context files (`NotificationContext.tsx`,
+`ThemeContext.tsx`) plus `index.ts`, and both already follow a single
+consistent convention: `*Context.tsx` filename, `*Provider` exported for the
+provider component, `use*` exported for the consumer hook, with the internal
+`createContext` instance kept private (not exported).
+
+A repo-wide spot-check confirmed the same consistency holds elsewhere:
+
+- [x] `src/hooks/` — all 100% follow `use*.ts` (zero outliers)
+- [x] `src/screens/` — all top-level files follow `*Screen.tsx`; the 5 that
+      don't (`CheckInDetailed`, `CheckInPostWorkout`, `CheckInQuick`,
+      `CheckInResult`, `CheckInHub`) are sub-components composed by
+      `CheckInHub`, not standalone routed screens — correctly named as such
+- [x] `src/contexts/index.ts` — exports already follow a single convention;
+      no normalization required
+
+No changes made. This closes the final phase of the cleanup plan.
 
 ---
 
