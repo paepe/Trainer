@@ -627,9 +627,11 @@ export type Database = {
           expires_at: string | null
           from_user_id: string | null
           id: string
+          params: Json | null
           read_at: string | null
           response: string | null
           response_at: string | null
+          template_key: string | null
           title: string
           to_user_id: string
           type: string | null
@@ -642,9 +644,11 @@ export type Database = {
           expires_at?: string | null
           from_user_id?: string | null
           id?: string
+          params?: Json | null
           read_at?: string | null
           response?: string | null
           response_at?: string | null
+          template_key?: string | null
           title: string
           to_user_id: string
           type?: string | null
@@ -657,9 +661,11 @@ export type Database = {
           expires_at?: string | null
           from_user_id?: string | null
           id?: string
+          params?: Json | null
           read_at?: string | null
           response?: string | null
           response_at?: string | null
+          template_key?: string | null
           title?: string
           to_user_id?: string
           type?: string | null
@@ -977,46 +983,85 @@ export type Database = {
       }
       preferences: {
         Row: {
+          ai_focus_endurance: number | null
+          ai_focus_mobility: number | null
+          ai_focus_strength: number | null
           ai_personalization: boolean | null
           alerts: boolean | null
           analysis: boolean | null
           behaviour: boolean | null
           cycle_tracking: boolean | null
           dark_mode: boolean | null
+          default_duration_min: number | null
+          default_location: string | null
           goals: boolean | null
           id: string
+          language: string | null
+          light_palette: string | null
           notifications: boolean | null
+          plan_expiry_days: number | null
+          preferred_intensity: string | null
+          session_history_limit: number | null
           sounds: boolean | null
+          trainer_dashboard_limit: number | null
           updated_at: string | null
           user_id: string | null
+          white_label: boolean | null
+          workout_ready_expiry_min: number | null
         }
         Insert: {
+          ai_focus_endurance?: number | null
+          ai_focus_mobility?: number | null
+          ai_focus_strength?: number | null
           ai_personalization?: boolean | null
           alerts?: boolean | null
           analysis?: boolean | null
           behaviour?: boolean | null
           cycle_tracking?: boolean | null
           dark_mode?: boolean | null
+          default_duration_min?: number | null
+          default_location?: string | null
           goals?: boolean | null
           id?: string
+          language?: string | null
+          light_palette?: string | null
           notifications?: boolean | null
+          plan_expiry_days?: number | null
+          preferred_intensity?: string | null
+          session_history_limit?: number | null
           sounds?: boolean | null
+          trainer_dashboard_limit?: number | null
           updated_at?: string | null
           user_id?: string | null
+          white_label?: boolean | null
+          workout_ready_expiry_min?: number | null
         }
         Update: {
+          ai_focus_endurance?: number | null
+          ai_focus_mobility?: number | null
+          ai_focus_strength?: number | null
           ai_personalization?: boolean | null
           alerts?: boolean | null
           analysis?: boolean | null
           behaviour?: boolean | null
           cycle_tracking?: boolean | null
           dark_mode?: boolean | null
+          default_duration_min?: number | null
+          default_location?: string | null
           goals?: boolean | null
           id?: string
+          language?: string | null
+          light_palette?: string | null
           notifications?: boolean | null
+          plan_expiry_days?: number | null
+          preferred_intensity?: string | null
+          session_history_limit?: number | null
           sounds?: boolean | null
+          trainer_dashboard_limit?: number | null
           updated_at?: string | null
           user_id?: string | null
+          white_label?: boolean | null
+          workout_ready_expiry_min?: number | null
         }
         Relationships: [
           {
@@ -1555,6 +1600,60 @@ export type Database = {
           },
         ]
       }
+      trainer_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          invited_email: string
+          invited_name: string
+          status: string
+          token: string
+          trainer_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          invited_email: string
+          invited_name: string
+          status?: string
+          token: string
+          trainer_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          invited_email?: string
+          invited_name?: string
+          status?: string
+          token?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_invitations_accepted_by_fkey"
+            columns: ["accepted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_invitations_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_pain_events: {
         Row: {
           body_region: string
@@ -1999,11 +2098,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_trainer_invitation: {
+        Args: { p_token: string; p_user_id: string }
+        Returns: {
+          result: string
+          trainer_id: string
+          trainer_name: string
+        }[]
+      }
+      auto_close_stale_sessions: { Args: never; Returns: number }
       get_active_role: { Args: { uid?: string }; Returns: string }
       get_device_tokens: {
         Args: { uid: string }
         Returns: {
           token: string
+        }[]
+      }
+      get_invitation_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          expires_at: string
+          invited_name: string
+          status: string
+          trainer_name: string
         }[]
       }
       has_permission: { Args: { perm: string; uid?: string }; Returns: boolean }

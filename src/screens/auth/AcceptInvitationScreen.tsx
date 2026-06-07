@@ -40,11 +40,6 @@ interface AcceptanceRow {
   trainer_name: string | null;
 }
 
-// The trainer_invitations RPCs are not yet in the generated Supabase types
-// (added in supabase-trainer-invitations-20260607.sql, pending remote apply + regen).
-const rpc = supabase.rpc.bind(supabase) as unknown as
-  (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message?: string } | null }>;
-
 function Wrap({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', height: '100%', justifyContent: 'center' }}>
@@ -60,7 +55,7 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token }: AcceptInvi
 
   React.useEffect(() => {
     let cancelled = false;
-    rpc('get_invitation_by_token', { p_token: token }).then(({ data, error }) => {
+    supabase.rpc('get_invitation_by_token', { p_token: token }).then(({ data, error }) => {
       if (cancelled) return;
       const row = (data as InvitationRow[] | null)?.[0];
       if (error || !row) { setState({ phase: 'invalid' }); return; }
@@ -75,7 +70,7 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token }: AcceptInvi
   const accept = async () => {
     if (!user?.id || state.phase !== 'ready') return;
     setAccepting(true);
-    const { data, error } = await rpc('accept_trainer_invitation', { p_token: token, p_user_id: user.id });
+    const { data, error } = await supabase.rpc('accept_trainer_invitation', { p_token: token, p_user_id: user.id });
     setAccepting(false);
     if (error) { setState({ phase: 'error', message: friendlyError(error, tr) }); return; }
     const row = (data as AcceptanceRow[] | null)?.[0];

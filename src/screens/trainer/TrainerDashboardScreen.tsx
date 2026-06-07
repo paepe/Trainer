@@ -47,7 +47,7 @@ interface TrainerInvitation {
   invited_email: string;
   invited_name:  string;
   status:        string;
-  created_at:    string;
+  created_at:    string | null;
   expires_at:    string;
 }
 
@@ -57,17 +57,7 @@ interface TrainerDashboardUser {
   email?: string;
 }
 
-// trainer_invitations is not yet in the generated Supabase types
-// (added in supabase-trainer-invitations-20260607.sql, pending remote apply + regen).
-interface InvitationQuery {
-  select: (cols: string) => InvitationQuery;
-  eq:     (col: string, val: string) => InvitationQuery;
-  order:  (col: string, opts: { ascending: boolean }) => InvitationQuery;
-  limit:  (n: number) => Promise<{ data: TrainerInvitation[] | null }>;
-  update: (vals: Record<string, unknown>) => InvitationQuery;
-}
-const invitationsTable = () =>
-  (supabase.from as unknown as (table: string) => InvitationQuery)('trainer_invitations');
+const invitationsTable = () => supabase.from('trainer_invitations');
 
 interface TrainerDashboardScreenProps {
   nav:          NavFn;
