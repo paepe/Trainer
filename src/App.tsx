@@ -9,6 +9,8 @@ import { useWorkoutData }  from './hooks/useWorkoutData';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { WelcomeScreen, LoginScreen, RegisterScreen } from './screens/auth';
 import { AppLayout } from './layouts';
+import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
+import { Spinner } from './ui';
 import { NotificationProvider, useNotification, ThemeProvider } from './contexts';
 import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './types';
 import type { AppPreferences } from './types/preferences';
@@ -614,9 +616,11 @@ export default function App() {
       <NotificationProvider t={t}>
         <PushListener push={push} />
         <AppLayout role={isTrainer ? "trainer" : "client"} {...layoutProps}>
-          <React.Suspense fallback={<LoadingScreen primary={t.primary} />}>
-            {screenContent}
-          </React.Suspense>
+          <ChunkErrorBoundary primary={t.primary}>
+            <React.Suspense fallback={<LoadingScreen primary={t.primary} />}>
+              {screenContent}
+            </React.Suspense>
+          </ChunkErrorBoundary>
         </AppLayout>
       </NotificationProvider>
     </ThemeProvider>
@@ -642,13 +646,7 @@ function LoadingScreen({ primary }: { primary: string }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'var(--bg)',
     }}>
-      <div style={{
-        width: 36, height: 36, borderRadius: '50%',
-        border: '3px solid var(--border)',
-        borderTopColor: primary,
-        animation: 'spin 0.7s linear infinite',
-      }}/>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <Spinner color={primary} trackColor="var(--border)" size={36} thickness={3} />
     </div>
   );
 }
