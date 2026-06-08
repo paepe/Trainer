@@ -7,6 +7,8 @@ import { useTheme } from '../../contexts';
 
 interface VoiceBarProps {
   onTranscript: (text: string) => void;
+  /** Fired when dictation stops — the right moment to clean up the accumulated text. */
+  onStop?:      () => void;
   hint?:        string;
 }
 
@@ -52,6 +54,7 @@ function getSpeechRecognition(): SRCtor | null {
 
 export const VoiceBar: React.FC<VoiceBarProps> = ({
   onTranscript,
+  onStop,
   hint = undefined,
 }) => {
   const { t: theme } = useTheme();
@@ -69,6 +72,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
     recRef.current?.stop();
     setActive(false);
     setInterim('');
+    onStop?.();
   };
 
   const toggle = () => {
@@ -104,7 +108,7 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
       setActive(false);
     };
 
-    rec.onend = () => { setActive(false); setInterim(''); };
+    rec.onend = () => { setActive(false); setInterim(''); onStop?.(); };
 
     rec.start();
     setActive(true);

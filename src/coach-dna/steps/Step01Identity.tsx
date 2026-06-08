@@ -20,6 +20,25 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
   const { t: theme } = useTheme();
   const { t: tr } = useTranslation();
   const genders = tr('coachDna.step01.genders', { returnObjects: true }) as unknown as string[];
+
+  // Name dictation: VoiceBar fires onTranscript per finalized chunk during a continuous
+  // session, and on-device engines can re-emit overlapping chunks ("Carlos Carlos Silva").
+  // Replace (not append) the dictated portion within a session, keeping any text that was
+  // already in the field before dictation started.
+  const sessionBaseRef = React.useRef<string | null>(null);
+  const sessionChunksRef = React.useRef<string[]>([]);
+  const handleNameTranscript = (text: string) => {
+    if (sessionBaseRef.current === null) sessionBaseRef.current = data.name;
+    sessionChunksRef.current.push(text);
+    const base = sessionBaseRef.current;
+    const dictated = sessionChunksRef.current.join(' ');
+    onChange({ name: `${base}${base ? ' ' : ''}${dictated}`.trim() });
+  };
+  const handleNameStop = () => {
+    sessionBaseRef.current = null;
+    sessionChunksRef.current = [];
+  };
+
   return (
   <div>
     <StepHeader
@@ -44,7 +63,8 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
     />
 
     <VoiceBar
-      onTranscript={text => onChange({ name: (data.name + ' ' + text).trim() })}
+      onTranscript={handleNameTranscript}
+      onStop={handleNameStop}
       hint={tr('coachDna.components.voiceBar.dictateHint')}
     />
 

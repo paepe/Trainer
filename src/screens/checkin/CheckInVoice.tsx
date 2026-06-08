@@ -4,6 +4,7 @@ import { BCP47 } from '../../i18n';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import { Spinner } from '../../ui';
 import { friendlyError } from '../../lib/friendlyError';
+import { cleanupVoiceNote } from '../../lib/cleanupVoiceNote';
 import type { CheckInVoice as CheckInVoiceData } from '../../types/checkin-v2';
 
 interface CheckInVoiceProps {
@@ -98,8 +99,8 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
   };
 
   const handleSubmit = async () => {
-    const text = (transcript + ' ' + interim).trim();
-    if (!text) return;
+    const raw = (transcript + ' ' + interim).trim();
+    if (!raw) return;
 
     setParseState('parsing');
     setParseError('');
@@ -108,10 +109,12 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
     const timeout = setTimeout(() => ctrl.abort(), 20_000);
 
     try {
+      const cleaned = await cleanupVoiceNote(raw);
+
       const res = await fetch('/api/parse-voice', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ transcript: text }),
+        body:    JSON.stringify({ transcript: cleaned }),
         signal:  ctrl.signal,
       });
 
@@ -121,7 +124,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
       const { extracted } = json as { extracted: Record<string, unknown> };
       clearTimeout(timeout);
       setParseState('done');
-      onSubmit({ transcript: text, ai_extracted: extracted });
+      onSubmit({ transcript: cleaned, ai_extracted: extracted });
     } catch (err: unknown) {
       setParseState('error');
       void friendlyError(err, tr);

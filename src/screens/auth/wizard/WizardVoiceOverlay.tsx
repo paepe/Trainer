@@ -4,6 +4,7 @@ import i18n, { BCP47 } from '../../../i18n';
 import { primaryBtn, surfRaised, textPri, textSec, textMute, borderSubtle } from '../../../theme';
 import { HStack } from '../../../ui';
 import { Icon } from '../../../components/Icon';
+import { cleanupVoiceNote } from '../../../lib/cleanupVoiceNote';
 
 const SpeechRecognitionAPI =
   (typeof window !== 'undefined')
@@ -34,6 +35,7 @@ export function WizardVoiceOverlay({
   const [listening,  setListening]  = React.useState(false);
   const [supported,  setSupported]  = React.useState(!!SpeechRecognitionAPI);
   const [error,      setError]      = React.useState<string | null>(null);
+  const [cleaning,   setCleaning]   = React.useState(false);
   const recognitionRef = React.useRef<any>(null);
   // Accumulates only finalized segments — `e.results` replays already-final
   // entries alongside new interim ones on every `onresult` tick, so joining
@@ -84,7 +86,19 @@ export function WizardVoiceOverlay({
 
   React.useEffect(() => () => recognitionRef.current?.stop(), []);
 
-  const canConfirm = text.trim().length > 3;
+  const canConfirm = text.trim().length > 3 && !cleaning;
+
+  const confirm = async () => {
+    if (!canConfirm) return;
+    const raw = text.trim();
+    setCleaning(true);
+    try {
+      const cleaned = await cleanupVoiceNote(raw);
+      onConfirm(cleaned);
+    } finally {
+      setCleaning(false);
+    }
+  };
 
   return (
     <div style={{
@@ -201,11 +215,11 @@ export function WizardVoiceOverlay({
         </div>
 
         <button
-          onClick={() => { if (canConfirm) onConfirm(text.trim()); }}
+          onClick={() => { void confirm(); }}
           disabled={!canConfirm}
           style={{ ...primaryBtn(primary), marginBottom: 10, opacity: canConfirm ? 1 : 0.45 }}
         >
-          {tr('wizard.voice.confirm')}
+          {cleaning ? tr('wizard.voice.cleaning') : tr('wizard.voice.confirm')}
         </button>
         <button
           onClick={onClose}

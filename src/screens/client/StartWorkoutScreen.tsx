@@ -547,6 +547,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
   const [confirmCancelPlan, setConfirmCancelPlan] = React.useState<PlanCard | null>(null);
 
+  // Guards against firing duplicate trainer notifications when a user double-clicks/double-taps
+  // a plan action before the card is removed/re-rendered (each plan id notifies at most once).
+  const notifiedPlanActionsRef = React.useRef<Set<string>>(new Set());
+
   // ── Unified plan-card actions ────────────────────────────────────────────────
   const STATUS_META: Record<string, { label: string; color: string }> = {
     sent:      { label: tr('client.workout.planStatus.sent'),      color: t.primary },
@@ -556,6 +560,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
   const notifyTrainerAction = (p: PlanCard, kind: 'cancelled' | 'postponed') => {
     if (!user?.id) return;
+    const dedupeKey = `${p.id}:${kind}`;
+    if (notifiedPlanActionsRef.current.has(dedupeKey)) return;
+    notifiedPlanActionsRef.current.add(dedupeKey);
     void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
       .then(({ data: tc }) => {
         if (!tc?.trainer_id) return;

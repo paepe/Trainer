@@ -5,6 +5,7 @@ import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { FieldLabel }  from '../components/FieldLabel';
 import { VoiceBar }    from '../components/VoiceBar';
+import { cleanupVoiceNote } from '../../lib/cleanupVoiceNote';
 import { PrivacyNote } from '../components/PrivacyNote';
 import { MOTTO_EXAMPLES } from '../constants';
 import { THEME_VARS as DARK } from '../../theme/tokens';
@@ -19,6 +20,30 @@ interface Step12Props {
 export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }) => {
   const { t: theme } = useTheme();
   const { t: tr } = useTranslation();
+
+  // Buffers raw dictation chunks for the current session; cleaned up as one pass on stop
+  // (rather than per-chunk) so the AI sees full sentences and the field's prior content
+  // — which may already be clean, typed text — isn't re-sent for cleanup each time.
+  const sessionRawRef = React.useRef('');
+  const sessionBaseRef = React.useRef('');
+
+  const handleTranscript = (text: string) => {
+    if (!sessionRawRef.current) sessionBaseRef.current = philosophy.prompt;
+    sessionRawRef.current = sessionRawRef.current ? `${sessionRawRef.current} ${text}` : text;
+    onChange({ ...philosophy, prompt: `${sessionBaseRef.current}${sessionBaseRef.current ? ' ' : ''}${sessionRawRef.current}`.trim() });
+  };
+
+  const handleStop = () => {
+    const raw = sessionRawRef.current.trim();
+    if (!raw) return;
+    const base = sessionBaseRef.current;
+    sessionRawRef.current = '';
+    sessionBaseRef.current = '';
+    void cleanupVoiceNote(raw).then(cleaned => {
+      onChange({ ...philosophy, prompt: `${base}${base ? ' ' : ''}${cleaned}`.trim() });
+    });
+  };
+
   return (
   <div>
     <StepHeader
@@ -55,9 +80,8 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
     <FieldLabel hint={tr('coachDna.step12.promptHint')}>{tr('coachDna.step12.promptLabel')}</FieldLabel>
     <VoiceBar
       hint={tr('coachDna.components.voiceBar.dictateHint')}
-      onTranscript={text =>
-        onChange({ ...philosophy, prompt: philosophy.prompt + (philosophy.prompt ? ' ' : '') + text })
-      }
+      onTranscript={handleTranscript}
+      onStop={handleStop}
     />
     <textarea
       value={philosophy.prompt}

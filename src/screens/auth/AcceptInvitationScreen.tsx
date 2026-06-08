@@ -48,6 +48,19 @@ interface AcceptanceRow {
   trainer_name: string | null;
 }
 
+const isNative =
+  typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+const API_BASE = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
+
+/** Fire-and-forget: server generates a localized welcome note (motto + free text or AI summary). */
+function sendWelcomeMessage(studentId: string, trainerId: string) {
+  fetch(`${API_BASE}/api/send-welcome-message`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ studentId, trainerId }),
+  }).catch(err => console.error('[sendWelcomeMessage] failed:', err));
+}
+
 function Wrap({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', height: '100%', justifyContent: 'center' }}>
@@ -120,6 +133,7 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signIn, sign
             undefined,
             { type: 'invitation_accepted', templateKey: 'invitation_accepted', params: { clientName }, fromUserId: userId }
           );
+          sendWelcomeMessage(userId, row.trainer_id);
         }
         return;
       case 'already_linked_elsewhere':
