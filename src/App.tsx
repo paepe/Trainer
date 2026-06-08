@@ -64,7 +64,7 @@ export default function App() {
   const {
     session, profile, loading, passwordRecovery,
     signIn, signUp, signOut, updateProfile,
-    requestPasswordReset, updatePassword, clearPasswordRecovery,
+    requestPasswordReset, updatePassword, clearPasswordRecovery, resendConfirmation,
   } = useAuth();
   const { t: tr } = useTranslation();  // i18n translate (distinct from theme `t`)
 
@@ -560,7 +560,7 @@ export default function App() {
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
       case 'resetPassword':    return <ResetPasswordScreen     nav={nav} t={t} dark={dark} updatePassword={updatePassword} onDone={() => { clearPasswordRecovery(); setScreen('login'); }}/>;
-      case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile && session ? { id: profile.id, name: profile.name, email: session.user.email ?? '' } : null} token={(screenPayload?.token as string) ?? ''} signOut={signOut}/>;
+      case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile && session ? { id: profile.id, name: profile.name, email: session.user.email ?? '' } : null} token={(screenPayload?.token as string) ?? ''} signOut={signOut} resendConfirmation={resendConfirmation}/>;
       case 'profile':          return <ProfileWizardScreen     key={profileNavKey} nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
       case 'checkin':          return (
         <>

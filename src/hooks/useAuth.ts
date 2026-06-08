@@ -20,6 +20,7 @@ interface UseAuthReturn {
   requestPasswordReset: (email: string) => Promise<ResetResult>;
   updatePassword:       (password: string) => Promise<ResetResult>;
   clearPasswordRecovery: () => void;
+  resendConfirmation:   (email: string) => Promise<ResetResult>;
 }
 
 function normalizeProfileUpdates(updates: Partial<Profile>, userId: string): Partial<Profile> & { id: string } {
@@ -121,9 +122,15 @@ export function useAuth(): UseAuthReturn {
     setPasswordRecovery(false);
   }
 
+  async function resendConfirmation(email: string): Promise<ResetResult> {
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    if (error) console.error('[useAuth] resendConfirmation error:', error);
+    return { error };
+  }
+
   return {
     session, profile, loading, passwordRecovery,
     signIn, signUp, signOut, updateProfile,
-    requestPasswordReset, updatePassword, clearPasswordRecovery,
+    requestPasswordReset, updatePassword, clearPasswordRecovery, resendConfirmation,
   };
 }
