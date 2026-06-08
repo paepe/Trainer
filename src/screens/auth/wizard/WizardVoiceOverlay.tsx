@@ -10,6 +10,14 @@ const SpeechRecognitionAPI =
     ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
     : null;
 
+// Mobile (Android/iOS) speech engines tend to be on-device and re-emit
+// overlapping/rephrased interim results for the same utterance, which reads
+// as an "echo" (repeated words/phrases) in the live transcript. Desktop
+// engines stream cleaner interim results. So: live preview only on desktop;
+// on mobile we wait for finalized segments only.
+const isMobileDevice = (typeof navigator !== 'undefined')
+  && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 interface WizardVoiceOverlayProps {
   dark?: boolean;
   primary?: string;
@@ -41,7 +49,7 @@ export function WizardVoiceOverlay({
     const rec = new SpeechRecognitionAPI();
     rec.lang           = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
     rec.continuous     = true;
-    rec.interimResults = true;
+    rec.interimResults = !isMobileDevice;
 
     rec.onresult = (e: any) => {
       let interim = '';
