@@ -10,14 +10,23 @@ import type {
 
 export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
-  const pref = data.preferences ?? {
+  const defaultPrefs = React.useMemo(() => ({
     preferred_intensity: 'moderate' as PreferredIntensity,
     training_company: 'solo' as TrainingCompany,
     preferred_language: 'explanatory' as PreferredLanguage,
     explanation_level: 'simple' as ExplanationLevel,
     focus: 'health' as TrainingFocus,
     support_level: 'guided' as SupportLevel,
-  };
+  }), []);
+  const pref = data.preferences ?? defaultPrefs;
+
+  // Seed the snapshot with the displayed defaults so accepting them without
+  // touching any control still persists a valid `preferences` section —
+  // otherwise `saveProfileV2` omits the key entirely (only writes keys
+  // present in `data`) and Continue silently has nothing to save.
+  React.useEffect(() => {
+    if (!data.preferences) onUpdate({ preferences: defaultPrefs });
+  }, [data.preferences, defaultPrefs, onUpdate]);
 
   const intensityOpts2    = (['gradual','moderate','intense'] as PreferredIntensity[]).map(v => ({ value: v, label: tr(`wizard.step13.intensities.${v}` as any) }));
   const companyOpts       = (['solo','accompanied','indifferent'] as TrainingCompany[]).map(v => ({ value: v, label: tr(`wizard.step13.company.${v}` as any) }));

@@ -1683,7 +1683,7 @@
       "bodyPost": ": puedes solicitar los detalles de los factores que pesaron en cada decisión.",
       "generating": "Generando Perfil Ampliado…",
       "generateBtn": "Generar Perfil Ampliado →",
-      "confirmBtn": "Entiendo — Generar de Todos Modos",
+      "confirmCheckbox": "Entiendo los riesgos descritos arriba y deseo continuar.",
       "confirmationR3": "Tu perfil indica riesgos elevados para la salud (R3). Se recomienda encarecidamente la validación humana antes de comenzar el entrenamiento. Revisa los factores de riesgo y confirma que comprendes.",
       "confirmationR4": "Riesgo crítico detectado (R4). NO se recomienda el entrenamiento autónomo. Debes consultar a un profesional de la salud y/o a tu entrenador personal antes de continuar. Confirma que comprendes los riesgos."
     },

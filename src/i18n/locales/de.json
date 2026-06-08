@@ -1683,7 +1683,7 @@
       "bodyPost": ": du kannst Details zu den Faktoren anfordern, die in jede Entscheidung eingeflossen sind.",
       "generating": "Erweitertes Profil wird erstellt…",
       "generateBtn": "Erweitertes Profil erstellen →",
-      "confirmBtn": "Ich Verstehe — Trotzdem Erstellen",
+      "confirmCheckbox": "Ich verstehe die oben beschriebenen Risiken und möchte fortfahren.",
       "confirmationR3": "Dein Profil zeigt erhöhte Gesundheitsrisiken (R3). Menschliche Validierung wird vor Trainingsbeginn dringend empfohlen. Bitte überprüfe die Risikofaktoren oben und bestätige dein Verständnis.",
       "confirmationR4": "Kritisches Risiko erkannt (R4). Autonomes Training wird NICHT empfohlen. Du musst vor dem Fortfahren einen Arzt und/oder deinen Personal Trainer konsultieren. Bestätige, dass du die Risiken verstehst."
     },

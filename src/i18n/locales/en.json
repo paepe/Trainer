@@ -1683,7 +1683,7 @@
       "bodyPost": ": you can request details of the factors that weighed into each decision.",
       "generating": "Generating Amplified Profile…",
       "generateBtn": "Generate Amplified Profile →",
-      "confirmBtn": "I Understand — Generate Anyway",
+      "confirmCheckbox": "I understand the risks described above and wish to continue.",
       "confirmationR3": "Your profile indicates elevated health risks (R3). Human validation is strongly recommended before starting training. Please review the risk factors above and confirm you understand.",
       "confirmationR4": "Critical risk detected (R4). Autonomous training is NOT recommended. You must consult a healthcare professional and/or your trainer before proceeding. Confirm you understand the risks."
     },

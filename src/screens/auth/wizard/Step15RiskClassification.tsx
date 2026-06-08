@@ -61,11 +61,10 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
   const [confirmed, setConfirmed] = React.useState(false);
   const requiresConfirmation = ['R3', 'R4'].includes(risk.level);
 
+  const canGenerate = !requiresConfirmation || confirmed;
+
   const handleGenerate = () => {
-    if (requiresConfirmation && !confirmed) {
-      setConfirmed(true);
-      return;
-    }
+    if (!canGenerate) return;
     onGenerate(risk);
   };
 
@@ -84,13 +83,19 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
         {tr('wizard.step15.bodyPre')}<strong style={{ color: textPri(dark) }}>{tr('wizard.step15.bodyBold')}</strong>{tr('wizard.step15.bodyPost')}
       </p>
 
-      {requiresConfirmation && !confirmed && (
+      {requiresConfirmation && (
         <div style={{ marginBottom: 24, padding: 14, borderRadius: 14, border: `1.5px solid ${risk.level === 'R4' ? '#FF4D4D' : '#F5A623'}33`, background: `${risk.level === 'R4' ? '#FF4D4D' : '#F5A623'}0c` }}>
-          <Typography variant="body" color="primary" style={{ fontSize: 13, lineHeight: 1.5 }}>
+          <Typography variant="body" color="primary" style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 12 }}>
             {risk.level === 'R4'
               ? tr('wizard.step15.confirmationR4')
               : tr('wizard.step15.confirmationR3')}
           </Typography>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+            <Toggle on={confirmed} onChange={setConfirmed}/>
+            <span style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
+              {tr('wizard.step15.confirmCheckbox')}
+            </span>
+          </label>
         </div>
       )}
 
@@ -98,14 +103,14 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
 
       <button
         onClick={handleGenerate}
-        disabled={generating}
+        disabled={generating || !canGenerate}
         style={{
           width: '100%', padding: '18px 20px', borderRadius: 14,
-          background: generating ? `${primary}88` : (requiresConfirmation && !confirmed) ? (risk.level === 'R4' ? '#FF4D4D' : '#F5A623') : primary,
+          background: generating || !canGenerate ? `${primary}55` : primary,
           border: 'none', color: '#0E1A2B',
           fontSize: 16, fontWeight: 700, fontFamily: 'inherit',
-          cursor: generating ? 'default' : 'pointer',
-          boxShadow: generating ? 'none' : `0 8px 24px ${primary}55`,
+          cursor: generating || !canGenerate ? 'default' : 'pointer',
+          boxShadow: generating || !canGenerate ? 'none' : `0 8px 24px ${primary}55`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
           transition: 'opacity .2s',
         }}
@@ -116,7 +121,7 @@ export function Step15RiskClassification({ dark, primary, accent, data, onUpdate
             {tr('wizard.step15.generating')}
           </>
         ) : (
-          (requiresConfirmation && !confirmed ? tr('wizard.step15.confirmBtn') : tr('wizard.step15.generateBtn'))
+          tr('wizard.step15.generateBtn')
         )}
       </button>
     </VStack>
