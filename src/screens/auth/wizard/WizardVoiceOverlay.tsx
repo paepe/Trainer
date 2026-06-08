@@ -27,10 +27,16 @@ export function WizardVoiceOverlay({
   const [supported,  setSupported]  = React.useState(!!SpeechRecognitionAPI);
   const [error,      setError]      = React.useState<string | null>(null);
   const recognitionRef = React.useRef<any>(null);
+  // Accumulates only finalized segments — `e.results` replays already-final
+  // entries alongside new interim ones on every `onresult` tick, so joining
+  // the whole array each time re-appends finished phrases and sounds like an
+  // echo in the transcript ("nome nome completo" etc).
+  const finalTextRef = React.useRef('');
 
   const startListening = () => {
     if (!SpeechRecognitionAPI) { setSupported(false); return; }
     setError(null);
+    finalTextRef.current = text ? `${text} ` : '';
 
     const rec = new SpeechRecognitionAPI();
     rec.lang           = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
@@ -38,10 +44,14 @@ export function WizardVoiceOverlay({
     rec.interimResults = true;
 
     rec.onresult = (e: any) => {
-      const transcript = Array.from(e.results as any[])
-        .map((r: any) => r[0].transcript)
-        .join('');
-      setText(transcript);
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const result = e.results[i];
+        const chunk = result[0].transcript;
+        if (result.isFinal) finalTextRef.current += chunk;
+        else interim += chunk;
+      }
+      setText((finalTextRef.current + interim).trim());
     };
     rec.onerror = (e: any) => {
       if (e.error === 'not-allowed') {
