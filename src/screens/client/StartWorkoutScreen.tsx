@@ -893,7 +893,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {!hasTrainerPlans && (
         <div style={{ padding: '16px 22px 28px' }}>
           <button
-            onClick={() => nav('workoutMode', { planId, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined })}
+            onClick={() => nav('workoutMode', { planId: planId || null, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined })}
             disabled={!plan || loading || safetyBlocked}
             style={{
               ...primaryBtn(t.primary),
@@ -976,12 +976,14 @@ interface PlanRowProps {
 function PlanRow({ label, detail, t, dark }: PlanRowProps) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0',
+      display: 'flex', alignItems: 'flex-start', gap: 10, padding: '6px 0',
       borderBottom: `1px dashed ${borderSubtle(dark)}`,
     }}>
-      <div style={{ width: 6, height: 6, borderRadius: '50%', background: t.primary }}/>
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark), minWidth: 80 }}>{label}</div>
-      <div style={{ fontSize: 12.5, color: textSec(dark), flex: 1 }}>{detail}</div>
+      <div style={{ width: 6, height: 6, borderRadius: '50%', background: t.primary, marginTop: 6, flexShrink: 0 }}/>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark), lineHeight: 1.35, wordBreak: 'break-word' }}>{label}</div>
+        {detail && <div style={{ fontSize: 12, color: textSec(dark), marginTop: 2 }}>{detail}</div>}
+      </div>
     </div>
   );
 }

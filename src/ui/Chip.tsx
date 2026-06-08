@@ -47,7 +47,10 @@ export function Chip({
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.4 : 1,
         transition: 'all .12s ease',
-        whiteSpace: 'nowrap',
+        whiteSpace: 'normal',
+        wordBreak: 'break-word',
+        maxWidth: '100%',
+        textAlign: 'center',
         ...style,
       }}
     >
