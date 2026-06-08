@@ -20,10 +20,19 @@ const INSTRUCTION_VALUES: InstructionFormat[] = ['visual', 'auditory', 'simplifi
 
 export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
-  const fc: Partial<ProfileFunctionalCapacity> = data.functional_capacity ?? {
-    support_resources: [],
-    instruction_format: [],
-  };
+  const defaultFc = React.useMemo(() => ({
+    support_resources:  ['none'] as SupportResource[],
+    instruction_format: ['standard'] as InstructionFormat[],
+  }), []);
+  const fc: Partial<ProfileFunctionalCapacity> = data.functional_capacity ?? defaultFc;
+
+  // Seed the snapshot with sensible defaults (no support resources, standard
+  // instruction format) so leaving them untouched still persists valid chips —
+  // otherwise they render fully deselected and look incomplete/ignored.
+  React.useEffect(() => {
+    if (!data.functional_capacity) onUpdate({ functional_capacity: defaultFc as ProfileFunctionalCapacity });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.functional_capacity]);
 
   const mobilityOpts    = MOBILITY_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.mobilityLevels.${v}`) }));
   const balanceOpts     = BALANCE_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.balanceLevels.${v}`) }));
