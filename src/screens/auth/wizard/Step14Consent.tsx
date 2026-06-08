@@ -64,7 +64,7 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
       
       
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 130px 130px', gap: 8, marginBottom: 8, paddingLeft: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr)', gap: 6, marginBottom: 8, paddingLeft: 4 }}>
         <div/>
         <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: textMute(dark), textAlign: 'center' }}>
           {tr('wizard.step14.personal')}
@@ -79,8 +79,8 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
           const sensitive = SENSITIVE_KEYS.has(rowKey);
           return (
           <div key={rowKey} style={{
-            display: 'grid', gridTemplateColumns: '1fr 130px 130px', gap: 8, alignItems: 'center',
-            padding: '10px 8px', borderRadius: 10,
+            display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr)', gap: 6, alignItems: 'center',
+            padding: '10px 8px', borderRadius: 10, minWidth: 0,
             background: sensitive ? `${accent}08` : surfRaised(dark),
             border: `1px solid ${sensitive ? `${accent}33` : borderSubtle(dark)}`,
           }}>
@@ -145,9 +145,10 @@ function ConsentPicker({ value, onChange, labelFn }: {
     <button onClick={next} style={{
       padding: '6px 4px', borderRadius: 8, textAlign: 'center',
       background: `${color}18`, border: `1.5px solid ${color}44`,
-      fontFamily: 'inherit', cursor: 'pointer', width: '100%',
+      fontFamily: 'inherit', cursor: 'pointer', width: '100%', minWidth: 0,
+      boxSizing: 'border-box', overflow: 'hidden',
     }}>
-      <span style={{ fontSize: 9.5, fontWeight: 700, color, letterSpacing: '.04em', lineHeight: 1.3 }}>
+      <span style={{ fontSize: 9.5, fontWeight: 700, color, letterSpacing: '.04em', lineHeight: 1.3, wordBreak: 'break-word' }}>
         {labelFn(value)}
       </span>
     </button>
