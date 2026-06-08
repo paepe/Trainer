@@ -2082,121 +2082,113 @@
   },
   "settings": {
     "title": "Einstellungen",
-    "aboutTagline": "TrAIner v1.1.0 · Das PT & ME Erlebnis",
-    "aiFocusHint": "Wie stark deine KI-Pläne jeden Bereich betonen",
+    "aboutTagline": "TrAIner v0.1 — KI-gestützter Fitness-Begleiter",
     "sections": {
-      "training": "Trainingseinstellungen",
-      "clientMgmt": "Kundenverwaltung",
-      "coaching": "Betreuung",
-      "ai": "KI-Personalisierung",
+      "training": "Trainingsstandards",
+      "ai": "KI & Datenschutz",
       "aiFocus": "KI-Trainingsfokus",
-      "appearance": "Darstellung",
-      "lightPalette": "Helle Palette",
-      "language": "Sprache",
       "notifications": "Benachrichtigungen",
-      "data": "Daten & Verlauf",
-      "b2b": "B2B / Studio"
+      "b2b": "Trainer-Funktionen",
+      "coaching": "Coaching-Einstellungen",
+      "data": "Datenlimits",
+      "appearance": "Erscheinungsbild",
+      "language": "Sprache",
+      "clientMgmt": "Kundenverwaltung",
+      "lightPalette": "Helles Farbprofil"
     },
     "fields": {
       "location": {
-        "label": "Standardort",
-        "hint": "Wo du normalerweise trainierst"
+        "label": "Standard-Trainingsort",
+        "hint": "Füllt den Check-in-Ort automatisch aus."
       },
       "duration": {
-        "label": "Standardsitzung",
-        "hint": "Bevorzugte Trainingsdauer"
+        "label": "Standard-Sitzungsdauer",
+        "hint": "Füllt die Check-in-Dauer automatisch aus."
       },
       "intensity": {
         "label": "Bevorzugte Intensität",
-        "hint": "Basisaufwand für KI-Pläne"
+        "hint": "Leitet die KI-Trainingsgenerierung."
       },
       "planExpiry": {
-        "label": "Automatischer Planablauf",
-        "hint": "Ausstehende Pläne stornieren nach"
+        "label": "Plan-Ablauf",
+        "hint": "Ältere Pläne werden automatisch storniert."
       },
       "dashboardDepth": {
-        "label": "Dashboard-Tiefe",
-        "hint": "Sitzungen & Pläne pro Kunde geladen"
-      },
-      "readyWindow": {
-        "label": "Bereitschaftsfenster",
-        "hint": "Wie lange deine \"Ich bin bereit\"-Meldung aktiv bleibt"
+        "label": "Kundenlimit im Dashboard",
+        "hint": "Maximale Kunden pro Liste."
       },
       "historyDepth": {
-        "label": "Verlaufstiefe",
-        "hint": "Vergangene Sitzungen im Verlauf gespeichert"
+        "label": "Sitzungslimit im Verlauf",
+        "hint": "Maximale Sitzungen pro Liste."
       },
-      "lightPalette": {
-        "label": "Helle Palette",
-        "hint": "Wird angewendet, wenn der Dunkelmodus aus ist"
+      "readyWindow": {
+        "label": "Bereitschaftsalarm-Ablauf",
+        "hint": "Trainer-Alarm läuft ohne Aktion ab."
       },
       "language": {
-        "hint": "Sprache der App und des KI-Coachings"
-      }
-    },
-    "opt": {
-      "location": {
-        "gym": "Fitnessstudio",
-        "home": "Zuhause",
-        "outdoor": "Draußen"
+        "label": "Oberflächensprache",
+        "hint": "UI, KI-Ausgabe und Benachrichtigungen folgen dieser Einstellung."
       },
-      "intensity": {
-        "light": "Leicht",
-        "moderate": "Moderat",
-        "hard": "Hart"
-      },
-      "palette": {
-        "arctic": "Arktis",
-        "sand": "Sand"
-      },
-      "focus": {
-        "strength": "Kraft",
-        "endurance": "Ausdauer",
-        "mobility": "Mobilität"
+      "lightPalette": {
+        "label": "Helles Farbprofil",
+        "hint": "Wähle zwischen Arktisblau und Warmsand."
       }
     },
     "toggle": {
-      "aiWorkouts": {
-        "label": "KI-Workouts",
-        "hint": "Täglicher Plan von deinem Trainer + KI"
+      "push": {
+        "label": "Push-Benachrichtigungen",
+        "hint": "Erhalte Trainingserinnerungen und Trainer-Alarme."
+      },
+      "goals": {
+        "label": "Zielverfolgung",
+        "hint": "Verfolge den Fortschritt deiner Fitnessziele."
+      },
+      "alerts": {
+        "label": "Sicherheitsalarme",
+        "hint": "Benachrichtige deinen Trainer bei kritischen Bereitschaftswerten."
       },
       "analysis": {
-        "label": "Trainingsanalyse",
-        "hint": "KI-Zusammenfassung nach der Sitzung"
+        "label": "Analysefreigabe",
+        "hint": "Teile aggregierte Daten zur Verbesserung der Empfehlungen."
+      },
+      "behaviour": {
+        "label": "Verhaltens-Insights",
+        "hint": "Teile Nutzungsmuster zur Personalisierung."
       },
       "cycle": {
         "label": "Zyklus-Tracking",
-        "hint": "Intensität an deine Phase anpassen"
+        "hint": "Passe die Trainingsintensität an deine Zyklusphase an."
       },
-      "behaviour": {
-        "label": "Verhaltens-Tracking",
-        "hint": "Aus Abschluss + Feedback lernen"
-      },
-      "push": {
-        "label": "Push-Benachrichtigungen",
-        "hint": "Alle App-Hinweise"
-      },
-      "goals": {
-        "label": "Zielerinnerungen",
-        "hint": "Wöchentliche Meilenstein-Hinweise"
-      },
-      "alerts": {
-        "label": "Aktivitätswarnungen",
-        "hint": "Warnungen bei inaktiven Tagen"
+      "aiWorkouts": {
+        "label": "KI-Personalisierung",
+        "hint": "Passe die Trainingsgenerierung an dein Profil und deine Historie an."
       },
       "sounds": {
-        "label": "Töne & Signaltöne",
-        "hint": "Audio-Hinweise im Training"
+        "label": "Trainings-Sounds",
+        "hint": "Audio-Hinweise für Pausen, Sätze und Abschluss."
       },
       "darkMode": {
         "label": "Dunkelmodus",
-        "hint": "Dunkles Design in der ganzen App verwenden"
+        "hint": "Wechsle zwischen hellem und dunklem Thema."
       },
       "whiteLabel": {
-        "label": "White-Label-Modus",
-        "hint": "TrAIner-Marke für dein Studio ausblenden"
+        "label": "White Label",
+        "hint": "TrAIner-Branding ausblenden."
       }
-    }
+    },
+    "opt": {
+      "focus": {
+        "strength": "Kraft-Fokus",
+        "endurance": "Ausdauer-Fokus",
+        "mobility": "Mobilitäts-Fokus"
+      },
+      "palette": {
+        "arctic": "Arktisblau",
+        "sand": "Warmsand"
+      }
+    },
+    "aiFocusHint": "Höhere Betonung beeinflusst die Übungsauswahl und Wiederholungsbereiche der KI.",
+    "saveFailed": "Speichern fehlgeschlagen — bitte erneut versuchen."
   },
   "risk": {
     "noRestrictions": "Keine Einschränkungen",
@@ -2253,59 +2245,6 @@
   "wizardFooter": {
     "continue": "Weiter",
     "save": "Speichern"
-  },
-  "settings": {
-    "title": "Einstellungen",
-    "aboutTagline": "TrAIner v0.1 — KI-gestützter Fitness-Begleiter",
-    "sections": {
-      "training": "Trainingsstandards",
-      "ai": "KI & Datenschutz",
-      "aiFocus": "KI-Trainingsfokus",
-      "notifications": "Benachrichtigungen",
-      "b2b": "Trainer-Funktionen",
-      "coaching": "Coaching-Einstellungen",
-      "data": "Datenlimits",
-      "appearance": "Erscheinungsbild",
-      "language": "Sprache",
-      "clientMgmt": "Kundenverwaltung",
-      "lightPalette": "Helles Farbprofil"
-    },
-    "fields": {
-      "location": { "label": "Standard-Trainingsort", "hint": "Füllt den Check-in-Ort automatisch aus." },
-      "duration": { "label": "Standard-Sitzungsdauer", "hint": "Füllt die Check-in-Dauer automatisch aus." },
-      "intensity": { "label": "Bevorzugte Intensität", "hint": "Leitet die KI-Trainingsgenerierung." },
-      "planExpiry": { "label": "Plan-Ablauf", "hint": "Ältere Pläne werden automatisch storniert." },
-      "dashboardDepth": { "label": "Kundenlimit im Dashboard", "hint": "Maximale Kunden pro Liste." },
-      "historyDepth": { "label": "Sitzungslimit im Verlauf", "hint": "Maximale Sitzungen pro Liste." },
-      "readyWindow": { "label": "Bereitschaftsalarm-Ablauf", "hint": "Trainer-Alarm läuft ohne Aktion ab." },
-      "language": { "label": "Oberflächensprache", "hint": "UI, KI-Ausgabe und Benachrichtigungen folgen dieser Einstellung." },
-      "lightPalette": { "label": "Helles Farbprofil", "hint": "Wähle zwischen Arktisblau und Warmsand." }
-    },
-    "toggle": {
-      "push": { "label": "Push-Benachrichtigungen", "hint": "Erhalte Trainingserinnerungen und Trainer-Alarme." },
-      "goals": { "label": "Zielverfolgung", "hint": "Verfolge den Fortschritt deiner Fitnessziele." },
-      "alerts": { "label": "Sicherheitsalarme", "hint": "Benachrichtige deinen Trainer bei kritischen Bereitschaftswerten." },
-      "analysis": { "label": "Analysefreigabe", "hint": "Teile aggregierte Daten zur Verbesserung der Empfehlungen." },
-      "behaviour": { "label": "Verhaltens-Insights", "hint": "Teile Nutzungsmuster zur Personalisierung." },
-      "cycle": { "label": "Zyklus-Tracking", "hint": "Passe die Trainingsintensität an deine Zyklusphase an." },
-      "aiWorkouts": { "label": "KI-Personalisierung", "hint": "Passe die Trainingsgenerierung an dein Profil und deine Historie an." },
-      "sounds": { "label": "Trainings-Sounds", "hint": "Audio-Hinweise für Pausen, Sätze und Abschluss." },
-      "darkMode": { "label": "Dunkelmodus", "hint": "Wechsle zwischen hellem und dunklem Thema." },
-      "whiteLabel": { "label": "White Label", "hint": "TrAIner-Branding ausblenden." }
-    },
-    "opt": {
-      "focus": {
-        "strength": "Kraft-Fokus",
-        "endurance": "Ausdauer-Fokus",
-        "mobility": "Mobilitäts-Fokus"
-      },
-      "palette": {
-        "arctic": "Arktisblau",
-        "sand": "Warmsand"
-      }
-    },
-    "aiFocusHint": "Höhere Betonung beeinflusst die Übungsauswahl und Wiederholungsbereiche der KI.",
-    "saveFailed": "Speichern fehlgeschlagen — bitte erneut versuchen."
   },
   "profileFields": {
     "age": "Alter",
@@ -2374,6 +2313,11 @@
     "expired": "Diese Einladung ist abgelaufen. Bitte deinen Trainer, eine neue zu senden.",
     "revoked": "Diese Einladung wurde vom Trainer widerrufen.",
     "errAlreadyLinked": "Du bist bereits mit einem anderen Trainer verbunden. Ein Klient kann nur einen Trainer gleichzeitig haben.",
+    "errEmailMismatch": "Diese Einladung gehört zu einem anderen Konto. Melde dich ab und mit der richtigen E-Mail an, um sie anzunehmen.",
+    "wrongAccountTitle": "Anderes Konto erkannt",
+    "wrongAccountBody": "Diese Einladung wurde an {{invitedEmail}} gesendet, aber du bist mit einem anderen Konto angemeldet. Melde dich ab und mit {{invitedEmail}} an (oder erstelle ein Konto), um die Einladung von {{trainerName}} anzunehmen.",
+    "switchAccount": "Abmelden und Konto wechseln",
+    "switchingAccount": "Wird abgemeldet...",
     "goHome": "Zu TrAIner",
     "trainerPushTitle": "{{clientName}} hat deine Einladung angenommen",
     "trainerPushBody": "{{clientName}} ist jetzt dein Klient auf TrAIner."

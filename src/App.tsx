@@ -560,7 +560,7 @@ export default function App() {
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
       case 'resetPassword':    return <ResetPasswordScreen     nav={nav} t={t} dark={dark} updatePassword={updatePassword} onDone={() => { clearPasswordRecovery(); setScreen('login'); }}/>;
-      case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile ? { id: profile.id, name: profile.name } : null} token={(screenPayload?.token as string) ?? ''}/>;
+      case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile && session ? { id: profile.id, name: profile.name, email: session.user.email ?? '' } : null} token={(screenPayload?.token as string) ?? ''} signOut={signOut}/>;
       case 'profile':          return <ProfileWizardScreen     key={profileNavKey} nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
       case 'checkin':          return (
         <>

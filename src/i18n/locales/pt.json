@@ -2082,121 +2082,113 @@
   },
   "settings": {
     "title": "Configurações",
-    "aboutTagline": "TrAIner v1.1.0 · A experiência PT & ME",
-    "aiFocusHint": "O quanto seus planos de IA enfatizam cada área",
+    "aboutTagline": "TrAIner v0.1 — Acompanhamento fitness com IA",
     "sections": {
-      "training": "Preferências de Treino",
-      "clientMgmt": "Gestão de Clientes",
-      "coaching": "Acompanhamento",
-      "ai": "Personalização de IA",
-      "aiFocus": "Foco de Treino da IA",
-      "appearance": "Aparência",
-      "lightPalette": "Paleta clara",
-      "language": "Idioma",
+      "training": "Padrões de Treino",
+      "ai": "IA e Privacidade",
+      "aiFocus": "Foco do Treino IA",
       "notifications": "Notificações",
-      "data": "Dados e Histórico",
-      "b2b": "B2B / Studio"
+      "b2b": "Recursos do Treinador",
+      "coaching": "Preferências de Coaching",
+      "data": "Limites de Dados",
+      "appearance": "Aparência",
+      "language": "Idioma",
+      "clientMgmt": "Gestão de Clientes",
+      "lightPalette": "Paleta Modo Claro"
     },
     "fields": {
       "location": {
-        "label": "Local padrão",
-        "hint": "Onde você costuma treinar"
+        "label": "Local Padrão de Treino",
+        "hint": "Preenche o local do check-in automaticamente."
       },
       "duration": {
-        "label": "Sessão padrão",
-        "hint": "Duração de treino preferida"
+        "label": "Duração Padrão da Sessão",
+        "hint": "Preenche a duração do check-in automaticamente."
       },
       "intensity": {
-        "label": "Intensidade preferida",
-        "hint": "Esforço base para planos de IA"
+        "label": "Intensidade Preferida",
+        "hint": "Orienta a geração de treinos pela IA."
       },
       "planExpiry": {
-        "label": "Expiração automática do plano",
-        "hint": "Cancelar planos pendentes após"
+        "label": "Expiração de Planos",
+        "hint": "Planos mais antigos são cancelados automaticamente."
       },
       "dashboardDepth": {
-        "label": "Profundidade do painel",
-        "hint": "Sessões e planos carregados por cliente"
-      },
-      "readyWindow": {
-        "label": "Janela de prontidão",
-        "hint": "Por quanto tempo seu alerta \"Estou pronto\" fica ativo"
+        "label": "Limite de Clientes no Painel",
+        "hint": "Máximo de clientes exibidos por lista."
       },
       "historyDepth": {
-        "label": "Profundidade do histórico",
-        "hint": "Sessões passadas mantidas na tela de Histórico"
+        "label": "Limite de Sessões no Histórico",
+        "hint": "Máximo de sessões exibidas por lista."
       },
-      "lightPalette": {
-        "label": "Paleta clara",
-        "hint": "Aplicada quando o modo escuro está desligado"
+      "readyWindow": {
+        "label": "Expiração de Alerta de Prontidão",
+        "hint": "Alerta do treinador expira se não houver ação."
       },
       "language": {
-        "hint": "Idioma do app e do coaching de IA"
-      }
-    },
-    "opt": {
-      "location": {
-        "gym": "Academia",
-        "home": "Casa",
-        "outdoor": "Ar livre"
+        "label": "Idioma da Interface",
+        "hint": "Interface, saída da IA e notificações seguem esta configuração."
       },
-      "intensity": {
-        "light": "Leve",
-        "moderate": "Moderada",
-        "hard": "Intensa"
-      },
-      "palette": {
-        "arctic": "Ártico",
-        "sand": "Areia"
-      },
-      "focus": {
-        "strength": "Força",
-        "endurance": "Resistência",
-        "mobility": "Mobilidade"
+      "lightPalette": {
+        "label": "Paleta Modo Claro",
+        "hint": "Escolha entre Azul Ártico e Areia Quente."
       }
     },
     "toggle": {
-      "aiWorkouts": {
-        "label": "Treinos de IA",
-        "hint": "Plano diário do seu treinador + IA"
-      },
-      "analysis": {
-        "label": "Análise de Treino",
-        "hint": "Resumo de IA pós-sessão"
-      },
-      "cycle": {
-        "label": "Acompanhamento de ciclo",
-        "hint": "Adaptar intensidade à sua fase"
-      },
-      "behaviour": {
-        "label": "Rastreamento de Comportamento",
-        "hint": "Aprender com conclusão + feedback"
-      },
       "push": {
-        "label": "Notificações push",
-        "hint": "Todos os alertas do app"
+        "label": "Notificações Push",
+        "hint": "Receba lembretes de treino e alertas do treinador."
       },
       "goals": {
-        "label": "Lembretes de metas",
-        "hint": "Avisos semanais de marcos"
+        "label": "Acompanhamento de Metas",
+        "hint": "Acompanhe o progresso das metas de fitness."
       },
       "alerts": {
-        "label": "Alertas de Atividade",
-        "hint": "Avisos de dias inativos"
+        "label": "Alertas de Segurança",
+        "hint": "Notifique seu treinador em pontuações críticas de prontidão."
+      },
+      "analysis": {
+        "label": "Compartilhamento de Dados",
+        "hint": "Compartilhe dados agregados para melhorar recomendações."
+      },
+      "behaviour": {
+        "label": "Insights Comportamentais",
+        "hint": "Compartilhe padrões de uso para personalizar sua experiência."
+      },
+      "cycle": {
+        "label": "Acompanhamento de Ciclo",
+        "hint": "Adapte a intensidade do treino à fase do ciclo menstrual."
+      },
+      "aiWorkouts": {
+        "label": "Personalização por IA",
+        "hint": "Adapte a geração de treinos ao seu perfil e histórico."
       },
       "sounds": {
-        "label": "Sons e Bipes",
-        "hint": "Sinais de áudio durante o treino"
+        "label": "Sons do Treino",
+        "hint": "Alertas sonoros para descansos, séries e conclusão."
       },
       "darkMode": {
-        "label": "Modo escuro",
-        "hint": "Usar o tema escuro em todo o app"
+        "label": "Modo Escuro",
+        "hint": "Alterne entre tema claro e escuro."
       },
       "whiteLabel": {
-        "label": "Modo white-label",
-        "hint": "Ocultar a marca TrAIner para seu estúdio"
+        "label": "Marca Branca",
+        "hint": "Ocultar marca TrAIner."
       }
-    }
+    },
+    "opt": {
+      "focus": {
+        "strength": "Foco em Força",
+        "endurance": "Foco em Resistência",
+        "mobility": "Foco em Mobilidade"
+      },
+      "palette": {
+        "arctic": "Azul Ártico",
+        "sand": "Areia Quente"
+      }
+    },
+    "aiFocusHint": "Maior ênfase influencia a seleção de exercícios e faixas de repetições da IA.",
+    "saveFailed": "Falha ao salvar — tente novamente."
   },
   "risk": {
     "noRestrictions": "Sem restrições",
@@ -2253,59 +2245,6 @@
   "wizardFooter": {
     "continue": "Continuar",
     "save": "Salvar"
-  },
-  "settings": {
-    "title": "Configurações",
-    "aboutTagline": "TrAIner v0.1 — Acompanhamento fitness com IA",
-    "sections": {
-      "training": "Padrões de Treino",
-      "ai": "IA e Privacidade",
-      "aiFocus": "Foco do Treino IA",
-      "notifications": "Notificações",
-      "b2b": "Recursos do Treinador",
-      "coaching": "Preferências de Coaching",
-      "data": "Limites de Dados",
-      "appearance": "Aparência",
-      "language": "Idioma",
-      "clientMgmt": "Gestão de Clientes",
-      "lightPalette": "Paleta Modo Claro"
-    },
-    "fields": {
-      "location": { "label": "Local Padrão de Treino", "hint": "Preenche o local do check-in automaticamente." },
-      "duration": { "label": "Duração Padrão da Sessão", "hint": "Preenche a duração do check-in automaticamente." },
-      "intensity": { "label": "Intensidade Preferida", "hint": "Orienta a geração de treinos pela IA." },
-      "planExpiry": { "label": "Expiração de Planos", "hint": "Planos mais antigos são cancelados automaticamente." },
-      "dashboardDepth": { "label": "Limite de Clientes no Painel", "hint": "Máximo de clientes exibidos por lista." },
-      "historyDepth": { "label": "Limite de Sessões no Histórico", "hint": "Máximo de sessões exibidas por lista." },
-      "readyWindow": { "label": "Expiração de Alerta de Prontidão", "hint": "Alerta do treinador expira se não houver ação." },
-      "language": { "label": "Idioma da Interface", "hint": "Interface, saída da IA e notificações seguem esta configuração." },
-      "lightPalette": { "label": "Paleta Modo Claro", "hint": "Escolha entre Azul Ártico e Areia Quente." }
-    },
-    "toggle": {
-      "push": { "label": "Notificações Push", "hint": "Receba lembretes de treino e alertas do treinador." },
-      "goals": { "label": "Acompanhamento de Metas", "hint": "Acompanhe o progresso das metas de fitness." },
-      "alerts": { "label": "Alertas de Segurança", "hint": "Notifique seu treinador em pontuações críticas de prontidão." },
-      "analysis": { "label": "Compartilhamento de Dados", "hint": "Compartilhe dados agregados para melhorar recomendações." },
-      "behaviour": { "label": "Insights Comportamentais", "hint": "Compartilhe padrões de uso para personalizar sua experiência." },
-      "cycle": { "label": "Acompanhamento de Ciclo", "hint": "Adapte a intensidade do treino à fase do ciclo menstrual." },
-      "aiWorkouts": { "label": "Personalização por IA", "hint": "Adapte a geração de treinos ao seu perfil e histórico." },
-      "sounds": { "label": "Sons do Treino", "hint": "Alertas sonoros para descansos, séries e conclusão." },
-      "darkMode": { "label": "Modo Escuro", "hint": "Alterne entre tema claro e escuro." },
-      "whiteLabel": { "label": "Marca Branca", "hint": "Ocultar marca TrAIner." }
-    },
-    "opt": {
-      "focus": {
-        "strength": "Foco em Força",
-        "endurance": "Foco em Resistência",
-        "mobility": "Foco em Mobilidade"
-      },
-      "palette": {
-        "arctic": "Azul Ártico",
-        "sand": "Areia Quente"
-      }
-    },
-    "aiFocusHint": "Maior ênfase influencia a seleção de exercícios e faixas de repetições da IA.",
-    "saveFailed": "Falha ao salvar — tente novamente."
   },
   "profileFields": {
     "age": "Idade",
@@ -2374,6 +2313,11 @@
     "expired": "Este convite expirou. Peça ao seu treinador para enviar um novo.",
     "revoked": "Este convite foi revogado pelo treinador.",
     "errAlreadyLinked": "Você já está vinculado a outro treinador. Um aluno só pode ter um treinador por vez.",
+    "errEmailMismatch": "Este convite pertence a outra conta. Saia e entre com o e-mail correto para aceitá-lo.",
+    "wrongAccountTitle": "Conta diferente detectada",
+    "wrongAccountBody": "Este convite foi enviado para {{invitedEmail}}, mas você está conectado com outra conta. Saia e entre (ou crie uma conta) com {{invitedEmail}} para aceitar o convite de {{trainerName}}.",
+    "switchAccount": "Sair e trocar de conta",
+    "switchingAccount": "Saindo...",
     "goHome": "Ir para o TrAIner",
     "trainerPushTitle": "{{clientName}} aceitou seu convite",
     "trainerPushBody": "{{clientName}} agora é seu aluno(a) no TrAIner."

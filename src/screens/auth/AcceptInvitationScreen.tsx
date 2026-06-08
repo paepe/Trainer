@@ -14,8 +14,9 @@ interface AcceptInvitationScreenProps {
   nav:   NavFn;
   t:     Theme;
   dark:  boolean;
-  user:  { id: string; name?: string | null } | null;
+  user:  { id: string; name?: string | null; email: string } | null;
   token: string;
+  signOut: () => Promise<void>;
 }
 
 type InvitationState =
@@ -23,15 +24,17 @@ type InvitationState =
   | { phase: 'invalid' }
   | { phase: 'expired' }
   | { phase: 'revoked' }
-  | { phase: 'ready';     invitedName: string; trainerName: string }
-  | { phase: 'accepted';  trainerName: string }
-  | { phase: 'error';     message: string };
+  | { phase: 'ready';        invitedEmail: string; invitedName: string; trainerName: string }
+  | { phase: 'wrongAccount'; invitedEmail: string; trainerName: string }
+  | { phase: 'accepted';     trainerName: string }
+  | { phase: 'error';        message: string };
 
 interface InvitationRow {
-  invited_name: string;
-  trainer_name: string;
-  status:       string;
-  expires_at:   string;
+  invited_email: string;
+  invited_name:  string;
+  trainer_name:  string;
+  status:        string;
+  expires_at:    string;
 }
 
 interface AcceptanceRow {
@@ -48,10 +51,11 @@ function Wrap({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function AcceptInvitationScreen({ nav, t, dark, user, token }: AcceptInvitationScreenProps) {
+export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut }: AcceptInvitationScreenProps) {
   const { t: tr } = useTranslation();
-  const [state,     setState]     = React.useState<InvitationState>({ phase: 'loading' });
-  const [accepting, setAccepting] = React.useState(false);
+  const [state,        setState]        = React.useState<InvitationState>({ phase: 'loading' });
+  const [accepting,    setAccepting]    = React.useState(false);
+  const [signingOut,   setSigningOut]   = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -62,10 +66,17 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token }: AcceptInvi
       if (row.status === 'expired')   { setState({ phase: 'expired' }); return; }
       if (row.status === 'revoked')   { setState({ phase: 'revoked' }); return; }
       if (row.status === 'accepted')  { setState({ phase: 'accepted', trainerName: row.trainer_name }); return; }
-      setState({ phase: 'ready', invitedName: row.invited_name, trainerName: row.trainer_name });
+      // A logged-in session whose email doesn't match the invitee must not see
+      // the Accept button — otherwise a stale/cached session (e.g. the inviting
+      // trainer's own browser) could be linked instead of the actual invitee.
+      if (user && user.email.toLowerCase() !== row.invited_email.toLowerCase()) {
+        setState({ phase: 'wrongAccount', invitedEmail: row.invited_email, trainerName: row.trainer_name });
+        return;
+      }
+      setState({ phase: 'ready', invitedEmail: row.invited_email, invitedName: row.invited_name, trainerName: row.trainer_name });
     });
     return () => { cancelled = true; };
-  }, [token]);
+  }, [token, user]);
 
   const accept = async () => {
     if (!user?.id || state.phase !== 'ready') return;
@@ -93,6 +104,9 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token }: AcceptInvi
       case 'already_linked_elsewhere':
         setState({ phase: 'error', message: tr('invite.errAlreadyLinked') });
         return;
+      case 'email_mismatch':
+        setState({ phase: 'error', message: tr('invite.errEmailMismatch') });
+        return;
       case 'expired':
         setState({ phase: 'expired' });
         return;
@@ -107,6 +121,14 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token }: AcceptInvi
   const goAuth = (screen: 'login' | 'register') => {
     sessionStorage.setItem('trainer_pending_invite_token', token);
     nav(screen);
+  };
+
+  const switchAccount = async () => {
+    setSigningOut(true);
+    sessionStorage.setItem('trainer_pending_invite_token', token);
+    await signOut();
+    setSigningOut(false);
+    nav('login');
   };
 
   if (state.phase === 'loading') {
@@ -156,6 +178,26 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token }: AcceptInvi
         </p>
         <button onClick={() => nav(user ? 'checkin' : 'welcome')} style={{ ...primaryBtn(t.primary), marginTop: 22, width: 220 }}>
           {tr('invite.continue')}
+        </button>
+      </Wrap>
+    );
+  }
+
+  if (state.phase === 'wrongAccount') {
+    return (
+      <Wrap>
+        <Icon name="shield" size={40} color={t.accent}/>
+        <h1 style={{ margin: '14px 0 4px', fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 19, fontWeight: 700, color: textPri(dark) }}>
+          {tr('invite.wrongAccountTitle')}
+        </h1>
+        <p style={{ margin: 0, color: textSec(dark), fontSize: 13.5, maxWidth: 300, lineHeight: 1.5 }}>
+          {tr('invite.wrongAccountBody', { invitedEmail: state.invitedEmail, trainerName: state.trainerName })}
+        </p>
+        <button onClick={switchAccount} disabled={signingOut} style={{ ...primaryBtn(t.primary, signingOut), marginTop: 22, width: 240 }}>
+          {signingOut ? tr('invite.switchingAccount') : tr('invite.switchAccount')}
+        </button>
+        <button onClick={() => nav('welcome')} style={{ ...outlineBtn(t.primary), marginTop: 10, width: 240 }}>
+          {tr('invite.goHome')}
         </button>
       </Wrap>
     );

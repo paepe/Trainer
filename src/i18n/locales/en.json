@@ -338,167 +338,6 @@
       "stats": "{{trainers}} trainer(s) · {{clients}} clients"
     },
     "dashboard": {
-      "title": "Dashboard",
-      "sub": "Overview of your studio",
-      "trainers": "Trainers",
-      "activeTrainers": "Active Trainers",
-      "activeClients": "Active Clients",
-      "noTrainers": "No trainers yet",
-      "plansThisWeek": "Plans This Week",
-      "completedThisWeek": "Completed This Week",
-      "protocolsSection": "Protocols",
-      "noProtocolsYet": "No protocols yet. Go to Protocols to create."
-    },
-    "clients": {
-      "title": "Clients",
-      "searchPlaceholder": "Search by name or email…",
-      "clear": "Clear ×",
-      "sub": "{{visible}} of {{total}} active client(s)",
-      "allLevels": "All Levels",
-      "allTrainers": "All Trainers",
-      "noClients": "No clients found.",
-      "noMatch": "No clients match your criteria.",
-      "headers": {
-        "client": "Client",
-        "email": "Email",
-        "trainer": "Trainer",
-        "goal": "Goal",
-        "level": "Level"
-      }
-    },
-    "team": {
-      "title": "Team",
-      "inviteTrainer": "+ Invite Trainer",
-      "inviteTrainerBtn": "+ Invite trainer",
-      "emailPlaceholder": "trainer@email.com",
-      "sub": "{{count}} trainer(s)",
-      "noTrainers": "No trainers yet.",
-      "send": "Send",
-      "cancel": "Cancel",
-      "remove": "Remove",
-      "headers": {
-        "name": "Name",
-        "email": "Email",
-        "role": "Role",
-        "actions": "Actions"
-      }
-    },
-    "protocols": {
-      "title": "Protocols",
-      "newProtocolHeading": "New protocol",
-      "newProtocol": "New Protocol",
-      "createProtocol": "Create Protocol",
-      "name": "Name",
-      "objective": "Objective",
-      "level": "Level",
-      "description": "Description",
-      "cancel": "Cancel",
-      "durationLabel": "Duration (min)",
-      "searchPlaceholder": "Search by name or objective…",
-      "sortBy": "Sort by:",
-      "sortName": "Name",
-      "sortLevel": "Level",
-      "sortDuration": "Duration",
-      "sortExercises": "Exercises",
-      "clearFilters": "Clear filters ×",
-      "noProtocolsYet": "No protocols yet. Create your first protocol above.",
-      "noMatch": "No protocols match your criteria.",
-      "delete": "Delete",
-      "sub": "{{visible}} of {{total}} protocol(s)",
-      "descriptionPlaceholder": "Brief description of this protocol…"
-    },
-    "protocolDetail": {
-      "exercise": "Exercise",
-      "muscleGroup": "Muscle Group",
-      "noExercises": "No exercises in this protocol.",
-      "sets": "Sets",
-      "reps": "Reps",
-      "exercisesCount": "Exercises ({{count}})",
-      "loadKg": "Load (kg)",
-      "restS": "Rest (s)",
-      "add": "Add",
-      "cancel": "Cancel",
-      "addExercise": "+ Add exercise",
-      "loadOptional": "optional"
-    },
-    "createStudio": {
-      "title": "Create Your Studio",
-      "note": "Set up your training studio to manage trainers, clients, and protocols.",
-      "btnCreateStudio": "Create Studio →",
-      "namePlaceholder": "Studio name (e.g. FitCore Lisboa)",
-      "errUnknown": "An error occurred"
-    },
-    "dashboard": {
-      "protocolsSection": "Protocols",
-      "noProtocolsYet": "No protocols yet. Go to Protocols to create."
-    },
-    "team": {
-      "inviteTrainerBtn": "+ Invite trainer",
-      "emailPlaceholder": "trainer@email.com",
-      "sub": "{{count}} trainer(s)"
-    },
-    "clients": {
-      "searchPlaceholder": "Search by name or email…",
-      "clear": "Clear ×",
-      "sub": "{{visible}} of {{total}} active client(s)",
-      "headers": {
-        "client": "Client",
-        "email": "Email",
-        "trainer": "Trainer",
-        "goal": "Goal",
-        "level": "Level"
-      }
-    },
-    "protocols": {
-      "newProtocolHeading": "New protocol",
-      "durationLabel": "Duration (min)",
-      "searchPlaceholder": "Search by name or objective…",
-      "sortBy": "Sort by:",
-      "sortName": "Name",
-      "sortLevel": "Level",
-      "sortDuration": "Duration",
-      "sortExercises": "Exercises",
-      "clearFilters": "Clear filters ×",
-      "noProtocolsYet": "No protocols yet. Create your first protocol above.",
-      "noMatch": "No protocols match your criteria.",
-      "delete": "Delete",
-      "sub": "{{visible}} of {{total}} protocol(s)",
-      "descriptionPlaceholder": "Brief description of this protocol…"
-    },
-    "protocolDetail": {
-      "exercisesCount": "Exercises ({{count}})",
-      "loadKg": "Load (kg)",
-      "restS": "Rest (s)",
-      "add": "Add",
-      "cancel": "Cancel",
-      "addExercise": "+ Add exercise",
-      "loadOptional": "optional"
-    },
-    "auth": {
-      "accessDenied": "Access denied",
-      "accessDeniedNote": "This dashboard requires a Studio Admin account.",
-      "signOut": "Sign out",
-      "signIn": "Sign in to manage your studio.",
-      "signInBtn": "Sign in",
-      "brand": "TrAIner Studio"
-    },
-    "createStudio": {
-      "btnCreateStudio": "Create Studio →",
-      "namePlaceholder": "Studio name (e.g. FitCore Lisboa)",
-      "errUnknown": "An error occurred"
-    }
-  },
-  "studio": {
-    "sidebar": {
-      "studioLabel": "Studio",
-      "dashboard": "Dashboard",
-      "clients": "Clients",
-      "protocols": "Protocols",
-      "team": "Team",
-      "signOut": "Sign Out",
-      "stats": "{{trainers}} trainer(s) · {{clients}} clients"
-    },
-    "dashboard": {
       "protocolsSection": "Protocols",
       "noProtocolsYet": "No protocols yet. Go to Protocols to create one.",
       "title": "Dashboard",
@@ -2243,121 +2082,113 @@
   },
   "settings": {
     "title": "Settings",
-    "aboutTagline": "TrAIner v1.1.0 · The PT & ME Experience",
-    "aiFocusHint": "How much your AI plans emphasise each area",
+    "aboutTagline": "TrAIner v0.1 — AI-powered fitness companion",
     "sections": {
-      "training": "Training Preferences",
-      "clientMgmt": "Client Management",
-      "coaching": "Coaching",
-      "ai": "AI personalization",
+      "training": "Training Defaults",
+      "ai": "AI & Privacy",
       "aiFocus": "AI Training Focus",
-      "appearance": "Appearance",
-      "lightPalette": "Light palette",
-      "language": "Language",
       "notifications": "Notifications",
-      "data": "Data & History",
-      "b2b": "B2B / Studio"
+      "b2b": "Trainer Features",
+      "coaching": "Coaching Preferences",
+      "data": "Data Limits",
+      "appearance": "Appearance",
+      "language": "Language",
+      "clientMgmt": "Client Management",
+      "lightPalette": "Light Mode Palette"
     },
     "fields": {
       "location": {
-        "label": "Default location",
-        "hint": "Where you usually train"
+        "label": "Default Training Location",
+        "hint": "Pre-fills check-in location for every session."
       },
       "duration": {
-        "label": "Default session",
-        "hint": "Preferred workout length"
+        "label": "Default Session Duration",
+        "hint": "Pre-fills check-in duration for every session."
       },
       "intensity": {
-        "label": "Preferred intensity",
-        "hint": "Baseline effort for AI plans"
+        "label": "Preferred Intensity",
+        "hint": "Guides AI workout generation intensity curve."
       },
       "planExpiry": {
-        "label": "Plan auto-expiry",
-        "hint": "Cancel pending plans after"
+        "label": "Workout Plan Expiry",
+        "hint": "Plans older than this are auto-cancelled."
       },
       "dashboardDepth": {
-        "label": "Dashboard depth",
-        "hint": "Sessions & plans loaded per client"
-      },
-      "readyWindow": {
-        "label": "Ready-to-train window",
-        "hint": "How long your \"I'm ready\" alert stays live"
+        "label": "Dashboard Client Limit",
+        "hint": "Max clients shown per list."
       },
       "historyDepth": {
-        "label": "History depth",
-        "hint": "Past sessions kept on the History screen"
+        "label": "History Session Limit",
+        "hint": "Max sessions shown per list."
       },
-      "lightPalette": {
-        "label": "Light palette",
-        "hint": "Applied when dark mode is off"
+      "readyWindow": {
+        "label": "Workout Ready Expiry",
+        "hint": "Trainer alert expires if not actioned."
       },
       "language": {
-        "hint": "App and AI coaching language"
-      }
-    },
-    "opt": {
-      "location": {
-        "gym": "Gym",
-        "home": "Home",
-        "outdoor": "Outdoor"
+        "label": "Interface Language",
+        "hint": "UI, AI output, and notifications follow this setting."
       },
-      "intensity": {
-        "light": "Light",
-        "moderate": "Moderate",
-        "hard": "Hard"
-      },
-      "palette": {
-        "arctic": "Arctic",
-        "sand": "Sand"
-      },
-      "focus": {
-        "strength": "Strength",
-        "endurance": "Endurance",
-        "mobility": "Mobility"
+      "lightPalette": {
+        "label": "Light Palette",
+        "hint": "Choose between Arctic Blue and Warm Sand."
       }
     },
     "toggle": {
-      "aiWorkouts": {
-        "label": "AI workouts",
-        "hint": "Daily plan from your trainer + AI"
-      },
-      "analysis": {
-        "label": "Workout Analysis",
-        "hint": "Post-session AI summary"
-      },
-      "cycle": {
-        "label": "Cycle tracking",
-        "hint": "Adapt intensity to your phase"
-      },
-      "behaviour": {
-        "label": "Behavior Track",
-        "hint": "Learn from completion + feedback"
-      },
       "push": {
-        "label": "Push notifications",
-        "hint": "All app alerts"
+        "label": "Push Notifications",
+        "hint": "Receive workout reminders and trainer alerts."
       },
       "goals": {
-        "label": "Goal reminders",
-        "hint": "Weekly milestone nudges"
+        "label": "Goal Tracking",
+        "hint": "Track progress toward fitness goals."
       },
       "alerts": {
-        "label": "Activity Alerts",
-        "hint": "Inactive day warnings"
+        "label": "Safety Alerts",
+        "hint": "Notify your trainer on critical readiness scores."
+      },
+      "analysis": {
+        "label": "Analytics Sharing",
+        "hint": "Share aggregated performance data to improve recommendations."
+      },
+      "behaviour": {
+        "label": "Behavioural Insights",
+        "hint": "Share usage patterns to personalise your experience."
+      },
+      "cycle": {
+        "label": "Cycle Tracking",
+        "hint": "Adapt workout intensity to your menstrual cycle phase."
+      },
+      "aiWorkouts": {
+        "label": "AI Personalisation",
+        "hint": "Tailor workout generation to your profile and history."
       },
       "sounds": {
-        "label": "Sounds & Beeps",
-        "hint": "In-workout audio cues"
+        "label": "Workout Sounds",
+        "hint": "Audio cues for rests, sets, and workout completion."
       },
       "darkMode": {
-        "label": "Dark mode",
-        "hint": "Use the dark theme across the app"
+        "label": "Dark Mode",
+        "hint": "Toggle between light and dark themes."
       },
       "whiteLabel": {
-        "label": "White-label mode",
-        "hint": "Hide TrAIner brand for your studio"
+        "label": "White Label",
+        "hint": "Hide TrAIner branding."
       }
-    }
+    },
+    "opt": {
+      "focus": {
+        "strength": "Strength Focus",
+        "endurance": "Endurance Focus",
+        "mobility": "Mobility Focus"
+      },
+      "palette": {
+        "arctic": "Arctic Blue",
+        "sand": "Warm Sand"
+      }
+    },
+    "aiFocusHint": "Higher emphasis shapes the AI's exercise selection and rep ranges.",
+    "saveFailed": "Save failed — please try again."
   },
   "risk": {
     "noRestrictions": "No restrictions",
@@ -2414,59 +2245,6 @@
   "wizardFooter": {
     "continue": "Continue",
     "save": "Save"
-  },
-  "settings": {
-    "title": "Settings",
-    "aboutTagline": "TrAIner v0.1 — AI-powered fitness companion",
-    "sections": {
-      "training": "Training Defaults",
-      "ai": "AI & Privacy",
-      "aiFocus": "AI Training Focus",
-      "notifications": "Notifications",
-      "b2b": "Trainer Features",
-      "coaching": "Coaching Preferences",
-      "data": "Data Limits",
-      "appearance": "Appearance",
-      "language": "Language",
-      "clientMgmt": "Client Management",
-      "lightPalette": "Light Mode Palette"
-    },
-    "fields": {
-      "location": { "label": "Default Training Location", "hint": "Pre-fills check-in location for every session." },
-      "duration": { "label": "Default Session Duration", "hint": "Pre-fills check-in duration for every session." },
-      "intensity": { "label": "Preferred Intensity", "hint": "Guides AI workout generation intensity curve." },
-      "planExpiry": { "label": "Workout Plan Expiry", "hint": "Plans older than this are auto-cancelled." },
-      "dashboardDepth": { "label": "Dashboard Client Limit", "hint": "Max clients shown per list." },
-      "historyDepth": { "label": "History Session Limit", "hint": "Max sessions shown per list." },
-      "readyWindow": { "label": "Workout Ready Expiry", "hint": "Trainer alert expires if not actioned." },
-      "language": { "label": "Interface Language", "hint": "UI, AI output, and notifications follow this setting." },
-      "lightPalette": { "label": "Light Palette", "hint": "Choose between Arctic Blue and Warm Sand." }
-    },
-    "toggle": {
-      "push": { "label": "Push Notifications", "hint": "Receive workout reminders and trainer alerts." },
-      "goals": { "label": "Goal Tracking", "hint": "Track progress toward fitness goals." },
-      "alerts": { "label": "Safety Alerts", "hint": "Notify your trainer on critical readiness scores." },
-      "analysis": { "label": "Analytics Sharing", "hint": "Share aggregated performance data to improve recommendations." },
-      "behaviour": { "label": "Behavioural Insights", "hint": "Share usage patterns to personalise your experience." },
-      "cycle": { "label": "Cycle Tracking", "hint": "Adapt workout intensity to your menstrual cycle phase." },
-      "aiWorkouts": { "label": "AI Personalisation", "hint": "Tailor workout generation to your profile and history." },
-      "sounds": { "label": "Workout Sounds", "hint": "Audio cues for rests, sets, and workout completion." },
-      "darkMode": { "label": "Dark Mode", "hint": "Toggle between light and dark themes." },
-      "whiteLabel": { "label": "White Label", "hint": "Hide TrAIner branding." }
-    },
-    "opt": {
-      "focus": {
-        "strength": "Strength Focus",
-        "endurance": "Endurance Focus",
-        "mobility": "Mobility Focus"
-      },
-      "palette": {
-        "arctic": "Arctic Blue",
-        "sand": "Warm Sand"
-      }
-    },
-    "aiFocusHint": "Higher emphasis shapes the AI's exercise selection and rep ranges.",
-    "saveFailed": "Save failed — please try again."
   },
   "profileFields": {
     "age": "Age",
@@ -2535,6 +2313,11 @@
     "expired": "This invitation has expired. Ask your trainer to send a new one.",
     "revoked": "This invitation was revoked by the trainer.",
     "errAlreadyLinked": "You're already linked to another trainer. A client can only have one trainer at a time.",
+    "errEmailMismatch": "This invitation belongs to a different account. Sign out and sign in with the correct email to accept it.",
+    "wrongAccountTitle": "Different account detected",
+    "wrongAccountBody": "This invitation was sent to {{invitedEmail}}, but you're signed in with a different account. Sign out and sign in (or create an account) with {{invitedEmail}} to accept {{trainerName}}'s invitation.",
+    "switchAccount": "Sign out and switch account",
+    "switchingAccount": "Signing out...",
     "goHome": "Go to TrAIner",
     "trainerPushTitle": "{{clientName}} accepted your invitation",
     "trainerPushBody": "{{clientName}} is now your client on TrAIner."
