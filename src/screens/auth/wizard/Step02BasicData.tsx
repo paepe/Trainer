@@ -27,6 +27,7 @@ function computeAge(dob: string): number | null {
 }
 
 interface PersonalUser {
+  name?:     string;
   email?:    string;
   phone?:    string;
   dob?:      string;
@@ -66,11 +67,28 @@ export function Step02BasicData({
 
   const age = computeAge(dob);
 
+  // Backfill `basic_data.name` from the account's existing profile name when
+  // it's missing (e.g. accounts created before this field was wired into the
+  // wizard accumulator) — otherwise `canAdvance` stays false forever and the
+  // Continue button looks permanently stuck with no explanation.
+  React.useEffect(() => {
+    if (!d.name?.trim() && user?.name?.trim()) setBasic({ name: user.name.trim() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [d.name, user?.name]);
+
   const [emergencyOpen, setEmergencyOpen] = React.useState(
     !!(d.emergency_contact?.name || d.emergency_contact?.phone),
   );
 
   const canAdvance = !!(d.name?.trim() && dob && age !== null && d.height_cm && d.weight_kg && d.biological_sex);
+
+  const missingFields = [
+    !d.name?.trim()       && tr('wizard.step02.name'),
+    !(dob && age !== null) && tr('wizard.step02.dob'),
+    !d.height_cm          && tr('wizard.step02.height'),
+    !d.weight_kg          && tr('wizard.step02.weight'),
+    !d.biological_sex     && tr('wizard.step02.biologicalSex'),
+  ].filter(Boolean) as string[];
 
   const handleNext = async () => {
     if (age !== null) {
@@ -250,6 +268,11 @@ export function Step02BasicData({
       </VStack>
 
       <Spacer />
+      {!canAdvance && missingFields.length > 0 && (
+        <p style={{ fontSize: 11.5, color: textMute(dark), margin: '0 0 12px', lineHeight: 1.5 }}>
+          {tr('wizard.step02.missingFieldsHint', { fields: missingFields.join(', ') })}
+        </p>
+      )}
       <WizardFooter
         onNext={handleNext}
         nextDisabled={!canAdvance}

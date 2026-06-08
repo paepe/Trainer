@@ -1196,6 +1196,7 @@
       "weight": "Peso actual (kg)",
       "biologicalSex": "Sexo biológico",
       "sexNote": "Usado para personalización — nunca para diagnóstico.",
+      "missingFieldsHint": "Complete estos campos para continuar: {{fields}}.",
       "emergencyContact": "Contacto de emergencia",
       "emergencyNamePlaceholder": "Nombre y apellido",
       "emergencyPhonePlaceholder": "+34 612 345 678",
