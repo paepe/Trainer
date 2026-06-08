@@ -1552,23 +1552,23 @@
       },
       "equipment": {
         "dumbbells": "Dumbbells",
-        "bands": "Resistance bands",
+        "resistance_bands": "Resistance bands",
         "barbell": "Barbell",
         "bench": "Bench",
         "treadmill": "Treadmill",
         "bike": "Bike",
         "machines": "Machines",
         "kettlebell": "Kettlebell",
-        "cable": "Cable/pulley",
+        "cable_pulley": "Cable/pulley",
         "none": "None"
       },
       "accessibility": {
-        "wheelchair": "Wheelchair accessible",
+        "wheelchair_accessible": "Wheelchair accessible",
         "support_bars": "Support bars",
         "safe_floor": "Safe floor",
-        "privacy": "Training privacy",
-        "companion": "Companion available",
-        "adapted": "Adapted equipment"
+        "private_space": "Training privacy",
+        "companion_available": "Companion available",
+        "adapted_equipment": "Adapted equipment"
       }
     },
     "step12": {

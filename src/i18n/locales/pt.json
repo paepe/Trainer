@@ -1552,23 +1552,23 @@
       },
       "equipment": {
         "dumbbells": "Halteres",
-        "bands": "Elásticos",
+        "resistance_bands": "Elásticos",
         "barbell": "Barra",
         "bench": "Banco",
         "treadmill": "Esteira",
         "bike": "Bicicleta",
         "machines": "Máquinas",
         "kettlebell": "Kettlebell",
-        "cable": "Cabo/polia",
+        "cable_pulley": "Cabo/polia",
         "none": "Nenhum"
       },
       "accessibility": {
-        "wheelchair": "Acessível para cadeiras de rodas",
+        "wheelchair_accessible": "Acessível para cadeiras de rodas",
         "support_bars": "Barras de apoio",
         "safe_floor": "Piso seguro",
-        "privacy": "Privacidade para treinar",
-        "companion": "Acompanhante disponível",
-        "adapted": "Equipamento adaptado"
+        "private_space": "Privacidade para treinar",
+        "companion_available": "Acompanhante disponível",
+        "adapted_equipment": "Equipamento adaptado"
       }
     },
     "step12": {

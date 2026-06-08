@@ -1552,23 +1552,23 @@
       },
       "equipment": {
         "dumbbells": "Hanteln",
-        "bands": "Widerstandsbänder",
+        "resistance_bands": "Widerstandsbänder",
         "barbell": "Langhantel",
         "bench": "Bank",
         "treadmill": "Laufband",
         "bike": "Fahrrad",
         "machines": "Maschinen",
         "kettlebell": "Kettlebell",
-        "cable": "Kabel/Seilzug",
+        "cable_pulley": "Kabel/Seilzug",
         "none": "Keine"
       },
       "accessibility": {
-        "wheelchair": "Rollstuhlgerecht",
+        "wheelchair_accessible": "Rollstuhlgerecht",
         "support_bars": "Haltestangen",
         "safe_floor": "Sicherer Boden",
-        "privacy": "Trainingsprivatsphäre",
-        "companion": "Begleitung verfügbar",
-        "adapted": "Angepasste Ausrüstung"
+        "private_space": "Trainingsprivatsphäre",
+        "companion_available": "Begleitung verfügbar",
+        "adapted_equipment": "Angepasste Ausrüstung"
       }
     },
     "step12": {
