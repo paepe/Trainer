@@ -2109,7 +2109,7 @@ export type Database = {
       auto_close_stale_sessions: { Args: never; Returns: number }
       get_active_role: { Args: { uid?: string }; Returns: string }
       get_device_tokens: {
-        Args: { uid: string }
+        Args: never
         Returns: {
           token: string
         }[]
@@ -2117,10 +2117,19 @@ export type Database = {
       get_invitation_by_token: {
         Args: { p_token: string }
         Returns: {
+          account_confirmed: boolean
+          account_exists: boolean
           expires_at: string
+          invited_email: string
           invited_name: string
           status: string
           trainer_name: string
+        }[]
+      }
+      get_pending_invitation_for_user: {
+        Args: never
+        Returns: {
+          token: string
         }[]
       }
       has_permission: { Args: { perm: string; uid?: string }; Returns: boolean }

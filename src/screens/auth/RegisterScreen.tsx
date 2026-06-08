@@ -15,6 +15,8 @@ interface RegisterScreenProps {
   t:      Theme;
   dark:   boolean;
   signUp: (email: string, password: string, name: string, role?: string) => Promise<{ data: unknown; error: AuthError | null }>;
+  lockedEmail?: string | undefined;
+  inviteToken?: string | undefined;
 }
 
 // Labels/descriptions are translated at render via auth.roles.<key>.*
@@ -83,11 +85,12 @@ function OAuthSection({ onProvider, dark, primary, dividerLabel }: {
   );
 }
 
-export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
+export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken }: RegisterScreenProps) {
   const { t: tr } = useTranslation();
   const [role,    setRole]    = React.useState<string>('client');
+  const isInviteFlow = !!lockedEmail;
   const [name,    setName]    = React.useState('');
-  const [email,   setEmail]   = React.useState('');
+  const [email,   setEmail]   = React.useState(lockedEmail ?? '');
   const [pw,      setPw]      = React.useState('');
   const [pw2,     setPw2]     = React.useState('');
   const [err,     setErr]     = React.useState('');
@@ -99,10 +102,18 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
     setLoading(true); setErr('');
     const { data, error } = await signUp(email, pw, name, role);
     if (error) { setErr(friendlyError(error, tr)); setLoading(false); return; }
-    const d = data as { session?: unknown } | null;
+    const d = data as { session?: unknown; user?: { id: string } } | null;
     if (!d?.session) {
       setErr(tr('auth.register.confirmEmail'));
       setLoading(false);
+      return;
+    }
+    // Invite-originated signup: link is established immediately — Supabase
+    // issues a session at signUp even before the e-mail is confirmed, so the
+    // person lands straight in the app with the trainer link already in place.
+    if (inviteToken && d.user?.id) {
+      await supabase.rpc('accept_trainer_invitation', { p_token: inviteToken, p_user_id: d.user.id });
+      nav('checkin');
       return;
     }
     nav(role === 'client' ? 'profileWizard' : 'trainerDashboard');
@@ -132,8 +143,8 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
         {tr('auth.register.subtitle')}
       </div>
 
-      {/* Role selector */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+      {/* Role selector — hidden for invite-originated signups (always client) */}
+      {!isInviteFlow && <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
         {ROLES.map(r => {
           const on = role === r.key;
           return (
@@ -152,13 +163,14 @@ export function RegisterScreen({ nav, t, dark, signUp }: RegisterScreenProps) {
             </button>
           );
         })}
-      </div>
+      </div>}
 
-      <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel={tr('auth.oauth.dividerRegister')}/>
+      {/* OAuth bypasses the locked-email flow — skip it for invite-originated signups */}
+      {!isInviteFlow && <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel={tr('auth.oauth.dividerRegister')}/>}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <TextInput icon="user" placeholder={tr('auth.common.fullName')}        value={name}  onChange={setName}/>
-        <TextInput icon="mail" placeholder={tr('auth.common.email')} type="email" value={email} onChange={setEmail}/>
+        <TextInput icon="mail" placeholder={tr('auth.common.email')} type="email" value={email} onChange={setEmail} disabled={!!lockedEmail}/>
         <TextInput icon="lock" placeholder={tr('auth.common.password')}        value={pw}    onChange={setPw}    type="password"/>
         <TextInput icon="lock" placeholder={tr('auth.common.confirmPassword')} value={pw2}   onChange={setPw2}   type="password"/>
       </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { textPri, textSec, textMute, primaryBtn, outlineBtn } from '../../theme';
-import { Spinner } from '../../ui';
+import { Spinner, TextInput } from '../../ui';
 import { supabase } from '../../supabase';
 import { notify } from '../../lib/notify';
 import { friendlyError } from '../../lib/friendlyError';
@@ -12,11 +12,12 @@ import type { AuthError } from '@supabase/supabase-js';
 interface Theme { primary: string; accent: string; }
 
 interface AcceptInvitationScreenProps {
-  nav:   NavFn;
-  t:     Theme;
-  dark:  boolean;
-  user:  { id: string; name?: string | null; email: string } | null;
-  token: string;
+  nav:    NavFn;
+  t:      Theme;
+  dark:   boolean;
+  user:   { id: string; name?: string | null; email: string } | null;
+  token:  string;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut:            () => Promise<void>;
   resendConfirmation: (email: string) => Promise<{ error: AuthError | null }>;
 }
@@ -55,13 +56,19 @@ function Wrap({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut, resendConfirmation }: AcceptInvitationScreenProps) {
+export function AcceptInvitationScreen({ nav, t, dark, user, token, signIn, signOut, resendConfirmation }: AcceptInvitationScreenProps) {
   const { t: tr } = useTranslation();
   const [state,        setState]        = React.useState<InvitationState>({ phase: 'loading' });
   const [accepting,    setAccepting]    = React.useState(false);
   const [signingOut,   setSigningOut]   = React.useState(false);
   const [resending,    setResending]    = React.useState(false);
   const [resent,       setResent]       = React.useState(false);
+
+  // Scenario A: confirm-link flow for pre-registered invitees who aren't authenticated yet
+  const [showPasswordField, setShowPasswordField] = React.useState(false);
+  const [password,          setPassword]          = React.useState('');
+  const [confirmingLink,    setConfirmingLink]    = React.useState(false);
+  const [confirmErr,        setConfirmErr]        = React.useState('');
 
   React.useEffect(() => {
     let cancelled = false;
@@ -91,26 +98,27 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut, res
     return () => { cancelled = true; };
   }, [token, user]);
 
-  const accept = async () => {
-    if (!user?.id || state.phase !== 'ready') return;
-    setAccepting(true);
-    const { data, error } = await supabase.rpc('accept_trainer_invitation', { p_token: token, p_user_id: user.id });
-    setAccepting(false);
-    if (error) { setState({ phase: 'error', message: friendlyError(error, tr) }); return; }
+  const runAccept = async (userId: string, name: string | null | undefined): Promise<AcceptanceRow | undefined> => {
+    const { data, error } = await supabase.rpc('accept_trainer_invitation', { p_token: token, p_user_id: userId });
+    if (error) { setState({ phase: 'error', message: friendlyError(error, tr) }); return undefined; }
     const row = (data as AcceptanceRow[] | null)?.[0];
-    const trainerName = row?.trainer_name ?? state.trainerName;
+    return row;
+  };
+
+  const finishAcceptance = (row: AcceptanceRow | undefined, fallbackTrainerName: string, userId: string, name: string | null | undefined) => {
+    const trainerName = row?.trainer_name ?? fallbackTrainerName;
     switch (row?.result) {
       case 'accepted':
       case 'already_accepted':
         setState({ phase: 'accepted', trainerName });
         if (row.trainer_id) {
-          const clientName = user.name ?? '';
+          const clientName = name ?? '';
           notify(
             row.trainer_id,
             tr('invite.trainerPushTitle', { clientName }),
             tr('invite.trainerPushBody',  { clientName }),
             undefined,
-            { type: 'invitation_accepted', templateKey: 'invitation_accepted', params: { clientName }, fromUserId: user.id }
+            { type: 'invitation_accepted', templateKey: 'invitation_accepted', params: { clientName }, fromUserId: userId }
           );
         }
         return;
@@ -131,9 +139,43 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut, res
     }
   };
 
-  const goAuth = (screen: 'login' | 'register') => {
-    sessionStorage.setItem('trainer_pending_invite_token', token);
-    nav(screen);
+  const accept = async () => {
+    if (!user?.id || state.phase !== 'ready') return;
+    setAccepting(true);
+    const row = await runAccept(user.id, user.name);
+    setAccepting(false);
+    if (row) finishAcceptance(row, state.trainerName, user.id, user.name);
+  };
+
+  // Scenario A — already authenticated as the invitee: confirm the link directly
+  const confirmLink = async () => {
+    if (state.phase !== 'ready') return;
+    if (user) { await accept(); return; }
+    if (!password) return;
+    setConfirmingLink(true);
+    setConfirmErr('');
+    const { error: signInError } = await signIn(state.invitedEmail, password);
+    if (signInError) {
+      setConfirmingLink(false);
+      setConfirmErr(friendlyError(signInError, tr));
+      return;
+    }
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) {
+      setConfirmingLink(false);
+      setConfirmErr(friendlyError(signInError, tr));
+      return;
+    }
+    const row = await runAccept(authUser.id, authUser.user_metadata?.name as string | undefined);
+    setConfirmingLink(false);
+    if (row) finishAcceptance(row, state.trainerName, authUser.id, authUser.user_metadata?.name as string | undefined);
+  };
+
+  const goRegister = () => {
+    if (state.phase !== 'ready') return;
+    // No pending-invite token here — RegisterScreen accepts the invitation
+    // directly at signup (see inviteToken prop) and routes straight to checkin.
+    nav('register', { lockedEmail: state.invitedEmail, inviteToken: token });
   };
 
   const resend = async (email: string) => {
@@ -145,7 +187,9 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut, res
 
   const switchAccount = async () => {
     setSigningOut(true);
-    sessionStorage.setItem('trainer_pending_invite_token', token);
+    // No sessionStorage hand-off needed: after signing back in, the post-login
+    // routing effect resolves the pending invitation server-side by e-mail
+    // (get_pending_invitation_for_user) and routes back here automatically.
     await signOut();
     setSigningOut(false);
     nav('login');
@@ -196,7 +240,7 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut, res
         <p style={{ margin: 0, color: textSec(dark), fontSize: 13.5, maxWidth: 280, lineHeight: 1.5 }}>
           {tr('invite.acceptedBody', { trainerName: state.trainerName })}
         </p>
-        <button onClick={() => nav(user ? 'checkin' : 'welcome')} style={{ ...primaryBtn(t.primary), marginTop: 22, width: 220 }}>
+        <button onClick={() => nav(user ? 'checkin' : 'login')} style={{ ...primaryBtn(t.primary), marginTop: 22, width: 220 }}>
           {tr('invite.continue')}
         </button>
       </Wrap>
@@ -224,6 +268,8 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut, res
   }
 
   // phase === 'ready'
+  const unconfirmedIndependentAccount = !user && state.accountExists && !state.accountConfirmed;
+
   return (
     <Wrap>
       <img src="assets/trainer-logo-clean.png" alt="TrAIner" width={72} height={72}
@@ -235,15 +281,9 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut, res
         {tr('invite.body', { trainerName: state.trainerName })}
       </p>
 
-      {user ? (
-        <button onClick={accept} disabled={accepting} style={{ ...primaryBtn(t.primary, accepting), marginTop: 22, width: 220 }}>
-          {accepting ? tr('invite.accepting') : tr('invite.accept')}
-        </button>
-      ) : state.accountExists && !state.accountConfirmed ? (
-        // Account already registered independently, but never confirmed —
-        // signing up again triggers Supabase's silent "repeated signup"
-        // response (no email resent), leaving the user stuck. Offer a
-        // direct resend instead of steering them into a dead-end register flow.
+      {unconfirmedIndependentAccount ? (
+        // Edge case: account exists but was never confirmed (e.g. abandoned signup
+        // from before this invitation). Confirming it is the prerequisite to linking.
         <>
           <p style={{ margin: '18px 0 0', color: textMute(dark), fontSize: 12, maxWidth: 280 }}>{tr('invite.accountUnconfirmed', { email: state.invitedEmail })}</p>
           {resent ? (
@@ -253,31 +293,36 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signOut, res
               {resending ? tr('invite.resending') : tr('invite.resendConfirmation')}
             </button>
           )}
-          <button onClick={() => goAuth('login')} style={{ ...outlineBtn(t.primary), marginTop: 10, width: 240 }}>
-            {tr('invite.login')}
-          </button>
         </>
-      ) : state.accountExists ? (
-        // Account already exists and is confirmed — this is the "independent
-        // user later invited by a trainer" scenario. No new registration is
-        // needed or possible; steer straight to login, which resumes the
-        // pending-invite flow automatically once authenticated.
+      ) : (state.accountExists || user) ? (
+        // Scenario A — pre-registered invitee: one adaptive CTA confirms the link.
+        // Already authenticated → straight to accept(); not authenticated → reveal
+        // an inline password field so the link is established in the same step.
         <>
-          <p style={{ margin: '18px 0 0', color: textMute(dark), fontSize: 12, maxWidth: 280 }}>{tr('invite.accountExists', { email: state.invitedEmail })}</p>
-          <button onClick={() => goAuth('login')} style={{ ...primaryBtn(t.primary), marginTop: 14, width: 240 }}>
-            {tr('invite.login')}
+          {!user && showPasswordField && (
+            <div style={{ width: 240, marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <TextInput icon="lock" placeholder={tr('auth.common.password')} value={password} onChange={setPassword} type="password"/>
+            </div>
+          )}
+          {confirmErr && <div style={{ color: t.accent, fontSize: 12, marginTop: 10, maxWidth: 260 }}>{confirmErr}</div>}
+          <button
+            onClick={() => {
+              if (user) { void accept(); return; }
+              if (!showPasswordField) { setShowPasswordField(true); return; }
+              void confirmLink();
+            }}
+            disabled={accepting || confirmingLink}
+            style={{ ...primaryBtn(t.primary, accepting || confirmingLink), marginTop: 18, width: 240 }}
+          >
+            {accepting || confirmingLink ? tr('invite.accepting') : tr('invite.confirmLink')}
           </button>
         </>
       ) : (
-        <>
-          <p style={{ margin: '18px 0 0', color: textMute(dark), fontSize: 12 }}>{tr('invite.needAccount')}</p>
-          <button onClick={() => goAuth('register')} style={{ ...primaryBtn(t.primary), marginTop: 10, width: 220 }}>
-            {tr('invite.createAccount')}
-          </button>
-          <button onClick={() => goAuth('login')} style={{ ...outlineBtn(t.primary), marginTop: 10, width: 220 }}>
-            {tr('invite.login')}
-          </button>
-        </>
+        // Scenario B — invitee has no account yet: one CTA opens registration
+        // with the invited e-mail locked, so the link is established at signup.
+        <button onClick={goRegister} style={{ ...primaryBtn(t.primary), marginTop: 22, width: 240 }}>
+          {tr('invite.createAccount')}
+        </button>
       )}
     </Wrap>
   );

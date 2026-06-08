@@ -356,20 +356,31 @@ export default function App() {
   // Role-based navigation after login (only when both session and profile are loaded)
   React.useEffect(() => {
     if (!session || !profile || passwordRecovery) return;
-    const pendingInviteToken = sessionStorage.getItem('trainer_pending_invite_token');
-    if (pendingInviteToken && ['welcome', 'login', 'register'].includes(screen)) {
-      sessionStorage.removeItem('trainer_pending_invite_token');
-      setScreenPayload({ token: pendingInviteToken });
-      setScreen('acceptInvitation');
-      return;
-    }
-    if (!['welcome', 'login'].includes(screen)) return;
-    if (isTrainer) { setScreen('trainerDashboard'); return; }
-    // For clients: check if profile wizard was already completed
-    fetchProfileV2().then(({ data }) => {
-      const completed = data && (data as Record<string, unknown>).completed_at;
-      setScreen(completed ? 'checkin' : 'profile');
+    if (!['welcome', 'login', 'register'].includes(screen)) return;
+    let cancelled = false;
+    // Resolve any pending invitation server-side (by the authenticated user's
+    // own e-mail) instead of relying on sessionStorage — that mechanism loses
+    // its reference whenever the flow crosses a tab/window boundary, e.g. a
+    // password-recovery link opened from the e-mail client in a new tab.
+    // See policies/references/post-invite-onboarding-qa-20260608.md (Fase 0).
+    supabase.rpc('get_pending_invitation_for_user').then(({ data }) => {
+      if (cancelled) return;
+      const row = (data as { token: string }[] | null)?.[0];
+      if (row?.token) {
+        setScreenPayload({ token: row.token });
+        setScreen('acceptInvitation');
+        return;
+      }
+      if (!['welcome', 'login'].includes(screen)) return;
+      if (isTrainer) { setScreen('trainerDashboard'); return; }
+      // For clients: check if profile wizard was already completed
+      fetchProfileV2().then(({ data }) => {
+        if (cancelled) return;
+        const completed = data && (data as Record<string, unknown>).completed_at;
+        setScreen(completed ? 'checkin' : 'profile');
+      });
     });
+    return () => { cancelled = true; };
   }, [session, profile, isTrainer, screen, fetchProfileV2]);
 
   // Deep link: /invite/:token → AcceptInvitationScreen (web path; native opens via universal/app links to the same URL)
@@ -558,9 +569,9 @@ export default function App() {
     switch (screen) {
       case 'welcome':          return <WelcomeScreen           {...common}/>;
       case 'login':            return <LoginScreen             {...common}/>;
-      case 'register':         return <RegisterScreen          {...common}/>;
+      case 'register':         return <RegisterScreen          {...common} lockedEmail={screenPayload?.lockedEmail as string | undefined} inviteToken={screenPayload?.inviteToken as string | undefined}/>;
       case 'resetPassword':    return <ResetPasswordScreen     nav={nav} t={t} dark={dark} updatePassword={updatePassword} onDone={() => { clearPasswordRecovery(); setScreen('login'); }}/>;
-      case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile && session ? { id: profile.id, name: profile.name, email: session.user.email ?? '' } : null} token={(screenPayload?.token as string) ?? ''} signOut={signOut} resendConfirmation={resendConfirmation}/>;
+      case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile && session ? { id: profile.id, name: profile.name, email: session.user.email ?? '' } : null} token={(screenPayload?.token as string) ?? ''} signIn={signIn} signOut={signOut} resendConfirmation={resendConfirmation}/>;
       case 'profile':          return <ProfileWizardScreen     key={profileNavKey} nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
       case 'checkin':          return (
         <>

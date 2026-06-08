@@ -2309,6 +2309,7 @@
     "createAccount": "Create account",
     "login": "Log in",
     "accept": "Accept invitation",
+    "confirmLink": "Confirm link",
     "accepting": "Accepting…",
     "continue": "Continue",
     "acceptedTitle": "You're connected!",
