@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { supabase } from '../supabase';
 import type { CycleConfig, Preferences } from '../types';
 import type { UserProfileV2 } from '../types/profile-v2';
@@ -10,11 +11,11 @@ const toJson = (v: unknown): Json | null => v != null ? v as unknown as Json : n
 
 export function useProfileData(userId: string | undefined) {
 
-  async function saveCycleConfig(payload: {
+  const saveCycleConfig = useCallback(async (payload: {
     cycleLength:   number;
     periodLength:  number;
     lastStartDate: string;
-  }): Promise<MutateResult> {
+  }): Promise<MutateResult> => {
     if (!userId) return { error: null };
     const { error } = await supabase
       .from('cycle_config')
@@ -30,9 +31,9 @@ export function useProfileData(userId: string | undefined) {
       );
     if (error) console.error('[useProfileData] saveCycleConfig:', error);
     return { error };
-  }
+  }, [userId]);
 
-  async function fetchCycleConfig(): Promise<DataResult<CycleConfig>> {
+  const fetchCycleConfig = useCallback(async (): Promise<DataResult<CycleConfig>> => {
     if (!userId) return { data: null, error: null };
     const { data, error } = await supabase
       .from('cycle_config')
@@ -41,11 +42,11 @@ export function useProfileData(userId: string | undefined) {
       .maybeSingle();
     if (error) console.error('[useProfileData] fetchCycleConfig:', error);
     return { data: data as CycleConfig | null, error };
-  }
+  }, [userId]);
 
-  async function savePreferences(
+  const savePreferences = useCallback(async (
     prefs: Partial<Omit<Preferences, 'user_id' | 'updated_at'>>
-  ): Promise<MutateResult> {
+  ): Promise<MutateResult> => {
     if (!userId) return { error: null };
     const { error } = await supabase
       .from('preferences')
@@ -55,9 +56,9 @@ export function useProfileData(userId: string | undefined) {
       );
     if (error) console.error('[useProfileData] savePreferences:', error);
     return { error };
-  }
+  }, [userId]);
 
-  async function fetchPreferences(): Promise<DataResult<Preferences>> {
+  const fetchPreferences = useCallback(async (): Promise<DataResult<Preferences>> => {
     if (!userId) return { data: null, error: null };
     const { data, error } = await supabase
       .from('preferences')
@@ -66,12 +67,12 @@ export function useProfileData(userId: string | undefined) {
       .maybeSingle();
     if (error) console.error('[useProfileData] fetchPreferences:', error);
     return { data: data as Preferences | null, error };
-  }
+  }, [userId]);
 
-  async function saveProfileV2(
+  const saveProfileV2 = useCallback(async (
     data: Partial<UserProfileV2>,
     step: string = 'completed'
-  ): Promise<MutateResult> {
+  ): Promise<MutateResult> => {
     if (!userId) return { error: null };
     try {
       // Build payload with only the fields that are actually present in `data`.
@@ -111,9 +112,9 @@ export function useProfileData(userId: string | undefined) {
       console.error('[useProfileData] saveProfileV2 exception:', err);
       return { error: err instanceof Error ? err.message : String(err) };
     }
-  }
+  }, [userId]);
 
-  async function fetchProfileV2(columns: string | null = null): Promise<DataResult<Partial<UserProfileV2> & { current_step?: string; completed_at?: string | null }>> {
+  const fetchProfileV2 = useCallback(async (columns: string | null = null): Promise<DataResult<Partial<UserProfileV2> & { current_step?: string; completed_at?: string | null }>> => {
     if (!userId) return { data: null, error: null };
     const { data, error } = await supabase
       .from('profile_v2')
@@ -122,7 +123,7 @@ export function useProfileData(userId: string | undefined) {
       .maybeSingle();
     if (error) console.error('[useProfileData] fetchProfileV2:', error);
     return { data: data as (Partial<UserProfileV2> & { current_step?: string; completed_at?: string | null }) | null, error };
-  }
+  }, [userId]);
 
   return { saveCycleConfig, fetchCycleConfig, savePreferences, fetchPreferences, saveProfileV2, fetchProfileV2 };
 }
