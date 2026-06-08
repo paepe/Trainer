@@ -7,7 +7,7 @@ import { useProfileData }  from './hooks/useProfileData';
 import { useCheckinData }  from './hooks/useCheckinData';
 import { useWorkoutData }  from './hooks/useWorkoutData';
 import { usePushNotifications } from './hooks/usePushNotifications';
-import { WelcomeScreen, LoginScreen, RegisterScreen } from './screens/auth';
+import { WelcomeScreen, LoginScreen, RegisterScreen, ResetPasswordScreen } from './screens/auth';
 import { AppLayout } from './layouts';
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
 import { Spinner } from './ui';
@@ -40,7 +40,7 @@ const AcceptInvitationScreen     = React.lazy(() => import('./screens/auth/Accep
 
 type NotificationLogRow = Database['public']['Tables']['notification_log']['Row'];
 
-const PUBLIC_SCREENS = ['welcome', 'login', 'register', 'acceptInvitation'];
+const PUBLIC_SCREENS = ['welcome', 'login', 'register', 'acceptInvitation', 'resetPassword'];
 
 interface AppCycleConfig {
   length: number;
@@ -61,7 +61,11 @@ interface AppUser {
 }
 
 export default function App() {
-  const { session, profile, loading, signIn, signUp, signOut, updateProfile } = useAuth();
+  const {
+    session, profile, loading, passwordRecovery,
+    signIn, signUp, signOut, updateProfile,
+    requestPasswordReset, updatePassword, clearPasswordRecovery,
+  } = useAuth();
   const { t: tr } = useTranslation();  // i18n translate (distinct from theme `t`)
 
   const [prefs, setPrefs] = React.useState<AppPreferences>({
@@ -343,9 +347,15 @@ export default function App() {
     setScreen(target);
   };
 
+  // Password recovery deep link → force the reset-password screen until the
+  // user sets a new password (Supabase already issues a session at this point).
+  React.useEffect(() => {
+    if (passwordRecovery && screen !== 'resetPassword') setScreen('resetPassword');
+  }, [passwordRecovery, screen]);
+
   // Role-based navigation after login (only when both session and profile are loaded)
   React.useEffect(() => {
-    if (!session || !profile) return;
+    if (!session || !profile || passwordRecovery) return;
     const pendingInviteToken = sessionStorage.getItem('trainer_pending_invite_token');
     if (pendingInviteToken && ['welcome', 'login', 'register'].includes(screen)) {
       sessionStorage.removeItem('trainer_pending_invite_token');
@@ -479,6 +489,7 @@ export default function App() {
     cycleConfig, setCycleConfig,
     saveCycleConfig: saveCycleUnified,
     signIn, signUp,
+    requestPasswordReset, updatePassword, clearPasswordRecovery,
     selectedClient,
     selectClient,
     linkedTrainerId: linkedTrainerId ?? '',
@@ -548,6 +559,7 @@ export default function App() {
       case 'welcome':          return <WelcomeScreen           {...common}/>;
       case 'login':            return <LoginScreen             {...common}/>;
       case 'register':         return <RegisterScreen          {...common}/>;
+      case 'resetPassword':    return <ResetPasswordScreen     nav={nav} t={t} dark={dark} updatePassword={updatePassword} onDone={() => { clearPasswordRecovery(); setScreen('login'); }}/>;
       case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile ? { id: profile.id, name: profile.name } : null} token={(screenPayload?.token as string) ?? ''}/>;
       case 'profile':          return <ProfileWizardScreen     key={profileNavKey} nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
       case 'checkin':          return (

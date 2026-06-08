@@ -6,15 +6,20 @@ import type { Profile } from '../types';
 interface SignInResult  { error: AuthError | null }
 interface SignUpResult  { data: unknown; error: AuthError | null }
 interface UpdateResult { error: AuthError | PostgrestError | null }
+interface ResetResult  { error: AuthError | null }
 
 interface UseAuthReturn {
-  session:       Session | null;
-  profile:       Profile | null;
-  loading:       boolean;
-  signIn:        (email: string, password: string) => Promise<SignInResult>;
-  signUp:        (email: string, password: string, name: string, role?: string) => Promise<SignUpResult>;
-  signOut:       () => Promise<void>;
-  updateProfile: (updates: Partial<Profile>) => Promise<UpdateResult>;
+  session:           Session | null;
+  profile:           Profile | null;
+  loading:           boolean;
+  passwordRecovery:  boolean;
+  signIn:            (email: string, password: string) => Promise<SignInResult>;
+  signUp:            (email: string, password: string, name: string, role?: string) => Promise<SignUpResult>;
+  signOut:           () => Promise<void>;
+  updateProfile:     (updates: Partial<Profile>) => Promise<UpdateResult>;
+  requestPasswordReset: (email: string) => Promise<ResetResult>;
+  updatePassword:       (password: string) => Promise<ResetResult>;
+  clearPasswordRecovery: () => void;
 }
 
 function normalizeProfileUpdates(updates: Partial<Profile>, userId: string): Partial<Profile> & { id: string } {
@@ -32,9 +37,10 @@ function normalizeProfileUpdates(updates: Partial<Profile>, userId: string): Par
 }
 
 export function useAuth(): UseAuthReturn {
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession]   = useState<Session | null>(null);
+  const [profile, setProfile]   = useState<Profile | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,7 +49,8 @@ export function useAuth(): UseAuthReturn {
       else setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       setSession(session);
       if (session) void fetchProfile(session.user.id);
       else { setProfile(null); setLoading(false); }
@@ -95,5 +102,28 @@ export function useAuth(): UseAuthReturn {
     return { error };
   }
 
-  return { session, profile, loading, signIn, signUp, signOut, updateProfile };
+  async function requestPasswordReset(email: string): Promise<ResetResult> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    if (error) console.error('[useAuth] requestPasswordReset error:', error);
+    return { error };
+  }
+
+  async function updatePassword(password: string): Promise<ResetResult> {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) console.error('[useAuth] updatePassword error:', error);
+    else setPasswordRecovery(false);
+    return { error };
+  }
+
+  function clearPasswordRecovery(): void {
+    setPasswordRecovery(false);
+  }
+
+  return {
+    session, profile, loading, passwordRecovery,
+    signIn, signUp, signOut, updateProfile,
+    requestPasswordReset, updatePassword, clearPasswordRecovery,
+  };
 }

@@ -6,7 +6,6 @@ export {
 } from './auth';
 
 export {
-  StatsScreen,
   PerformanceDashboardScreen,
   HistoryScreen,
   CycleScreen,

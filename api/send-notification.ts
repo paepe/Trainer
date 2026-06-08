@@ -11,7 +11,6 @@ export default async function handler(req: any, res: any) {
   if (!userId || !title || !body) return res.status(400).json({ error: 'userId, title, body required' });
 
   const supabaseUrl  = process.env.VITE_SUPABASE_URL        || '';
-  const anonKey      = process.env.VITE_SUPABASE_ANON_KEY   || '';
   const serviceKey   = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
   // ── 1. Persist to notification_log via REST with service role (bypasses RLS) ─
@@ -62,16 +61,18 @@ export default async function handler(req: any, res: any) {
 
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${process.env.FCM_PROJECT_ID}/messages:send`;
 
-    // Get device tokens via SECURITY DEFINER RPC
-    const tokensRes = await fetch(`${supabaseUrl}/rest/v1/rpc/get_device_tokens`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-      body:    JSON.stringify({ uid: userId }),
+    // Get device tokens directly via service role (bypasses RLS; the
+    // get_device_tokens RPC is scoped to auth.uid() and not usable server-side
+    // for an arbitrary userId — see auth-security-audit-20260608.md item 1).
+    if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not set' });
+    const tokensRes = await fetch(`${supabaseUrl}/rest/v1/device_tokens?user_id=eq.${userId}&select=token`, {
+      method:  'GET',
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
     });
     if (!tokensRes.ok) {
       const errText = await tokensRes.text().catch(() => 'unknown');
-      console.error('[send-notification] get_device_tokens failed:', tokensRes.status, errText);
-      return res.status(200).json({ sent: 0, failed: 0, error: 'get_device_tokens RPC failed' });
+      console.error('[send-notification] device_tokens fetch failed:', tokensRes.status, errText);
+      return res.status(200).json({ sent: 0, failed: 0, error: 'device_tokens fetch failed' });
     }
     const rawTokens = (await tokensRes.json()) as { token: string }[];
     const tokens = rawTokens.map((t: any) => t.token);

@@ -15,6 +15,7 @@ interface LoginScreenProps {
   t:      Theme;
   dark:   boolean;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  requestPasswordReset: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
 function OAuthButton({ provider, onClick, dark, primary }: {
@@ -75,18 +76,29 @@ function OAuthSection({ onProvider, dark, primary, dividerLabel }: {
   );
 }
 
-export function LoginScreen({ nav, t, dark, signIn }: LoginScreenProps) {
+export function LoginScreen({ nav, t, dark, signIn, requestPasswordReset }: LoginScreenProps) {
   const { t: tr } = useTranslation();
-  const [email,   setEmail]   = React.useState('');
-  const [pw,      setPw]      = React.useState('');
-  const [err,     setErr]     = React.useState('');
-  const [loading, setLoading] = React.useState(false);
+  const [email,    setEmail]    = React.useState('');
+  const [pw,       setPw]       = React.useState('');
+  const [err,      setErr]      = React.useState('');
+  const [info,     setInfo]     = React.useState('');
+  const [loading,  setLoading]  = React.useState(false);
+  const [resetting, setResetting] = React.useState(false);
 
   const submit = async () => {
     if (!email || !pw) { setErr(tr('auth.login.errFields')); return; }
-    setLoading(true); setErr('');
+    setLoading(true); setErr(''); setInfo('');
     const { error } = await signIn(email, pw);
     if (error) { setErr(friendlyError(error, tr)); setLoading(false); }
+  };
+
+  const forgotPassword = async () => {
+    if (!email) { setErr(tr('auth.login.errResetEmailRequired')); return; }
+    setResetting(true); setErr(''); setInfo('');
+    const { error } = await requestPasswordReset(email);
+    setResetting(false);
+    if (error) setErr(friendlyError(error, tr));
+    else setInfo(tr('auth.login.resetSent'));
   };
 
   const oauth = async (provider: 'google') => {
@@ -121,13 +133,14 @@ export function LoginScreen({ nav, t, dark, signIn }: LoginScreenProps) {
         <TextInput icon="mail" placeholder={tr('auth.common.email')}    type="email"    value={email} onChange={setEmail}/>
         <TextInput icon="lock" placeholder={tr('auth.common.password')} type="password" value={pw}    onChange={setPw}/>
       </div>
-      {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
+      {err  && <div style={{ color: t.accent,  fontSize: 12, marginTop: 10 }}>{err}</div>}
+      {info && <div style={{ color: textSec(dark), fontSize: 12, marginTop: 10 }}>{info}</div>}
       <div style={{ flex: 1, minHeight: 12 }}/>
       <button onClick={submit} disabled={loading} style={primaryBtn(t.primary, loading)}>
         {loading ? tr('auth.login.loading') : tr('auth.common.login')}
       </button>
-      <button onClick={() => alert(tr('auth.login.resetAlert'))} style={{ ...textBtn(dark), alignSelf: 'center' }}>
-        {tr('auth.login.forgot')}
+      <button onClick={forgotPassword} disabled={resetting} style={{ ...textBtn(dark), alignSelf: 'center' }}>
+        {resetting ? tr('auth.login.resetSending') : tr('auth.login.forgot')}
       </button>
     </div>
   );

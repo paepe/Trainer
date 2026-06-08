@@ -1132,8 +1132,22 @@
       "subtitle": "Melde dich an, um dein Training fortzusetzen.",
       "loading": "Anmeldung läuft…",
       "forgot": "Passwort vergessen?",
-      "resetAlert": "Ein Link zum Zurücksetzen würde an deine E-Mail gesendet.",
-      "errFields": "Bitte fülle beide Felder aus."
+      "resetSending": "Wird gesendet…",
+      "resetSent": "Falls ein Konto mit dieser E-Mail existiert, haben wir einen Link zum Zurücksetzen gesendet.",
+      "errFields": "Bitte fülle beide Felder aus.",
+      "errResetEmailRequired": "Gib deine E-Mail-Adresse ein, um den Link zum Zurücksetzen zu erhalten."
+    },
+    "reset": {
+      "title": "Neues Passwort",
+      "subtitle": "Lege ein neues Passwort für dein Konto fest.",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Neues Passwort bestätigen",
+      "submit": "Neues Passwort speichern",
+      "loading": "Wird gespeichert…",
+      "success": "Passwort erfolgreich zurückgesetzt. Du kannst dich jetzt mit dem neuen Passwort anmelden.",
+      "backToLogin": "Zur Anmeldung",
+      "errFields": "Bitte fülle beide Felder aus.",
+      "errMatch": "Die Passwörter stimmen nicht überein."
     },
     "register": {
       "title": "Konto erstellen",

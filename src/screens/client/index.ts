@@ -1,4 +1,3 @@
-export * from './StatsScreen';
 export * from './PerformanceDashboardScreen';
 export * from './HistoryScreen';
 export * from './CycleScreen';

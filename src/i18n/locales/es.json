@@ -1132,8 +1132,22 @@
       "subtitle": "Inicia sesión para continuar tu entrenamiento.",
       "loading": "Iniciando sesión…",
       "forgot": "¿Olvidaste la contraseña?",
-      "resetAlert": "Se enviaría un enlace de restablecimiento a tu correo.",
-      "errFields": "Completa ambos campos."
+      "resetSending": "Enviando…",
+      "resetSent": "Si existe una cuenta con ese correo, enviamos un enlace para restablecer la contraseña.",
+      "errFields": "Completa ambos campos.",
+      "errResetEmailRequired": "Indica tu correo para recibir el enlace de restablecimiento."
+    },
+    "reset": {
+      "title": "Nueva contraseña",
+      "subtitle": "Define una nueva contraseña para tu cuenta.",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña",
+      "submit": "Guardar nueva contraseña",
+      "loading": "Guardando…",
+      "success": "Contraseña restablecida con éxito. Ya puedes iniciar sesión con la nueva contraseña.",
+      "backToLogin": "Ir al inicio de sesión",
+      "errFields": "Completa ambos campos.",
+      "errMatch": "Las contraseñas no coinciden."
     },
     "register": {
       "title": "Crear cuenta",

@@ -1293,8 +1293,22 @@
       "subtitle": "Log in to continue your training.",
       "loading": "Logging in…",
       "forgot": "Forgot Password?",
-      "resetAlert": "A reset link would be sent to your email.",
-      "errFields": "Please fill in both fields."
+      "resetSending": "Sending…",
+      "resetSent": "If an account exists for that email, we've sent a link to reset your password.",
+      "errFields": "Please fill in both fields.",
+      "errResetEmailRequired": "Enter your email to receive the reset link."
+    },
+    "reset": {
+      "title": "New password",
+      "subtitle": "Set a new password for your account.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "submit": "Save new password",
+      "loading": "Saving…",
+      "success": "Password reset successfully. You can now log in with your new password.",
+      "backToLogin": "Go to login",
+      "errFields": "Please fill in both fields.",
+      "errMatch": "Passwords do not match."
     },
     "register": {
       "title": "Create account",

@@ -1132,8 +1132,22 @@
       "subtitle": "Entre para continuar seu treino.",
       "loading": "Entrando…",
       "forgot": "Esqueceu a senha?",
-      "resetAlert": "Um link de redefinição seria enviado para o seu e-mail.",
-      "errFields": "Preencha os dois campos."
+      "resetSending": "Enviando…",
+      "resetSent": "Se existir uma conta com esse e-mail, enviamos um link para redefinir a senha.",
+      "errFields": "Preencha os dois campos.",
+      "errResetEmailRequired": "Informe seu e-mail para receber o link de redefinição."
+    },
+    "reset": {
+      "title": "Nova senha",
+      "subtitle": "Defina uma nova senha para sua conta.",
+      "newPassword": "Nova senha",
+      "confirmPassword": "Confirmar nova senha",
+      "submit": "Salvar nova senha",
+      "loading": "Salvando…",
+      "success": "Senha redefinida com sucesso. Você já pode entrar com a nova senha.",
+      "backToLogin": "Ir para o login",
+      "errFields": "Preencha os dois campos.",
+      "errMatch": "As senhas não coincidem."
     },
     "register": {
       "title": "Criar conta",
