@@ -11,7 +11,6 @@ export {
   CycleScreen,
   SettingsScreen,
   StartWorkoutScreen,
-  GoalAchievedScreen,
   WorkoutModeScreen,
   PostWorkoutSummaryScreen,
 } from './client';

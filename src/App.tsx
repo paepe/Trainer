@@ -21,7 +21,6 @@ import { useTranslation } from 'react-i18next';
 const ProfileWizardScreen        = React.lazy(() => import('./screens/auth/ProfileWizardScreen').then(m => ({ default: m.ProfileWizardScreen })));
 const CheckInProntidaoScreen     = React.lazy(() => import('./screens/checkin/CheckInProntidaoScreen').then(m => ({ default: m.CheckInProntidaoScreen })));
 const StartWorkoutScreen         = React.lazy(() => import('./screens/client/StartWorkoutScreen').then(m => ({ default: m.StartWorkoutScreen })));
-const GoalAchievedScreen         = React.lazy(() => import('./screens/client/GoalAchievedScreen').then(m => ({ default: m.GoalAchievedScreen })));
 const WorkoutModeScreen          = React.lazy(() => import('./screens/client/WorkoutModeScreen').then(m => ({ default: m.WorkoutModeScreen })));
 const PostWorkoutSummaryScreen   = React.lazy(() => import('./screens/client/PostWorkoutSummaryScreen').then(m => ({ default: m.PostWorkoutSummaryScreen })));
 const PerformanceDashboardScreen = React.lazy(() => import('./screens/client/PerformanceDashboardScreen').then(m => ({ default: m.PerformanceDashboardScreen })));
@@ -508,11 +507,11 @@ export default function App() {
   };
 
   const showTabs = (isTrainer
-    ? ['workout','workoutMode','goal','stats','history',
+    ? ['workout','workoutMode','stats','history',
        'settings','checkin','cycle','studio',
        'trainerDashboard','trainerClientDetail','workoutPlanEditor','trainerLibraryExercises',
        'workoutSummary','coachDNA','alerts']
-    : ['profile','workout','workoutMode','goal','stats','history',
+    : ['profile','workout','workoutMode','stats','history',
        'settings','checkin','cycle','studio',
        'workoutSummary','inbox']
   ).includes(screen);
@@ -608,7 +607,6 @@ export default function App() {
           returnTo={(screenPayload?.returnTo as string) ?? undefined}
           savePostWorkoutFeedback={savePostWorkoutFeedback}
         />;
-      case 'goal':               return <GoalAchievedScreen      {...common} sessionData={screenPayload}/>;
       case 'stats':              return (
         <>
           {noClient && noClientBanner}

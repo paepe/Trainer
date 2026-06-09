@@ -30,7 +30,7 @@ const MENU_ITEMS: [string, string, string][] = [
   ['settings',          'settings',                 'settings'],
 ];
 
-const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'goal', 'cycle', 'studio']);
+const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'cycle', 'studio']);
 const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA']);
 
 import { TRAINER_ROLES } from '../types/auth';

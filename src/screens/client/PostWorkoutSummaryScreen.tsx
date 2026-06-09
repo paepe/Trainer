@@ -130,7 +130,7 @@ export function PostWorkoutSummaryScreen({
     } else if (isTrainerSession) {
       nav('trainerDashboard');
     } else if (totalProp > 0) {
-      nav('goal', { durationMinutes: durationMin, completedCount, total });
+      nav('stats');
     } else {
       nav('history');
     }
