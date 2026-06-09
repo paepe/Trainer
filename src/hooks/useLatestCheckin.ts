@@ -2,6 +2,7 @@ import React from 'react';
 import i18n from '../i18n';
 import { supabase } from '../supabase';
 import { useRealtimeTable } from './useRealtimeTable';
+import { parseCheckinData } from '../lib/parseCheckinData';
 
 export interface LatestCheckinData {
   energy?:               number;
@@ -19,6 +20,8 @@ export interface LatestCheckinData {
   pain_region?:          string;
   pain_intensity?:       number;
   safety_signals?:       string[];
+  readiness_score?:      number;
+  input_source?:         string;
   streak:                number;
   lastCheckin:           string;
 }
@@ -52,7 +55,7 @@ export function useLatestCheckin(userId: string | null | undefined) {
     async function load() {
       const { data: lastCheckin } = await supabase
         .from('checkin_prontidao')
-        .select('energy_level, sleep_quality, fatigue_level, available_minutes, training_location, pain_present, quick_data, detailed_data, occurred_at')
+        .select('energy_level, sleep_quality, fatigue_level, available_minutes, training_location, pain_present, pain_intensity, readiness_score, input_source, quick_data, detailed_data, occurred_at')
         .eq('user_id', uid)
         .order('occurred_at', { ascending: false })
         .limit(1)
@@ -87,34 +90,12 @@ export function useLatestCheckin(userId: string | null | undefined) {
         else break;
       }
 
-      const dd = lastCheckin?.detailed_data as Record<string, unknown> | null;
-      const qd = lastCheckin?.quick_data    as Record<string, unknown> | null;
-
-      // pain can live in either quick_data or detailed_data
-      const painSrc = (dd?.pain ?? qd?.pain) as { present?: boolean; region?: string; intensity?: number } | null;
+      const parsed = lastCheckin ? parseCheckinData(lastCheckin) : {};
 
       const result: LatestCheckinData = {
-        energy:               (lastCheckin?.energy_level          as number)   ?? undefined,
-        sleep_quality:        (lastCheckin?.sleep_quality         as string)   ?? undefined,
-        sleep_hours:          (dd?.sleep_hours                    as number)   ?? undefined,
-        fatigue:              (lastCheckin?.fatigue_level         as number)   ?? undefined,
-        fatigue_type:         (dd?.fatigue_type                   as string)   ?? undefined,
-        available_minutes:    (lastCheckin?.available_minutes     as number)   ?? undefined,
-        location_today:       (lastCheckin?.training_location     as string)   ?? undefined,
-        equipment_today:      (dd?.equipment_today                as string[]) ?? undefined,
-        body_rhythm_active:   (dd?.body_rhythm_active             as boolean)  ?? undefined,
-        adaptation_preference:(dd?.adaptation_preference          as string)   ?? undefined,
-        emotional_state:      (dd?.emotional_state                as string)   ?? undefined,
-        ...(((lastCheckin?.pain_present as boolean | null) ?? painSrc?.present) != null
-          ? { pain_present: (lastCheckin?.pain_present as boolean) ?? painSrc?.present }
-          : {}),
-        ...(painSrc?.region     ? { pain_region:    painSrc.region }    : {}),
-        ...(painSrc?.intensity != null ? { pain_intensity: painSrc.intensity } : {}),
-        ...((dd?.safety_signals || qd?.safety_signals)
-          ? { safety_signals: (dd?.safety_signals ?? qd?.safety_signals) as string[] }
-          : {}),
+        ...parsed,
         streak,
-        lastCheckin:          formatLast(lastCheckin?.occurred_at),
+        lastCheckin: formatLast(lastCheckin?.occurred_at),
       };
       setData(result);
       setLastUpdated(new Date());

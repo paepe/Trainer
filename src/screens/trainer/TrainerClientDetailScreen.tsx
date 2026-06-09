@@ -17,6 +17,7 @@ import type { NavFn } from '../../types';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme }  from '../../hooks/useTrainerTheme';
 import { autoExpirePlans } from '../../lib/autoExpirePlans';
+import { parseCheckinData } from '../../lib/parseCheckinData';
 
 const PROFILE_VALUE_MAP: Record<string, string> = {
   // Bio
@@ -634,15 +635,7 @@ export function TrainerClientDetailScreen({
             {readiness.length === 0 ? (
               <div style={{ color: textMute(dark), fontSize: 12 }}>{tr('trainer.detail.noCheckins')}</div>
             ) : readiness.map((r, i) => {
-              const dd = r.detailed_data;
-              const qd = r.quick_data;
-              const painSrc = (dd?.pain ?? qd?.pain) as { region?: string } | null;
-              const signals = (dd?.safety_signals ?? qd?.safety_signals) as string[] | null;
-              const emotion   = dd?.emotional_state as string | null;
-              const fatigueType = dd?.fatigue_type as string | null;
-              const sleepHours  = dd?.sleep_hours as number | null;
-              const equipment   = dd?.equipment_today as string[] | null;
-              const adaptation  = dd?.adaptation_preference as string | null;
+              const p = parseCheckinData(r);
               return (
                 <div key={r.id} style={{
                   padding: '10px 0',
@@ -658,67 +651,67 @@ export function TrainerClientDetailScreen({
                   <div style={{ flex: 1 }}>
                     {/* Row 1 — scores */}
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                      {r.energy_level != null && (
+                      {p.energy != null && (
                         <span style={{ fontSize: 12, color: textSec(dark) }}>
-                          {tr('trainer.detail.energyLabel')}<span style={{ fontWeight: 700, color: t.primary }}>{r.energy_level}/10</span>
+                          {tr('trainer.detail.energyLabel')}<span style={{ fontWeight: 700, color: t.primary }}>{p.energy}/10</span>
                         </span>
                       )}
-                      {r.fatigue_level != null && (
+                      {p.fatigue != null && (
                         <span style={{ fontSize: 12, color: textSec(dark) }}>
-                          {tr('trainer.detail.fatigueLabel')}<span style={{ fontWeight: 700, color: r.fatigue_level >= 7 ? t.accent : textPri(dark) }}>{r.fatigue_level}/10</span>
-                          {fatigueType && <span style={{ color: textMute(dark) }}> ({fatigueType})</span>}
+                          {tr('trainer.detail.fatigueLabel')}<span style={{ fontWeight: 700, color: p.fatigue >= 7 ? t.accent : textPri(dark) }}>{p.fatigue}/10</span>
+                          {p.fatigue_type && <span style={{ color: textMute(dark) }}> ({p.fatigue_type})</span>}
                         </span>
                       )}
-                      {r.readiness_score != null && (
+                      {p.readiness_score != null && (
                         <span style={{ fontSize: 12, color: textSec(dark) }}>
-                          {tr('trainer.detail.readinessLabel')}<span style={{ fontWeight: 700, color: tierColor(r.readiness_score, t) }}>{r.readiness_score}</span>
+                          {tr('trainer.detail.readinessLabel')}<span style={{ fontWeight: 700, color: tierColor(p.readiness_score, t) }}>{p.readiness_score}</span>
                         </span>
                       )}
                     </div>
                     {/* Row 2 — pain, sleep, time, location */}
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
-                      {r.pain_present && (
+                      {p.pain_present && (
                         <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>
                           {tr('trainer.detail.painReportedLabel')}
-                          {painSrc?.region && ` · ${painSrc.region}`}
-                          {r.pain_intensity != null && ` · ${r.pain_intensity}/10`}
+                          {p.pain_region && ` · ${p.pain_region}`}
+                          {p.pain_intensity != null && ` · ${p.pain_intensity}/10`}
                         </span>
                       )}
-                      {r.sleep_quality && (
+                      {p.sleep_quality && (
                         <span style={{ fontSize: 12, color: textSec(dark) }}>
-                          {tr('trainer.detail.sleepLabel')}{r.sleep_quality}
-                          {sleepHours != null && ` · ${sleepHours}h`}
+                          {tr('trainer.detail.sleepLabel')}{p.sleep_quality}
+                          {p.sleep_hours != null && ` · ${p.sleep_hours}h`}
                         </span>
                       )}
-                      {r.available_minutes != null && (
-                        <span style={{ fontSize: 12, color: textSec(dark) }}>{r.available_minutes} min</span>
+                      {p.available_minutes != null && (
+                        <span style={{ fontSize: 12, color: textSec(dark) }}>{p.available_minutes} min</span>
                       )}
-                      {r.training_location && (
-                        <span style={{ fontSize: 12, color: textSec(dark) }}>{r.training_location}</span>
+                      {p.location_today && (
+                        <span style={{ fontSize: 12, color: textSec(dark) }}>{p.location_today}</span>
                       )}
                     </div>
                     {/* Row 3 — emotion, adaptation, equipment (detailed only) */}
-                    {(emotion || adaptation || equipment?.length) && (
+                    {(p.emotional_state || p.adaptation_preference || p.equipment_today?.length) && (
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                        {emotion && (
-                          <span style={{ fontSize: 11, color: textMute(dark) }}>{emotion}</span>
+                        {p.emotional_state && (
+                          <span style={{ fontSize: 11, color: textMute(dark) }}>{p.emotional_state}</span>
                         )}
-                        {adaptation && (
-                          <span style={{ fontSize: 11, color: textMute(dark) }}>{adaptation}</span>
+                        {p.adaptation_preference && (
+                          <span style={{ fontSize: 11, color: textMute(dark) }}>{p.adaptation_preference}</span>
                         )}
-                        {equipment?.length ? (
-                          <span style={{ fontSize: 11, color: textMute(dark) }}>{equipment.join(', ')}</span>
+                        {p.equipment_today?.length ? (
+                          <span style={{ fontSize: 11, color: textMute(dark) }}>{p.equipment_today.join(', ')}</span>
                         ) : null}
                       </div>
                     )}
                     {/* Row 4 — warning signs (highlighted) */}
-                    {signals && signals.length > 0 && (
+                    {p.safety_signals && p.safety_signals.length > 0 && (
                       <div style={{
                         marginTop: 6, padding: '4px 8px', borderRadius: 6,
                         background: `${t.accent}18`, border: `1px solid ${t.accent}44`,
                         fontSize: 11, color: t.accent, fontWeight: 600,
                       }}>
-                        ⚠ {signals.join(' · ')}
+                        ⚠ {p.safety_signals.join(' · ')}
                       </div>
                     )}
                   </div>
