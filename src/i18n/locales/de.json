@@ -94,18 +94,19 @@
       "new_plan_body": "{{trainerName}} hat dir einen Trainingsplan gesendet.",
       "plan_cancelled": "{{name}} hat den Trainingsplan vom {{planDate}} storniert.",
       "plan_postponed": "{{name}} hat den Trainingsplan vom {{planDate}} verschoben.",
-      "workout_completed": "Training abgeschlossen",
-      "workout_completed_body": "Dein Kunde hat eine {{duration}}min Einheit absolviert.",
-      "safety_gate_blocked": "Safety Gate blockiert",
-      "safety_gate_blocked_body": "Ein Kunden-Check-in erfordert menschliche Überprüfung.",
-      "low_readiness": "Niedrige Bereitschaftswarnung",
-      "low_readiness_body": "Kunde erreichte {{score}}/100. Überprüfung empfohlen.",
+      "workout_completed": "{{clientName}} hat ein Training abgeschlossen",
+      "workout_completed_body": "{{clientName}} hat eine {{duration}}min-Einheit beendet.",
+      "safety_gate_blocked": "Safety Gate — {{clientName}}",
+      "safety_gate_blocked_body": "Ein Check-in erfordert menschliche Überprüfung.",
+      "low_readiness": "Niedrige Bereitschaft — {{clientName}}",
+      "low_readiness_body": "{{clientName}} hat {{score}}/100 erreicht. Überprüfung empfohlen.",
       "plans_expired": "Pläne abgelaufen",
       "plans_expired_body": "{{count}} ausstehende(r) Plan/Pläne wurden nach {{expiryDays}} Tagen automatisch storniert.",
       "high_pain_alert": "Hoher Schmerz gemeldet — {{region}}",
       "high_pain_alert_body": "Intensität {{intensity}}/10 während der Einheit. Plan überprüfen und anpassen.",
       "review_pain": "Schmerz überprüfen — {{region}}",
-      "review_pain_body": "Kunde meldete {{intensity}}/10 Intensität in {{region}}."
+      "review_pain_body": "Kunde meldete {{intensity}}/10 Intensität in {{region}}.",
+      "viewCheckin": "Check-in ansehen"
     }
   },
   "postWorkout": {

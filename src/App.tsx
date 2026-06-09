@@ -344,6 +344,15 @@ export default function App() {
     setMenuOpen(false);
     setScreenPayload(payload ?? null);
     if (target === 'profile') setProfileNavKey(k => k + 1);
+    // Navigate to a client detail view from a notification (inbox CTA)
+    if (target === 'trainerClientDetail' && payload?.clientId && !selectedClient) {
+      const clientId   = payload.clientId   as string;
+      const clientName = (payload.clientName as string) || '';
+      void supabase.from('profiles').select('id, name, email').eq('id', clientId).maybeSingle()
+        .then(({ data }) => {
+          setSelectedClient({ id: clientId, name: data?.name ?? clientName, email: data?.email ?? '' });
+        });
+    }
     setScreen(target);
   };
 

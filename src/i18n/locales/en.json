@@ -94,18 +94,19 @@
       "new_plan_body": "{{trainerName}} sent you a workout plan.",
       "plan_cancelled": "{{name}} cancelled the workout plan from {{planDate}}.",
       "plan_postponed": "{{name}} postponed the workout plan from {{planDate}}.",
-      "workout_completed": "Workout completed",
-      "workout_completed_body": "Your client finished a {{duration}}min session.",
-      "safety_gate_blocked": "Safety Gate blocked",
-      "safety_gate_blocked_body": "A client check-in requires human review.",
-      "low_readiness": "Low readiness alert",
-      "low_readiness_body": "Client scored {{score}}/100. Review recommended.",
+      "workout_completed": "{{clientName}} completed a workout",
+      "workout_completed_body": "{{clientName}} finished a {{duration}}min session.",
+      "safety_gate_blocked": "Safety Gate — {{clientName}}",
+      "safety_gate_blocked_body": "Check-in requires human review.",
+      "low_readiness": "Low readiness — {{clientName}}",
+      "low_readiness_body": "{{clientName}} scored {{score}}/100. Review recommended.",
       "plans_expired": "Plans expired",
       "plans_expired_body": "{{count}} pending plan(s) were auto-cancelled after {{expiryDays}} days.",
       "high_pain_alert": "High pain reported — {{region}}",
       "high_pain_alert_body": "Intensity {{intensity}}/10 during workout session. Review and adjust plan.",
       "review_pain": "Review pain — {{region}}",
-      "review_pain_body": "Client reported {{intensity}}/10 intensity in {{region}}."
+      "review_pain_body": "Client reported {{intensity}}/10 intensity in {{region}}.",
+      "viewCheckin": "View check-in"
     }
   },
   "postWorkout": {

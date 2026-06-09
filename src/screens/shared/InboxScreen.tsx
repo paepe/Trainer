@@ -286,12 +286,17 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                   </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark), marginBottom: 2 }}>
+                      {/* Client name — from peer_name (resolved) or params.clientName (embedded) */}
+                      {(() => {
+                        const clientLabel = item.peer_name || (item.params?.clientName as string | undefined);
+                        return clientLabel ? (
+                          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: iconColor, marginBottom: 2 }}>
+                            {clientLabel}
+                          </div>
+                        ) : null;
+                      })()}
+                      <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark), marginBottom: 1 }}>
                         {renderTitle(item)}
-                      </div>
-                      <div style={{ fontSize: 11, color: textMute(dark) }}>
-                        {item.peer_name && <span style={{ color: textSec(dark), fontWeight: 600 }}>{item.peer_name} · </span>}
-                        {fmtDate(item.created_at, i18n.language)}
                       </div>
                     </div>
 
@@ -302,9 +307,32 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                 {/* Expanded body */}
                 {open && (
                   <div style={{ padding: '0 16px 14px', background: 'var(--sunken)' }}>
+                    <div style={{ fontSize: 11, color: textMute(dark), marginBottom: 10 }}>
+                      {fmtDate(item.created_at, i18n.language)}
+                    </div>
                     <p style={{ margin: '0 0 14px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6 }}>
                       {renderBody(item)}
                     </p>
+
+                    {/* TRAINER: View check-in CTA for workout/alert types */}
+                    {isTrainer && (
+                      item.type === 'workout_completed' ||
+                      item.type === 'checkin_alert' ||
+                      item.type === 'workout_ready'
+                    ) && item.from_user_id && (
+                      <button
+                        onClick={() => nav('trainerClientDetail', { clientId: item.from_user_id!, clientName: item.peer_name || (item.params?.clientName as string | undefined) || '' })}
+                        style={{
+                          width: '100%', padding: '10px 0', borderRadius: 10, border: 'none',
+                          background: `${iconColor}18`, color: iconColor,
+                          fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          marginBottom: 10,
+                        }}
+                      >
+                        <Icon name="eye" size={13} color={iconColor} stroke={2.2} /> {tr('inbox.templates.viewCheckin')}
+                      </button>
+                    )}
 
                     {/* Expiry info */}
                     {isReady && !item.response && !expired && item.expires_at && (
