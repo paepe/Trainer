@@ -150,7 +150,7 @@ export function useWorkoutData(userId: string | undefined) {
         .then(({ data: tc }) => {
           if (!tc?.trainer_id) return;
           const clientName = (tc as unknown as { profiles?: { name?: string } }).profiles?.name ?? '';
-          void notify(tc.trainer_id, 'Workout completed', `Your client finished a ${data.total_duration_min}min session`, undefined, { type: 'workout_completed', templateKey: 'workout_completed', params: { duration: data.total_duration_min, clientName }, entityType: 'workout_session', entityId: data.sessionId });
+          void notify(tc.trainer_id, 'Workout completed', `Your client finished a ${data.total_duration_min}min session`, undefined, { type: 'workout_completed', templateKey: 'workout_completed', params: { duration: data.total_duration_min, clientName } });
         });
     }
     return { error };
