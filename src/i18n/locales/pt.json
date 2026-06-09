@@ -88,7 +88,11 @@
     "yourTrainerFallback": "Seu treinador",
     "templates": {
       "workout_approved": "{{trainerName}} aprovou seu treino!",
+      "workout_approved_body": "Seu plano de treino foi aprovado. Hora de treinar!",
       "workout_rejected": "{{trainerName}} devolveu sua solicitação de treino.",
+      "workout_rejected_body": "Seu plano de treino foi devolvido. Veja o feedback.",
+      "invitation_accepted": "{{clientName}} aceitou seu convite!",
+      "invitation_accepted_body": "{{clientName}} entrou como seu cliente.",
       "ready_to_train": "{{name}} está pronto para treinar",
       "ready_to_train_body": "Prontidão {{score}}/100 — aprove ou rejeite a solicitação de treino.",
       "new_plan": "Novo plano de treino de {{trainerName}}",

@@ -124,8 +124,9 @@ export function PostWorkoutSummaryScreen({
     }
     setSubmitted(true);
     setSaving(false);
-    // returnTo overrides all other routing (e.g. called from inbox)
-    if (returnTo) {
+    // returnTo overrides all other routing (e.g. called from inbox); allowlist guards against arbitrary nav injection
+    const ALLOWED_RETURN_SCREENS = ['alerts', 'history', 'stats', 'trainerDashboard', 'checkin', 'workout'];
+    if (returnTo && ALLOWED_RETURN_SCREENS.includes(returnTo)) {
       nav(returnTo);
     } else if (isTrainerSession) {
       nav('trainerDashboard');

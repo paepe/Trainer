@@ -116,7 +116,7 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
       nav('checkin');
       return;
     }
-    nav(role === 'client' ? 'profileWizard' : 'trainerDashboard');
+    nav(role === 'client' ? 'profile' : 'trainerDashboard');
   };
 
   const oauth = async (provider: 'google') => {

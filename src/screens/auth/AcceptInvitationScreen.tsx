@@ -5,6 +5,7 @@ import { textPri, textSec, textMute, primaryBtn, outlineBtn } from '../../theme'
 import { Spinner, TextInput } from '../../ui';
 import { supabase } from '../../supabase';
 import { notify } from '../../lib/notify';
+import { invalidateTrainerLinkCache } from '../../hooks/useTrainerLink';
 import { friendlyError } from '../../lib/friendlyError';
 import type { NavFn } from '../../types';
 import type { AuthError } from '@supabase/supabase-js';
@@ -124,6 +125,7 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signIn, sign
       case 'accepted':
       case 'already_accepted':
         setState({ phase: 'accepted', trainerName });
+        invalidateTrainerLinkCache(userId);
         if (row.trainer_id) {
           const clientName = name ?? '';
           notify(
