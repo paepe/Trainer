@@ -386,8 +386,6 @@ export function BodyDiagram({ region, gender }: BodyDiagramProps) {
           height={IMG_H}
           style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
         >
-          <ellipse cx={IMG_W / 2} cy={dotY!} rx="14" ry="8"
-            fill={`${C.coral}44`} stroke={C.coral} strokeWidth="1.2"/>
           <circle cx={IMG_W / 2} cy={dotY!} r="18"
             fill="none" stroke={C.coral} strokeWidth="0.8" strokeDasharray="3 2"/>
         </svg>
