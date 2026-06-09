@@ -54,11 +54,9 @@ export function useCheckinData(userId: string | undefined, alertsEnabled = true)
           ? 'A client check-in requires human review.'
           : `Client scored ${score}/100. Review recommended.`;
         const template = blocked ? 'safety_gate_blocked' : 'low_readiness';
-        void supabase.from('trainer_clients').select('trainer_id, profiles!trainer_clients_client_id_fkey(name)').eq('client_id', effectiveUserId).eq('status', 'active').maybeSingle()
+        void supabase.from('trainer_clients').select('trainer_id').eq('client_id', effectiveUserId).eq('status', 'active').maybeSingle()
           .then(({ data: tc }) => {
-            if (!tc?.trainer_id) return;
-            const clientName = (tc as unknown as { profiles?: { name?: string } }).profiles?.name ?? '';
-            void notify(tc.trainer_id, title, body, '/dashboard', { type: 'checkin_alert', templateKey: template, params: { score, clientName } });
+            if (tc?.trainer_id) void notify(tc.trainer_id, title, body, '/dashboard', { type: 'checkin_alert', templateKey: template, params: { score } });
           });
       }
     }

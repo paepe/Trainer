@@ -146,11 +146,9 @@ export function useWorkoutData(userId: string | undefined) {
     }
     if (userId) {
       void emitEvent(userId, 'workout_completed', 'workout_session', data.sessionId, { duration_min: data.total_duration_min });
-      void supabase.from('trainer_clients').select('trainer_id, profiles!trainer_clients_client_id_fkey(name)').eq('client_id', userId).eq('status', 'active').maybeSingle()
+      void supabase.from('trainer_clients').select('trainer_id').eq('client_id', userId).eq('status', 'active').maybeSingle()
         .then(({ data: tc }) => {
-          if (!tc?.trainer_id) return;
-          const clientName = (tc as unknown as { profiles?: { name?: string } }).profiles?.name ?? '';
-          void notify(tc.trainer_id, 'Workout completed', `Your client finished a ${data.total_duration_min}min session`, undefined, { type: 'workout_completed', templateKey: 'workout_completed', params: { duration: data.total_duration_min, clientName } });
+          if (tc?.trainer_id) void notify(tc.trainer_id, 'Workout completed', `Your client finished a ${data.total_duration_min}min session`, undefined, { type: 'workout_completed', templateKey: 'workout_completed', params: { duration: data.total_duration_min } });
         });
     }
     return { error };

@@ -94,19 +94,18 @@
       "new_plan_body": "{{trainerName}} te envió un plan de entrenamiento.",
       "plan_cancelled": "{{name}} canceló el plan de entrenamiento del {{planDate}}.",
       "plan_postponed": "{{name}} pospuso el plan de entrenamiento del {{planDate}}.",
-      "workout_completed": "{{clientName}} completó un entrenamiento",
-      "workout_completed_body": "{{clientName}} terminó una sesión de {{duration}}min.",
-      "safety_gate_blocked": "Safety Gate — {{clientName}}",
-      "safety_gate_blocked_body": "El check-in requiere revisión humana.",
-      "low_readiness": "Baja prontitud — {{clientName}}",
-      "low_readiness_body": "{{clientName}} puntuó {{score}}/100. Revisión recomendada.",
+      "workout_completed": "Entrenamiento completado",
+      "workout_completed_body": "Tu cliente terminó una sesión de {{duration}}min.",
+      "safety_gate_blocked": "Safety Gate bloqueado",
+      "safety_gate_blocked_body": "Un check-in de cliente requiere revisión humana.",
+      "low_readiness": "Alerta de preparación baja",
+      "low_readiness_body": "Cliente puntuó {{score}}/100. Revisión recomendada.",
       "plans_expired": "Planes expirados",
       "plans_expired_body": "{{count}} plan(es) pendiente(s) fueron cancelados automáticamente después de {{expiryDays}} días.",
       "high_pain_alert": "Dolor alto reportado — {{region}}",
       "high_pain_alert_body": "Intensidad {{intensity}}/10 durante la sesión. Revisa y ajusta el plan.",
       "review_pain": "Revisar dolor — {{region}}",
-      "review_pain_body": "Cliente reportó intensidad {{intensity}}/10 en {{region}}.",
-      "viewCheckin": "Ver check-in"
+      "review_pain_body": "Cliente reportó intensidad {{intensity}}/10 en {{region}}."
     }
   },
   "postWorkout": {
