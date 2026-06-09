@@ -726,6 +726,8 @@
       "addBtn": "Adicionar",
       "emptyHint": "Toque em Adicionar para montar o plano.",
       "nameRequired": "Nome do exercício é obrigatório.",
+      "catalogSearching": "Buscando no catálogo…",
+      "catalogNoResults": "Nenhum resultado no catálogo",
       "loadPlaceholder": "Carga (kg)",
       "restPlaceholder": "Descanso (s)",
       "cancelBtn": "Cancelar",

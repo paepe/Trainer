@@ -726,6 +726,8 @@
       "addBtn": "Add",
       "emptyHint": "Tap Add to build the plan.",
       "nameRequired": "Exercise name is required.",
+      "catalogSearching": "Searching catalog…",
+      "catalogNoResults": "No results in catalog",
       "loadPlaceholder": "Load (kg)",
       "restPlaceholder": "Rest (s)",
       "cancelBtn": "Cancel",

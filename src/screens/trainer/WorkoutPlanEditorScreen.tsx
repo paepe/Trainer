@@ -19,6 +19,7 @@ import {
   outlineBtn,
 } from '../../theme';
 import type { NavFn } from '../../types';
+import type { ExerciseCatalogItem } from '../../types/workout';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
@@ -95,6 +96,10 @@ export function WorkoutPlanEditorScreen({
     rest_seconds:  60,
     notes:         '',
   });
+  const [catalogSuggestions, setCatalogSuggestions] = React.useState<ExerciseCatalogItem[]>([]);
+  const [catalogLoading,     setCatalogLoading]     = React.useState(false);
+  const catalogSearchRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [trainerNotes, setTrainerNotes] = React.useState('');
   const [saving, setSaving]             = React.useState(false);
   const [saved, setSaved]               = React.useState(false);
@@ -102,6 +107,33 @@ export function WorkoutPlanEditorScreen({
   const [aiError, setAiError]           = React.useState('');
 
   const MUSCLE_GROUPS = tr('trainer.planner.muscleGroups', { returnObjects: true }) as string[];
+
+  const searchCatalog = (query: string) => {
+    if (catalogSearchRef.current) clearTimeout(catalogSearchRef.current);
+    if (query.trim().length < 2) { setCatalogSuggestions([]); return; }
+    catalogSearchRef.current = setTimeout(async () => {
+      setCatalogLoading(true);
+      const { data } = await supabase
+        .from('exercises')
+        .select('id,name,muscle_group,equipment,level,short_instruction,status')
+        .ilike('name', `%${query.trim()}%`)
+        .eq('status', 'active')
+        .order('name', { ascending: true })
+        .limit(6);
+      setCatalogSuggestions((data as ExerciseCatalogItem[] | null) ?? []);
+      setCatalogLoading(false);
+    }, 280);
+  };
+
+  const applyFromCatalog = (item: ExerciseCatalogItem) => {
+    setDraft(prev => ({
+      ...prev,
+      exercise_name: item.name,
+      muscle_group:  item.muscle_group ?? '',
+    }));
+    setCatalogSuggestions([]);
+    setNameError(false);
+  };
 
   async function askAI() {
     setAiLoading(true);
@@ -411,16 +443,71 @@ export function WorkoutPlanEditorScreen({
             display: 'flex', flexDirection: 'column', gap: 10
           }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>{tr('trainer.planner.newExercise')}</div>
-            <div>
+            <div style={{ position: 'relative' }}>
               <TextInput
                 icon="dumbbell"
                 placeholder={tr('trainer.planner.exerciseName')}
                 value={draft.exercise_name}
-                onChange={v => { setDraft({ ...draft, exercise_name: v }); setNameError(false); }}
+                onChange={v => {
+                  setDraft({ ...draft, exercise_name: v });
+                  setNameError(false);
+                  searchCatalog(v);
+                }}
               />
               {nameError && (
                 <div style={{ fontSize: 11.5, color: t.accent, marginTop: 4, paddingLeft: 4, fontWeight: 600 }}>
                   {tr('trainer.planner.nameRequired')}
+                </div>
+              )}
+              {/* Catalog search dropdown */}
+              {(catalogLoading || catalogSuggestions.length > 0) && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+                  background: DARK.surface, border: `1px solid ${borderSubtle(dark)}`,
+                  borderRadius: 12, marginTop: 4,
+                  boxShadow: '0 8px 24px rgba(0,0,0,.35)',
+                  overflow: 'hidden',
+                }}>
+                  {catalogLoading && (
+                    <div style={{ padding: '10px 14px', fontSize: 12, color: textMute(dark), display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Spinner size={12} color={textMute(dark)}/> {tr('trainer.planner.catalogSearching')}
+                    </div>
+                  )}
+                  {!catalogLoading && catalogSuggestions.map(item => (
+                    <button
+                      key={item.id}
+                      onMouseDown={e => { e.preventDefault(); applyFromCatalog(item); }}
+                      style={{
+                        width: '100%', textAlign: 'left', padding: '10px 14px',
+                        background: 'transparent', border: 'none',
+                        borderBottom: `1px solid ${borderSubtle(dark)}`,
+                        cursor: 'pointer', fontFamily: 'inherit',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{item.name}</div>
+                        {item.short_instruction && (
+                          <div style={{ fontSize: 11, color: textMute(dark), marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>
+                            {item.short_instruction}
+                          </div>
+                        )}
+                      </div>
+                      {item.muscle_group && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
+                          background: `${t.accent}22`, color: t.accent, flexShrink: 0,
+                        }}>
+                          {item.muscle_group}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                  {!catalogLoading && catalogSuggestions.length === 0 && draft.exercise_name.trim().length >= 2 && (
+                    <div style={{ padding: '10px 14px', fontSize: 12, color: textMute(dark) }}>
+                      {tr('trainer.planner.catalogNoResults')}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

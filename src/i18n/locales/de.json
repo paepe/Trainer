@@ -726,6 +726,8 @@
       "addBtn": "Hinzufügen",
       "emptyHint": "Auf Hinzufügen tippen, um den Plan zu erstellen.",
       "nameRequired": "Übungsname ist erforderlich.",
+      "catalogSearching": "Katalog wird durchsucht…",
+      "catalogNoResults": "Keine Ergebnisse im Katalog",
       "loadPlaceholder": "Last (kg)",
       "restPlaceholder": "Pause (s)",
       "cancelBtn": "Abbrechen",
