@@ -699,6 +699,8 @@
     "planner": {
       "noCheckin": "Kein Check-in heute",
       "newExercise": "Neue Übung",
+      "editExercise": "Übung bearbeiten",
+      "updateExerciseBtn": "Übung aktualisieren",
       "exerciseName": "Übungsname",
       "sets": "Sätze",
       "reps": "Wdh.",

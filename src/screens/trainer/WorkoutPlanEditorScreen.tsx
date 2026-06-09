@@ -96,6 +96,7 @@ export function WorkoutPlanEditorScreen({
     rest_seconds:  60,
     notes:         '',
   });
+  const [editingIndex,       setEditingIndex]       = React.useState<number | null>(null);
   const [catalogSuggestions, setCatalogSuggestions] = React.useState<ProtocolExerciseItem[]>([]);
   const [catalogLoading,     setCatalogLoading]     = React.useState(false);
   const catalogSearchRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -236,10 +237,22 @@ export function WorkoutPlanEditorScreen({
     });
   }, [selectedClient?.id]);
 
+  function startEdit(index: number) {
+    setEditingIndex(index);
+    setDraft({ ...exercises[index] } as WorkoutExercise);
+    setShowAddForm(true);
+    setCatalogSuggestions([]);
+  }
+
   function addExercise() {
     if (!draft.exercise_name.trim()) { setNameError(true); return; }
     setNameError(false);
-    setExercises([...exercises, { ...draft }]);
+    if (editingIndex !== null) {
+      setExercises(exercises.map((ex, i) => i === editingIndex ? { ...draft } : ex));
+      setEditingIndex(null);
+    } else {
+      setExercises([...exercises, { ...draft }]);
+    }
     setDraft({
       exercise_name: '',
       muscle_group:  '',
@@ -427,11 +440,17 @@ export function WorkoutPlanEditorScreen({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {exercises.map((ex, i) => (
-            <div key={i} style={{
-              padding: '12px 14px', borderRadius: 12,
-              background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
-              display: 'flex', alignItems: 'center', gap: 12,
-            }}>
+            <div
+              key={i}
+              onClick={() => { if (editingIndex !== i) startEdit(i); }}
+              style={{
+                padding: '12px 14px', borderRadius: 12,
+                background: editingIndex === i ? `${t.primary}18` : surfRaised(dark),
+                border: `1px solid ${editingIndex === i ? t.primary : borderSubtle(dark)}`,
+                display: 'flex', alignItems: 'center', gap: 12,
+                cursor: 'pointer',
+              }}
+            >
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{ex.exercise_name}</div>
                 <div style={{ fontSize: 11, color: textSec(dark), marginTop: 3 }}>
@@ -439,10 +458,13 @@ export function WorkoutPlanEditorScreen({
                   {ex.load_kg ? ` · ${ex.load_kg}kg` : ''}{ex.rest_seconds ? ` · ${ex.rest_seconds}s` : ''}
                 </div>
               </div>
-              <button onClick={() => setExercises(exercises.filter((_, idx) => idx !== i))} style={{
-                background: 'transparent', border: 'none', cursor: 'pointer',
-                color: textMute(dark), fontSize: 18, lineHeight: 1, padding: '2px 6px', fontFamily: 'inherit',
-              }}>×</button>
+              <button
+                onClick={e => { e.stopPropagation(); setExercises(exercises.filter((_, idx) => idx !== i)); if (editingIndex === i) { setShowAddForm(false); setEditingIndex(null); } }}
+                style={{
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  color: textMute(dark), fontSize: 18, lineHeight: 1, padding: '2px 6px', fontFamily: 'inherit',
+                }}
+              >×</button>
             </div>
           ))}
         </div>
@@ -454,7 +476,9 @@ export function WorkoutPlanEditorScreen({
             background: surfRaised(dark), border: `1.5px solid ${t.primary}`,
             display: 'flex', flexDirection: 'column', gap: 10
           }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>{tr('trainer.planner.newExercise')}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>
+              {editingIndex !== null ? tr('trainer.planner.editExercise') : tr('trainer.planner.newExercise')}
+            </div>
             <div style={{ position: 'relative' }}>
               <TextInput
                 icon="dumbbell"
@@ -581,11 +605,11 @@ export function WorkoutPlanEditorScreen({
                 onChange={v => setDraft({ ...draft, rest_seconds: Number(v) || 60 })}/>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setShowAddForm(false)} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
+              <button onClick={() => { setShowAddForm(false); setEditingIndex(null); }} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
                 {tr('trainer.planner.cancelBtn')}
               </button>
               <button onClick={addExercise} style={{ flex: 2, padding: '12px 0', borderRadius: 14, background: t.accent, color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                {tr('trainer.planner.addExerciseBtn')}
+                {editingIndex !== null ? tr('trainer.planner.updateExerciseBtn') : tr('trainer.planner.addExerciseBtn')}
               </button>
             </div>
           </div>

@@ -699,6 +699,8 @@
     "planner": {
       "noCheckin": "Sin check-in hoy",
       "newExercise": "Nuevo ejercicio",
+      "editExercise": "Editar ejercicio",
+      "updateExerciseBtn": "Actualizar ejercicio",
       "exerciseName": "Nombre del ejercicio",
       "sets": "Series",
       "reps": "Reps",
