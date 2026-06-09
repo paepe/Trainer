@@ -5,15 +5,16 @@ import type { NavFn } from '../types';
 type Tab = [key: string, icon: string, label: string];
 
 interface BottomTabsProps {
-  tabs:    Tab[];
-  active:  string;
-  onTap:   NavFn;
-  primary: string;
-  dark:    boolean;
-  badges?: Record<string, number>; // key → pending count
+  tabs:         Tab[];
+  active:       string;
+  onTap:        NavFn;
+  primary:      string;
+  dark:         boolean;
+  badges?:      Record<string, number>;
+  disabledKeys?: string[];
 }
 
-export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, primary, dark, badges = {} }) => (
+export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, primary, dark, badges = {}, disabledKeys = [] }) => (
   <div style={{
     flexShrink: 0,
     padding: '8px 4px',
@@ -24,18 +25,28 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, pri
     display: 'flex', alignItems: 'center', justifyContent: 'space-around',
   }}>
     {tabs.map(([key, ic, lbl]) => {
-      const on    = active === key;
-      const count = badges[key] ?? 0;
+      const on       = active === key;
+      const disabled = disabledKeys.includes(key);
+      const count    = badges[key] ?? 0;
+      const color    = disabled
+        ? (dark ? 'rgba(255,255,255,.22)' : 'rgba(0,0,0,.2)')
+        : on ? primary : (dark ? 'rgba(255,255,255,.5)' : '#7a8694');
       return (
-        <button key={key} onClick={() => onTap(key)} style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-          background: 'transparent', border: 'none', cursor: 'pointer',
-          padding: '6px 10px', borderRadius: 12, fontFamily: 'inherit',
-          color: on ? primary : (dark ? 'rgba(255,255,255,.5)' : '#7a8694'),
-        }}>
+        <button
+          key={key}
+          onClick={() => { if (!disabled) onTap(key); }}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            background: 'transparent', border: 'none',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            padding: '6px 10px', borderRadius: 12, fontFamily: 'inherit',
+            color,
+            opacity: disabled ? 0.45 : 1,
+          }}
+        >
           <div style={{ position: 'relative' }}>
-            <Icon name={ic} size={20} color={on ? primary : (dark ? 'rgba(255,255,255,.5)' : '#7a8694')} stroke={on ? 2.4 : 2}/>
-            {count > 0 && (
+            <Icon name={ic} size={20} color={color} stroke={on && !disabled ? 2.4 : 2}/>
+            {!disabled && count > 0 && (
               <div style={{
                 position: 'absolute', top: -4, right: -6,
                 minWidth: 16, height: 16, borderRadius: 999,
@@ -48,7 +59,7 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, pri
               </div>
             )}
           </div>
-          <span style={{ fontSize: 10.5, fontWeight: on ? 600 : 500 }}>{lbl}</span>
+          <span style={{ fontSize: 10.5, fontWeight: on && !disabled ? 600 : 500 }}>{lbl}</span>
         </button>
       );
     })}

@@ -7,13 +7,14 @@ import type { NavFn, Profile } from '../types';
 type SideMenuUser = Pick<Profile, 'name' | 'email' | 'role' | 'avatar_url'> & { gender?: string | undefined };
 
 interface SideMenuProps {
-  open:     boolean;
-  nav:      NavFn;
-  t:        { primary: string; primaryDeep: string };
-  user:     SideMenuUser;
-  current:  string;
-  setUser:  (data: Partial<Profile>) => void;
-  role?:    string | undefined;
+  open:             boolean;
+  nav:              NavFn;
+  t:                { primary: string; primaryDeep: string };
+  user:             SideMenuUser;
+  current:          string;
+  setUser:          (data: Partial<Profile>) => void;
+  role?:            string | undefined;
+  disabledScreens?: string[];
 }
 
 const MENU_ITEMS: [string, string, string][] = [
@@ -34,7 +35,7 @@ const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA
 
 import { TRAINER_ROLES } from '../types/auth';
 
-export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role }) => {
+export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role, disabledScreens = [] }) => {
   const { t: tr } = useTranslation();
   const isTrainerRole = role != null && (TRAINER_ROLES as readonly string[]).includes(role);
   const isMale = user.gender === 'male';
@@ -80,19 +81,25 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
       <div style={{ height: 1, background: 'rgba(14,26,43,.18)', margin: '0 22px 10px' }}/>
 
       <div style={{ flex: 1, padding: '0 8px', overflow: 'auto' }}>
-        {items.map(([lbl, screen, ic]) => (
-          <button key={lbl} onClick={() => nav(screen)} style={{
-            display: 'flex', alignItems: 'center', gap: 14, width: '100%',
-            padding: '12px 18px', border: 'none',
-            background: current === screen ? 'rgba(14,26,43,.16)' : 'transparent',
-            color: '#0E1A2B', fontFamily: 'inherit', fontSize: 16, fontWeight: 500,
-            cursor: 'pointer', textAlign: 'left', borderRadius: 12,
-            opacity: current === screen ? 1 : 0.85,
-          }}>
-            <Icon name={ic} size={18} color="#0E1A2B" stroke={2}/>
-            {tr(`sideMenu.${lbl}`)}
-          </button>
-        ))}
+        {items.map(([lbl, screen, ic]) => {
+          const disabled = disabledScreens.includes(screen);
+          return (
+            <button key={lbl} onClick={() => { if (!disabled) nav(screen); }} style={{
+              display: 'flex', alignItems: 'center', gap: 14, width: '100%',
+              padding: '12px 18px', border: 'none',
+              background: current === screen ? 'rgba(14,26,43,.16)' : 'transparent',
+              color: '#0E1A2B', fontFamily: 'inherit', fontSize: 16, fontWeight: 500,
+              cursor: disabled ? 'not-allowed' : 'pointer', textAlign: 'left', borderRadius: 12,
+              opacity: disabled ? 0.35 : current === screen ? 1 : 0.85,
+            }}>
+              <Icon name={ic} size={18} color="#0E1A2B" stroke={2}/>
+              <span style={{ flex: 1 }}>{tr(`sideMenu.${lbl}`)}</span>
+              {disabled && (
+                <Icon name="lock" size={13} color="#0E1A2B" stroke={2}/>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <button

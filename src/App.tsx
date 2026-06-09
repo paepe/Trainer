@@ -634,6 +634,10 @@ export default function App() {
     }
   })();
 
+  // Trainer tabs/menu items that require a selected client to be usable.
+  // Keys match both the bottom-tab key and the screen/route key used in SideMenu.
+  const TRAINER_CLIENT_REQUIRED = ['checkin', 'history', 'stats'];
+
   const layoutProps = {
     contentRef,
     surfaceBg,
@@ -651,6 +655,7 @@ export default function App() {
     tabBadges: isTrainer
       ? (pendingAlerts > 0 ? { alerts: pendingAlerts } : {})
       : (pendingInbox  > 0 ? { inbox:  pendingInbox  } : {}),
+    disabledNavKeys: (isTrainer && !selectedClient) ? TRAINER_CLIENT_REQUIRED : [],
   };
 
   return (

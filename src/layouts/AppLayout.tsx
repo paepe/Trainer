@@ -18,7 +18,8 @@ export interface AppLayoutProps {
   setMenuOpen: (open: boolean) => void;
   handleSetUser: (data: any) => Promise<{ error: unknown }>;
   profile: any;
-  tabBadges?: Record<string, number>;
+  tabBadges?:       Record<string, number>;
+  disabledNavKeys?: string[];
 }
 
 export function AppLayout({
@@ -38,6 +39,7 @@ export function AppLayout({
   handleSetUser,
   profile,
   tabBadges = {},
+  disabledNavKeys = [],
 }: AppLayoutProps) {
   const isTrainer = role === 'trainer';
   const fontFamily = isTrainer
@@ -71,13 +73,14 @@ export function AppLayout({
       </div>
 
       {showTabs && (
-        <BottomTabs tabs={tabs} active={screen} onTap={nav} primary={t.primary} dark={dark} badges={tabBadges} />
+        <BottomTabs tabs={tabs} active={screen} onTap={nav} primary={t.primary} dark={dark} badges={tabBadges} disabledKeys={disabledNavKeys} />
       )}
 
       <SideMenu
         open={menuOpen}
         nav={(s) => { setMenuOpen(false); if (s && s !== 'menu') nav(s); }}
         t={t} user={user} current={screen} setUser={handleSetUser} role={profile?.role}
+        disabledScreens={disabledNavKeys}
       />
     </VStack>
   );
