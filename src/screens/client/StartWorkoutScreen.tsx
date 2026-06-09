@@ -87,8 +87,6 @@ interface PlanCard {
     exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null}>;
   }
 
-type GenPhase = 'idle' | 'loading' | 'success' | 'error' | 'blocked';
-
 type GenState =
   | { phase: 'idle' }
   | { phase: 'loading' }

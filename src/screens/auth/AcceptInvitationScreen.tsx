@@ -111,7 +111,7 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signIn, sign
     return () => { cancelled = true; };
   }, [token, user]);
 
-  const runAccept = async (userId: string, name: string | null | undefined): Promise<AcceptanceRow | undefined> => {
+  const runAccept = async (userId: string, _name: string | null | undefined): Promise<AcceptanceRow | undefined> => {
     const { data, error } = await supabase.rpc('accept_trainer_invitation', { p_token: token, p_user_id: userId });
     if (error) { setState({ phase: 'error', message: friendlyError(error, tr) }); return undefined; }
     const row = (data as AcceptanceRow[] | null)?.[0];

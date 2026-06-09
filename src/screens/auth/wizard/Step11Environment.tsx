@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, Typography, HStack, VStack, Spacer, Chip } from '../../../ui';
 import { Icon } from '../../../components/Icon';
 import type { WizardStepProps } from './types';
 import type { TrainingLocation, Equipment, AccessibilityCondition } from '../../../types/profile-v2';
@@ -18,7 +18,7 @@ const LOCATION_KEYS: { value: TrainingLocation; icon: string }[] = [
 const EQUIP_KEYS: Equipment[] = ['dumbbells', 'resistance_bands', 'barbell', 'bench', 'treadmill', 'bike', 'machines', 'kettlebell', 'cable_pulley', 'none'];
 const ACCESSIBILITY_KEYS: AccessibilityCondition[] = ['wheelchair_accessible', 'support_bars', 'safe_floor', 'private_space', 'companion_available', 'adapted_equipment'];
 
-export function Step11Environment({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step11Environment({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const env = data.environment ?? { locations: [], equipment: [], accessibility: [] };
 

@@ -19,11 +19,14 @@ export interface LatestCheckinData {
   pain_present?:         boolean;
   pain_region?:          string;
   pain_intensity?:       number;
-  safety_signals?:       string[];
-  readiness_score?:      number;
-  input_source?:         string;
-  streak:                number;
+  safety_signals?:          string[];
+  readiness_score?:         number;
+  input_source?:            string;
+  can_do_floor_exercises?:  boolean;
+  movement_trigger?:        string;
+  streak:                   number;
   lastCheckin:           string;
+  lastCheckinAt:         string | null;
 }
 
 function formatLast(ts?: string | null): string {
@@ -45,6 +48,7 @@ export function useLatestCheckin(userId: string | null | undefined) {
   const [data, setData] = React.useState<LatestCheckinData>(() => ({
     streak: 0,
     lastCheckin: '-',
+    lastCheckinAt: null,
   }));
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
 
@@ -96,6 +100,7 @@ export function useLatestCheckin(userId: string | null | undefined) {
         ...parsed,
         streak,
         lastCheckin: formatLast(lastCheckin?.occurred_at),
+        lastCheckinAt: lastCheckin?.occurred_at ?? null,
       };
       setData(result);
       setLastUpdated(new Date());

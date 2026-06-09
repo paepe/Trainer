@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { SectionLabel } from '../../components/SectionLabel';
-import { surfRaised, borderSubtle, textPri, textSec, textMute, outlineBtn } from '../../theme';
+import { surfRaised, borderSubtle, textPri, textMute, outlineBtn } from '../../theme';
 import type { NavFn } from '../../types';
 
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';

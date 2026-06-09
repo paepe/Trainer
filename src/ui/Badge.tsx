@@ -1,5 +1,5 @@
 import React from 'react';
-import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
+import { BRAND } from '../theme/tokens';
 
 export type BadgeVariant = 'default' | 'sensitive' | 'selective' | 'blinded' | 'opt-in' | 'lgpd' | 'technical';
 

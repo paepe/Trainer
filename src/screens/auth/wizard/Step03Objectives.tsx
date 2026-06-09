@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, VoiceOption, Typography, HStack, VStack, Spacer, ChoiceCard, Chip } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { PrimaryGoal, SecondaryGoal, ProfileObjectives } from '../../../types/profile-v2';
@@ -24,7 +24,7 @@ const SECONDARY_GOALS: SecondaryGoal[] = [
   'body_composition', 'sports_performance', 'balance', 'consistency',
 ];
 
-export function Step03Objectives({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step03Objectives({ dark, primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const obj: Partial<ProfileObjectives> = data.objectives ?? { secondary_goals: [] };
   const secondaryGoals = obj.secondary_goals ?? [];

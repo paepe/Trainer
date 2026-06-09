@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, Typography, HStack, VStack, Spacer, Slider, Chip, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { BodyRhythmAdaptation } from '../../../types/profile-v2';
 
@@ -20,7 +20,7 @@ interface Step10Props extends WizardStepProps {
   biologicalSex?: string | undefined;
 }
 
-export function Step10BodyRhythm({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps, biologicalSex }: Step10Props) {
+export function Step10BodyRhythm({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps, biologicalSex }: Step10Props) {
   const { t: tr } = useTranslation();
   const isMale = biologicalSex === 'male';
   const br = data.body_rhythm ?? {

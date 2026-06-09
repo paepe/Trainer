@@ -1,6 +1,6 @@
 import React from 'react';
 import { SideMenu, BottomTabs } from '../components';
-import { HStack, VStack } from '../ui';
+import { VStack } from '../ui';
 
 export interface AppLayoutProps {
   role: 'client' | 'trainer';

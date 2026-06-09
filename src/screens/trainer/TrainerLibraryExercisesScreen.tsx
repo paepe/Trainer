@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
-import { SectionLabel } from '../../components/SectionLabel';
 import { useExerciseData } from '../../hooks/useExerciseData';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../theme';
 import { THEME_VARS as DARK } from '../../theme/tokens';
@@ -43,7 +42,7 @@ const STATUS_TONES: Record<StatusTone, { text: string; bg: (alpha: number) => st
 const statusTone = (status: string): StatusTone =>
   status === 'active' || status === 'blocked' || status === 'restricted' || status === 'draft' ? status : 'neutral';
 
-export function TrainerLibraryExercisesScreen({ nav, user }: TrainerLibraryExercisesScreenProps) {
+export function TrainerLibraryExercisesScreen({ nav: _nav, user }: TrainerLibraryExercisesScreenProps) {
   const { fetchExercises, saveExercise, fetchProtocolsList, simulateVoiceAssistant } = useExerciseData();
   const { t, dark } = useTrainerTheme();
   const { t: tr } = useTranslation();

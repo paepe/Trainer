@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
-import { surfRaised, borderSubtle, textPri, textSec, primaryBtn, outlineBtn } from '../../theme';
+import { textPri, textSec, primaryBtn, outlineBtn } from '../../theme';
 import type { NavFn } from '../../types';
 
 interface Theme {

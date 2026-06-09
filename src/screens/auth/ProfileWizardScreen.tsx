@@ -134,7 +134,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     if (!fetchProfileV2) { setLoading(false); return; }
     fetchProfileV2().then(({ data: existing }) => {
       if (existing && Object.keys(existing).length > 0) {
-        const { current_step, completed_at, ...profileData } =
+        const { current_step, completed_at: _completed_at, ...profileData } =
           existing as WizardData & { current_step?: string | null; completed_at?: string | null };
         dataRef.current = profileData;
         setData(profileData);

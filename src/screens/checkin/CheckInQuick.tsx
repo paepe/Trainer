@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
+import { RefreshChip } from '../../components/RefreshChip';
 import type { CheckInQuick as CheckInQuickData, SleepQualityV2, PainRegion } from '../../types/checkin-v2';
 import type { LatestCheckinData } from '../../hooks/useLatestCheckin';
 
@@ -60,21 +61,32 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
   const [painOn, setPainOn]               = React.useState(false);
   const [painRegion, setPainRegion]       = React.useState<PainRegion | undefined>(undefined);
   const [painIntensity, setPainIntensity] = React.useState(4);
+  const [movementTrigger, setMovementTrigger] = React.useState('');
   const [fatigue, setFatigue]             = React.useState(3);
   const [minutes, setMinutes]             = React.useState(45);
   const [seeded, setSeeded]               = React.useState(false);
+  const [seededAt, setSeededAt]           = React.useState<string | null>(null);
 
-  // Re-initialise once lastCheckin data arrives (async hook)
+  // Reset seeded when a newer check-in arrives (realtime), so fields reflect new data.
+  React.useEffect(() => {
+    if (lastCheckin?.lastCheckinAt && lastCheckin.lastCheckinAt !== seededAt) {
+      setSeeded(false);
+    }
+  }, [lastCheckin?.lastCheckinAt, seededAt]);
+
+  // Populate fields once per check-in version (student: once on mount; trainer: on every new submission).
   React.useEffect(() => {
     if (!lastCheckin || seeded) return;
     if (lastCheckin.energy            != null) setEnergy(lastCheckin.energy);
     if (lastCheckin.sleep_quality)             setSleep(lastCheckin.sleep_quality as SleepQualityV2);
     if (lastCheckin.fatigue           != null) setFatigue(lastCheckin.fatigue);
     if (lastCheckin.available_minutes != null) setMinutes(lastCheckin.available_minutes);
-    if (lastCheckin.pain_present)              setPainOn(true);
+    setPainOn(lastCheckin.pain_present ?? false);
     if (lastCheckin.pain_region)               setPainRegion(lastCheckin.pain_region as PainRegion);
     if (lastCheckin.pain_intensity    != null) setPainIntensity(lastCheckin.pain_intensity);
+    if (lastCheckin.movement_trigger  != null) setMovementTrigger(lastCheckin.movement_trigger);
     setSeeded(true);
+    setSeededAt(lastCheckin.lastCheckinAt ?? null);
   }, [lastCheckin, seeded]);
 
   const sleepOpts: { value: SleepQualityV2; label: string }[] = [
@@ -99,7 +111,7 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
 
   const handleSubmit = () => {
     const pain = painOn && painRegion != null
-      ? { present: true, region: painRegion, intensity: painIntensity }
+      ? { present: true, region: painRegion, intensity: painIntensity, ...(movementTrigger ? { movement_trigger: movementTrigger } : {}) }
       : { present: painOn };
 
     const data: CheckInQuickData = {
@@ -127,9 +139,12 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       {userName && (
-        <div style={{ marginBottom: 12, padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>{tr('quickCheckin.viewing')}</span>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
+        <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <div style={{ padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>{tr('quickCheckin.viewing')}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
+          </div>
+          <RefreshChip onRefresh={() => {}} loading={false} lastUpdated={null} live color="#10B981" dark={dark} />
         </div>
       )}
 
@@ -201,6 +216,23 @@ export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onS
               ))}
             </div>
             <SliderRow label={tr('quickCheckin.intensity')} value={painIntensity} min={0} max={10} onChange={setPainIntensity} dark={dark} primary={accent}/>
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
+                TRIGGER MOVEMENT
+              </div>
+              <input
+                type="text"
+                value={movementTrigger}
+                onChange={e => setMovementTrigger(e.target.value)}
+                placeholder={tr('detailedCheckin.blocks.situationalPainPlaceholder')}
+                style={{
+                  width: '100%', padding: '10px 12px', borderRadius: 8, boxSizing: 'border-box',
+                  background: 'var(--sunken)',
+                  border: `1px solid ${borderSubtle(dark)}`,
+                  color: textPri(dark), fontFamily: 'inherit', fontSize: 13, outline: 'none',
+                }}
+              />
+            </div>
           </>
         )}
       </div>

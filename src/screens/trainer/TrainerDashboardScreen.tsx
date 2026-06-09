@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import { TextInput, VStack, HStack, Spacer } from '@/ui';
+import { TextInput, VStack, HStack } from '@/ui';
 import { supabase } from '../../supabase';
 import { useAlerts } from '../../hooks/useAlerts';
 import { Icon } from '../../components/Icon';
@@ -66,7 +66,7 @@ interface TrainerDashboardScreenProps {
 }
 
 export function TrainerDashboardScreen({
-  nav,
+  nav: _nav,
   user,
   selectClient,
 }: TrainerDashboardScreenProps) {
@@ -85,18 +85,57 @@ export function TrainerDashboardScreen({
   const [pendingReviews, setPendingReviews] = React.useState<SafetyGateEvent[]>([]);
   const [reviewingId, setReviewingId]   = React.useState<string | null>(null);
   const [activeSessions, setActiveSessions] = React.useState<ActiveSession[]>([]);
-  const [activeNowOpen, setActiveNowOpen]   = React.useState(false);
-  const [activeNowFilter, setActiveNowFilter] = React.useState<'all' | 'training'>('all');
+  const [_activeNowOpen, _setActiveNowOpen]   = React.useState(false);
+  const [_activeNowFilter, _setActiveNowFilter] = React.useState<'all' | 'training'>('all');
   const [invitations, setInvitations]   = React.useState<TrainerInvitation[]>([]);
   const [invitationBusyId, setInvitationBusyId] = React.useState<string | null>(null);
+
+  const fetchClients = React.useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('trainer_clients')
+      .select('id, status, created_at, client:profiles!trainer_clients_client_id_fkey(id, name, email)')
+      .eq('trainer_id', user.id)
+      .in('status', ['active', 'pending'])
+      .order('created_at', { ascending: false });
+
+    const clientsList = (data || []) as unknown as TrainerClient[];
+    setClients(clientsList);
+
+    const ids: string[] = [];
+    for (const c of clientsList) {
+      if (c.status === 'active' && c.client?.id) ids.push(c.client.id);
+    }
+    fetchSafetyGate(ids);
+
+    if (ids.length > 0) {
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      void supabase.from('workout_sessions')
+        .update({ status: 'abandoned' })
+        .in('user_id', ids)
+        .eq('status', 'active')
+        .lt('started_at', dayAgo);
+
+      const { data: sessions } = await supabase
+        .from('workout_sessions')
+        .select('id, user_id, status, started_at')
+        .in('user_id', ids)
+        .eq('status', 'active')
+        .order('started_at', { ascending: false });
+      setActiveSessions(sessions as ActiveSession[]);
+    }
+
+    setLoading(false);
+  }, [user?.id, fetchSafetyGate]);
 
   React.useEffect(() => {
     if (!user?.id) {
       setLoading(false);
       return;
     }
-    fetchClients();
-  }, [user?.id]);
+    void fetchClients();
+  }, [user?.id, fetchClients]);
 
   // Realtime subscription for active sessions
   React.useEffect(() => {
@@ -152,45 +191,7 @@ export function TrainerDashboardScreen({
   }, [user?.id, clients, fetchSafetyGate]);
 
 
-  async function fetchClients() {
-    if (!user?.id) return;
-    setLoading(true);
-    const { data } = await supabase
-      .from('trainer_clients')
-      .select('id, status, created_at, client:profiles!trainer_clients_client_id_fkey(id, name, email)')
-      .eq('trainer_id', user.id)
-      .in('status', ['active', 'pending'])
-      .order('created_at', { ascending: false });
 
-    const clientsList = (data || []) as unknown as TrainerClient[];
-    setClients(clientsList);
-
-    const ids: string[] = [];
-    for (const c of clientsList) {
-      if (c.status === 'active' && c.client?.id) ids.push(c.client.id);
-    }
-    fetchSafetyGate(ids);
-
-    // Clean up stale active sessions (>24h) for all clients before showing them
-    if (ids.length > 0) {
-      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      void supabase.from('workout_sessions')
-        .update({ status: 'abandoned' })
-        .in('user_id', ids)
-        .eq('status', 'active')
-        .lt('started_at', dayAgo);
-
-      const { data: sessions } = await supabase
-        .from('workout_sessions')
-        .select('id, user_id, status, started_at')
-        .in('user_id', ids)
-        .eq('status', 'active')
-        .order('started_at', { ascending: false });
-      setActiveSessions(sessions as ActiveSession[]);
-    }
-
-    setLoading(false);
-  }
 
   async function markReviewed(eventId: string) {
     if (!user?.id) return;

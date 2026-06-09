@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, VoiceOption, HStack, VStack, Spacer, Chip } from '../../../ui';
 import { WizardVoiceOverlay } from './WizardVoiceOverlay';
 import type { WizardStepProps } from './types';
 import type { Comorbidity } from '../../../types/profile-v2';
@@ -13,7 +12,7 @@ const CONDITION_KEYS: Comorbidity[] = [
   'other', 'prefer_not_to_say',
 ];
 
-export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step06Comorbidities({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const co = data.comorbidities ?? { conditions: [] };
   const [voiceOpen, setVoiceOpen] = React.useState(false);

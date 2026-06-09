@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, Typography, HStack, VStack, Spacer, Slider, Chip, SegmentedControl } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { PreferredTime, AdherenceBarrier } from '../../../types/profile-v2';
 
@@ -10,7 +10,7 @@ const WEEK_DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const BARRIER_VALUES: AdherenceBarrier[] = ['night_shift', 'family_care', 'frequent_travel', 'treatment_radiation', 'transport', 'cost', 'emotional', 'time_constraint'];
 const SESSION_PRESETS = [30, 45, 60, 75, 90];
 
-export function Step12Availability({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step12Availability({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const av = data.availability ?? {
     days_per_week: 3,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, Alert, Typography, HStack, VStack, Spacer, Chip, SegmentedControl } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type {
   MobilityLevel, BalanceLevel, AutonomyLevel, EffortTolerance,
@@ -18,7 +18,7 @@ const PAIN_VALUES: PainLevel[] = ['none', 'mild', 'moderate', 'severe'];
 const ACCESS_VALUES: AccessLevel[] = ['full', 'partial', 'limited'];
 const INSTRUCTION_VALUES: InstructionFormat[] = ['visual', 'auditory', 'simplified_text', 'vibration', 'standard'];
 
-export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step07FunctionalCapacity({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const defaultFc = React.useMemo(() => ({
     support_resources:  ['none'] as SupportResource[],
@@ -40,7 +40,7 @@ export function Step07FunctionalCapacity({ dark, primary, accent, data, onUpdate
   const effortOpts      = EFFORT_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.mobilityLevels.${v}`) }));
   const painOpts        = PAIN_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.painLevels.${v}`) }));
   const accessOpts      = ACCESS_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.accessLevels.${v}`) }));
-  const instructionOpts = INSTRUCTION_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.instructionFormats.${v}`) }));
+  const _instructionOpts = INSTRUCTION_VALUES.map(v => ({ value: v, label: tr(`wizard.step07.instructionFormats.${v}`) }));
 
   // fc starts partial (mobility/balance/autonomy/effort_tolerance unset until
   // chosen). nextDisabled gates progression until all required fields are set,

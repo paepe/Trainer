@@ -34,7 +34,7 @@ interface SelectorRow<K extends keyof AppPreferences> {
   options: { value: AppPreferences[K]; label: string }[];
 }
 
-export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError, isMale = false }: SettingsScreenProps) {
+export function SettingsScreen({ nav: _nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError, isMale = false }: SettingsScreenProps) {
   const { t: tr } = useTranslation();
   const isAutonomous = !isTrainer && !hasTrainer;
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { supabase } from '../../supabase';
-import { Icon, ScreenTitle, SectionLabel } from '../../components';
+import { Icon, ScreenTitle } from '../../components';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, outlineBtn } from '../../theme';
 import type { NavFn } from '../../types';
 
@@ -204,7 +204,7 @@ interface ActivityRowProps {
   dark:  boolean;
 }
 
-function ActivityRow({ title, sub, right, t, dark }: ActivityRowProps) {
+function ActivityRow({ title, sub, right, t: _t, dark }: ActivityRowProps) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
+import { RefreshChip } from '../../components/RefreshChip';
 import type {
   CheckInDetailed as CheckInDetailedData,
   SleepQualityV2, PainRegion, FatigueType,
@@ -159,8 +160,16 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
   const [bodyRhythm, setBodyRhythm]             = React.useState(false);
   const [adaptation, setAdaptation]             = React.useState<AdaptationPreference | undefined>(undefined);
   const [seeded, setSeeded]                     = React.useState(false);
+  const [seededAt, setSeededAt]                 = React.useState<string | null>(null);
 
-  // Re-initialise once lastCheckin data arrives (async hook)
+  // Reset seeded when a newer check-in arrives (realtime), so fields reflect new data.
+  React.useEffect(() => {
+    if (lastCheckin?.lastCheckinAt && lastCheckin.lastCheckinAt !== seededAt) {
+      setSeeded(false);
+    }
+  }, [lastCheckin?.lastCheckinAt, seededAt]);
+
+  // Populate fields once per check-in version (student: once on mount; trainer: on every new submission).
   React.useEffect(() => {
     if (!lastCheckin || seeded) return;
     if (lastCheckin.energy            != null) setEnergy(lastCheckin.energy);
@@ -174,11 +183,14 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
     if (lastCheckin.equipment_today?.length)   setEquipment(lastCheckin.equipment_today);
     if (lastCheckin.body_rhythm_active != null) setBodyRhythm(lastCheckin.body_rhythm_active);
     if (lastCheckin.adaptation_preference)     setAdaptation(lastCheckin.adaptation_preference as AdaptationPreference);
-    if (lastCheckin.pain_present)              setPainOn(true);
+    setPainOn(lastCheckin.pain_present ?? false);
     if (lastCheckin.pain_region)               setPainRegion(lastCheckin.pain_region as PainRegion);
     if (lastCheckin.pain_intensity     != null) setPainIntensity(lastCheckin.pain_intensity);
-    if (lastCheckin.safety_signals?.length)    setSignals(lastCheckin.safety_signals as SafetySignal[]);
+    if (lastCheckin.movement_trigger   != null) setMovementTrigger(lastCheckin.movement_trigger);
+    if (lastCheckin.can_do_floor_exercises != null) setFloorOk(lastCheckin.can_do_floor_exercises);
+    setSignals((lastCheckin.safety_signals as SafetySignal[] | undefined) ?? []);
     setSeeded(true);
+    setSeededAt(lastCheckin.lastCheckinAt ?? null);
   }, [lastCheckin, seeded]);
 
   const toggleEquip = (val: string) => {
@@ -239,9 +251,12 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
 
       {userName && (
-        <div style={{ marginBottom: 12, padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>{tr('detailedCheckin.viewing')}</span>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
+        <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <div style={{ padding: '5px 12px', borderRadius: 999, background: '#10B98122', border: '1px solid #10B98155', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: '#10B981', letterSpacing: '.06em', textTransform: 'uppercase' }}>{tr('detailedCheckin.viewing')}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#10B981' }}>{userName.split(' ')[0]}</span>
+          </div>
+          <RefreshChip onRefresh={() => {}} loading={false} lastUpdated={null} live color="#10B981" dark={dark} />
         </div>
       )}
 

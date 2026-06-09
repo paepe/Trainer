@@ -40,10 +40,8 @@ interface WorkoutModeScreenProps {
   sounds?:                     boolean;
 }
 
-const skipOptions: string[] = [];
-
 export function WorkoutModeScreen({
-  nav, t, dark, user, planId, exercises, plannedDurationMin, clientUserId, clientName,
+  nav, t, dark, user: _user, planId, exercises, plannedDurationMin, clientUserId, clientName,
   startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
   reportWorkoutPain, completeWorkoutSession, updatePainRecurrence,
   sounds = false,

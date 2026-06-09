@@ -16,9 +16,11 @@ export interface ParsedCheckin {
   pain_present?:         boolean;
   pain_region?:          string;
   pain_intensity?:       number;
-  safety_signals?:       string[];
-  readiness_score?:      number;
-  input_source?:         string;
+  safety_signals?:          string[];
+  readiness_score?:         number;
+  input_source?:            string;
+  can_do_floor_exercises?:  boolean;
+  movement_trigger?:        string;
 }
 
 type RawRow = {
@@ -42,15 +44,21 @@ export function parseCheckinData(row: RawRow): ParsedCheckin {
     ? row.quick_data as Record<string, unknown> : null;
 
   const painSrc = (dd?.pain ?? qd?.pain) as
-    { present?: boolean; region?: string; intensity?: number } | null;
+    { present?: boolean; region?: string; intensity?: number; movement_trigger?: string } | null;
 
   const result: ParsedCheckin = {};
 
-  if (row.energy_level       != null) result.energy            = row.energy_level;
-  if (row.sleep_quality)              result.sleep_quality     = row.sleep_quality!;
-  if (row.fatigue_level      != null) result.fatigue           = row.fatigue_level;
-  if (row.available_minutes  != null) result.available_minutes = row.available_minutes;
-  if (row.training_location)          result.location_today    = row.training_location!;
+  const energy = row.energy_level ?? (dd?.energy ?? qd?.energy) as number | undefined ?? null;
+  const sleepQ = row.sleep_quality ?? (dd?.sleep_quality ?? qd?.sleep_quality) as string | undefined ?? null;
+  const fatigue = row.fatigue_level ?? (dd?.fatigue ?? qd?.fatigue) as number | undefined ?? null;
+  const avail = row.available_minutes ?? (dd?.available_minutes ?? qd?.available_minutes) as number | undefined ?? null;
+  const loc = row.training_location ?? (dd?.location_today) as string | undefined ?? null;
+
+  if (energy   != null) result.energy            = energy;
+  if (sleepQ)           result.sleep_quality     = sleepQ;
+  if (fatigue  != null) result.fatigue           = fatigue;
+  if (avail    != null) result.available_minutes = avail;
+  if (loc)              result.location_today    = loc;
   if (row.readiness_score    != null) result.readiness_score   = row.readiness_score;
   if (row.input_source)               result.input_source      = row.input_source!;
 
@@ -72,7 +80,12 @@ export function parseCheckinData(row: RawRow): ParsedCheckin {
   if (dd?.adaptation_preference)      result.adaptation_preference = dd.adaptation_preference as string;
 
   const signals = (dd?.safety_signals ?? qd?.safety_signals) as string[] | null;
-  if (signals?.length)                result.safety_signals = signals;
+  if (signals?.length)                result.safety_signals          = signals;
+
+  if (painSrc?.movement_trigger)      result.movement_trigger        = painSrc.movement_trigger;
+
+  const floorSrc = dd?.can_do_floor_exercises ?? qd?.can_do_floor_exercises;
+  if (floorSrc != null)               result.can_do_floor_exercises  = floorSrc as boolean;
 
   return result;
 }

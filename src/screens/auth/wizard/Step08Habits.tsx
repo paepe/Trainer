@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, Alert, HStack, VStack, Spacer, Chip } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { LifestyleBarrier } from '../../../types/profile-v2';
 
@@ -23,7 +23,7 @@ const BARRIER_KEYS: { value: LifestyleBarrier; i18nKey: string }[] = [
   { value: 'financial_stress',    i18nKey: 'financial_stress' },
 ];
 
-export function Step08Habits({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step08Habits({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const habits = data.habits ?? { lifestyle_barriers: [] };
 

@@ -156,6 +156,10 @@ export default function App() {
     role: (profile?.role ?? 'client') as UserRole | 'client',
   };
 
+  const [checkin, setCheckin] = React.useState<CheckIn>({
+    energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
+    location: 'gym', sleep_quality: 'good', equipment: [],
+  });
   const [screen, setScreen] = React.useState('welcome');
   const [prefSaveError, setPrefSaveError] = React.useState<string | null>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -164,10 +168,6 @@ export default function App() {
   const [pendingAlerts, setPendingAlerts] = React.useState(0);
   const [pendingInbox,  setPendingInbox]  = React.useState(0);
   const [selectedClient, setSelectedClient] = React.useState<ClientProfile | null>(null);
-  const [checkin, setCheckin] = React.useState<CheckIn>({
-    energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
-    location: 'gym', sleep_quality: 'good', equipment: [],
-  });
   const [cycleConfig, setCycleConfig] = React.useState<AppCycleConfig>({
     length: 28, periodLength: 5, lastStartOffset: 11,
   });

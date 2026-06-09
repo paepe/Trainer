@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, VStack, Spacer, Toggle } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { ConsentCategory, ConsentValue } from '../../../types/profile-v2';
 
@@ -40,7 +40,7 @@ const DEFAULT_STUDIO: ConsentCategory = {
   body_rhythm:                  'hidden',
 };
 
-export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step14Consent({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const consent = data.consent ?? {
     personal: DEFAULT_PERSONAL,

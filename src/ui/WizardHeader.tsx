@@ -2,7 +2,6 @@ import React from 'react';
 import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { VStack, HStack } from './Layout';
 import { Typography } from './Typography';
-import { Badge } from './Badge';
 
 export interface WizardHeaderProps {
   currentStep: number;

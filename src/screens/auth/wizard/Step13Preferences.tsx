@@ -1,14 +1,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec } from '../../../theme';
-import { WizardHeader, WizardFooter, VoiceOption, Alert, Typography, HStack, VStack, Spacer, TextInput, Slider, ChoiceCard, Chip, SegmentedControl, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, Typography, HStack, VStack, Spacer, Chip, SegmentedControl } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type {
   PreferredIntensity, TrainingCompany, PreferredLanguage,
   ExplanationLevel, TrainingFocus, SupportLevel,
 } from '../../../types/profile-v2';
 
-export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step13Preferences({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const defaultPrefs = React.useMemo(() => ({
     preferred_intensity: 'moderate' as PreferredIntensity,
@@ -32,7 +32,7 @@ export function Step13Preferences({ dark, primary, accent, data, onUpdate, onNex
   const companyOpts       = (['solo','accompanied','indifferent'] as TrainingCompany[]).map(v => ({ value: v, label: tr(`wizard.step13.company.${v}` as any) }));
   const languageOpts      = (['direct','explanatory','technical'] as PreferredLanguage[]).map(v => ({ value: v, label: tr(`wizard.step13.languages.${v}` as any) }));
   const explanationOpts   = (['simple','detailed','technical'] as ExplanationLevel[]).map(v => ({ value: v, label: tr(`wizard.step13.explanations.${v}` as any) }));
-  const focusOpts         = (['performance','health','aesthetics','consistency'] as TrainingFocus[]).map(v => ({ value: v, label: tr(`wizard.step13.focuses.${v}` as any) }));
+  const _focusOpts        = (['performance','health','aesthetics','consistency'] as TrainingFocus[]).map(v => ({ value: v, label: tr(`wizard.step13.focuses.${v}` as any) }));
   const supportOpts       = (['autonomous','guided'] as SupportLevel[]).map(v => ({ value: v, label: tr(`wizard.step13.supports.${v}` as any) }));
 
   const set = (patch: Partial<typeof pref>) => onUpdate({ preferences: { ...pref, ...patch } });
