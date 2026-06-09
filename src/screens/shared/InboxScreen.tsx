@@ -426,15 +426,15 @@ function getBadgeColor(item: InboxItem, expired: boolean, isTrainer: boolean, t:
 function SenderAvatar({ name, color }: { name?: string | undefined; color: string }) {
   const initials = name
     ? name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
-    : '?';
+    : null;
   return (
     <div style={{
       width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-      background: `${color}22`, border: `1.5px solid ${color}55`,
+      background: `${color}22`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: 13, fontWeight: 800, color, letterSpacing: '0.03em',
     }}>
-      {initials}
+      {initials ?? <Icon name="sparkle" size={16} color={color} stroke={2.2} />}
     </div>
   );
 }
