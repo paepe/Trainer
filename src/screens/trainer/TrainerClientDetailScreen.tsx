@@ -217,11 +217,14 @@ interface CheckInReadiness {
   energy_level:      number | null;
   fatigue_level:     number | null;
   pain_present:      boolean | null;
+  pain_intensity:    number | null;
   sleep_quality:     string | null;
   available_minutes: number | null;
   training_location: string | null;
   input_source:      string | null;
   variant:           string;
+  quick_data:        Record<string, unknown> | null;
+  detailed_data:     Record<string, unknown> | null;
 }
 
 interface TrainerClientDetailScreenProps {
@@ -295,7 +298,7 @@ export function TrainerClientDetailScreen({
       supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', clientId).maybeSingle(),
-      supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,sleep_quality,available_minutes,training_location,input_source,variant').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(7),
+      supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,pain_intensity,sleep_quality,available_minutes,training_location,input_source,variant,quick_data,detailed_data').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(7),
       // C — trainer's past approve/reject decisions for this client (RLS scopes to_user_id = this trainer)
       supabase.from('notification_log').select('id,response,response_at,created_at,body').eq('from_user_id', clientId).eq('type', 'workout_ready').not('response', 'is', null).order('response_at', { ascending: false }).limit(8),
       // Read-only: student's own post-workout self-evaluations (trainer never edits — "quem executou avalia")
@@ -630,44 +633,98 @@ export function TrainerClientDetailScreen({
             </div>
             {readiness.length === 0 ? (
               <div style={{ color: textMute(dark), fontSize: 12 }}>{tr('trainer.detail.noCheckins')}</div>
-            ) : readiness.map((r, i) => (
-              <div key={r.id} style={{
-                padding: '10px 0',
-                borderBottom: i < readiness.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
-                display: 'flex', gap: 12,
-              }}>
-                <div style={{ fontSize: 10, color: textMute(dark), minWidth: 72, paddingTop: 2 }}>
-                  {r.occurred_at ? new Date(r.occurred_at).toLocaleDateString(i18n.language || 'en-US', { day: '2-digit', month: '2-digit' }) : '—'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    {r.energy_level != null && (
-                      <span style={{ fontSize: 12, color: textSec(dark) }}>
-                        {tr('trainer.detail.energyLabel')}<span style={{ fontWeight: 700, color: t.primary }}>{r.energy_level}/10</span>
-                      </span>
-                    )}
-                    {r.readiness_score != null && (
-                      <span style={{ fontSize: 12, color: textSec(dark) }}>
-                        {tr('trainer.detail.readinessLabel')}<span style={{ fontWeight: 700, color: tierColor(r.readiness_score, t) }}>{r.readiness_score}</span>
-                      </span>
-                    )}
-                    {r.pain_present && (
-                      <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>{tr('trainer.detail.painReportedLabel')}</span>
-                    )}
-                    {r.available_minutes != null && (
-                      <span style={{ fontSize: 12, color: textSec(dark) }}>{r.available_minutes} min</span>
-                    )}
-                    {r.training_location && (
-                      <span style={{ fontSize: 12, color: textSec(dark) }}>{r.training_location}</span>
+            ) : readiness.map((r, i) => {
+              const dd = r.detailed_data;
+              const qd = r.quick_data;
+              const painSrc = (dd?.pain ?? qd?.pain) as { region?: string } | null;
+              const signals = (dd?.safety_signals ?? qd?.safety_signals) as string[] | null;
+              const emotion   = dd?.emotional_state as string | null;
+              const fatigueType = dd?.fatigue_type as string | null;
+              const sleepHours  = dd?.sleep_hours as number | null;
+              const equipment   = dd?.equipment_today as string[] | null;
+              const adaptation  = dd?.adaptation_preference as string | null;
+              return (
+                <div key={r.id} style={{
+                  padding: '10px 0',
+                  borderBottom: i < readiness.length - 1 ? `1px solid ${borderSubtle(dark)}` : 'none',
+                  display: 'flex', gap: 12,
+                }}>
+                  <div style={{ fontSize: 10, color: textMute(dark), minWidth: 72, paddingTop: 2 }}>
+                    {r.occurred_at ? new Date(r.occurred_at).toLocaleDateString(i18n.language || 'en-US', { day: '2-digit', month: '2-digit' }) : '—'}
+                    {r.input_source === 'voice' && (
+                      <div style={{ color: t.primary, fontWeight: 700, fontSize: 9, marginTop: 2 }}>{tr('trainer.detail.voz')}</div>
                     )}
                   </div>
-                  <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2, display: 'flex', gap: 8 }}>
-                    {r.sleep_quality && <span>{tr('trainer.detail.sleepLabel')}{r.sleep_quality}</span>}
-                    {r.input_source === 'voice' && <span style={{ color: t.primary, fontWeight: 700 }}>{tr('trainer.detail.voz')}</span>}
+                  <div style={{ flex: 1 }}>
+                    {/* Row 1 — scores */}
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      {r.energy_level != null && (
+                        <span style={{ fontSize: 12, color: textSec(dark) }}>
+                          {tr('trainer.detail.energyLabel')}<span style={{ fontWeight: 700, color: t.primary }}>{r.energy_level}/10</span>
+                        </span>
+                      )}
+                      {r.fatigue_level != null && (
+                        <span style={{ fontSize: 12, color: textSec(dark) }}>
+                          {tr('trainer.detail.fatigueLabel')}<span style={{ fontWeight: 700, color: r.fatigue_level >= 7 ? t.accent : textPri(dark) }}>{r.fatigue_level}/10</span>
+                          {fatigueType && <span style={{ color: textMute(dark) }}> ({fatigueType})</span>}
+                        </span>
+                      )}
+                      {r.readiness_score != null && (
+                        <span style={{ fontSize: 12, color: textSec(dark) }}>
+                          {tr('trainer.detail.readinessLabel')}<span style={{ fontWeight: 700, color: tierColor(r.readiness_score, t) }}>{r.readiness_score}</span>
+                        </span>
+                      )}
+                    </div>
+                    {/* Row 2 — pain, sleep, time, location */}
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
+                      {r.pain_present && (
+                        <span style={{ fontSize: 12, color: t.accent, fontWeight: 600 }}>
+                          {tr('trainer.detail.painReportedLabel')}
+                          {painSrc?.region && ` · ${painSrc.region}`}
+                          {r.pain_intensity != null && ` · ${r.pain_intensity}/10`}
+                        </span>
+                      )}
+                      {r.sleep_quality && (
+                        <span style={{ fontSize: 12, color: textSec(dark) }}>
+                          {tr('trainer.detail.sleepLabel')}{r.sleep_quality}
+                          {sleepHours != null && ` · ${sleepHours}h`}
+                        </span>
+                      )}
+                      {r.available_minutes != null && (
+                        <span style={{ fontSize: 12, color: textSec(dark) }}>{r.available_minutes} min</span>
+                      )}
+                      {r.training_location && (
+                        <span style={{ fontSize: 12, color: textSec(dark) }}>{r.training_location}</span>
+                      )}
+                    </div>
+                    {/* Row 3 — emotion, adaptation, equipment (detailed only) */}
+                    {(emotion || adaptation || equipment?.length) && (
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                        {emotion && (
+                          <span style={{ fontSize: 11, color: textMute(dark) }}>{emotion}</span>
+                        )}
+                        {adaptation && (
+                          <span style={{ fontSize: 11, color: textMute(dark) }}>{adaptation}</span>
+                        )}
+                        {equipment?.length ? (
+                          <span style={{ fontSize: 11, color: textMute(dark) }}>{equipment.join(', ')}</span>
+                        ) : null}
+                      </div>
+                    )}
+                    {/* Row 4 — warning signs (highlighted) */}
+                    {signals && signals.length > 0 && (
+                      <div style={{
+                        marginTop: 6, padding: '4px 8px', borderRadius: 6,
+                        background: `${t.accent}18`, border: `1px solid ${t.accent}44`,
+                        fontSize: 11, color: t.accent, fontWeight: 600,
+                      }}>
+                        ⚠ {signals.join(' · ')}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Plan & Workout — unified timeline */}
