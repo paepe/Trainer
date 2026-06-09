@@ -106,7 +106,8 @@
       "high_pain_alert_body": "Intensity {{intensity}}/10 during workout session. Review and adjust plan.",
       "review_pain": "Review pain — {{region}}",
       "review_pain_body": "Client reported {{intensity}}/10 intensity in {{region}}.",
-      "viewCheckin": "View check-in"
+      "viewCheckin": "View check-in",
+      "viewWorkoutSummary": "View workout assessment"
     }
   },
   "postWorkout": {
@@ -136,7 +137,8 @@
     "notesOptional": "Notes (optional)",
     "saveSaving": "Saving…",
     "saveTrainerDashboard": "Save & Back to Dashboard",
-    "saveContinue": "Save & Continue"
+    "saveContinue": "Save & Continue",
+    "backToDashboard": "Back to dashboard"
   },
   "perf": {
     "noData": "No data available",

@@ -29,6 +29,8 @@ export interface InboxItem {
   peer_name?:   string;
   template_key?: string | null;
   params?:       Record<string, unknown> | null;
+  entity_id?:    string | null;
+  entity_type?:  string | null;
 }
 
 function isExpired(item: InboxItem): boolean {
@@ -108,7 +110,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
     supabase
       .from('notification_log')
-      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at, read_at, template_key, params')
+      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at, read_at, template_key, params, entity_id, entity_type')
       .eq('to_user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
@@ -212,10 +214,16 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
   // Render notification text: template keys are resolved in the RECIPIENT's locale.
   // Legacy rows without template_key fall back to stored title/body.
+  // Merge peer_name as clientName fallback so legacy rows without params.clientName still interpolate
+  const mergeParams = (item: InboxItem) => {
+    const p = item.params ?? {};
+    if (!p.clientName && item.peer_name) return { ...p, clientName: item.peer_name };
+    return p;
+  };
   const renderTitle = (item: InboxItem) =>
-    item.template_key ? tr(`inbox.templates.${item.template_key}`, item.params ?? {}) : item.title;
+    item.template_key ? tr(`inbox.templates.${item.template_key}`, mergeParams(item)) : item.title;
   const renderBody = (item: InboxItem) =>
-    item.template_key ? tr(`inbox.templates.${item.template_key}_body`, item.params ?? {}) : item.body;
+    item.template_key ? tr(`inbox.templates.${item.template_key}_body`, mergeParams(item)) : item.body;
 
   return (
     <>
@@ -314,12 +322,36 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                       {renderBody(item)}
                     </p>
 
-                    {/* TRAINER: View check-in CTA for workout/alert types */}
-                    {isTrainer && (
-                      item.type === 'workout_completed' ||
-                      item.type === 'checkin_alert' ||
-                      item.type === 'workout_ready'
-                    ) && item.from_user_id && (
+                    {/* TRAINER: View workout summary CTA for workout_completed */}
+                    {isTrainer && item.type === 'workout_completed' && item.from_user_id && (
+                      <button
+                        onClick={() => {
+                          const clientName = item.peer_name || (item.params?.clientName as string | undefined) || '';
+                          nav('workoutSummary', {
+                            sessionId:      item.entity_id ?? null,
+                            durationMin:    0,
+                            completedCount: 0,
+                            total:          0,
+                            totalSets:      0,
+                            forClientName:  clientName,
+                            forClientId:    item.from_user_id!,
+                            readOnly:       true,
+                          });
+                        }}
+                        style={{
+                          width: '100%', padding: '11px 0', borderRadius: 10, border: 'none',
+                          background: iconColor, color: '#0E1A2B',
+                          fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          marginBottom: 10,
+                        }}
+                      >
+                        <Icon name="eye" size={14} color="#0E1A2B" stroke={2.5} /> {tr('inbox.templates.viewWorkoutSummary')}
+                      </button>
+                    )}
+
+                    {/* TRAINER: View client detail CTA for checkin_alert / workout_ready */}
+                    {isTrainer && (item.type === 'checkin_alert' || item.type === 'workout_ready') && item.from_user_id && (
                       <button
                         onClick={() => nav('trainerClientDetail', { clientId: item.from_user_id!, clientName: item.peer_name || (item.params?.clientName as string | undefined) || '' })}
                         style={{

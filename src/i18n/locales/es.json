@@ -106,7 +106,8 @@
       "high_pain_alert_body": "Intensidad {{intensity}}/10 durante la sesión. Revisa y ajusta el plan.",
       "review_pain": "Revisar dolor — {{region}}",
       "review_pain_body": "Cliente reportó intensidad {{intensity}}/10 en {{region}}.",
-      "viewCheckin": "Ver check-in"
+      "viewCheckin": "Ver check-in",
+      "viewWorkoutSummary": "Ver evaluación del entrenamiento"
     }
   },
   "postWorkout": {
@@ -136,7 +137,8 @@
     "notesOptional": "Notas (opcional)",
     "saveSaving": "Guardando…",
     "saveTrainerDashboard": "Guardar y volver al panel",
-    "saveContinue": "Guardar y continuar"
+    "saveContinue": "Guardar y continuar",
+    "backToDashboard": "Volver al panel"
   },
   "perf": {
     "noData": "Sin datos disponibles",
