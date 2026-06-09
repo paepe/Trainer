@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../../components/Icon';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../../theme';
+import { translateMuscleGroup } from '../../../lib/translateMuscleGroup';
 import type { ExState } from './types';
 
 interface ExerciseCardProps {
@@ -17,12 +18,6 @@ interface ExerciseCardProps {
 
 export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, onSetActive }: ExerciseCardProps) {
   const { t: tr } = useTranslation();
-  const trMuscle = (v: string) => {
-    const arr = tr('trainer.planner.muscleGroups', { returnObjects: true }) as string[];
-    if (!Array.isArray(arr) || arr.length === 0) return v;
-    const idx = arr.findIndex((g: string) => g.toLowerCase() === v.toLowerCase());
-    return idx >= 0 ? arr[idx] : v;
-  };
   const statusColor = ex.status === 'completed' ? t.primary
     : ex.status === 'skipped' ? textMute(dark)
     : ex.status === 'in_progress' ? t.primary
@@ -52,7 +47,7 @@ export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, 
           }}>{ex.name}</div>
           <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 1 }}>
             {[
-              ex.muscleGroup ? trMuscle(ex.muscleGroup) : null,
+              ex.muscleGroup ? translateMuscleGroup(ex.muscleGroup) : null,
               ex.setsPrescribed && ex.repsPrescribed ? `${ex.setsPrescribed}×${ex.repsPrescribed}` : null,
               ex.loadPrescribed ? `${ex.loadPrescribed} ${tr('common.units.kg')}` : null,
               ex.restSeconds    ? tr('common.units.restSec', { seconds: ex.restSeconds })  : null,

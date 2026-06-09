@@ -13,6 +13,7 @@ import { buildClientContext, buildTodayContext, buildLibraryContext } from '../.
 import type { TrainerContext, TaskContext } from '../../ai/types';
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
+import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
 import { notify }            from '../../lib/notify';
 
 // Primary text colour over this screen's plan/exercise list surfaces — repeated
@@ -752,7 +753,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                                 ex.load_kg     ? `${ex.load_kg} kg`        : null,
                                 ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
                               ].filter(Boolean).join(' · ')}
-                              {ex.muscle_group ? ` — ${ex.muscle_group}` : ''}
+                              {ex.muscle_group ? ` — ${translateMuscleGroup(ex.muscle_group)}` : ''}
                             </div>
                             {ex.notes && <div style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.35)' : '#9aa', marginTop: 1, fontStyle: 'italic' }}>{ex.notes}</div>}
                           </div>
@@ -881,7 +882,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                   ex.sets && ex.reps ? `${ex.sets}×${ex.reps}` : null,
                   ex.load_kg ? `${ex.load_kg} kg` : null,
                   ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
-                  ex.muscle_group,
+                  translateMuscleGroup(ex.muscle_group),
                 ].filter(Boolean).join(' · ')}
                 t={t} dark={dark}
               />
