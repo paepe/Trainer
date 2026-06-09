@@ -5,7 +5,7 @@ import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
 import { notify } from '../../lib/notify';
 import { requestWorkoutPlan } from '../../lib/workoutGeneration';
-import type { GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
+import type { GeneratedWorkoutExercise, ExistingExerciseSummary } from '../../lib/workoutGeneration';
 import {
   surfRaised,
   borderSubtle,
@@ -155,11 +155,23 @@ export function WorkoutPlanEditorScreen({
     try {
       const pp  = context?.physicalProfile;
       const ci  = context?.latestCheckin;
+
+      // Estimate time consumed by existing exercises: sets × ~3 min/set
+      const existingSummary: ExistingExerciseSummary[] = exercises.map(ex => ({
+        exercise_name: ex.exercise_name,
+        muscle_group:  ex.muscle_group,
+        sets:          ex.sets,
+        reps:          ex.reps,
+      }));
+      const usedMinutes   = exercises.reduce((acc, ex) => acc + ex.sets * 3, 0);
+      const totalMinutes  = ci?.minutes ?? pp?.session_min ?? 45;
+      const remaining     = Math.max(0, totalMinutes - usedMinutes);
+
       const generatedExercises = await requestWorkoutPlan({
         checkin: ci ? {
           energy:        ci.energy        ?? 7,
           soreness:      ci.pain_present && ci.pain_region ? [ci.pain_region] : [],
-          minutes:       ci.minutes       ?? 45,
+          minutes:       remaining > 0 ? remaining : (ci.minutes ?? 45),
           goal:          pp?.primary_goal ?? 'general',
           location:      (ci.training_location ?? 'gym') as never,
           sleep_quality: (ci.sleep_quality     ?? 'good') as never,
@@ -173,9 +185,10 @@ export function WorkoutPlanEditorScreen({
           restrictions:      pp.restrictions       ?? undefined,
         } as never : null,
         locale: 'en',
+        ...(existingSummary.length ? { existingExercises: existingSummary, remainingMinutes: remaining } : {}),
       });
 
-      setExercises(generatedExercises.map(ex => ({
+      const mapped = generatedExercises.map(ex => ({
         exercise_name: ex.exercise_name,
         muscle_group:  ex.muscle_group || '',
         sets:          ex.sets || 3,
@@ -183,7 +196,10 @@ export function WorkoutPlanEditorScreen({
         load_kg:       ex.load_kg ?? '',
         rest_seconds:  ex.rest_seconds || 60,
         notes:         ex.notes || '',
-      })));
+      }));
+
+      // Append to existing — never replace
+      setExercises(prev => prev.length ? [...prev, ...mapped] : mapped);
     } catch (err: unknown) {
       setAiError(friendlyError(err, tr));
     } finally {

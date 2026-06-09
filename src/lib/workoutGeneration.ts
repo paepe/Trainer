@@ -34,11 +34,20 @@ interface WorkoutGenerationResponse {
   exercises?: GeneratedWorkoutExercise[];
 }
 
+export interface ExistingExerciseSummary {
+  exercise_name: string;
+  muscle_group:  string;
+  sets:          number;
+  reps:          number;
+}
+
 interface RequestWorkoutPlanInput {
-  checkin?:         Partial<CheckIn> | null | undefined;
-  physicalProfile?: Json | null | undefined;
-  cycleContext?:    CycleContext | null | undefined;
-  locale?:          string;
+  checkin?:            Partial<CheckIn> | null;
+  physicalProfile?:    Json | null;
+  cycleContext?:       CycleContext | null;
+  locale?:             string;
+  existingExercises?:  ExistingExerciseSummary[];
+  remainingMinutes?:   number;
 }
 
 export function resolveWorkoutApiBase(): string {
@@ -60,6 +69,8 @@ export async function requestWorkoutPlan({
   physicalProfile,
   cycleContext,
   locale,
+  existingExercises,
+  remainingMinutes,
 }: RequestWorkoutPlanInput): Promise<GeneratedWorkoutExercise[]> {
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 20_000);
@@ -68,7 +79,14 @@ export async function requestWorkoutPlan({
     response = await fetch(`${resolveWorkoutApiBase()}/api/generate-workout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ checkin, physicalProfile, cycleContext, locale }),
+      body: JSON.stringify({
+        checkin,
+        physicalProfile,
+        cycleContext,
+        locale,
+        existing_exercises: existingExercises?.length ? existingExercises : undefined,
+        remaining_minutes:  remainingMinutes  != null  ? remainingMinutes  : undefined,
+      }),
       signal: ctrl.signal,
     });
   } catch (err) {

@@ -15,7 +15,7 @@ Language:
 - Default to English only if no language is specified.
 
 Output format:
-Return ONLY a valid JSON array of 4-6 exercises. No markdown fences, no explanation, no preamble.
+Return ONLY a valid JSON array of exercises (2-4 when complementing an existing plan, 4-6 otherwise). No markdown fences, no explanation, no preamble.
 Each object must have exactly these keys:
 {
   "exercise_name": "string",
@@ -45,11 +45,20 @@ interface PhysicalProfileBody {
   restrictions?:       string[];
 }
 
+interface ExistingExercise {
+  exercise_name: string;
+  muscle_group:  string;
+  sets:          number;
+  reps:          number;
+}
+
 interface RequestBody {
-  checkin?:         CheckInBody;
-  physicalProfile?: PhysicalProfileBody;
-  cycleContext?:    { phase: string; day: number; cycleLength: number };
-  locale?:          string;
+  checkin?:            CheckInBody;
+  physicalProfile?:    PhysicalProfileBody;
+  cycleContext?:       { phase: string; day: number; cycleLength: number };
+  locale?:             string;
+  existing_exercises?: ExistingExercise[];
+  remaining_minutes?:  number;
 }
 
 interface VercelRequest {
@@ -98,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { checkin, physicalProfile, cycleContext } = req.body || {};
+  const { checkin, physicalProfile, cycleContext, existing_exercises, remaining_minutes } = req.body || {};
   const locale = req.body?.locale ?? 'en';
 
   // Build client context
@@ -133,6 +142,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     if (checkin.equipment?.length) {
       lines.push(`Available equipment: ${checkin.equipment.join(', ')}`);
+    }
+  }
+
+  if (existing_exercises?.length) {
+    lines.push('');
+    lines.push('EXERCISES ALREADY IN PLAN (DO NOT REPEAT)');
+    const musclesUsed = [...new Set(existing_exercises.map(e => e.muscle_group).filter(Boolean))];
+    existing_exercises.forEach(e => {
+      lines.push(`- ${e.exercise_name} (${e.muscle_group}) ${e.sets}×${e.reps}`);
+    });
+    if (musclesUsed.length) {
+      lines.push(`Muscle groups already covered: ${musclesUsed.join(', ')}`);
+    }
+    lines.push(`Time already accounted for: ${existing_exercises.reduce((acc, e) => acc + e.sets * 3, 0)} min (estimated)`);
+    if (remaining_minutes != null) {
+      lines.push(`Remaining time budget: ${remaining_minutes} min`);
+      lines.push(`IMPORTANT: Generate only exercises that fit within the ${remaining_minutes}-minute remaining budget. Prioritise muscle groups NOT yet covered.`);
     }
   }
 
