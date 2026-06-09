@@ -252,7 +252,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
               pending                           ? t.primary
               : item.type === 'workout_approved' ? '#4ade80'
               : item.response === 'approved'     ? '#4ade80'
-              : isNewPlan                        ? '#4ade80'
+              : isNewPlan                        ? t.primary
               : item.type === 'workout_rejected' ? t.accent
               : item.response === 'rejected'     ? t.accent
               : expired                          ? borderSubtle(dark)
@@ -361,7 +361,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                     {isNewPlan && (
                       <button onClick={() => nav('workout')} style={{
                         width: '100%', padding: '13px 0', borderRadius: 10, border: 'none',
-                        background: '#4ade80', color: '#0E1A2B',
+                        background: t.primary, color: '#0E1A2B',
                         fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       }}>
