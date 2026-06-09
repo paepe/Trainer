@@ -246,16 +246,19 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
             const isReady = item.type === 'workout_ready';
             const pending = isTrainer && isReady && !item.response && !expired;
 
+            const isNewPlan = !isTrainer && item.type === 'plan_sent';
+
             const borderColor =
               pending                           ? t.primary
               : item.type === 'workout_approved' ? '#4ade80'
               : item.response === 'approved'     ? '#4ade80'
+              : isNewPlan                        ? '#4ade80'
               : item.type === 'workout_rejected' ? t.accent
               : item.response === 'rejected'     ? t.accent
               : expired                          ? borderSubtle(dark)
               : borderSubtle(dark);
 
-            const iconName = isReady || item.type === 'workout_approved' || item.type === 'workout_rejected'
+            const iconName = isReady || item.type === 'workout_approved' || item.type === 'workout_rejected' || isNewPlan
               ? 'sparkle' : 'bell';
             const iconColor = pending ? t.primary : expired ? textMute(dark) : borderColor;
 
@@ -351,6 +354,18 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       }}>
                         <Icon name="play" size={13} color="#0E1A2B" stroke={2.5} /> {tr('inbox.actions.startWorkout')}
+                      </button>
+                    )}
+
+                    {/* CLIENT: View plan on new plan received */}
+                    {isNewPlan && (
+                      <button onClick={() => nav('workout')} style={{
+                        width: '100%', padding: '13px 0', borderRadius: 10, border: 'none',
+                        background: '#4ade80', color: '#0E1A2B',
+                        fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      }}>
+                        <Icon name="play" size={14} color="#0E1A2B" stroke={2.5} /> {tr('inbox.actions.viewWorkoutPlan')}
                       </button>
                     )}
 

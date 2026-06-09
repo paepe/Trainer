@@ -66,7 +66,8 @@
     "actions": {
       "approve": "Genehmigen",
       "reject": "Ablehnen",
-      "startWorkout": "Training starten"
+      "startWorkout": "Training starten",
+      "viewWorkoutPlan": "Trainingsplan ansehen"
     },
     "responses": {
       "approved": "Vom Trainer genehmigt",

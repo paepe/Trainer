@@ -66,7 +66,8 @@
     "actions": {
       "approve": "Aprobar",
       "reject": "Rechazar",
-      "startWorkout": "Iniciar Entrenamiento"
+      "startWorkout": "Iniciar Entrenamiento",
+      "viewWorkoutPlan": "Ver Plan de Entrenamiento"
     },
     "responses": {
       "approved": "Aprobado por el entrenador",
