@@ -29,6 +29,7 @@ export interface InboxItem {
   peer_name?:   string;
   template_key?: string | null;
   params?:       Record<string, unknown> | null;
+  entity_id?:    string | null;
 }
 
 function isExpired(item: InboxItem): boolean {
@@ -108,7 +109,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
     supabase
       .from('notification_log')
-      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at, read_at, template_key, params')
+      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at, read_at, template_key, params, entity_id')
       .eq('to_user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
@@ -350,6 +351,22 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       }}>
                         <Icon name="play" size={14} color="#0E1A2B" stroke={2.5} /> {tr('inbox.actions.viewWorkoutPlan')}
+                      </button>
+                    )}
+
+                    {/* TRAINER: View client's post-workout feedback */}
+                    {isTrainer && item.type === 'workout_completed' && item.entity_id && (
+                      <button
+                        onClick={() => nav('workoutSummary', { sessionId: item.entity_id, durationMin: 0, completedCount: 0, total: 0, totalSets: 0 })}
+                        style={{
+                          width: '100%', padding: '11px 0', borderRadius: 10, border: 'none',
+                          background: '#4ade80', color: '#0E1A2B',
+                          fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        }}
+                      >
+                        <Icon name="sparkle" size={13} color="#0E1A2B" stroke={2.5} />
+                        {tr('inbox.actions.viewClientFeedback')}
                       </button>
                     )}
 

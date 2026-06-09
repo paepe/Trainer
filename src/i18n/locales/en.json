@@ -67,7 +67,8 @@
       "approve": "Approve",
       "reject": "Reject",
       "startWorkout": "Start Workout",
-      "viewWorkoutPlan": "View Workout Plan"
+      "viewWorkoutPlan": "View Workout Plan",
+      "viewClientFeedback": "View client's session review"
     },
     "responses": {
       "approved": "Approved by trainer",
