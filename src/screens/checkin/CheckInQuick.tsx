@@ -55,13 +55,27 @@ function SliderRow({ label, value, min, max, unit = '', onChange, dark, primary 
 
 export function CheckInQuick({ dark, primary, accent, userName, lastCheckin, onSubmit, onBack }: CheckInQuickProps) {
   const { t: tr } = useTranslation();
-  const [energy, setEnergy]             = React.useState(lastCheckin?.energy            ?? 5);
-  const [sleep, setSleep]               = React.useState((lastCheckin?.sleep_quality as SleepQualityV2 | undefined) ?? 'regular');
-  const [painOn, setPainOn]             = React.useState(false);
-  const [painRegion, setPainRegion]     = React.useState<PainRegion | undefined>(undefined);
+  const [energy, setEnergy]               = React.useState(5);
+  const [sleep, setSleep]                 = React.useState<SleepQualityV2>('regular');
+  const [painOn, setPainOn]               = React.useState(false);
+  const [painRegion, setPainRegion]       = React.useState<PainRegion | undefined>(undefined);
   const [painIntensity, setPainIntensity] = React.useState(4);
-  const [fatigue, setFatigue]           = React.useState(lastCheckin?.fatigue           ?? 3);
-  const [minutes, setMinutes]           = React.useState(lastCheckin?.available_minutes ?? 45);
+  const [fatigue, setFatigue]             = React.useState(3);
+  const [minutes, setMinutes]             = React.useState(45);
+  const [seeded, setSeeded]               = React.useState(false);
+
+  // Re-initialise once lastCheckin data arrives (async hook)
+  React.useEffect(() => {
+    if (!lastCheckin || seeded) return;
+    if (lastCheckin.energy            != null) setEnergy(lastCheckin.energy);
+    if (lastCheckin.sleep_quality)             setSleep(lastCheckin.sleep_quality as SleepQualityV2);
+    if (lastCheckin.fatigue           != null) setFatigue(lastCheckin.fatigue);
+    if (lastCheckin.available_minutes != null) setMinutes(lastCheckin.available_minutes);
+    if (lastCheckin.pain_present)              setPainOn(true);
+    if (lastCheckin.pain_region)               setPainRegion(lastCheckin.pain_region as PainRegion);
+    if (lastCheckin.pain_intensity    != null) setPainIntensity(lastCheckin.pain_intensity);
+    setSeeded(true);
+  }, [lastCheckin, seeded]);
 
   const sleepOpts: { value: SleepQualityV2; label: string }[] = [
     { value: 'poor', label: tr('checkinEnums.sleep.poor') },

@@ -141,23 +141,45 @@ export function CheckInDetailed({ dark, primary, accent, userName, lastCheckin, 
   const safetySignals = React.useMemo(() => SIGNAL_VALS.map(s => ({ value: s, label: tr(`checkinEnums.signals.${s}`) })), [tr]);
   const adaptations = React.useMemo(() => ADAPT_VALS.map(a => ({ value: a, label: tr(`checkinEnums.adaptations.${a}`) })), [tr]);
 
-  const [energy, setEnergy]                     = React.useState(lastCheckin?.energy            ?? 5);
-  const [sleep, setSleep]                       = React.useState((lastCheckin?.sleep_quality as SleepQualityV2 | undefined) ?? 'regular');
-  const [sleepHours, setSleepHours]             = React.useState(lastCheckin?.sleep_hours       ?? 7);
+  const [energy, setEnergy]                     = React.useState(5);
+  const [sleep, setSleep]                       = React.useState<SleepQualityV2>('regular');
+  const [sleepHours, setSleepHours]             = React.useState(7);
   const [painOn, setPainOn]                     = React.useState(false);
   const [painRegion, setPainRegion]             = React.useState<PainRegion | undefined>(undefined);
   const [painIntensity, setPainIntensity]       = React.useState(4);
   const [movementTrigger, setMovementTrigger]   = React.useState('');
-  const [fatigue, setFatigue]                   = React.useState(lastCheckin?.fatigue           ?? 3);
-  const [fatigueType, setFatigueType]           = React.useState((lastCheckin?.fatigue_type as FatigueType | undefined) ?? undefined);
-  const [emotion, setEmotion]                   = React.useState((lastCheckin?.emotional_state as EmotionalState | undefined) ?? undefined);
-  const [minutes, setMinutes]                   = React.useState(lastCheckin?.available_minutes ?? 45);
-  const [location, setLocation]                 = React.useState(lastCheckin?.location_today    ?? undefined);
-  const [equipment, setEquipment]               = React.useState(lastCheckin?.equipment_today   ?? []);
+  const [fatigue, setFatigue]                   = React.useState(3);
+  const [fatigueType, setFatigueType]           = React.useState<FatigueType | undefined>(undefined);
+  const [emotion, setEmotion]                   = React.useState<EmotionalState | undefined>(undefined);
+  const [minutes, setMinutes]                   = React.useState(45);
+  const [location, setLocation]                 = React.useState<string | undefined>(undefined);
+  const [equipment, setEquipment]               = React.useState<string[]>([]);
   const [floorOk, setFloorOk]                   = React.useState(true);
   const [signals, setSignals]                   = React.useState<SafetySignal[]>([]);
-  const [bodyRhythm, setBodyRhythm]             = React.useState(lastCheckin?.body_rhythm_active ?? false);
-  const [adaptation, setAdaptation]             = React.useState((lastCheckin?.adaptation_preference as AdaptationPreference | undefined) ?? undefined);
+  const [bodyRhythm, setBodyRhythm]             = React.useState(false);
+  const [adaptation, setAdaptation]             = React.useState<AdaptationPreference | undefined>(undefined);
+  const [seeded, setSeeded]                     = React.useState(false);
+
+  // Re-initialise once lastCheckin data arrives (async hook)
+  React.useEffect(() => {
+    if (!lastCheckin || seeded) return;
+    if (lastCheckin.energy            != null) setEnergy(lastCheckin.energy);
+    if (lastCheckin.sleep_quality)             setSleep(lastCheckin.sleep_quality as SleepQualityV2);
+    if (lastCheckin.sleep_hours       != null) setSleepHours(lastCheckin.sleep_hours);
+    if (lastCheckin.fatigue           != null) setFatigue(lastCheckin.fatigue);
+    if (lastCheckin.fatigue_type)              setFatigueType(lastCheckin.fatigue_type as FatigueType);
+    if (lastCheckin.emotional_state)           setEmotion(lastCheckin.emotional_state as EmotionalState);
+    if (lastCheckin.available_minutes != null) setMinutes(lastCheckin.available_minutes);
+    if (lastCheckin.location_today)            setLocation(lastCheckin.location_today);
+    if (lastCheckin.equipment_today?.length)   setEquipment(lastCheckin.equipment_today);
+    if (lastCheckin.body_rhythm_active != null) setBodyRhythm(lastCheckin.body_rhythm_active);
+    if (lastCheckin.adaptation_preference)     setAdaptation(lastCheckin.adaptation_preference as AdaptationPreference);
+    if (lastCheckin.pain_present)              setPainOn(true);
+    if (lastCheckin.pain_region)               setPainRegion(lastCheckin.pain_region as PainRegion);
+    if (lastCheckin.pain_intensity     != null) setPainIntensity(lastCheckin.pain_intensity);
+    if (lastCheckin.safety_signals?.length)    setSignals(lastCheckin.safety_signals as SafetySignal[]);
+    setSeeded(true);
+  }, [lastCheckin, seeded]);
 
   const toggleEquip = (val: string) => {
     if (val === 'none') { setEquipment(['none']); return; }
