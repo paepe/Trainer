@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '../../i18n';
 import { TextInput, Spinner } from '@/ui';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
@@ -107,7 +106,9 @@ export function WorkoutPlanEditorScreen({
   const [aiLoading, setAiLoading]       = React.useState(false);
   const [aiError, setAiError]           = React.useState('');
 
-  const MUSCLE_GROUPS = tr('trainer.planner.muscleGroups', { returnObjects: true }) as string[];
+  // EN values are the canonical DB keys; labels are localised for display only
+  const MUSCLE_GROUPS_EN     = ['Chest','Back','Shoulders','Arms','Core','Legs','Full body','Cardio'] as const;
+  const MUSCLE_GROUPS_LABELS = tr('trainer.planner.muscleGroups', { returnObjects: true }) as string[];
 
   const searchCatalog = (query: string) => {
     if (catalogSearchRef.current) clearTimeout(catalogSearchRef.current);
@@ -171,7 +172,7 @@ export function WorkoutPlanEditorScreen({
           equipment:         pp.equipment          ?? undefined,
           restrictions:      pp.restrictions       ?? undefined,
         } as never : null,
-        locale: i18n.language,
+        locale: 'en',
       });
 
       setExercises(generatedExercises.map(ex => ({
@@ -555,15 +556,16 @@ export function WorkoutPlanEditorScreen({
               )}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {MUSCLE_GROUPS.map(mg => {
-                const on = draft.muscle_group === mg;
+              {MUSCLE_GROUPS_EN.map((mgEn, idx) => {
+                const on    = draft.muscle_group === mgEn;
+                const label = MUSCLE_GROUPS_LABELS[idx] ?? mgEn;
                 return (
-                  <button key={mg} onClick={() => setDraft({ ...draft, muscle_group: on ? '' : mg })} style={{
+                  <button key={mgEn} onClick={() => setDraft({ ...draft, muscle_group: on ? '' : mgEn })} style={{
                     padding: '5px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                     background: on ? t.accent : DARK.surface,
                     color: on ? '#fff' : textSec(dark),
                     border: 'none', fontFamily: 'inherit', cursor: 'pointer',
-                  }}>{mg}</button>
+                  }}>{label}</button>
                 );
               })}
             </div>
