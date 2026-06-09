@@ -62,7 +62,7 @@ export async function autoExpirePlans(
         'Plans expired',
         `${count} pending plan(s) for a client were auto-cancelled after ${expiryDays} days.`,
         undefined,
-        { type: 'plan_expired', templateKey: 'plans_expired', params: { count, expiryDays }, entityType: 'workout_plan' }
+        { type: 'plan_expired', templateKey: 'plans_expired', params: { count, expiryDays }, entityType: 'workout_plan', fromUserId: clientId }
       );
     }
   }
