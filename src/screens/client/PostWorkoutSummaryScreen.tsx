@@ -26,6 +26,7 @@ interface PostWorkoutSummaryScreenProps {
   startedAt?:              string;
   forClientName?:          string;
   forClientId?:            string;
+  returnTo?:               string;
   savePostWorkoutFeedback: (data: { session_id: string; overall_feeling: number; energy_after: number | null; notes: string | null; forUserId?: string }) => Promise<{ error: unknown }>;
 }
 
@@ -35,7 +36,7 @@ export function PostWorkoutSummaryScreen({
   nav, t, dark, sessionId,
   durationMin: durationMinProp, completedCount: completedCountProp,
   total: totalProp, totalSets: totalSetsProp,
-  startedAt: startedAtProp, forClientName, forClientId,
+  startedAt: startedAtProp, forClientName, forClientId, returnTo,
   savePostWorkoutFeedback,
 }: PostWorkoutSummaryScreenProps) {
   const { t: tr } = useTranslation();
@@ -123,9 +124,10 @@ export function PostWorkoutSummaryScreen({
     }
     setSubmitted(true);
     setSaving(false);
-    // Immediate post-workout → celebrate on GoalAchievedScreen
-    // History review path → back to History (no celebration for past sessions)
-    if (isTrainerSession) {
+    // returnTo overrides all other routing (e.g. called from inbox)
+    if (returnTo) {
+      nav(returnTo);
+    } else if (isTrainerSession) {
       nav('trainerDashboard');
     } else if (totalProp > 0) {
       nav('goal', { durationMinutes: durationMin, completedCount, total });

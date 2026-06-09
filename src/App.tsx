@@ -605,6 +605,7 @@ export default function App() {
           startedAt={(screenPayload?.startedAt as string) ?? undefined}
           forClientName={(screenPayload?.forClientName as string) ?? undefined}
           forClientId={(screenPayload?.forClientId as string) ?? undefined}
+          returnTo={(screenPayload?.returnTo as string) ?? undefined}
           savePostWorkoutFeedback={savePostWorkoutFeedback}
         />;
       case 'goal':               return <GoalAchievedScreen      {...common} sessionData={screenPayload}/>;
