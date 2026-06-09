@@ -1,4 +1,5 @@
 // Fire-and-forget push notification + DB persistence.
+// notifyLinkedTrainer: looks up active trainer for a client, then calls notify().
 // The /api/send-notification endpoint handles BOTH:
 //   1. INSERT into notification_log (service role key — no RLS risk)
 //   2. FCM push to all device tokens for userId
@@ -50,4 +51,24 @@ export function notify(
   })
     .then(r => r.json())
     .catch(err => console.error('[notify] failed:', err));
+}
+
+// Resolves the active trainer for clientId, then notifies them.
+// No-op if the client has no active trainer.
+export async function notifyLinkedTrainer(
+  clientId: string,
+  title:    string,
+  body:     string,
+  opts:     Omit<NotifyOptions, 'fromUserId'> = {},
+): Promise<void> {
+  const { supabase } = await import('../supabase');
+  const { data: tc } = await supabase
+    .from('trainer_clients')
+    .select('trainer_id')
+    .eq('client_id', clientId)
+    .eq('status', 'active')
+    .maybeSingle();
+  if (tc?.trainer_id) {
+    notify(tc.trainer_id, title, body, undefined, { ...opts, fromUserId: clientId });
+  }
 }

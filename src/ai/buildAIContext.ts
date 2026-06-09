@@ -220,6 +220,38 @@ export function buildLibraryContext(input: LibraryInput): LibraryContext {
   };
 }
 
+// ─── Default AI trainer (no Coach DNA linked) ────────────────────────────────
+
+export const DEFAULT_AI_TRAINER: TrainerContext = {
+  id: 'ai-coach', name: 'AI Coach', archetype: 'performance',
+  coachingStyles: ['functional', 'science_based'], coreValues: ['safety', 'progression'],
+  coachVoice: 'Encouraging and evidence-based', motto: 'Train smart, progress safely',
+  methods: ['compound_movements', 'periodization'], environments: ['gym', 'home', 'outdoor'],
+  intensity: 'moderate', focus: { strength:5, endurance:5, mobility:5, athletic:4, coord:3, balance:3 },
+  preferredFormats: ['circuit', 'straight_sets'], intensityCurve: 'pyramid',
+  sessionOrder: ['warmup', 'main', 'cooldown'], communicationTone: ['encouraging', 'clear'],
+  clientProfiles: ['general_population'], favoriteExercises: [], avoidExercises: [],
+};
+
+// Resolves TrainerContext: Coach DNA row when available, otherwise DEFAULT_AI_TRAINER
+// with optional client preference overrides (intensity + focus sliders).
+export function resolveTrainerContext(
+  coachDNARow: CoachDNARow | null,
+  prefs?: { preferredIntensity?: TrainerContext['intensity']; aiFocusStrength?: number; aiFocusEndurance?: number; aiFocusMobility?: number },
+): TrainerContext {
+  if (coachDNARow) return buildTrainerContext(coachDNARow);
+  return {
+    ...DEFAULT_AI_TRAINER,
+    intensity: prefs?.preferredIntensity ?? DEFAULT_AI_TRAINER.intensity,
+    focus: {
+      ...DEFAULT_AI_TRAINER.focus,
+      strength:  prefs?.aiFocusStrength  ?? DEFAULT_AI_TRAINER.focus.strength,
+      endurance: prefs?.aiFocusEndurance ?? DEFAULT_AI_TRAINER.focus.endurance,
+      mobility:  prefs?.aiFocusMobility  ?? DEFAULT_AI_TRAINER.focus.mobility,
+    },
+  };
+}
+
 // ─── Full context assembler ───────────────────────────────────────────────────
 
 export function buildAIContext(

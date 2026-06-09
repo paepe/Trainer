@@ -9,12 +9,12 @@ import type { NavFn, CheckIn } from '../../types';
 import type { Json } from '../../types/supabase';
 import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGeneration';
 import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
-import { buildClientContext, buildTodayContext, buildLibraryContext } from '../../ai/buildAIContext';
+import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext } from '../../ai/buildAIContext';
 import type { TrainerContext, TaskContext } from '../../ai/types';
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
-import { notify }            from '../../lib/notify';
+import { notifyLinkedTrainer } from '../../lib/notify';
 
 // Primary text colour over this screen's plan/exercise list surfaces — repeated
 // identically (white in dark mode, navy `#0E1A2B` in light) across the plan
@@ -25,16 +25,6 @@ import { notify }            from '../../lib/notify';
 const inkPri = (dark: boolean): string => (dark ? '#fff' : '#0E1A2B');
 
 // Default AI trainer used when client has no linked trainer
-const DEFAULT_AI_TRAINER: TrainerContext = {
-  id: 'ai-coach', name: 'AI Coach', archetype: 'performance',
-  coachingStyles: ['functional', 'science_based'], coreValues: ['safety', 'progression'],
-  coachVoice: 'Encouraging and evidence-based', motto: 'Train smart, progress safely',
-  methods: ['compound_movements', 'periodization'], environments: ['gym', 'home', 'outdoor'],
-  intensity: 'moderate', focus: { strength:5, endurance:5, mobility:5, athletic:4, coord:3, balance:3 },
-  preferredFormats: ['circuit', 'straight_sets'], intensityCurve: 'pyramid',
-  sessionOrder: ['warmup', 'main', 'cooldown'], communicationTone: ['encouraging', 'clear'],
-  clientProfiles: ['general_population'], favoriteExercises: [], avoidExercises: [],
-};
 
 interface Theme {
   primary:     string;
@@ -427,23 +417,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70 },
         };
 
-        // 5. TrainerContext — Coach DNA if available, else AI default with the
-        //    client's Settings applied (preferredIntensity + AI focus sliders)
-        let trainerCtx: TrainerContext = {
-          ...DEFAULT_AI_TRAINER,
-          intensity: prefs?.preferredIntensity ?? DEFAULT_AI_TRAINER.intensity,
-          focus: {
-            ...DEFAULT_AI_TRAINER.focus,
-            strength:  prefs?.aiFocusStrength  ?? DEFAULT_AI_TRAINER.focus.strength,
-            endurance: prefs?.aiFocusEndurance ?? DEFAULT_AI_TRAINER.focus.endurance,
-            mobility:  prefs?.aiFocusMobility  ?? DEFAULT_AI_TRAINER.focus.mobility,
-          },
-        };
-        const coachDNA = trainerRes.status === 'fulfilled' ? (trainerRes.value as any).data : null;
-        if (coachDNA) {
-          const { buildTrainerContext } = await import('../../ai/buildAIContext');
-          trainerCtx = buildTrainerContext(coachDNA);
-        }
+        // 5. TrainerContext — Coach DNA if linked, else DEFAULT_AI_TRAINER + client prefs
+        const coachDNA    = trainerRes.status === 'fulfilled' ? (trainerRes.value as any).data : null;
+        const trainerCtx  = resolveTrainerContext(coachDNA, prefs);
 
         // 6. LibraryContext — profile-declared equipment is the baseline
         //    (stable "what I have"), today's check-in equipment is the
@@ -562,18 +538,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     const dedupeKey = `${p.id}:${kind}`;
     if (notifiedPlanActionsRef.current.has(dedupeKey)) return;
     notifiedPlanActionsRef.current.add(dedupeKey);
-    void supabase.from('trainer_clients').select('trainer_id').eq('client_id', user.id).eq('status', 'active').maybeSingle()
-      .then(({ data: tc }) => {
-        if (!tc?.trainer_id) return;
-        const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : tr('client.workout.notificationUnknownDate');
-        const title = kind === 'cancelled' ? tr('client.workout.notificationPlanCancelled') : tr('client.workout.notificationPlanPostponed');
-        const body  = tr(`client.workout.notificationBody${kind === 'cancelled' ? 'Cancelled' : 'Postponed'}`, {
-          name: user.name || tr('client.workout.notificationYourClient'),
-          planDate: planDate.toString(),
-        });
-        const template = kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed';
-        notify(tc.trainer_id, title, body, undefined, { type: kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed', templateKey: template, params: { name: user.name || tr('client.workout.notificationYourClient'), planDate: planDate.toString() }, entityType: 'workout_plan', entityId: p.id, ...(user.id ? { fromUserId: user.id } : {}) });
-      });
+    const planDate = p.sentAt ? new Date(p.sentAt).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : tr('client.workout.notificationUnknownDate');
+    const title    = kind === 'cancelled' ? tr('client.workout.notificationPlanCancelled') : tr('client.workout.notificationPlanPostponed');
+    const body     = tr(`client.workout.notificationBody${kind === 'cancelled' ? 'Cancelled' : 'Postponed'}`, { name: user.name || tr('client.workout.notificationYourClient'), planDate: planDate.toString() });
+    const template = kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed';
+    void notifyLinkedTrainer(user.id, title, body, { type: kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed', templateKey: template, params: { name: user.name || tr('client.workout.notificationYourClient'), planDate: planDate.toString() }, entityType: 'workout_plan', entityId: p.id });
   };
 
   const startPlan = (p: PlanCard) => {

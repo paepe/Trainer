@@ -7,7 +7,7 @@
 //   Client opens StartWorkoutScreen or HistoryScreen → expires their own plans
 //     → notifies TRAINER (client-side trigger)
 import { supabase } from '../supabase';
-import { notify }   from './notify';
+import { notify, notifyLinkedTrainer } from './notify';
 
 const DEFAULT_EXPIRE_DAYS = 10;
 
@@ -49,23 +49,10 @@ export async function autoExpirePlans(
     }
   } else {
     // Client opened Workout/History → one notification per expired plan to TRAINER
-    const { data: tc } = await supabase
-      .from('trainer_clients')
-      .select('trainer_id')
-      .eq('client_id', clientId)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (tc?.trainer_id) {
-      for (const planId of ids) {
-        void notify(
-          tc.trainer_id,
-          'Plan expired',
-          `A pending plan was auto-cancelled after ${expiryDays} days.`,
-          undefined,
-          { type: 'plan_expired', templateKey: 'plans_expired', params: { count: 1, expiryDays }, entityType: 'workout_plan', entityId: planId, fromUserId: clientId }
-        );
-      }
+    for (const planId of ids) {
+      void notifyLinkedTrainer(clientId, 'Plan expired', `A pending plan was auto-cancelled after ${expiryDays} days.`,
+        { type: 'plan_expired', templateKey: 'plans_expired', params: { count: 1, expiryDays }, entityType: 'workout_plan', entityId: planId }
+      );
     }
   }
 

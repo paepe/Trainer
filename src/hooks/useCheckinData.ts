@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import { emitEvent } from '../lib/events';
-import { notify } from '../lib/notify';
+import { notifyLinkedTrainer } from '../lib/notify';
 import type { CheckInVariant, CheckInQuick, CheckInDetailed, CheckInVoice, SafetyGateResult } from '../types/checkin-v2';
 import type { Json } from '../types/supabase';
 
@@ -54,10 +54,7 @@ export function useCheckinData(userId: string | undefined, alertsEnabled = true)
           ? 'A client check-in requires human review.'
           : `Client scored ${score}/100. Review recommended.`;
         const template = blocked ? 'safety_gate_blocked' : 'low_readiness';
-        void supabase.from('trainer_clients').select('trainer_id').eq('client_id', effectiveUserId).eq('status', 'active').maybeSingle()
-          .then(({ data: tc }) => {
-            if (tc?.trainer_id) void notify(tc.trainer_id, title, body, '/dashboard', { type: 'checkin_alert', templateKey: template, params: { score }, fromUserId: effectiveUserId });
-          });
+        void notifyLinkedTrainer(effectiveUserId, title, body, { type: 'checkin_alert', templateKey: template, params: { score } });
       }
     }
 

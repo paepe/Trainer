@@ -7,6 +7,14 @@ import { computeSafetyGate } from './safetyGate';
 import { useLatestCheckin } from '../../hooks/useLatestCheckin';
 import { supabase } from '../../supabase';
 import { notify }   from '../../lib/notify';
+
+// Derived mode — keeps branching logic in one place
+type CheckInMode = 'trainer-context' | 'client-with-trainer' | 'standalone';
+function resolveMode(clientUserId?: string, linkedTrainerId?: string): CheckInMode {
+  if (clientUserId)               return 'trainer-context';
+  if (linkedTrainerId)            return 'client-with-trainer';
+  return 'standalone';
+}
 import { CheckInHub }        from './CheckInHub';
 import { CheckInVoice as VoiceScreen }   from './CheckInVoice';
 import { CheckInQuick as QuickScreen }   from './CheckInQuick';
@@ -42,6 +50,7 @@ interface CheckInProntidaoScreenProps {
 
 export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, linkedTrainerId = '', workoutReadyExpiryMin = 30, saveCheckinV2 }: CheckInProntidaoScreenProps) {
   const { t: tr } = useTranslation();
+  const mode = resolveMode(clientUserId, linkedTrainerId);
   const last = useLatestCheckin(clientUserId ?? user?.id);
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
@@ -148,30 +157,24 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           dark={dark} primary={primary} accent={accent}
           result={result}
           {...(risk ? { risk } : {})}
-          isTrainerContext={!!clientUserId}
+          isTrainerContext={mode === 'trainer-context'}
           linkedTrainerId={linkedTrainerId}
-          onDone={() => nav(clientUserId ? 'workoutPlanEditor' : linkedTrainerId ? 'checkin' : 'workout')}
+          onDone={() => nav(
+            mode === 'trainer-context'      ? 'workoutPlanEditor' :
+            mode === 'client-with-trainer'  ? 'checkin' :
+            'workout'
+          )}
           onAlert={() => {
-            if (clientUserId) {
-              // Trainer context — go back to dashboard
+            if (mode === 'trainer-context') {
               nav('trainerDashboard');
-            } else if (linkedTrainerId) {
-              // Client notifies trainer they're ready (Model A — 30-min window)
+            } else if (mode === 'client-with-trainer') {
               const score = result?.readiness_score ?? '?';
               const name  = userName || tr('inbox.notification.yourClient');
-              notify(
-                linkedTrainerId,
-                tr('checkin.result.readyPushTitle', { name }),
-                tr('checkin.result.readyPushBody', { score }),
-                undefined,
-                {
-                  type: 'workout_ready',
-                  templateKey: 'ready_to_train',
-                  params: { name, score },
-                  expiresInMin: workoutReadyExpiryMin,
-                  ...(user?.id ? { fromUserId: user.id } : {}),
-                }
-              );
+              notify(linkedTrainerId, tr('checkin.result.readyPushTitle', { name }), tr('checkin.result.readyPushBody', { score }), undefined, {
+                type: 'workout_ready', templateKey: 'ready_to_train',
+                params: { name, score }, expiresInMin: workoutReadyExpiryMin,
+                ...(user?.id ? { fromUserId: user.id } : {}),
+              });
               nav('checkin');
             }
           }}

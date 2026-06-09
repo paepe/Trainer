@@ -7,6 +7,7 @@ import { useProfileData }  from './hooks/useProfileData';
 import { useCheckinData }  from './hooks/useCheckinData';
 import { useWorkoutData }  from './hooks/useWorkoutData';
 import { usePushNotifications } from './hooks/usePushNotifications';
+import { useTrainerLink } from './hooks/useTrainerLink';
 import { WelcomeScreen, LoginScreen, RegisterScreen, ResetPasswordScreen } from './screens/auth';
 import { AppLayout } from './layouts';
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
@@ -162,8 +163,9 @@ export default function App() {
   const [screen, setScreen] = React.useState('welcome');
   const [prefSaveError, setPrefSaveError] = React.useState<string | null>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
-  // Null = not yet resolved; empty string = client has no active trainer
-  const [linkedTrainerId, setLinkedTrainerId] = React.useState<string | null>(null);
+  const { trainerId: linkedTrainerIdResolved } = useTrainerLink(!isTrainer ? (profile?.id ?? null) : null);
+  // Preserve legacy string shape: null while loading → empty string when no trainer
+  const linkedTrainerId = isTrainer ? null : (linkedTrainerIdResolved ?? '');
   const [pendingAlerts, setPendingAlerts] = React.useState(0);
   const [pendingInbox,  setPendingInbox]  = React.useState(0);
   const [selectedClient, setSelectedClient] = React.useState<ClientProfile | null>(null);
@@ -269,17 +271,7 @@ export default function App() {
     }
   }, [session, loading, screen]);
 
-  // Resolve trainer link for client accounts (drives check-in CTA logic)
-  React.useEffect(() => {
-    if (!profile?.id || isTrainer) { setLinkedTrainerId(''); return; }
-    supabase
-      .from('trainer_clients')
-      .select('trainer_id')
-      .eq('client_id', profile.id)
-      .eq('status', 'active')
-      .maybeSingle()
-      .then(({ data }) => setLinkedTrainerId((data as { trainer_id: string } | null)?.trainer_id ?? ''));
-  }, [profile?.id, isTrainer]);
+  // trainer link resolved via useTrainerLink hook above
 
   // Trainer: subscribe to pending alert count via Realtime
   React.useEffect(() => {
