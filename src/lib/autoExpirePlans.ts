@@ -36,19 +36,19 @@ export async function autoExpirePlans(
     .update({ status: 'cancelled' })
     .in('id', ids);
 
-  const count = ids.length;
-
   if (trigger === 'trainer') {
-    // Trainer opened client view → notify CLIENT that stale plans were cleared
-    void notify(
-      clientId,
-      'Plans auto-cancelled',
-      `${count} plan(s) older than ${expiryDays} days were automatically cancelled.`,
-      undefined,
-      { type: 'plan_expired', templateKey: 'plans_expired', params: { count, expiryDays }, entityType: 'workout_plan' }
-    );
+    // Trainer opened client view → one notification per expired plan to CLIENT
+    for (const planId of ids) {
+      void notify(
+        clientId,
+        'Plan auto-cancelled',
+        `A plan older than ${expiryDays} days was automatically cancelled.`,
+        undefined,
+        { type: 'plan_expired', templateKey: 'plans_expired', params: { count: 1, expiryDays }, entityType: 'workout_plan', entityId: planId }
+      );
+    }
   } else {
-    // Client opened Workout/History → notify TRAINER
+    // Client opened Workout/History → one notification per expired plan to TRAINER
     const { data: tc } = await supabase
       .from('trainer_clients')
       .select('trainer_id')
@@ -57,15 +57,17 @@ export async function autoExpirePlans(
       .maybeSingle();
 
     if (tc?.trainer_id) {
-      void notify(
-        tc.trainer_id,
-        'Plans expired',
-        `${count} pending plan(s) for a client were auto-cancelled after ${expiryDays} days.`,
-        undefined,
-        { type: 'plan_expired', templateKey: 'plans_expired', params: { count, expiryDays }, entityType: 'workout_plan', fromUserId: clientId }
-      );
+      for (const planId of ids) {
+        void notify(
+          tc.trainer_id,
+          'Plan expired',
+          `A pending plan was auto-cancelled after ${expiryDays} days.`,
+          undefined,
+          { type: 'plan_expired', templateKey: 'plans_expired', params: { count: 1, expiryDays }, entityType: 'workout_plan', entityId: planId, fromUserId: clientId }
+        );
+      }
     }
   }
 
-  return count;
+  return ids.length;
 }
