@@ -252,41 +252,48 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
             return (
               <div key={item.id} style={{
-                borderRadius: 16, overflow: 'hidden',
-                background: surfRaised(dark), border: `1.5px solid ${accentColor}`,
+                borderRadius: 14, overflow: 'hidden',
+                background: surfRaised(dark),
+                border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)'}`,
+                display: 'flex',
               }}>
+                {/* Colour accent stripe */}
+                <div style={{ width: 4, flexShrink: 0, background: accentColor, borderRadius: '14px 0 0 14px' }} />
+
+                <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Card header */}
                 <button
                   onClick={() => setExpanded(open ? null : item.id)}
                   style={{
-                    width: '100%', padding: '12px 16px',
-                    display: 'flex', alignItems: 'center', gap: 12,
+                    width: '100%', padding: '12px 14px 12px 12px',
+                    display: 'flex', alignItems: 'center', gap: 11,
                     background: 'transparent', border: 'none',
                     cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                   }}
                 >
-                  <SenderAvatar name={item.peer_name} color={accentColor} />
+                  <SenderAvatar name={item.peer_name} color={accentColor} dark={dark} />
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark), marginBottom: 3 }}>
+                    {item.peer_name && (
+                      <div style={{ fontSize: 10, fontWeight: 700, color: accentColor, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 2 }}>
+                        {item.peer_name}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), marginBottom: 2 }}>
                       {renderTitle(item)}
                     </div>
                     <div style={{ fontSize: 11, color: textMute(dark) }}>
-                      {item.peer_name
-                        ? <span style={{ color: accentColor, fontWeight: 700 }}>{item.peer_name}</span>
-                        : <span style={{ color: textMute(dark) }}>—</span>
-                      }
-                      <span style={{ marginLeft: 4 }}>· {fmtDate(item.created_at, i18n.language)}</span>
+                      {fmtDate(item.created_at, i18n.language)}
                     </div>
                   </div>
 
                   <StatusBadge item={item} expired={expired} isTrainer={isTrainer} t={t} dark={dark} />
-                  <span style={{ fontSize: 10, color: textMute(dark), flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
+                  <span style={{ fontSize: 10, color: textMute(dark), flexShrink: 0, marginLeft: 4 }}>{open ? '▲' : '▼'}</span>
                 </button>
 
                 {/* Expanded body */}
                 {open && (
-                  <div style={{ padding: '0 16px 14px', background: 'var(--sunken)' }}>
+                  <div style={{ padding: '0 14px 14px 12px', borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` }}>
                     <p style={{ margin: '0 0 14px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6 }}>
                       {renderBody(item)}
                     </p>
@@ -383,6 +390,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                     )}
                   </div>
                 )}
+                </div>{/* flex:1 inner wrapper */}
               </div>
             );
           })}
@@ -398,21 +406,24 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
   item: InboxItem; expired: boolean; isTrainer: boolean; t: any; dark: boolean;
 }) {
   const { t: tr } = useTranslation();
-  const badge = (label: string, color: string) => (
+  const badge = (label: string, color: string, muted = false) => (
     <span style={{
-      fontSize: 10, fontWeight: 700, borderRadius: 999, padding: '4px 10px', flexShrink: 0,
-      color, background: `${color}22`, border: `1px solid ${color}44`, letterSpacing: '0.02em',
+      fontSize: 10, fontWeight: 600, borderRadius: 999, padding: '3px 9px', flexShrink: 0,
+      color: muted ? textMute(dark) : color,
+      background: 'transparent',
+      border: `1px solid ${muted ? textMute(dark) + '44' : color + '55'}`,
+      letterSpacing: '0.03em',
     }}>{label}</span>
   );
 
   if (item.response === 'approved' || item.type === 'workout_approved') return badge(tr('inbox.badges.approved'), '#4ade80');
   if (item.response === 'rejected' || item.type === 'workout_rejected') return badge(tr('inbox.badges.rejected'), t.accent);
-  if (expired && item.type === 'workout_ready') return badge(tr('inbox.badges.expired'), textMute(dark));
+  if (expired && item.type === 'workout_ready') return badge(tr('inbox.badges.expired'), textMute(dark), true);
   if (item.type === 'workout_ready' && isTrainer)                        return badge(tr('inbox.badges.pending'), t.primary);
   if (item.type === 'plan_sent')                                          return badge(tr('inbox.badges.newPlan'), t.primary);
   if (item.type === 'plan_cancelled')                                     return badge(tr('inbox.badges.cancelled'), t.accent);
   if (item.type === 'plan_postponed')                                     return badge(tr('inbox.badges.postponed'), '#F5B45A');
-  if (item.type === 'plan_expired')                                       return badge(tr('inbox.badges.expired'), textMute(dark));
+  if (item.type === 'plan_expired')                                       return badge(tr('inbox.badges.expired'), textMute(dark), true);
   if (item.type === 'checkin_alert' || item.type === 'safety_gate')      return badge(tr('inbox.badges.alert'), '#F5A623');
   if (item.type === 'low_readiness')                                      return badge(tr('inbox.badges.alert'), '#F5A623');
   if (item.type === 'high_pain')                                          return badge(tr('inbox.badges.alert'), '#F5A623');
@@ -440,18 +451,18 @@ function getBadgeColor(item: InboxItem, expired: boolean, isTrainer: boolean, t:
 
 // ── Sender avatar with initials ────────────────────────────────────────────────
 
-function SenderAvatar({ name, color }: { name?: string | undefined; color: string }) {
+function SenderAvatar({ name, color, dark }: { name?: string | undefined; color: string; dark: boolean }) {
   const initials = name
     ? name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
     : null;
   return (
     <div style={{
-      width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-      background: `${color}22`,
+      width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+      background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 13, fontWeight: 800, color, letterSpacing: '0.03em',
+      fontSize: 12, fontWeight: 800, color, letterSpacing: '0.03em',
     }}>
-      {initials ?? <Icon name="sparkle" size={16} color={color} stroke={2.2} />}
+      {initials ?? <Icon name="sparkle" size={15} color={color} stroke={2.2} />}
     </div>
   );
 }
