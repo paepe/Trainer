@@ -19,7 +19,7 @@ import {
   outlineBtn,
 } from '../../theme';
 import type { NavFn } from '../../types';
-import type { ExerciseCatalogItem } from '../../types/workout';
+import type { ProtocolExerciseItem } from '../../types/workout';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
@@ -96,7 +96,7 @@ export function WorkoutPlanEditorScreen({
     rest_seconds:  60,
     notes:         '',
   });
-  const [catalogSuggestions, setCatalogSuggestions] = React.useState<ExerciseCatalogItem[]>([]);
+  const [catalogSuggestions, setCatalogSuggestions] = React.useState<ProtocolExerciseItem[]>([]);
   const [catalogLoading,     setCatalogLoading]     = React.useState(false);
   const catalogSearchRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -114,22 +114,34 @@ export function WorkoutPlanEditorScreen({
     catalogSearchRef.current = setTimeout(async () => {
       setCatalogLoading(true);
       const { data } = await supabase
-        .from('exercises')
-        .select('id,name,muscle_group,equipment,level,short_instruction,status')
-        .ilike('name', `%${query.trim()}%`)
-        .eq('status', 'active')
-        .order('name', { ascending: true })
-        .limit(6);
-      setCatalogSuggestions((data as ExerciseCatalogItem[] | null) ?? []);
+        .from('protocol_exercises')
+        .select('id,protocol_id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,alternative_exercise,order_index')
+        .ilike('exercise_name', `%${query.trim()}%`)
+        .order('exercise_name', { ascending: true })
+        .limit(30);
+      // Deduplicate by exercise_name — keep first occurrence (best prescriptive defaults)
+      const seen = new Set<string>();
+      const deduped = ((data as ProtocolExerciseItem[] | null) ?? []).filter(row => {
+        const key = row.exercise_name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, 6);
+      setCatalogSuggestions(deduped);
       setCatalogLoading(false);
     }, 280);
   };
 
-  const applyFromCatalog = (item: ExerciseCatalogItem) => {
+  const applyFromCatalog = (item: ProtocolExerciseItem) => {
     setDraft(prev => ({
       ...prev,
-      exercise_name: item.name,
-      muscle_group:  item.muscle_group ?? '',
+      exercise_name: item.exercise_name,
+      muscle_group:  item.muscle_group ?? prev.muscle_group,
+      sets:          item.sets         ?? prev.sets,
+      reps:          item.reps         ?? prev.reps,
+      load_kg:       item.load_kg != null ? item.load_kg : prev.load_kg,
+      rest_seconds:  item.rest_seconds ?? prev.rest_seconds,
+      notes:         item.notes        ?? prev.notes ?? '',
     }));
     setCatalogSuggestions([]);
     setNameError(false);
@@ -473,36 +485,43 @@ export function WorkoutPlanEditorScreen({
                       <Spinner size={12} color={textMute(dark)}/> {tr('trainer.planner.catalogSearching')}
                     </div>
                   )}
-                  {!catalogLoading && catalogSuggestions.map(item => (
-                    <button
-                      key={item.id}
-                      onMouseDown={e => { e.preventDefault(); applyFromCatalog(item); }}
-                      style={{
-                        width: '100%', textAlign: 'left', padding: '10px 14px',
-                        background: 'transparent', border: 'none',
-                        borderBottom: `1px solid ${borderSubtle(dark)}`,
-                        cursor: 'pointer', fontFamily: 'inherit',
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{item.name}</div>
-                        {item.short_instruction && (
-                          <div style={{ fontSize: 11, color: textMute(dark), marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>
-                            {item.short_instruction}
-                          </div>
+                  {!catalogLoading && catalogSuggestions.map(item => {
+                    const prescription = [
+                      item.sets && item.reps ? `${item.sets}×${item.reps}` : null,
+                      item.load_kg != null   ? `${item.load_kg}kg`         : null,
+                      item.rest_seconds      ? `${item.rest_seconds}s`     : null,
+                    ].filter(Boolean).join(' · ');
+                    return (
+                      <button
+                        key={item.id}
+                        onMouseDown={e => { e.preventDefault(); applyFromCatalog(item); }}
+                        style={{
+                          width: '100%', textAlign: 'left', padding: '10px 14px',
+                          background: 'transparent', border: 'none',
+                          borderBottom: `1px solid ${borderSubtle(dark)}`,
+                          cursor: 'pointer', fontFamily: 'inherit',
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{item.exercise_name}</div>
+                          {prescription && (
+                            <div style={{ fontSize: 11, color: textMute(dark), marginTop: 1 }}>
+                              {prescription}
+                            </div>
+                          )}
+                        </div>
+                        {item.muscle_group && (
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
+                            background: `${t.accent}22`, color: t.accent, flexShrink: 0,
+                          }}>
+                            {item.muscle_group}
+                          </span>
                         )}
-                      </div>
-                      {item.muscle_group && (
-                        <span style={{
-                          fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-                          background: `${t.accent}22`, color: t.accent, flexShrink: 0,
-                        }}>
-                          {item.muscle_group}
-                        </span>
-                      )}
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                   {!catalogLoading && catalogSuggestions.length === 0 && draft.exercise_name.trim().length >= 2 && (
                     <div style={{ padding: '10px 14px', fontSize: 12, color: textMute(dark) }}>
                       {tr('trainer.planner.catalogNoResults')}

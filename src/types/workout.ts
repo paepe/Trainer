@@ -200,6 +200,20 @@ export interface OperationalTask {
   completed_at:       string | null;
 }
 
+export interface ProtocolExerciseItem {
+  id:                  string;
+  protocol_id:         string;
+  exercise_name:       string;
+  muscle_group:        string | null;
+  sets:                number | null;
+  reps:                number | null;
+  load_kg:             number | null;
+  rest_seconds:        number | null;
+  notes:               string | null;
+  alternative_exercise: string | null;
+  order_index:         number | null;
+}
+
 export interface ExerciseCatalogItem {
   id: string;
   name: string;
