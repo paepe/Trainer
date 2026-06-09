@@ -365,7 +365,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         }}
                       >
-                        <Icon name="sparkle" size={13} color="#0E1A2B" stroke={2.5} />
+                        <Icon name="play" size={13} color="#0E1A2B" stroke={2.5} />
                         {tr('inbox.actions.viewClientFeedback')}
                       </button>
                     )}
