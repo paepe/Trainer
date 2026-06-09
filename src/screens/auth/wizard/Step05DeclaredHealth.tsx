@@ -18,7 +18,7 @@ const HIGH_RISK: HealthCategory[] = [
 
 type Disclosure = 'yes' | 'no' | 'prefer_not';
 
-export function Step05DeclaredHealth({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const dh = data.declared_health ?? { has_condition: null, categories: [], free_text: '' };
   const [voiceOpen, setVoiceOpen] = React.useState(false);

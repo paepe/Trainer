@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, Typography, HStack, VStack, Spacer } from '../../../ui';
+import { WizardHeader, WizardFooter, Typography, HStack, VStack, Spacer, TextInput } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { BiologicalSex, ProfileBasicData } from '../../../types/profile-v2';
 import type { Profile } from '../../../types';

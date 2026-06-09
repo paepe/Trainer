@@ -55,7 +55,7 @@ interface Step15Props extends WizardStepProps {
   generating: boolean;
 }
 
-export function Step15RiskClassification({ dark, primary: _primary, accent: _accent, data, onUpdate: _onUpdate, onBack, onSaveLater: _onSaveLater, stepNum, totalSteps, onGenerate, generating }: Step15Props) {
+export function Step15RiskClassification({ dark, primary, accent, data, onUpdate: _onUpdate, onBack, onSaveLater: _onSaveLater, stepNum, totalSteps, onGenerate, generating }: Step15Props) {
   const { t: tr } = useTranslation();
   const risk = React.useMemo(() => computeRisk(data), [data]);
   const [confirmed, setConfirmed] = React.useState(false);

@@ -90,6 +90,35 @@ export function TrainerDashboardScreen({
   const [invitations, setInvitations]   = React.useState<TrainerInvitation[]>([]);
   const [invitationBusyId, setInvitationBusyId] = React.useState<string | null>(null);
 
+  const fetchSafetyGate = React.useCallback((clientIds: string[]) => {
+    if (clientIds.length === 0) { setPendingReviews([]); return; }
+    supabase
+      .from('safety_gate_events')
+      .select('id,user_id,status,readiness_score,triggered_signals,created_at')
+      .in('user_id', clientIds)
+      .eq('human_review_required', true)
+      .is('human_reviewed_at', null)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setPendingReviews((data || []) as SafetyGateEvent[]));
+  }, []);
+
+  // Realtime subscription for check-in submissions — re-fetch safety gate queue
+  React.useEffect(() => {
+    if (!user?.id || clients.length === 0) return;
+    const clientIds = clients.filter(c => c.status === 'active' && c.client?.id).map(c => c.client!.id);
+    if (clientIds.length === 0) return;
+
+    const channel = supabase
+      .channel('trainer-checkins')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'checkin_prontidao' },
+        () => { fetchSafetyGate(clientIds); }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [user?.id, clients, fetchSafetyGate]);
+
   const fetchClients = React.useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
@@ -130,10 +159,7 @@ export function TrainerDashboardScreen({
   }, [user?.id, fetchSafetyGate]);
 
   React.useEffect(() => {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
+    if (!user?.id) { setLoading(false); return; }
     void fetchClients();
   }, [user?.id, fetchClients]);
 
@@ -157,41 +183,8 @@ export function TrainerDashboardScreen({
         }
       )
       .subscribe();
-
     return () => { void supabase.removeChannel(channel); };
   }, [user?.id, clients]);
-
-  const fetchSafetyGate = React.useCallback((clientIds: string[]) => {
-    if (clientIds.length === 0) { setPendingReviews([]); return; }
-    supabase
-      .from('safety_gate_events')
-      .select('id,user_id,status,readiness_score,triggered_signals,created_at')
-      .in('user_id', clientIds)
-      .eq('human_review_required', true)
-      .is('human_reviewed_at', null)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => setPendingReviews((data || []) as SafetyGateEvent[]));
-  }, []);
-
-  // Realtime subscription for check-in submissions — re-fetch safety gate queue
-  React.useEffect(() => {
-    if (!user?.id || clients.length === 0) return;
-    const clientIds = clients.filter(c => c.status === 'active' && c.client?.id).map(c => c.client!.id);
-    if (clientIds.length === 0) return;
-
-    const channel = supabase
-      .channel('trainer-checkins')
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'checkin_prontidao' },
-        () => { fetchSafetyGate(clientIds); }
-      )
-      .subscribe();
-
-    return () => { void supabase.removeChannel(channel); };
-  }, [user?.id, clients, fetchSafetyGate]);
-
-
-
 
   async function markReviewed(eventId: string) {
     if (!user?.id) return;

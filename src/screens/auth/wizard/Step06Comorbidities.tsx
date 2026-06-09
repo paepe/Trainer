@@ -12,7 +12,7 @@ const CONDITION_KEYS: Comorbidity[] = [
   'other', 'prefer_not_to_say',
 ];
 
-export function Step06Comorbidities({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const co = data.comorbidities ?? { conditions: [] };
   const [voiceOpen, setVoiceOpen] = React.useState(false);

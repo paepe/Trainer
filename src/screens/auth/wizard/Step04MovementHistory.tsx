@@ -15,7 +15,7 @@ const MODALITY_VALUES: TrainingModality[] = ['weight_training', 'running', 'walk
 const ABANDON_VALUES: AbandonReason[] = ['lack_of_time', 'injury', 'lack_of_results', 'demotivation', 'cost', 'routine_change', 'discomfort', 'other'];
 const INTENSITY_VALUES: PreferredIntensity[] = ['gradual', 'moderate', 'intense'];
 
-export function Step04MovementHistory({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const [page, setPage] = React.useState(0);
   const [voiceOpen, setVoiceOpen] = React.useState(false);

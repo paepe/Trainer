@@ -40,7 +40,7 @@ const DEFAULT_STUDIO: ConsentCategory = {
   body_rhythm:                  'hidden',
 };
 
-export function Step14Consent({ dark, primary: _primary, accent: _accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
+export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const consent = data.consent ?? {
     personal: DEFAULT_PERSONAL,
