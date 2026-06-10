@@ -15,7 +15,7 @@ export interface WizardFooterProps {
 
 export function WizardFooter({
   onNext,
-  nextLabel = 'Continue',
+  nextLabel,
   nextDisabled,
   onSave,
   saving,
