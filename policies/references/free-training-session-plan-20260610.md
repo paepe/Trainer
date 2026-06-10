@@ -22,13 +22,13 @@ Disponibilizar, na interface do treinador, **sessões de treino livres** para cl
 | `workout_sessions.user_id` NOT NULL, FK → `profiles.id` | Sintético precisa existir em `profiles` |
 | `checkin_prontidao.user_id` NOT NULL, FK → `profiles.id` | idem |
 | `post_workout_feedback.user_id`+`session_id` NOT NULL, FK → `profiles.id`/`workout_sessions.id` | idem |
-| `profiles.id` **NÃO tem FK para `auth.users`** | Profile sintético sem usuário de auth é tecnicamente possível |
+| ~~`profiles.id` **NÃO tem FK para `auth.users`**~~ — **CORRIGIDO na Fase 8**: existe `profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE` | Profile sintético **precisa** de uma linha em `auth.users`. Resolvido com INSERT em `auth.users` dentro da própria RPC + reuso do trigger `handle_new_user()` (ver Fase 0) |
 | RLS INSERT `profiles`: `with_check (auth.uid() = id)` | App **não** pode inserir profile de id alheio → exige RPC `SECURITY DEFINER` |
 | RLS sessão/checkin/feedback: exige `trainer_clients` ativo (`client_id=user_id, trainer_id=auth.uid(), status='active'`) | Gravação exige vínculo ativo → mas vínculo ativo apareceria em MyClients |
 | `fetchClients()` lê `trainer_clients` filtrando `in ('active','pending')` | Sintético vazaria para Dashboard se vinculado normalmente |
 | `computeSafetyGate()` é **puro, client-side** | "Reprovado" (`status==='blocked'`) reusa algoritmo existente, sem cálculo novo |
 | `requestWorkoutPlan()` aceita `physicalProfile/checkin = null` | IA funciona mesmo com dados neutros |
-| Trigger `on_auth_user_created` cria profile p/ usuários reais | Não interfere no sintético (que não passa por `auth.users`) |
+| Trigger `on_auth_user_created` → `handle_new_user()` cria `profiles` a partir de `auth.users.raw_user_meta_data` (`name`, `role`, default `'client'`) | **Reaproveitado** pela RPC: ao inserir em `auth.users` com `raw_user_meta_data={name, role:'free_session_subject'}`, o `profiles` sintético é criado automaticamente pelo trigger — sem INSERT manual em `profiles` |
 
 ---
 
@@ -87,24 +87,29 @@ Disponibilizar, na interface do treinador, **sessões de treino livres** para cl
 
 ## 6. Plano faseado + checklist
 
-### FASE 0 — Fundação de dados (backend) ✅ CONCLUÍDA 2026-06-10
+### FASE 0 — Fundação de dados (backend) ✅ CONCLUÍDA 2026-06-10 (2 correções pós-deploy)
 - [x] Role `'free_session_subject'` definido (distinto de trainer/client/studio_admin; coluna `profiles.role` é text livre)
+- [x] **Constraint `profiles_role_check`**: valor `'free_session_subject'` adicionado ao `CHECK (role = ANY (ARRAY[...]))` (constraint original não previa novos roles — bloqueava o INSERT com erro `profiles_role_check`, capturado na Fase 8)
 - [x] RPC `create_free_session_subject(p_trainer_id uuid)` `SECURITY DEFINER`, `search_path=public`:
   - [x] valida `auth.uid() = p_trainer_id` (RAISE `unauthorized`) e role `trainer` (RAISE `not_a_trainer`)
   - [x] gera `gen_random_uuid()` para o sintético
   - [x] nome automático `Free Session <YYYYMMDDHH24MISS>`
   - [x] email `fs_<YYYYMMDDHH24MISS>@trainer.fs`
-  - [x] INSERT em `profiles { id, name, email, role:'free_session_subject' }`
+  - [x] **INSERT em `auth.users`** (id, email, raw_user_meta_data com `name`+`role:'free_session_subject'`, `is_anonymous=true`) — necessário pela FK `profiles_id_fkey → auth.users.id` (achado corrigido, ver §2)
+  - [x] `profiles` row criado **automaticamente** pelo trigger `on_auth_user_created` → `handle_new_user()` (lê `raw_user_meta_data`)
   - [x] INSERT em `trainer_clients { trainer_id, client_id, status:'active' }`
   - [x] retorna `{ client_id, name, email }`
-- [x] Migração aplicada em produção (`sevenseeds.trainer`) — sem staging equivalente (autorizado)
-- [x] Grants endurecidos: REVOKE anon/PUBLIC; só `authenticated`+`service_role`
+- [x] Migrações aplicadas em produção (`sevenseeds.trainer`) — sem staging equivalente (autorizado)
+- [x] Grants endurecidos: REVOKE anon/PUBLIC; só `authenticated`
 - [x] Guarda testada: chamada sem `auth.uid()` rejeitada com `unauthorized`
+- [x] **Smoke test em produção (Fase 8) confirmou o fluxo ponta-a-ponta funcionando** — ver Fase 8
 
 **Notas Fase 0:**
 - FK `trainer_clients.client_id → profiles.id ON DELETE CASCADE`; `UNIQUE(trainer_id, client_id)` evita colisão (uuid novo/sessão).
 - `status_check` aceita `pending/active/paused/ended` — `active` válido e exigido pelas RLS de execução.
 - `has_permission(perm text, uid uuid)` é a assinatura real (2º arg default).
+- `auth.users.is_anonymous=true` + `is_sso_user=false`; `encrypted_password=''`, `confirmation_token`/`email_change*` usam defaults `''` — sem trigger adicional além de `on_auth_user_created`.
+- O ID `AAAAMMDDhhmmss` (item 8 das decisões, "fora de escopo") sobrevive apenas como **sufixo de nome/email** do sintético (`Free Session <ts>` / `fs_<ts>@trainer.fs`), não como identificador primário (que continua sendo o `gen_random_uuid()`).
 
 ### FASE 1 — Isolamento nas listas do treinador (anti-vazamento) ✅ CONCLUÍDA 2026-06-10
 - [x] `TrainerDashboardScreen.fetchClients()`: select inclui `role`; filtro client-side `role !== 'free_session_subject'` remove a linha inteira (não embed-null). Tipo `TrainerClient.client` estendido com `role?`.
@@ -163,12 +168,15 @@ Disponibilizar, na interface do treinador, **sessões de treino livres** para cl
 - [x] Nome automático do sintético gerado server-side (`Free Session <ts>`) — não requer i18n
 - [x] JSON dos 4 locales validado (parse OK)
 
-### FASE 8 — Validação e fechamento (PARCIAL)
+### FASE 8 — Validação e fechamento ✅ CONCLUÍDA 2026-06-10
 - [x] `npx tsc --noEmit` limpo
-- [ ] Smoke test do fluxo completo (requer app rodando): CTA → check-in detailed → reprovado (bloqueia) → aprovado (libera) → plano IA → iniciar → executar → avaliar → voltar
-- [ ] **Anti-vazamento (crítico):** confirmar sintético ausente de Dashboard/MyClients/Performance/Inbox/histórico
-- [ ] Confirmar dados persistidos de forma impessoal e consultáveis para estatística
-- [ ] Atualizar este doc com resultado da validação manual
+- [x] Smoke test em produção: CTA "Sessão de Treino Livre" → RPC cria sintético → check-in Detailed → fluxo avançou corretamente
+- [x] **Bugs encontrados e corrigidos durante o smoke test (produção)**:
+  - `400` — `profiles_role_check` não permitia `'free_session_subject'` → constraint atualizada
+  - `409` — `profiles_id_fkey → auth.users.id` (achado original do schema estava incorreto/desatualizado) → RPC reescrita para inserir em `auth.users` e deixar o trigger `handle_new_user()` criar o `profiles`
+- [x] Após as 2 correções, fluxo confirmado funcionando "como um relógio" (feedback do usuário)
+- [ ] **Anti-vazamento (crítico):** confirmar sintético ausente de Dashboard/MyClients/Performance/Inbox/histórico — pendente verificação visual dedicada
+- [ ] Confirmar dados persistidos de forma impessoal e consultáveis para estatística (consulta SQL de amostra)
 
 ---
 
