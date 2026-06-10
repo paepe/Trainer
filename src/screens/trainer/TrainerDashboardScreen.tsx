@@ -23,7 +23,7 @@ interface TrainerClient {
   id:         string;
   status:     string;
   created_at: string;
-  client:     ClientProfile | null;
+  client:     (ClientProfile & { role?: string }) | null;
 }
 
 interface SafetyGateEvent {
@@ -63,12 +63,14 @@ interface TrainerDashboardScreenProps {
   nav:          NavFn;
   user:         TrainerDashboardUser | null;
   selectClient?: (client: ClientProfile) => void;
+  startFreeSession?: () => void | Promise<void>;
 }
 
 export function TrainerDashboardScreen({
   nav: _nav,
   user,
   selectClient,
+  startFreeSession,
 }: TrainerDashboardScreenProps) {
   const { t, dark } = useTrainerTheme();
   const { t: tr } = useTranslation();
@@ -89,6 +91,7 @@ export function TrainerDashboardScreen({
   const [_activeNowFilter, _setActiveNowFilter] = React.useState<'all' | 'training'>('all');
   const [invitations, setInvitations]   = React.useState<TrainerInvitation[]>([]);
   const [invitationBusyId, setInvitationBusyId] = React.useState<string | null>(null);
+  const [startingFree, setStartingFree] = React.useState(false);
 
   const fetchSafetyGate = React.useCallback((clientIds: string[]) => {
     if (clientIds.length === 0) { setPendingReviews([]); return; }
@@ -124,12 +127,15 @@ export function TrainerDashboardScreen({
     setLoading(true);
     const { data } = await supabase
       .from('trainer_clients')
-      .select('id, status, created_at, client:profiles!trainer_clients_client_id_fkey(id, name, email)')
+      .select('id, status, created_at, client:profiles!trainer_clients_client_id_fkey(id, name, email, role)')
       .eq('trainer_id', user.id)
       .in('status', ['active', 'pending'])
       .order('created_at', { ascending: false });
 
-    const clientsList = (data || []) as unknown as TrainerClient[];
+    // Free-session synthetic subjects carry an active link (required by RLS) but
+    // must never surface in MyClients. Exclude them defensively, client-side.
+    const clientsList = ((data || []) as unknown as TrainerClient[])
+      .filter(c => c.client?.role !== 'free_session_subject');
     setClients(clientsList);
 
     const ids: string[] = [];
@@ -593,6 +599,24 @@ export function TrainerDashboardScreen({
             }}
           >
             <Icon name="plus" size={16} color={t.accent} /> {tr('trainer.dashboard.inviteClient')}
+          </button>
+        )}
+
+        {/* Free Training Session — placed below "+ Invite client" */}
+        {!showInvite && startFreeSession && (
+          <button
+            onClick={async () => { setStartingFree(true); try { await startFreeSession(); } finally { setStartingFree(false); } }}
+            disabled={startingFree}
+            style={{
+              padding: '14px 18px', borderRadius: 14,
+              border: `1.5px solid ${t.liveAction}55`,
+              background: `${t.liveAction}14`, color: t.liveAction,
+              fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 13, fontWeight: 700, cursor: startingFree ? 'default' : 'pointer',
+              opacity: startingFree ? 0.6 : 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+          >
+            <Icon name="play" size={16} color={t.liveAction} /> {startingFree ? tr('trainer.dashboard.startingFreeSession') : tr('trainer.dashboard.freeSession')}
           </button>
         )}
       </VStack>

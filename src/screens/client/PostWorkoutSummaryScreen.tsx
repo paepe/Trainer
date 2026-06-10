@@ -27,6 +27,8 @@ interface PostWorkoutSummaryScreenProps {
   forClientName?:          string;
   forClientId?:            string;
   returnTo?:               string;
+  freeSession?:            boolean;       // Free Training Session: exit free mode after saving
+  onExitFreeSession?:      () => void;    // clears freeSession + selectedClient in App
   savePostWorkoutFeedback: (data: { session_id: string; overall_feeling: number; energy_after: number | null; notes: string | null; forUserId?: string }) => Promise<{ error: unknown }>;
 }
 
@@ -37,6 +39,7 @@ export function PostWorkoutSummaryScreen({
   durationMin: durationMinProp, completedCount: completedCountProp,
   total: totalProp, totalSets: totalSetsProp,
   startedAt: startedAtProp, forClientName, forClientId, returnTo,
+  freeSession = false, onExitFreeSession,
   savePostWorkoutFeedback,
 }: PostWorkoutSummaryScreenProps) {
   const { t: tr } = useTranslation();
@@ -124,6 +127,13 @@ export function PostWorkoutSummaryScreen({
     }
     setSubmitted(true);
     setSaving(false);
+    // Free Training Session ends here: the evaluation is persisted to the synthetic
+    // subject; exit free mode (clears flag + selectedClient) and return to dashboard.
+    if (freeSession) {
+      onExitFreeSession?.();
+      nav('trainerDashboard');
+      return;
+    }
     // returnTo overrides all other routing (e.g. called from inbox); allowlist guards against arbitrary nav injection
     const ALLOWED_RETURN_SCREENS = ['alerts', 'history', 'stats', 'trainerDashboard', 'checkin', 'workout'];
     if (returnTo && ALLOWED_RETURN_SCREENS.includes(returnTo)) {

@@ -15,6 +15,7 @@ interface CheckInHubProps {
   onBack:       () => void;
   streak?:      number;
   lastCheckin?: string;
+  freeSession?: boolean; // Free Training Session: only the Detailed check-in is offered
 }
 
 const OPTIONS: { key: Variant; icon: string; time: string; badge?: true }[] = [
@@ -23,8 +24,11 @@ const OPTIONS: { key: Variant; icon: string; time: string; badge?: true }[] = [
   { key: 'detailed',icon: 'list',  time: '~5 min'  },
 ];
 
-export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin }: CheckInHubProps) {
+export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin, freeSession }: CheckInHubProps) {
   const { t: tr } = useTranslation();
+  // Free Training Session mandates the Complete (Detailed) check-in as the sole,
+  // authoritative input — Quick and Voice are withheld to maximise data quality.
+  const options = freeSession ? OPTIONS.filter(o => o.key === 'detailed') : OPTIONS;
   const greeting = () => {
     const h = new Date().getHours();
     return h < 12 ? tr('checkin.hub.greet.morning') : h < 18 ? tr('checkin.hub.greet.afternoon') : tr('checkin.hub.greet.evening');
@@ -92,7 +96,7 @@ export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect
 
         {/* Variant options */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-          {OPTIONS.map(opt => (
+          {options.map(opt => (
             <button
               key={opt.key}
               onClick={() => onSelect(opt.key)}

@@ -46,9 +46,10 @@ interface CheckInProntidaoScreenProps {
   linkedTrainerId?:      string; // '' = no trainer, non-empty = has trainer
   workoutReadyExpiryMin?: number; // how long the "I'm ready" alert stays live
   saveCheckinV2?:        SaveCheckinV2Fn;
+  freeSession?:          boolean; // Free Training Session: only Detailed allowed; blocked readiness halts plan
 }
 
-export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, linkedTrainerId = '', workoutReadyExpiryMin = 30, saveCheckinV2 }: CheckInProntidaoScreenProps) {
+export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUserId, clientName, biologicalSex, linkedTrainerId = '', workoutReadyExpiryMin = 30, saveCheckinV2, freeSession = false }: CheckInProntidaoScreenProps) {
   const { t: tr } = useTranslation();
   const mode = resolveMode(clientUserId, linkedTrainerId);
   const last = useLatestCheckin(clientUserId ?? user?.id);
@@ -115,6 +116,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           onBack={() => nav(clientUserId ? 'trainerDashboard' : 'profile')}
           streak={last.streak}
           lastCheckin={last.lastCheckin}
+          freeSession={freeSession}
         />
       );
 
@@ -158,6 +160,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           result={result}
           {...(risk ? { risk } : {})}
           isTrainerContext={mode === 'trainer-context'}
+          freeSession={freeSession}
           linkedTrainerId={linkedTrainerId}
           onDone={() => nav(
             mode === 'trainer-context'      ? 'workoutPlanEditor' :

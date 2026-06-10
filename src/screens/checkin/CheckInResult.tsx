@@ -15,6 +15,7 @@ interface CheckInResultProps {
   onAlert:           () => void;
   onBack?:           () => void;
   isTrainerContext?: boolean;
+  freeSession?:      boolean;
   linkedTrainerId?:  string;
 }
 
@@ -71,11 +72,14 @@ const STATUS_META: Record<string, { color: string; bg: string }> = {
   blocked: { color: '#EF5B3C', bg: '#EF5B3C12' },
 };
 
-export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, onBack, isTrainerContext, linkedTrainerId }: CheckInResultProps) {
+export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, onBack, isTrainerContext, freeSession, linkedTrainerId }: CheckInResultProps) {
   const { t: tr } = useTranslation();
   const meta         = STATUS_META[result.status] ?? { color: '#4ade80', bg: '#4ade8012' };
   const isBlocked    = result.ai_led_blocked;
   const hasTrainer   = !!linkedTrainerId;
+  // Free Training Session: a "blocked" readiness verdict (computeSafetyGate) means
+  // NOT READY — the plan must not be unlocked. Only "go back" is offered.
+  const freeBlocked  = freeSession && result.status === 'blocked';
 
   const heading = tr('checkin.result.viewCautionOptions');
 
@@ -190,7 +194,19 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
       )}
 
       {/* CTAs */}
-      {isTrainerContext ? (
+      {freeBlocked ? (
+        <div style={{
+          padding: '14px 16px', borderRadius: 14,
+          background: `${accent}14`, border: `1.5px solid ${accent}55`, textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: accent, marginBottom: 4 }}>
+            {tr('checkin.result.freeBlockedTitle')}
+          </div>
+          <div style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.5 }}>
+            {tr('checkin.result.freeBlockedBody')}
+          </div>
+        </div>
+      ) : isTrainerContext ? (
         <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
           {isBlocked ? tr('checkin.result.reviewSafetyAlert') : tr('checkin.result.buildPlan')}
         </button>

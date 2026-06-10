@@ -595,6 +595,8 @@
       "paused": "Pausiert",
       "view": "Ansehen →",
       "inviteClient": "Kunden einladen",
+      "freeSession": "Freie Trainingseinheit",
+      "startingFreeSession": "Wird gestartet…",
       "inviteByEmail": "Per E-Mail einladen",
       "inviteNamePlaceholder": "Name des Kandidaten",
       "cancel": "Abbrechen",
@@ -748,6 +750,7 @@
       "sending": "Wird gesendet…",
       "sendToClient": "An Kunden senden →",
       "startLiveSession": "Live-Einheit starten",
+      "startFreeSession": "Freie Trainingseinheit starten",
       "startLiveSessionHint": "{{name}} jetzt trainieren — öffnet den Trainingsmodus direkt"
     },
     "library": {
@@ -1102,6 +1105,8 @@
       "statRecovery": "ERHOLUNG",
       "reviewSafetyAlert": "Sicherheitswarnung prüfen →",
       "buildPlan": "Plan erstellen →",
+      "freeBlockedTitle": "Nicht trainingsbereit",
+      "freeBlockedBody": "Die Bereitschaft wurde vom Safety Gate blockiert. Der Plan kann nicht freigegeben werden — zurück.",
       "notifyTrainerCaution": "⚠ Trainer benachrichtigen — Vorsicht heute",
       "notifyTrainerReady": "✦ Trainer benachrichtigen — ich bin bereit",
       "backButton": "← Zurück",

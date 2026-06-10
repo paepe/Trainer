@@ -10,7 +10,8 @@
       "Bash(brew --version)",
       "Bash(brew install *)",
       "Bash(npx vercel *)",
-      "Bash(vercel env *)"
+      "Bash(vercel env *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

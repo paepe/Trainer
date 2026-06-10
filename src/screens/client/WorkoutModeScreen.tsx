@@ -31,6 +31,7 @@ interface WorkoutModeScreenProps {
   plannedDurationMin?:         number;
   clientUserId?:               string;
   clientName?:                 string;
+  freeSession?:                boolean; // Free Training Session: runs against synthetic subject (persists normally)
   startWorkoutSession:         (input: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number }) => Promise<{ data: { sessionId: string; sessionExercises: WorkoutSessionExercise[] } | null; error: unknown }>;
   logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null }) => Promise<{ error: unknown }>;
   updateSessionExerciseStatus: (sessionExerciseId: string, status: SessionExerciseStatus, skippedReason?: string) => Promise<{ error: unknown }>;

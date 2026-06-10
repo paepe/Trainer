@@ -169,6 +169,10 @@ export default function App() {
   const [pendingAlerts, setPendingAlerts] = React.useState(0);
   const [pendingInbox,  setPendingInbox]  = React.useState(0);
   const [selectedClient, setSelectedClient] = React.useState<ClientProfile | null>(null);
+  // Free Training Session: when active, selectedClient holds a synthetic subject
+  // and the trainer flow (check-in → editor → workout → summary) runs in free mode.
+  const [freeSession, setFreeSession] = React.useState(false);
+  const exitFreeSession = React.useCallback(() => { setFreeSession(false); setSelectedClient(null); }, []);
   const [cycleConfig, setCycleConfig] = React.useState<AppCycleConfig>({
     length: 28, periodLength: 5, lastStartOffset: 11,
   });
@@ -388,6 +392,23 @@ export default function App() {
     setScreen('trainerClientDetail');
   };
 
+  // Free Training Session: server-side RPC mints a synthetic subject (impersonal,
+  // never surfaced in MyClients), then the trainer flow runs against it in free mode.
+  const startFreeSession = async () => {
+    if (!profile?.id) return;
+    // RPC not yet in generated Database types — cast the call site narrowly.
+    const { data, error } = await (supabase.rpc as unknown as (
+      fn: string, args: Record<string, unknown>,
+    ) => Promise<{ data: { client_id: string; name: string; email: string }[] | null; error: unknown }>)(
+      'create_free_session_subject', { p_trainer_id: profile.id },
+    );
+    const row = data?.[0];
+    if (error || !row) { console.error('[FreeSession] create failed:', error); return; }
+    setSelectedClient({ id: row.client_id, name: row.name, email: row.email });
+    setFreeSession(true);
+    nav('checkin', { clientUserId: row.client_id, clientName: row.name });
+  };
+
   const contentRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
@@ -567,7 +588,7 @@ export default function App() {
       case 'checkin':          return (
         <>
           {(noClient && !screenPayload?.clientUserId) && noClientBanner}
-          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} user={user} userName={profile?.name ?? undefined} biologicalSex={profile?.gender ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} linkedTrainerId={linkedTrainerId ?? ''} workoutReadyExpiryMin={prefs.workoutReadyExpiryMin} saveCheckinV2={saveCheckinV2}/>
+          <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} user={user} userName={profile?.name ?? undefined} biologicalSex={profile?.gender ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} linkedTrainerId={linkedTrainerId ?? ''} workoutReadyExpiryMin={prefs.workoutReadyExpiryMin} saveCheckinV2={saveCheckinV2} freeSession={freeSession}/>
         </>
       );
       case 'workout':            return <StartWorkoutScreen      {...common}/>;
@@ -578,6 +599,7 @@ export default function App() {
           plannedDurationMin={(screenPayload?.plannedDurationMin as number) ?? undefined}
           clientUserId={(screenPayload?.clientUserId as string) ?? undefined}
           clientName={(screenPayload?.clientName as string) ?? undefined}
+          freeSession={freeSession}
           startWorkoutSession={startWorkoutSession}
           logWorkoutSet={logWorkoutSet}
           updateSessionExerciseStatus={updateSessionExerciseStatus}
@@ -597,6 +619,8 @@ export default function App() {
           forClientName={(screenPayload?.forClientName as string) ?? undefined}
           forClientId={(screenPayload?.forClientId as string) ?? undefined}
           returnTo={(screenPayload?.returnTo as string) ?? undefined}
+          freeSession={freeSession}
+          onExitFreeSession={exitFreeSession}
           savePostWorkoutFeedback={savePostWorkoutFeedback}
         />;
       case 'stats':              return (
@@ -614,9 +638,9 @@ export default function App() {
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)} isMale={user.gender === 'male'}/>;
-      case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient}/>;
+      case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient} startFreeSession={startFreeSession}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
-      case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient}/>;
+      case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient} freeSession={freeSession}/>;
       case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen nav={nav} user={trainerUser}/>;
       case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser}/>;
       case 'alerts':              return <TrainerAlertsScreen nav={nav} user={trainerUser}/>;

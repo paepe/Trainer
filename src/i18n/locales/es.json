@@ -595,6 +595,8 @@
       "paused": "Pausado",
       "view": "Ver →",
       "inviteClient": "Invitar cliente",
+      "freeSession": "Sesión de Entrenamiento Libre",
+      "startingFreeSession": "Iniciando…",
       "inviteByEmail": "Invitar por correo",
       "inviteNamePlaceholder": "Nombre del candidato",
       "cancel": "Cancelar",
@@ -748,6 +750,7 @@
       "sending": "Enviando…",
       "sendToClient": "Enviar al cliente →",
       "startLiveSession": "Iniciar Sesión en Vivo",
+      "startFreeSession": "Iniciar Sesión de Entrenamiento Libre",
       "startLiveSessionHint": "Entrenar a {{name}} ahora — abre el modo de entrenamiento directamente"
     },
     "library": {
@@ -1102,6 +1105,8 @@
       "statRecovery": "RECUPERACIÓN",
       "reviewSafetyAlert": "Revisar alerta de seguridad →",
       "buildPlan": "Crear plan →",
+      "freeBlockedTitle": "No está listo para entrenar",
+      "freeBlockedBody": "La preparación fue bloqueada por el safety gate. El plan no puede liberarse — vuelve atrás.",
       "notifyTrainerCaution": "⚠ Notificar entrenador — precaución hoy",
       "notifyTrainerReady": "✦ Notificar entrenador — estoy listo",
       "backButton": "← Volver",

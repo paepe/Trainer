@@ -73,12 +73,14 @@ interface WorkoutPlanEditorScreenProps {
 
   user:            TrainerDashboardUser | null;
   selectedClient?: ClientProfile | null;
+  freeSession?:    boolean; // Free Training Session: hide "send to client", relabel live CTA
 }
 
 export function WorkoutPlanEditorScreen({
   nav,
   user,
   selectedClient,
+  freeSession = false,
 }: WorkoutPlanEditorScreenProps) {
   const { t, dark } = useTrainerTheme();
   const { t: tr } = useTranslation();
@@ -344,6 +346,7 @@ export function WorkoutPlanEditorScreen({
       rest_seconds:  ex.rest_seconds,
       notes:         ex.notes || null,
     }));
+    // freeSession is driven by App state (not payload) — router injects it into WorkoutModeScreen.
     nav('workoutMode', {
       planId:       null,
       exercises:    converted,
@@ -676,13 +679,15 @@ export function WorkoutPlanEditorScreen({
             </>
           ) : tr('trainer.planner.askAI')}
         </button>
-        <button
-          onClick={() => sendPlan('sent')}
-          disabled={saving || exercises.length === 0}
-          style={{ ...primaryBtn(t.primary, saving), marginBottom: 0, opacity: exercises.length === 0 ? 0.4 : saving ? 0.7 : 1 }}
-        >
-          {saving ? tr('trainer.planner.sending') : tr('trainer.planner.sendToClient')}
-        </button>
+        {!freeSession && (
+          <button
+            onClick={() => sendPlan('sent')}
+            disabled={saving || exercises.length === 0}
+            style={{ ...primaryBtn(t.primary, saving), marginBottom: 0, opacity: exercises.length === 0 ? 0.4 : saving ? 0.7 : 1 }}
+          >
+            {saving ? tr('trainer.planner.sending') : tr('trainer.planner.sendToClient')}
+          </button>
+        )}
       </div>
 
       {/* In-Person Trainer CTA */}
@@ -696,11 +701,13 @@ export function WorkoutPlanEditorScreen({
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           opacity: saving ? 0.7 : 1,
         }}>
-          <Icon name="play" size={16} color={exercises.length === 0 ? 'rgba(255,255,255,.3)' : t.liveAction}/> {tr('trainer.planner.startLiveSession')}
+          <Icon name="play" size={16} color={exercises.length === 0 ? 'rgba(255,255,255,.3)' : t.liveAction}/> {freeSession ? tr('trainer.planner.startFreeSession') : tr('trainer.planner.startLiveSession')}
         </button>
-        <div style={{ marginTop: 8, textAlign: 'center', fontSize: 11, color: textSec(dark) }}>
-          {tr('trainer.planner.startLiveSessionHint', { name: selectedClient?.name?.split(' ')[0] || 'client' })}
-        </div>
+        {!freeSession && (
+          <div style={{ marginTop: 8, textAlign: 'center', fontSize: 11, color: textSec(dark) }}>
+            {tr('trainer.planner.startLiveSessionHint', { name: selectedClient?.name?.split(' ')[0] || 'client' })}
+          </div>
+        )}
       </div>
     </>
   );

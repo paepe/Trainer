@@ -595,6 +595,8 @@
       "paused": "Paused",
       "view": "View →",
       "inviteClient": "Invite client",
+      "freeSession": "Free Training Session",
+      "startingFreeSession": "Starting…",
       "inviteByEmail": "Invite by email",
       "inviteNamePlaceholder": "Candidate's name",
       "cancel": "Cancel",
@@ -748,6 +750,7 @@
       "sending": "Sending…",
       "sendToClient": "Send to client →",
       "startLiveSession": "Start Live Session",
+      "startFreeSession": "Start Free Training Session",
       "startLiveSessionHint": "Train {{name}} now — opens workout mode directly"
     },
     "library": {
@@ -1102,6 +1105,8 @@
       "statRecovery": "RECOVERY",
       "reviewSafetyAlert": "Review safety alert →",
       "buildPlan": "Build plan →",
+      "freeBlockedTitle": "Not ready to train",
+      "freeBlockedBody": "Readiness was blocked by the safety gate. The plan cannot be released — go back.",
       "notifyTrainerCaution": "⚠ Notify trainer — caution today",
       "notifyTrainerReady": "✦ Notify trainer — I'm ready",
       "backButton": "← Back",
