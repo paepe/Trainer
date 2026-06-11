@@ -1,32 +1,6 @@
 import React from 'react';
 import { Icon } from './Icon';
 
-interface PhotoSlotProps {
-  label:    string;
-  w:        number | string;
-  h:        number | string;
-  dark?:    boolean;
-  radius?:  number;
-  style?:   React.CSSProperties;
-}
-
-export const PhotoSlot: React.FC<PhotoSlotProps> = ({
-  label, w, h, dark = true, radius = 10, style = {},
-}) => (
-  <div style={{
-    width: w, height: h, borderRadius: radius,
-    background: dark
-      ? 'repeating-linear-gradient(135deg,#1c2e44 0 8px,#16263a 8px 16px)'
-      : 'repeating-linear-gradient(135deg,#e6e9ef 0 8px,#dade5 8px 16px)',
-    color: dark ? 'rgba(255,255,255,.55)' : 'rgba(20,40,80,.4)',
-    display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-start',
-    padding: 10, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace',
-    fontSize: 10, letterSpacing: '.04em', textTransform: 'uppercase',
-    overflow: 'hidden', position: 'relative', flexShrink: 0,
-    ...style,
-  }}>{label}</div>
-);
-
 interface AvatarImageProps {
   url?:    string | null;
   label:   string;

@@ -1,11 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { TextInput } from '@/ui';
+import { TextInput, AvatarSlot } from '@/ui';
 import { StepHeader }  from '../components/StepHeader';
 import { Hint }        from '../components/Hint';
 import { Chip }        from '../components/Chip';
 import { VoiceBar }    from '../components/VoiceBar';
-import { PhotoSlot }   from '../components/PhotoSlot';
 import { FieldLabel }  from '../components/FieldLabel';
 import { useTheme }    from '../../contexts';
 import type { CoachDNAIdentity } from '../../types/coach-dna';
@@ -48,11 +47,13 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
     />
     <Hint>{tr('coachDna.step01.hint')}</Hint>
 
-    <PhotoSlot
+    <AvatarSlot
       value={data.photo}
       onChange={photo => onChange({ photo })}
+      buildPath={ext => `${trainerId}/coach-dna-avatar.${ext}`}
       name={data.name}
-      trainerId={trainerId}
+      label={tr('coachDna.components.photoSlot.photoLabel')}
+      accent={theme.accent}
     />
 
     <TextInput

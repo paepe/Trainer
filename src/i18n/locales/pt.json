@@ -1,5 +1,10 @@
 {
   "common": {
+    "avatarSlot": {
+      "changeLabel": "ALTERAR",
+      "changeImage": "Alterar imagem",
+      "uploadImage": "Enviar imagem"
+    },
     "about": "Sobre este app",
     "version": "Versão {{version}}",
     "signOut": "Sair",

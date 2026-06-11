@@ -9,7 +9,7 @@ export * from './SegmentedControl';
 export * from './Toggle';
 export * from './Slider';
 export * from './LevelPicker';
-export * from './AvatarUpload';
+export * from './AvatarSlot';
 export * from './WizardHeader';
 export * from './WizardFooter';
 export * from './VoiceOption';

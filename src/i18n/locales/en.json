@@ -1,5 +1,10 @@
 {
   "common": {
+    "avatarSlot": {
+      "changeLabel": "CHANGE",
+      "changeImage": "Change image",
+      "uploadImage": "Upload image"
+    },
     "about": "About this app",
     "version": "Version {{version}}",
     "signOut": "Sign Out",

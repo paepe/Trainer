@@ -1,5 +1,5 @@
 export { Icon }        from './Icon';
-export { AvatarImage, PhotoSlot } from './Avatar';
+export { AvatarImage } from './Avatar';
 export { TopBar }      from './TopBar';
 export { SideMenu }    from './SideMenu';
 export { BottomTabs }  from './BottomTabs';

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { supabase } from '../../supabase';
 import { textMute, textPri, surfRaised, borderSubtle, primaryBtn } from '../../theme';
 import { Icon } from '../../components/Icon';
 import { AvatarImage } from '../../components/Avatar';
+import { useAvatarUpload } from '../../hooks/useAvatarUpload';
 import type { NavFn, Profile } from '../../types';
 import type { ProfileV2Step, RiskClassification } from '../../types/profile-v2';
 import type { WizardData } from './wizard/types';
@@ -315,6 +315,7 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
         data={data}
         onEditStep={enterEditStep}
         onStart={() => nav('checkin')}
+        saveUser={saveUser}
       />
     );
   }
@@ -391,26 +392,36 @@ interface UnifiedProfileViewProps {
   data:       WizardData;
   onEditStep: (step: ProfileV2Step) => void;
   onStart:    () => void;
+  saveUser?:  ((data: Partial<Profile> & { email?: string }) => Promise<{ error: unknown }>) | undefined;
 }
 
-function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart }: UnifiedProfileViewProps) {
+function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart, saveUser }: UnifiedProfileViewProps) {
   const { t: tr } = useTranslation();
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(user?.avatar_url ?? null);
-  const [uploading, setUploading] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const { uploading, upload } = useAvatarUpload({
+    buildPath: ext => `${user?.id}/avatar.${ext}`,
+    onUploaded: async publicUrl => {
+      setAvatarUrl(publicUrl);
+      // normalizeProfileUpdates fills unsent personal fields with '' on upsert,
+      // so the existing profile fields must be re-sent alongside avatar_url.
+      await saveUser?.({
+        name:     user?.name ?? '',
+        email:    user?.email ?? '',
+        phone:    user?.phone ?? '',
+        dob:      user?.dob ?? '',
+        location: user?.location ?? '',
+        ...(user?.gender ? { gender: user.gender as Profile['gender'] } : {}),
+        avatar_url: publicUrl.split('?')[0] as string,
+      });
+    },
+  });
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
-    setUploading(true);
-    const ext  = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const path = `${user.id}/avatar.${ext}`;
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
-    if (!error) {
-      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
-      setAvatarUrl(`${urlData.publicUrl}?t=${Date.now()}`);
-    }
-    setUploading(false);
+    await upload(file);
   };
 
   return (
