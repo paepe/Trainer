@@ -75,7 +75,7 @@ export function useStudioData(userId: string | undefined) {
         const clientIds = [...new Set(tcRows.map(r => r.client_id as string))];
 
         const [profRes, physRes] = await Promise.all([
-          supabase.from('profiles').select('id, name, email').in('id', clientIds),
+          supabase.from('profiles').select('id, name, email, avatar_url').in('id', clientIds),
           supabase.from('profile_v2')
             .select('user_id, objectives, movement_history, availability, environment')
             .in('user_id', clientIds),

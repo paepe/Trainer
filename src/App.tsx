@@ -404,7 +404,7 @@ export default function App() {
     );
     const row = data?.[0];
     if (error || !row) { console.error('[FreeSession] create failed:', error); return; }
-    setSelectedClient({ id: row.client_id, name: row.name, email: row.email });
+    setSelectedClient({ id: row.client_id, name: row.name, email: row.email, avatar_url: null });
     setFreeSession(true);
     nav('checkin', { clientUserId: row.client_id, clientName: row.name });
   };

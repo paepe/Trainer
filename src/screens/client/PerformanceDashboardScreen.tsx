@@ -44,7 +44,7 @@ interface Props {
   selectedClient?: ClientProfile | null;
 }
 
-interface ClientProfile { id: string; name?: string }
+interface ClientProfile { id: string; name?: string; avatar_url?: string | null }
 
 // ── Internal navigation tabs ──────────────────────────────────────────────────
 

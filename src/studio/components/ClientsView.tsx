@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TrainerClient } from '../../types';
+import { AvatarImage } from '../../components/Avatar';
 import { PageHeader, Empty, C } from './SharedAtoms';
 
 interface ClientsData {
@@ -107,14 +108,7 @@ export default function ClientsView({ data }: ClientsViewProps) {
               onMouseEnter={e => e.currentTarget.style.background = C.surface2}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 10, flexShrink: 0,
-                    background: `${C.primary}22`, color: C.primary,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 700, fontSize: 13,
-                  }}>
-                    {(c.client?.name || '?').charAt(0).toUpperCase()}
-                  </div>
+                  <AvatarImage url={c.client?.avatar_url} label={c.client?.name || '?'} w={32} h={32} radius={10} dark/>
                   <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {c.client?.name || '—'}
                   </span>

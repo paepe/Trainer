@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon } from './Icon';
 
 interface AvatarImageProps {
-  url?:    string | null;
+  url?:    string | null | undefined;
   label:   string;
   w:       number | string;
   h:       number | string;

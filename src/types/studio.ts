@@ -52,9 +52,10 @@ export interface Protocol {
 }
 
 export interface ClientProfile {
-  id:    string;
-  name:  string;
-  email: string;
+  id:         string;
+  name:       string;
+  email:      string;
+  avatar_url: string | null;
 }
 
 export interface ClientPhysical {

@@ -24,9 +24,10 @@ import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
 
 interface ClientProfile {
-  id:    string;
-  name:  string;
-  email: string;
+  id:         string;
+  name:       string;
+  email:      string;
+  avatar_url: string | null;
 }
 
 interface PhysicalProfile {

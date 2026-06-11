@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { supabase } from '../../supabase';
 import { Icon } from '../../components/Icon';
+import { AvatarImage } from '../../components/Avatar';
 import { RefreshChip } from '../../components/RefreshChip';
 import {
   surfRaised,
@@ -128,9 +129,10 @@ interface ReadinessDecision {
 }
 
 interface ClientProfile {
-  id:    string;
-  name:  string;
-  email: string;
+  id:         string;
+  name:       string;
+  email:      string;
+  avatar_url: string | null;
 }
 
 interface SetLog {
@@ -439,14 +441,7 @@ export function TrainerClientDetailScreen({
             background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
             display: 'flex', alignItems: 'center', gap: 14,
           }}>
-            <div style={{
-              width: 52, height: 52, borderRadius: 16, flexShrink: 0,
-              background: `${t.primary}22`, color: t.primary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: 20, fontFamily: '"Plus Jakarta Sans",sans-serif',
-            }}>
-              {(selectedClient.name || '?').charAt(0).toUpperCase()}
-            </div>
+            <AvatarImage url={selectedClient.avatar_url} label={selectedClient.name || '?'} w={52} h={52} radius={16} dark={dark}/>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: textPri(dark) }}>{selectedClient.name}</div>
               <div style={{

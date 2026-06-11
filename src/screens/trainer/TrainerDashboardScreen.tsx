@@ -5,6 +5,7 @@ import { TextInput, VStack, HStack } from '@/ui';
 import { supabase } from '../../supabase';
 import { useAlerts } from '../../hooks/useAlerts';
 import { Icon } from '../../components/Icon';
+import { AvatarImage } from '../../components/Avatar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, ghostBtn } from '../../theme';
 import type { NavFn } from '../../types';
@@ -14,9 +15,10 @@ import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
 
 interface ClientProfile {
-  id:    string;
-  name:  string;
-  email: string;
+  id:         string;
+  name:       string;
+  email:      string;
+  avatar_url: string | null;
 }
 
 interface TrainerClient {
@@ -127,7 +129,7 @@ export function TrainerDashboardScreen({
     setLoading(true);
     const { data } = await supabase
       .from('trainer_clients')
-      .select('id, status, created_at, client:profiles!trainer_clients_client_id_fkey(id, name, email, role)')
+      .select('id, status, created_at, client:profiles!trainer_clients_client_id_fkey(id, name, email, role, avatar_url)')
       .eq('trainer_id', user.id)
       .in('status', ['active', 'pending'])
       .order('created_at', { ascending: false });
@@ -427,14 +429,7 @@ export function TrainerDashboardScreen({
             background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
             display: 'flex', alignItems: 'center', gap: 14,
           }}>
-            <div style={{
-              width: 42, height: 42, borderRadius: 14, flexShrink: 0,
-              background: `${t.primary}22`, color: t.primary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: 16, fontFamily: '"Plus Jakarta Sans",sans-serif',
-            }}>
-              {(tc.client?.name || '?').charAt(0).toUpperCase()}
-            </div>
+            <AvatarImage url={tc.client?.avatar_url} label={tc.client?.name || '?'} w={42} h={42} radius={14} dark={dark}/>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
                 {tc.client?.name || tr('trainer.dashboard.unknown')}
