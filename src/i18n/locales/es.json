@@ -287,6 +287,99 @@
       "disclaimerBold": "ℹ Predicción ≠ diagnóstico.",
       "disclaimerBody": "Todas las puntuaciones son probabilísticas y están destinadas a apoyar decisiones del entrenador, no reemplazando la evaluación profesional. Los datos sensibles se procesan localmente."
     },
+    "scoreDefs": {
+      "churnRisk": {
+        "name": "Riesgo de Abandono",
+        "desc": "Riesgo de abandono basado en la adherencia y el compromiso.",
+        "actionLow": "Contactar al alumno — revisar disponibilidad",
+        "actionHigh": "Monitorear tendencia"
+      },
+      "fatigueRisk": {
+        "name": "Riesgo de Fatiga",
+        "desc": "Acumulación de fatiga sistémica basada en RPE y sueño.",
+        "actionLow": "Considerar deload la próxima semana",
+        "actionHigh": "Mantener volumen actual"
+      },
+      "painRecurrence": {
+        "name": "Recurrencia de Dolor",
+        "desc": "Frecuencia de dolor recurrente en la misma región durante los últimos 14 días.",
+        "actionLow": "Activar Motor de Recurrencia de Dolor — sustituir ejercicio",
+        "actionHigh": "Monitorear región"
+      },
+      "progressionReadiness": {
+        "name": "Preparación para Progresión",
+        "desc": "Preparación para aumentar carga o volumen de forma segura.",
+        "actionLow": "Progresión segura disponible",
+        "actionHigh": "Mantener carga actual"
+      },
+      "sessionCompletion": {
+        "name": "Finalización de Sesiones",
+        "descAwait": "Tasa de finalización de las sesiones planificadas.",
+        "desc": "Tasa real de finalización de las sesiones programadas.",
+        "actionAwait": "Esperando datos",
+        "actionLow": "Revisar volumen del plan",
+        "actionHigh": "Mantener consistencia"
+      },
+      "planFit": {
+        "name": "Ajuste del Plan",
+        "descAwait": "Idoneidad del plan a la realidad del alumno.",
+        "desc": "Compatibilidad entre el plan prescrito y la ejecución real.",
+        "actionAwait": "Esperando datos",
+        "actionLow": "Replanificar: volumen incompatible con la rutina",
+        "actionHigh": "Plan bien ajustado"
+      },
+      "recoveryInstability": {
+        "name": "Inestabilidad de Recuperación",
+        "desc": "Inestabilidad en las señales de recuperación (sueño, RPE, dolor leve).",
+        "actionLow": "Investigar calidad del sueño y estrés",
+        "actionHigh": "Recuperación estable"
+      },
+      "responseCompatibility": {
+        "name": "Compatibilidad de Respuesta",
+        "desc": "Compatibilidad entre el estímulo y la respuesta del alumno.",
+        "actionLow": "Ajustar progresión — respuesta por debajo de lo esperado",
+        "actionHigh": "Progresión compatible"
+      },
+      "plateauRisk": {
+        "name": "Riesgo de Estancamiento",
+        "desc": "Riesgo de estancamiento basado en la variación de carga (3 semanas).",
+        "actionLow": "Variar el estímulo: técnica, volumen o frecuencia",
+        "actionHigh": "Progresión en curso"
+      }
+    },
+    "insightDefs": {
+      "readyToProgress": {
+        "title": "Listo para progresar",
+        "data": "Adherencia {{adh}}% · RPE estable · Sin dolor recurrente",
+        "interpretation": "Todos los indicadores apuntan a una preparación de carga.",
+        "action": "Aumentar carga 5–10% en el próximo ciclo"
+      },
+      "risingFatigue": {
+        "title": "Fatiga en aumento",
+        "data": "El RPE subió {{rpeDelta}} puntos en las últimas semanas",
+        "interpretation": "El aumento del esfuerzo percibido puede indicar acumulación de fatiga.",
+        "action": "Monitorear durante 2 sesiones antes de aplicar deload"
+      },
+      "painRecurrenceActivated": {
+        "title": "Motor de Recurrencia de Dolor activado",
+        "data_one": "{{count}} ocurrencia de dolor en 14 días",
+        "data_other": "{{count}} ocurrencias de dolor en 14 días",
+        "interpretation": "El dolor recurrente en la misma región indica riesgo estructural.",
+        "action": "Sustituir ejercicio y notificar al entrenador"
+      },
+      "planIncompatible": {
+        "title": "Plan incompatible con la rutina",
+        "data": "Ajuste del Plan: {{planFit}}%",
+        "interpretation": "Una alta tasa de sesiones parciales indica sobrecarga del plan.",
+        "action": "Solicitar revisión del plan al entrenador"
+      },
+      "dataBeingBuilt": {
+        "title": "Datos en construcción",
+        "data": "Historial aún insuficiente para análisis predictivo",
+        "interpretation": "Completa más sesiones para activar los indicadores.",
+        "action": "Continúa entrenando regularmente"
+      }
+    },
     "voice": {
       "title": "Pregunta sobre tu progreso.",
       "sub": "Interfaz de consulta por voz para tus datos de rendimiento.",

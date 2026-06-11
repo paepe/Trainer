@@ -4,20 +4,21 @@ export type AudienceTone = 'cyan' | 'coral' | 'amber' | 'green' | 'lavender';
 
 export interface PredictiveScore {
   score:       number;
-  name:        string;
+  nameKey:     string;
   code:        string;
-  desc:        string;
-  action:      string;
+  descKey:     string;
+  actionKey:   string;
   isGoodScore?: boolean;
 }
 
 export interface PerformanceInsight {
-  id:             string;
-  severity:       InsightSeverity;
-  title:          string;
-  data:           string;
-  interpretation: string;
-  action:         string;
+  id:                  string;
+  severity:            InsightSeverity;
+  titleKey:            string;
+  dataKey:             string;
+  dataParams?:         Record<string, unknown>;
+  interpretationKey:   string;
+  actionKey:           string;
 }
 
 export interface WeeklyStats {
@@ -32,7 +33,6 @@ export interface PainEventSummary {
   date:      string;
   region:    string;
   intensity: number;
-  exercise:  string | null;
   sessionId: string;
 }
 

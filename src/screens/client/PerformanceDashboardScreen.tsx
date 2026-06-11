@@ -263,8 +263,8 @@ function TelaOverview({
         <AIMessage
           title={tr('perf.overview.weekSummary')}
           tone={mainInsight.severity === 'positive' ? 'green' : mainInsight.severity === 'critical' ? 'coral' : 'cyan'}
-          body={mainInsight.data}
-          action={mainInsight.action}
+          body={tr(mainInsight.dataKey, mainInsight.dataParams ?? {})}
+          action={tr(mainInsight.actionKey)}
         />
       )}
 
@@ -314,9 +314,6 @@ function TelaOverview({
     </ScreenWrap>
   );
 }
-
-// Attach name to override TS "user" property warning (not a real prop)
-TelaOverview.defaultProps = {};
 
 // ── Screen 02 — Adherence ───────────────────────────────────────────────────────
 
@@ -677,7 +674,7 @@ function TelaScores({ data }: { data: M5Data }) {
               background: T.surf, border: `1px solid ${c}55`,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: T.text }}>{s.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: T.text }}>{tr(s.nameKey)}</span>
                 <span style={{
                   padding: '2px 6px', borderRadius: 4,
                   background: `${c}22`, color: c,
@@ -701,10 +698,10 @@ function TelaScores({ data }: { data: M5Data }) {
                 }}/>
               </div>
               <div style={{ fontSize: 10.5, color: T.textSec, lineHeight: 1.4, marginBottom: 4 }}>
-                {s.desc}
+                {tr(s.descKey)}
               </div>
               <div style={{ fontFamily: FF_MONO, fontSize: 9, color: T.textMute }}>
-                → {s.action}
+                → {tr(s.actionKey)}
               </div>
             </div>
           );
@@ -719,10 +716,10 @@ function TelaScores({ data }: { data: M5Data }) {
               <InsightCard
                 key={ins.id}
                 severity={ins.severity}
-                title={ins.title}
-                data={ins.data}
-                interp={ins.interpretation}
-                action={ins.action}
+                title={tr(ins.titleKey)}
+                data={tr(ins.dataKey, ins.dataParams ?? {})}
+                interp={tr(ins.interpretationKey)}
+                action={tr(ins.actionKey)}
               />
             ))}
           </div>
@@ -745,42 +742,67 @@ function TelaScores({ data }: { data: M5Data }) {
 
 // ── Voice query engine ────────────────────────────────────────────────────────
 
-function processVoiceQuery(q: string, data: M5Data): string {
+type VoiceIntent = 'summary' | 'fatigue' | 'churn' | 'progression' | 'sessions' | 'week' | 'pain' | 'sleep';
+
+// Keyword fallback for free-speech (STT) input — covers EN/PT/ES/DE so
+// recognized speech in any supported language maps to an intent.
+const VOICE_KEYWORDS: Record<VoiceIntent, string[]> = {
+  summary:     ['summary', 'monthly', 'resumo', 'mensal', 'resumen', 'mensual', 'zusammenfassung', 'monatlich'],
+  fatigue:     ['fatigue', 'fatigued', 'fadiga', 'cansaço', 'cansado', 'fatiga', 'cansado', 'erschöpfung', 'müde'],
+  churn:       ['dropout', 'churn', 'quit', 'desistir', 'abandono', 'abandonar', 'abbruch', 'aufgeben'],
+  progression: ['load', 'increase', 'progression', 'carga', 'aumentar', 'progressão', 'progresión', 'last', 'erhöhen', 'steigern'],
+  sessions:    ['sessions', 'completed', 'month', 'sessões', 'sessões completas', 'mês', 'sesiones', 'mes', 'einheiten', 'monat'],
+  week:        ['performance', 'week', 'desempenho', 'semana', 'rendimiento', 'semana', 'leistung', 'woche'],
+  pain:        ['pain', 'aching', 'hurt', 'dor', 'dores', 'doendo', 'dolor', 'duele', 'schmerz', 'schmerzen'],
+  sleep:       ['sleep', 'energy', 'sono', 'energia', 'sueño', 'energía', 'schlaf', 'energie'],
+};
+
+// Direct mapping for the suggested-question buttons (perf.voice.suggestions),
+// indexed positionally — avoids relying on keyword matches for translated text.
+const SUGGESTION_INTENTS: VoiceIntent[] = ['week', 'fatigue', 'progression', 'sessions', 'churn', 'summary'];
+
+function detectIntent(q: string): VoiceIntent | null {
+  const n = q.toLowerCase();
+  for (const [intent, keywords] of Object.entries(VOICE_KEYWORDS) as [VoiceIntent, string[]][]) {
+    if (keywords.some(kw => n.includes(kw))) return intent;
+  }
+  return null;
+}
+
+function processVoiceQuery(intent: VoiceIntent | null, data: M5Data): string {
   const tr = i18n.t;
-  const n   = q.toLowerCase();
   const adh = Math.round(data.adherenceRate * 100);
 
-  if (n.includes('summary') || n.includes('monthly')) {
-    return tr('perf.voice.responseSummary', { completed: data.completedSessions, planned: data.plannedSessions, adh, streak: data.workoutStreak, fatigueDesc: data.scores.fatigueRisk.desc });
+  switch (intent) {
+    case 'summary':
+      return tr('perf.voice.responseSummary', { completed: data.completedSessions, planned: data.plannedSessions, adh, streak: data.workoutStreak, fatigueDesc: tr(data.scores.fatigueRisk.descKey) });
+    case 'fatigue': {
+      const s = data.scores.fatigueRisk;
+      return tr('perf.voice.responseFatigue', { score: Math.round(s.score), desc: tr(s.descKey), action: tr(s.actionKey) });
+    }
+    case 'churn': {
+      const s = data.scores.churnRisk;
+      return tr('perf.voice.responseChurn', { score: Math.round(s.score), desc: tr(s.descKey), action: tr(s.actionKey) });
+    }
+    case 'progression': {
+      const s = data.scores.progressionReadiness;
+      return tr('perf.voice.responseProgression', { score: Math.round(s.score), action: tr(s.actionKey) });
+    }
+    case 'sessions':
+      return tr('perf.voice.responseSessions', { completed: data.completedSessions, planned: data.plannedSessions, adh, streak: data.workoutStreak });
+    case 'week': {
+      const last = data.weeklyStats[data.weeklyStats.length - 1];
+      if (!last) return tr('perf.voice.noData');
+      return tr('perf.voice.responseWeek', { sessions: last.sessions, rpe: last.rpe.toFixed(1), volume: last.volume });
+    }
+    case 'pain':
+      if (data.painEvents14d.length === 0) return tr('perf.voice.responsePainNone');
+      return tr('perf.voice.responsePain', { count: data.painEvents14d.length, region: data.primaryPainRegion ?? tr('perf.pain.unidentified') });
+    case 'sleep':
+      return tr('perf.voice.responseSleepEnergy', { sleep: data.sleepAvg.toFixed(1), energy: data.energyAvg.toFixed(1) });
+    default:
+      return tr('perf.voice.responseFallback');
   }
-  if (n.includes('fatigue') || n.includes('fatigued')) {
-    const s = data.scores.fatigueRisk;
-    return tr('perf.voice.responseFatigue', { score: Math.round(s.score), desc: s.desc, action: s.action });
-  }
-  if (n.includes('dropout') || n.includes('churn') || n.includes('quit')) {
-    const s = data.scores.churnRisk;
-    return tr('perf.voice.responseChurn', { score: Math.round(s.score), desc: s.desc, action: s.action });
-  }
-  if (n.includes('load') || n.includes('increase') || n.includes('progression')) {
-    const s = data.scores.progressionReadiness;
-    return tr('perf.voice.responseProgression', { score: Math.round(s.score), action: s.action });
-  }
-  if (n.includes('sessions') || n.includes('completed') || n.includes('month')) {
-    return tr('perf.voice.responseSessions', { completed: data.completedSessions, planned: data.plannedSessions, adh, streak: data.workoutStreak });
-  }
-  if (n.includes('performance') || n.includes('week')) {
-    const last = data.weeklyStats[data.weeklyStats.length - 1];
-    if (!last) return tr('perf.voice.noData');
-    return tr('perf.voice.responseWeek', { sessions: last.sessions, rpe: last.rpe.toFixed(1), volume: last.volume });
-  }
-  if (n.includes('pain') || n.includes('aching') || n.includes('hurt')) {
-    if (data.painEvents14d.length === 0) return tr('perf.voice.responsePainNone');
-    return tr('perf.voice.responsePain', { count: data.painEvents14d.length, region: data.primaryPainRegion ?? tr('perf.pain.unidentified') });
-  }
-  if (n.includes('sleep') || n.includes('energy')) {
-    return tr('perf.voice.responseSleepEnergy', { sleep: data.sleepAvg.toFixed(1), energy: data.energyAvg.toFixed(1) });
-  }
-  return tr('perf.voice.responseFallback');
 }
 
 // ── Screen 06 — Voice Analytics ───────────────────────────────────────────────────
@@ -792,9 +814,16 @@ function TelaVoz({ data }: { data: M5Data }) {
   const [listening, setListening] = React.useState(false);
   const [noSupport, setNoSupport] = React.useState(false);
 
-  const process = (q: string) => {
+  // Free-speech (STT) input: detect intent via multi-language keyword matching.
+  const processFreeText = (q: string) => {
     setQuery(q);
-    setResponse(processVoiceQuery(q, data));
+    setResponse(processVoiceQuery(detectIntent(q), data));
+  };
+
+  // Suggested-question button: intent is known positionally, no keyword matching needed.
+  const processSuggestion = (q: string, index: number) => {
+    setQuery(q);
+    setResponse(processVoiceQuery(SUGGESTION_INTENTS[index] ?? null, data));
   };
 
   const startListening = () => {
@@ -812,7 +841,7 @@ function TelaVoz({ data }: { data: M5Data }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onresult = (e: any) => {
       setListening(false);
-      process(e.results[0][0].transcript as string);
+      processFreeText(e.results[0][0].transcript as string);
     };
     rec.onerror = () => setListening(false);
     rec.onend   = () => setListening(false);
@@ -884,10 +913,10 @@ function TelaVoz({ data }: { data: M5Data }) {
       {/* Suggested questions */}
       <Section title={tr('perf.voice.suggestedQuestions')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {questions.map(q => (
+          {questions.map((q, i) => (
             <button
               key={q}
-              onClick={() => process(q)}
+              onClick={() => processSuggestion(q, i)}
               style={{
                 padding: '9px 12px', borderRadius: 999,
                 background: T.surf, border: `1px solid ${T.border}`,

@@ -290,6 +290,99 @@
       "disclaimerBold": "ℹ Prediction ≠ diagnosis.",
       "disclaimerBody": "All scores are probabilistic and are intended to support personal trainer decisions, not replace professional evaluation. Sensitive data is processed locally."
     },
+    "scoreDefs": {
+      "churnRisk": {
+        "name": "Churn Risk",
+        "desc": "Risk of dropout based on adherence and engagement.",
+        "actionLow": "Contact student — review availability",
+        "actionHigh": "Monitor trend"
+      },
+      "fatigueRisk": {
+        "name": "Fatigue Risk",
+        "desc": "Systemic fatigue buildup based on RPE and sleep.",
+        "actionLow": "Consider deload next week",
+        "actionHigh": "Maintain current volume"
+      },
+      "painRecurrence": {
+        "name": "Pain Recurrence",
+        "desc": "Frequency of recurring pain in the same region over 14 days.",
+        "actionLow": "Activate Pain Recurrence Engine — replace exercise",
+        "actionHigh": "Monitor region"
+      },
+      "progressionReadiness": {
+        "name": "Progression Readiness",
+        "desc": "Readiness to increase load or volume safely.",
+        "actionLow": "Safe progression available",
+        "actionHigh": "Maintain current load"
+      },
+      "sessionCompletion": {
+        "name": "Session Completion",
+        "descAwait": "Completion rate of planned sessions.",
+        "desc": "Actual completion rate of scheduled sessions.",
+        "actionAwait": "Await data",
+        "actionLow": "Review plan volume",
+        "actionHigh": "Maintain consistency"
+      },
+      "planFit": {
+        "name": "Plan Fit",
+        "descAwait": "Plan suitability to student reality.",
+        "desc": "Compatibility between prescribed plan and actual execution.",
+        "actionAwait": "Await data",
+        "actionLow": "Replan: volume incompatible with routine",
+        "actionHigh": "Plan well adjusted"
+      },
+      "recoveryInstability": {
+        "name": "Recovery Instability",
+        "desc": "Instability in recovery signals (sleep, RPE, mild pain).",
+        "actionLow": "Investigate sleep quality and stress",
+        "actionHigh": "Recovery stable"
+      },
+      "responseCompatibility": {
+        "name": "Response Compatibility",
+        "desc": "Compatibility between stimulus and student response.",
+        "actionLow": "Adjust progression — response below expected",
+        "actionHigh": "Compatible progression"
+      },
+      "plateauRisk": {
+        "name": "Plateau Risk",
+        "desc": "Risk of stagnation based on load variation (3 weeks).",
+        "actionLow": "Vary stimulus: technique, volume or frequency",
+        "actionHigh": "Progression in progress"
+      }
+    },
+    "insightDefs": {
+      "readyToProgress": {
+        "title": "Ready to progress",
+        "data": "Adherence {{adh}}% · Stable RPE · No recurring pain",
+        "interpretation": "All indicators point to load readiness.",
+        "action": "Increase load 5–10% in next cycle"
+      },
+      "risingFatigue": {
+        "title": "Rising fatigue",
+        "data": "RPE rose {{rpeDelta}} pts in recent weeks",
+        "interpretation": "Increasing perceived effort may indicate fatigue buildup.",
+        "action": "Monitor for 2 sessions before applying deload"
+      },
+      "painRecurrenceActivated": {
+        "title": "Pain Recurrence Engine activated",
+        "data_one": "{{count}} pain occurrence in 14 days",
+        "data_other": "{{count}} pain occurrences in 14 days",
+        "interpretation": "Recurring pain in the same region indicates structural risk.",
+        "action": "Replace exercise and notify trainer"
+      },
+      "planIncompatible": {
+        "title": "Plan incompatible with routine",
+        "data": "Plan Fit: {{planFit}}%",
+        "interpretation": "High rate of partial sessions indicates plan overload.",
+        "action": "Request plan review from trainer"
+      },
+      "dataBeingBuilt": {
+        "title": "Data being built",
+        "data": "History still insufficient for predictive analysis",
+        "interpretation": "Complete more sessions to activate indicators.",
+        "action": "Continue training regularly"
+      }
+    },
     "voice": {
       "title": "Ask about your progress.",
       "sub": "Voice query interface for your performance data.",

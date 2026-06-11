@@ -290,6 +290,99 @@
       "disclaimerBold": "ℹ Vorhersage ≠ Diagnose.",
       "disclaimerBody": "Alle Scores sind probabilistisch und dienen zur Unterstützung von Trainerentscheidungen, nicht als Ersatz für professionelle Beurteilung. Sensible Daten werden lokal verarbeitet."
     },
+    "scoreDefs": {
+      "churnRisk": {
+        "name": "Abbruchrisiko",
+        "desc": "Abbruchrisiko basierend auf Trainingstreue und Engagement.",
+        "actionLow": "Athlet kontaktieren — Verfügbarkeit prüfen",
+        "actionHigh": "Trend beobachten"
+      },
+      "fatigueRisk": {
+        "name": "Erschöpfungsrisiko",
+        "desc": "Systemischer Erschöpfungsaufbau basierend auf RPE und Schlaf.",
+        "actionLow": "Deload für nächste Woche erwägen",
+        "actionHigh": "Aktuelles Volumen beibehalten"
+      },
+      "painRecurrence": {
+        "name": "Schmerz-Wiederkehr",
+        "desc": "Häufigkeit wiederkehrender Schmerzen in derselben Region über 14 Tage.",
+        "actionLow": "Schmerz-Wiederkehr-Engine aktivieren — Übung ersetzen",
+        "actionHigh": "Region beobachten"
+      },
+      "progressionReadiness": {
+        "name": "Progressionsbereitschaft",
+        "desc": "Bereitschaft, Last oder Volumen sicher zu erhöhen.",
+        "actionLow": "Sichere Progression verfügbar",
+        "actionHigh": "Aktuelle Last beibehalten"
+      },
+      "sessionCompletion": {
+        "name": "Sitzungsabschluss",
+        "descAwait": "Abschlussrate der geplanten Einheiten.",
+        "desc": "Tatsächliche Abschlussrate der geplanten Einheiten.",
+        "actionAwait": "Daten ausstehend",
+        "actionLow": "Planvolumen überprüfen",
+        "actionHigh": "Konsistenz beibehalten"
+      },
+      "planFit": {
+        "name": "Plan-Passung",
+        "descAwait": "Eignung des Plans für die Realität des Athleten.",
+        "desc": "Kompatibilität zwischen verordnetem Plan und tatsächlicher Ausführung.",
+        "actionAwait": "Daten ausstehend",
+        "actionLow": "Neu planen: Volumen unvereinbar mit Routine",
+        "actionHigh": "Plan gut abgestimmt"
+      },
+      "recoveryInstability": {
+        "name": "Erholungsinstabilität",
+        "desc": "Instabilität der Erholungssignale (Schlaf, RPE, leichter Schmerz).",
+        "actionLow": "Schlafqualität und Stress untersuchen",
+        "actionHigh": "Erholung stabil"
+      },
+      "responseCompatibility": {
+        "name": "Reaktionskompatibilität",
+        "desc": "Kompatibilität zwischen Reiz und Reaktion des Athleten.",
+        "actionLow": "Progression anpassen — Reaktion unter Erwartung",
+        "actionHigh": "Kompatible Progression"
+      },
+      "plateauRisk": {
+        "name": "Plateau-Risiko",
+        "desc": "Stagnationsrisiko basierend auf Lastveränderung (3 Wochen).",
+        "actionLow": "Reiz variieren: Technik, Volumen oder Frequenz",
+        "actionHigh": "Progression im Gange"
+      }
+    },
+    "insightDefs": {
+      "readyToProgress": {
+        "title": "Bereit für Progression",
+        "data": "Trainingstreue {{adh}}% · Stabiler RPE · Keine wiederkehrenden Schmerzen",
+        "interpretation": "Alle Indikatoren deuten auf Bereitschaft für mehr Last hin.",
+        "action": "Last im nächsten Zyklus um 5–10% erhöhen"
+      },
+      "risingFatigue": {
+        "title": "Steigende Erschöpfung",
+        "data": "RPE ist in den letzten Wochen um {{rpeDelta}} Punkte gestiegen",
+        "interpretation": "Eine steigende wahrgenommene Anstrengung kann auf Erschöpfungsaufbau hindeuten.",
+        "action": "2 Einheiten beobachten, bevor ein Deload angewendet wird"
+      },
+      "painRecurrenceActivated": {
+        "title": "Schmerz-Wiederkehr-Engine aktiviert",
+        "data_one": "{{count}} Schmerzvorfall in 14 Tagen",
+        "data_other": "{{count}} Schmerzvorfälle in 14 Tagen",
+        "interpretation": "Wiederkehrender Schmerz in derselben Region weist auf strukturelles Risiko hin.",
+        "action": "Übung ersetzen und Trainer benachrichtigen"
+      },
+      "planIncompatible": {
+        "title": "Plan unvereinbar mit Routine",
+        "data": "Plan-Passung: {{planFit}}%",
+        "interpretation": "Eine hohe Rate an Teilsitzungen weist auf eine Planüberlastung hin.",
+        "action": "Planüberprüfung beim Trainer anfordern"
+      },
+      "dataBeingBuilt": {
+        "title": "Daten werden aufgebaut",
+        "data": "Verlauf noch unzureichend für prädiktive Analyse",
+        "interpretation": "Mehr Einheiten abschließen, um Indikatoren zu aktivieren.",
+        "action": "Weiterhin regelmäßig trainieren"
+      }
+    },
     "voice": {
       "title": "Frage nach deinem Fortschritt.",
       "sub": "Sprachabfrageoberfläche für deine Leistungsdaten.",

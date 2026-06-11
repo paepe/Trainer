@@ -90,10 +90,10 @@ function computeChurnRisk(
   if (missedSessions >= 3) score += 10;
   return {
     score: Math.min(score, 100),
-    name: 'Churn Risk',
+    nameKey: 'perf.scoreDefs.churnRisk.name',
     code: 'churn_risk_score',
-    desc: 'Risk of dropout based on adherence and engagement.',
-    action: adherenceRate < 0.60 ? 'Contact student — review availability' : 'Monitor trend',
+    descKey: 'perf.scoreDefs.churnRisk.desc',
+    actionKey: adherenceRate < 0.60 ? 'perf.scoreDefs.churnRisk.actionLow' : 'perf.scoreDefs.churnRisk.actionHigh',
   };
 }
 
@@ -104,20 +104,20 @@ function computeFatigueRisk(rpeDelta: number, sleepAvg: number): PredictiveScore
   else if (sleepAvg < 7) score += 10;
   return {
     score: Math.min(score, 100),
-    name: 'Fatigue Risk',
+    nameKey: 'perf.scoreDefs.fatigueRisk.name',
     code: 'fatigue_risk_score',
-    desc: 'Systemic fatigue buildup based on RPE and sleep.',
-    action: score >= 70 ? 'Consider deload next week' : 'Maintain current volume',
+    descKey: 'perf.scoreDefs.fatigueRisk.desc',
+    actionKey: score >= 70 ? 'perf.scoreDefs.fatigueRisk.actionLow' : 'perf.scoreDefs.fatigueRisk.actionHigh',
   };
 }
 
 function computePainRecurrence(painCount14d: number): PredictiveScore {
   return {
     score: Math.min(10 + painCount14d * 22, 100),
-    name: 'Pain Recurrence',
+    nameKey: 'perf.scoreDefs.painRecurrence.name',
     code: 'pain_recurrence_score',
-    desc: 'Frequency of recurring pain in the same region over 14 days.',
-    action: painCount14d >= 3 ? 'Activate Pain Recurrence Engine — replace exercise' : 'Monitor region',
+    descKey: 'perf.scoreDefs.painRecurrence.desc',
+    actionKey: painCount14d >= 3 ? 'perf.scoreDefs.painRecurrence.actionLow' : 'perf.scoreDefs.painRecurrence.actionHigh',
   };
 }
 
@@ -132,10 +132,10 @@ function computeProgressionReadiness(
   score += painCount === 0 ? 25 : 5;
   return {
     score: Math.min(score, 100),
-    name: 'Progression Readiness',
+    nameKey: 'perf.scoreDefs.progressionReadiness.name',
     code: 'progression_readiness_score',
-    desc: 'Readiness to increase load or volume safely.',
-    action: score >= 75 ? 'Safe progression available' : 'Maintain current load',
+    descKey: 'perf.scoreDefs.progressionReadiness.desc',
+    actionKey: score >= 75 ? 'perf.scoreDefs.progressionReadiness.actionLow' : 'perf.scoreDefs.progressionReadiness.actionHigh',
     isGoodScore: true,
   };
 }
@@ -147,8 +147,11 @@ function computeSessionCompletion(
 ): PredictiveScore {
   if (planned === 0) {
     return {
-      score: 80, name: 'Session Completion', code: 'session_completion_score',
-      desc: 'Completion rate of planned sessions.', action: 'Await data',
+      score: 80,
+      nameKey: 'perf.scoreDefs.sessionCompletion.name',
+      code: 'session_completion_score',
+      descKey: 'perf.scoreDefs.sessionCompletion.descAwait',
+      actionKey: 'perf.scoreDefs.sessionCompletion.actionAwait',
       isGoodScore: true,
     };
   }
@@ -156,10 +159,10 @@ function computeSessionCompletion(
   const score = Math.max(0, Math.min(100, (completed + partial * 0.5) / planned * 90 - partialRate * 30));
   return {
     score,
-    name: 'Session Completion',
+    nameKey: 'perf.scoreDefs.sessionCompletion.name',
     code: 'session_completion_score',
-    desc: 'Actual completion rate of scheduled sessions.',
-    action: score < 60 ? 'Review plan volume' : 'Maintain consistency',
+    descKey: 'perf.scoreDefs.sessionCompletion.desc',
+    actionKey: score < 60 ? 'perf.scoreDefs.sessionCompletion.actionLow' : 'perf.scoreDefs.sessionCompletion.actionHigh',
     isGoodScore: true,
   };
 }
@@ -167,8 +170,11 @@ function computeSessionCompletion(
 function computePlanFit(partial: number, planned: number): PredictiveScore {
   if (planned === 0) {
     return {
-      score: 85, name: 'Plan Fit', code: 'plan_fit_score',
-      desc: 'Plan suitability to student reality.', action: 'Await data',
+      score: 85,
+      nameKey: 'perf.scoreDefs.planFit.name',
+      code: 'plan_fit_score',
+      descKey: 'perf.scoreDefs.planFit.descAwait',
+      actionKey: 'perf.scoreDefs.planFit.actionAwait',
       isGoodScore: true,
     };
   }
@@ -176,10 +182,10 @@ function computePlanFit(partial: number, planned: number): PredictiveScore {
   const score = Math.max(0, Math.min(100, 85 - partialRate * 80));
   return {
     score,
-    name: 'Plan Fit',
+    nameKey: 'perf.scoreDefs.planFit.name',
     code: 'plan_fit_score',
-    desc: 'Compatibility between prescribed plan and actual execution.',
-    action: partialRate > 0.30 ? 'Replan: volume incompatible with routine' : 'Plan well adjusted',
+    descKey: 'perf.scoreDefs.planFit.desc',
+    actionKey: partialRate > 0.30 ? 'perf.scoreDefs.planFit.actionLow' : 'perf.scoreDefs.planFit.actionHigh',
     isGoodScore: true,
   };
 }
@@ -197,10 +203,10 @@ function computeRecoveryInstability(
   if (painLightRecurrent) score += 15;
   return {
     score: Math.min(score, 100),
-    name: 'Recovery Instability',
+    nameKey: 'perf.scoreDefs.recoveryInstability.name',
     code: 'recovery_instability_score',
-    desc: 'Instability in recovery signals (sleep, RPE, mild pain).',
-    action: score >= 50 ? 'Investigate sleep quality and stress' : 'Recovery stable',
+    descKey: 'perf.scoreDefs.recoveryInstability.desc',
+    actionKey: score >= 50 ? 'perf.scoreDefs.recoveryInstability.actionLow' : 'perf.scoreDefs.recoveryInstability.actionHigh',
   };
 }
 
@@ -208,10 +214,10 @@ function computeResponseCompatibility(loadDeltaPct: number, volDeltaPct: number)
   const score = Math.max(0, Math.min(100, 60 + loadDeltaPct * 60 + volDeltaPct * 40));
   return {
     score,
-    name: 'Response Compatibility',
+    nameKey: 'perf.scoreDefs.responseCompatibility.name',
     code: 'response_compatibility_score',
-    desc: 'Compatibility between stimulus and student response.',
-    action: score < 50 ? 'Adjust progression — response below expected' : 'Compatible progression',
+    descKey: 'perf.scoreDefs.responseCompatibility.desc',
+    actionKey: score < 50 ? 'perf.scoreDefs.responseCompatibility.actionLow' : 'perf.scoreDefs.responseCompatibility.actionHigh',
     isGoodScore: true,
   };
 }
@@ -220,10 +226,10 @@ function computePlateauRisk(loadChange3w: number): PredictiveScore {
   const score = loadChange3w < 0.03 ? 60 : loadChange3w < 0.06 ? 35 : 15;
   return {
     score,
-    name: 'Plateau Risk',
+    nameKey: 'perf.scoreDefs.plateauRisk.name',
     code: 'plateau_risk_score',
-    desc: 'Risk of stagnation based on load variation (3 weeks).',
-    action: score >= 60 ? 'Vary stimulus: technique, volume or frequency' : 'Progression in progress',
+    descKey: 'perf.scoreDefs.plateauRisk.desc',
+    actionKey: score >= 60 ? 'perf.scoreDefs.plateauRisk.actionLow' : 'perf.scoreDefs.plateauRisk.actionHigh',
   };
 }
 
@@ -241,50 +247,54 @@ function generateInsights(params: {
   if (params.progressionScore >= 75) {
     insights.push({
       id: 'pi-1', severity: 'positive',
-      title: 'Ready to progress',
-      data: `Adherence ${Math.round(params.adherenceRate * 100)}% · Stable RPE · No recurring pain`,
-      interpretation: 'All indicators point to load readiness.',
-      action: 'Increase load 5–10% in next cycle',
+      titleKey: 'perf.insightDefs.readyToProgress.title',
+      dataKey: 'perf.insightDefs.readyToProgress.data',
+      dataParams: { adh: Math.round(params.adherenceRate * 100) },
+      interpretationKey: 'perf.insightDefs.readyToProgress.interpretation',
+      actionKey: 'perf.insightDefs.readyToProgress.action',
     });
   }
 
   if (params.rpeDelta > 0.8) {
     insights.push({
       id: 'pi-2', severity: 'warning',
-      title: 'Rising fatigue',
-      data: `RPE rose ${params.rpeDelta.toFixed(1)} pts in recent weeks`,
-      interpretation: 'Increasing perceived effort may indicate fatigue buildup.',
-      action: 'Monitor for 2 sessions before applying deload',
+      titleKey: 'perf.insightDefs.risingFatigue.title',
+      dataKey: 'perf.insightDefs.risingFatigue.data',
+      dataParams: { rpeDelta: params.rpeDelta.toFixed(1) },
+      interpretationKey: 'perf.insightDefs.risingFatigue.interpretation',
+      actionKey: 'perf.insightDefs.risingFatigue.action',
     });
   }
 
   if (params.painCount14d >= 3) {
     insights.push({
       id: 'pi-3', severity: 'critical',
-      title: 'Pain Recurrence Engine activated',
-      data: `${params.painCount14d} pain occurrences in 14 days`,
-      interpretation: 'Recurring pain in the same region indicates structural risk.',
-      action: 'Replace exercise and notify trainer',
+      titleKey: 'perf.insightDefs.painRecurrenceActivated.title',
+      dataKey: 'perf.insightDefs.painRecurrenceActivated.data',
+      dataParams: { count: params.painCount14d },
+      interpretationKey: 'perf.insightDefs.painRecurrenceActivated.interpretation',
+      actionKey: 'perf.insightDefs.painRecurrenceActivated.action',
     });
   }
 
   if (params.planFitScore < 50) {
     insights.push({
       id: 'pi-4', severity: 'warning',
-      title: 'Plan incompatible with routine',
-      data: `Plan Fit: ${Math.round(params.planFitScore)}%`,
-      interpretation: 'High rate of partial sessions indicates plan overload.',
-      action: 'Request plan review from trainer',
+      titleKey: 'perf.insightDefs.planIncompatible.title',
+      dataKey: 'perf.insightDefs.planIncompatible.data',
+      dataParams: { planFit: Math.round(params.planFitScore) },
+      interpretationKey: 'perf.insightDefs.planIncompatible.interpretation',
+      actionKey: 'perf.insightDefs.planIncompatible.action',
     });
   }
 
   if (insights.length === 0) {
     insights.push({
       id: 'pi-0', severity: 'info',
-      title: 'Data being built',
-      data: 'History still insufficient for predictive analysis',
-      interpretation: 'Complete more sessions to activate indicators.',
-      action: 'Continue training regularly',
+      titleKey: 'perf.insightDefs.dataBeingBuilt.title',
+      dataKey: 'perf.insightDefs.dataBeingBuilt.data',
+      interpretationKey: 'perf.insightDefs.dataBeingBuilt.interpretation',
+      actionKey: 'perf.insightDefs.dataBeingBuilt.action',
     });
   }
 
@@ -409,18 +419,27 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
     ? (completedSessions + partialSessions * 0.5) / plannedSessions
     : 0;
 
-  // Streak: consecutive days with a completed session ending today
+  // Streak: consecutive days with a completed session ending today.
+  // Lookback capped at the same 42-day window used for `sessions` (since6w),
+  // plus margin — sessions outside that window can't contribute anyway.
+  const MAX_STREAK_LOOKBACK_DAYS = 60;
   const completedDates = new Set(
     sessions.filter(s => s.status === 'completed').map(s => new Date(s.started_at).toDateString()),
   );
   let workoutStreak = 0;
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < MAX_STREAK_LOOKBACK_DAYS; i++) {
     if (completedDates.has(new Date(Date.now() - i * 86_400_000).toDateString())) {
       workoutStreak++;
     } else if (i > 0) {
       break;
     }
   }
+
+  // Weeks active: based on the first session in the 6-week window, capped to
+  // the window size (6) and floored at 1 to avoid div-by-zero in "frequency".
+  const weeksActive = sessions.length > 0
+    ? Math.max(1, Math.min(6, Math.ceil((daysSince(sessions[0]!.started_at) + 1) / 7)))
+    : 0;
 
   // Week strip (last 7 Mon→Sun)
   const weekDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
@@ -495,6 +514,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
     ? checkins.reduce((a, c) => a + (c.energy_level ?? 7), 0) / checkins.length
     : 7;
   const checkinRate = plannedSessions > 0 ? Math.min(checkins.length / plannedSessions, 1) : 0;
+  const checkinDropRate = plannedSessions > 0 ? 1 - checkinRate : 0;
 
   // ── Pain (14d) ────────────────────────────────────────────────────────────
   const pain14dRaw = painEvents.filter(e => daysSince(e.reported_at) <= 14);
@@ -502,7 +522,6 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
       date:      `${daysSince(e.reported_at)}d ago`,
     region:    e.body_region,
     intensity: e.intensity,
-    exercise:  null,
     sessionId: e.session_id,
   }));
 
@@ -536,7 +555,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
     pain14dRaw.some(e => e.intensity <= 4);
 
   const scores = {
-    churnRisk:             computeChurnRisk(adherenceRate, 0, missedSessions),
+    churnRisk:             computeChurnRisk(adherenceRate, checkinDropRate, missedSessions),
     fatigueRisk:           computeFatigueRisk(rpeDelta, sleepAvg),
     painRecurrence:        computePainRecurrence(painRecurrenceCount),
     progressionReadiness:  computeProgressionReadiness(adherenceRate, rpeAvg, painRecurrenceCount),
@@ -556,7 +575,7 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
   });
 
   return {
-    weeksActive:        6,
+    weeksActive,
     plannedSessions,
     completedSessions,
     partialSessions,
