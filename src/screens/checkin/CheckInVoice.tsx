@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BCP47 } from '../../i18n';
 import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outlineBtn } from '../../theme';
 import { Spinner } from '../../ui';
 import { friendlyError } from '../../lib/friendlyError';
 import { cleanupVoiceNote } from '../../lib/cleanupVoiceNote';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import type { CheckInVoice as CheckInVoiceData } from '../../types/checkin-v2';
 
 interface CheckInVoiceProps {
@@ -15,91 +15,34 @@ interface CheckInVoiceProps {
   onBack:   () => void;
 }
 
-// Web Speech API — defined locally to avoid lib.dom variance across tsconfigs
-interface RecognitionLike {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  onresult: ((e: SpeechRecognitionEvent) => void) | null;
-  onerror:  ((e: Event) => void) | null;
-  onend:    (() => void) | null;
-  start(): void;
-  stop():  void;
-}
-interface RecognitionCtor { new(): RecognitionLike }
-
-interface WindowWithSpeechRecognition {
-  SpeechRecognition?:        RecognitionCtor;
-  webkitSpeechRecognition?:  RecognitionCtor;
-}
-
-function getSpeechRecognition(): RecognitionCtor | null {
-  if (typeof window === 'undefined') return null;
-  const w = window as unknown as WindowWithSpeechRecognition;
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
-}
-
 type ParseState = 'idle' | 'parsing' | 'done' | 'error';
 
 export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: CheckInVoiceProps) {
-  const { t: tr, i18n } = useTranslation();
-  const [transcript, setTranscript] = React.useState('');
-  const [interim, setInterim]       = React.useState('');
-  const [listening, setListening]   = React.useState(false);
+  const { t: tr } = useTranslation();
   const [parseState, setParseState] = React.useState<ParseState>('idle');
   const [parseError, setParseError] = React.useState('');
-  const recognitionRef = React.useRef<RecognitionLike | null>(null);
-  const supported = !!getSpeechRecognition();
+  const [manualText, setManualText] = React.useState<string | null>(null);
 
-  const startListening = () => {
-    const SR = getSpeechRecognition();
-    if (!SR) return;
-
-    const rec = new SR();
-    rec.lang = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
-    rec.continuous = true;
-    rec.interimResults = true;
-
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      let final = '';
-      let inter = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i];
-        if (!r) continue;
-        if (r.isFinal) final += r[0]?.transcript ?? '';
-        else           inter += r[0]?.transcript ?? '';
-      }
-      if (final) setTranscript(prev => prev + final);
-      setInterim(inter);
-    };
-
-    rec.onerror = (e: Event) => {
-      setListening(false);
-      const errType = (e as any).error as string | undefined;
-      if (errType === 'not-allowed')  setParseError(tr('checkin.voice.errMicDenied'));
-      else if (errType === 'no-speech') setParseError(tr('checkin.voice.errNoSpeech'));
+  const { supported, listening, transcript, interim, start, stop } = useSpeechRecognition({
+    onError: type => {
+      if (type === 'not-allowed') setParseError(tr('checkin.voice.errMicDenied'));
+      else if (type === 'no-speech') setParseError(tr('checkin.voice.errNoSpeech'));
       else setParseError(tr('checkin.voice.errMic'));
-    };
-    rec.onend   = () => { setListening(false); setInterim(''); };
-
-    rec.start();
-    recognitionRef.current = rec;
-    setListening(true);
-  };
-
-  const stopListening = () => {
-    recognitionRef.current?.stop();
-    setListening(false);
-    setInterim('');
-  };
+    },
+  });
 
   const toggleMic = () => {
-    if (listening) stopListening();
-    else           startListening();
+    if (listening) { stop(); return; }
+    setManualText(null);
+    start();
   };
 
+  const displayText = manualText ?? transcript;
+  const fullText = displayText + (interim ? ` ${interim}` : '');
+  const canSubmit = fullText.trim().length > 0 && parseState !== 'parsing';
+
   const handleSubmit = async () => {
-    const raw = (transcript + ' ' + interim).trim();
+    const raw = fullText.trim();
     if (!raw) return;
 
     setParseState('parsing');
@@ -133,9 +76,6 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
       clearTimeout(timeout);
     }
   };
-
-  const fullText = transcript + (interim ? ` ${interim}` : '');
-  const canSubmit = fullText.trim().length > 0 && parseState !== 'parsing';
 
   return (
     <div style={{ padding: '20px 20px 32px', display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
@@ -182,8 +122,8 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
         </div>
 
         <textarea
-          value={transcript}
-          onChange={e => { setTranscript(e.target.value); setInterim(''); }}
+          value={displayText}
+          onChange={e => setManualText(e.target.value)}
           placeholder={tr('checkin.voice.placeholder')}
           style={{
             flex: 1, background: 'none', border: 'none', outline: 'none',

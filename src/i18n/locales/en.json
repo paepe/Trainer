@@ -395,6 +395,9 @@
       "noData": "No performance data recorded yet.",
       "kicker": "VOICE · CONVERSATIONAL ANALYSIS",
       "notSupported": "Voice recognition not supported in this browser. Use the questions below.",
+      "errMicDenied": "Microphone permission denied.",
+      "errNoSpeech": "No speech detected. Try again.",
+      "errMic": "Microphone error. Try again.",
       "suggestions": [
         "How was my performance this week?",
         "Am I at risk of fatigue?",

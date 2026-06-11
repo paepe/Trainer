@@ -395,6 +395,9 @@
       "noData": "Noch keine Leistungsdaten aufgezeichnet.",
       "kicker": "STIMME · KONVERSATIONSANALYSE",
       "notSupported": "Spracherkennung in diesem Browser nicht unterstützt. Verwende die Fragen unten.",
+      "errMicDenied": "Mikrofonzugriff verweigert.",
+      "errNoSpeech": "Keine Sprache erkannt. Versuche es erneut.",
+      "errMic": "Mikrofonfehler. Versuche es erneut.",
       "suggestions": [
         "Wie war meine Leistung diese Woche?",
         "Bin ich erschöpfungsgefährdet?",

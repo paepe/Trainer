@@ -2,54 +2,14 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { THEME_VARS as DARK } from '../../theme/tokens';
-import i18n, { BCP47 } from '../../i18n';
 import { useTheme } from '../../contexts';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 
 interface VoiceBarProps {
   onTranscript: (text: string) => void;
   /** Fired when dictation stops — the right moment to clean up the accumulated text. */
   onStop?:      () => void;
   hint?:        string;
-}
-
-interface SpeechRecognitionEvent extends Event {
-  resultIndex: number;
-  results:     SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionResultList {
-  length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionResult {
-  isFinal: boolean;
-  length:  number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-type SRCtor = new () => {
-  lang:           string;
-  continuous:     boolean;
-  interimResults: boolean;
-  start(): void;
-  stop():  void;
-  onresult: ((e: SpeechRecognitionEvent) => void) | null;
-  onerror:  ((e: Event) => void) | null;
-  onend:    (() => void) | null;
-};
-
-function getSpeechRecognition(): SRCtor | null {
-  if (typeof window === 'undefined') return null;
-  const w = window as unknown as Record<string, unknown>;
-  return (w['SpeechRecognition'] ?? w['webkitSpeechRecognition'] ?? null) as SRCtor | null;
 }
 
 export const VoiceBar: React.FC<VoiceBarProps> = ({
@@ -60,69 +20,36 @@ export const VoiceBar: React.FC<VoiceBarProps> = ({
   const { t: theme } = useTheme();
   const { t: tr } = useTranslation();
   const effectiveHint = hint ?? tr('coachDna.components.voiceBar.dictateHint');
-  const [active, setActive]   = React.useState(false);
-  const [interim, setInterim] = React.useState('');
-  const [error, setError]     = React.useState<string | null>(null);
-  const recRef = React.useRef<InstanceType<SRCtor> | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+  const lastFinalLenRef = React.useRef(0);
 
-  const SR = getSpeechRecognition();
-  const supported = SR !== null;
-
-  const stop = () => {
-    recRef.current?.stop();
-    setActive(false);
-    setInterim('');
-    onStop?.();
-  };
+  const { supported, listening: active, interim, start, stop: stopRecognition } = useSpeechRecognition({
+    onResult: final => {
+      const delta = final.slice(lastFinalLenRef.current);
+      lastFinalLenRef.current = final.length;
+      if (delta) onTranscript(delta);
+    },
+    onEnd: () => onStop?.(),
+    onError: type => {
+      if (type === 'not-allowed') setError(tr('coachDna.components.voiceBar.micDenied'));
+      else if (type === 'no-speech') setError(tr('coachDna.components.voiceBar.noSpeech'));
+      else setError(tr('coachDna.components.voiceBar.speechError'));
+    },
+  });
 
   const toggle = () => {
     if (!supported) return;
-    if (active) { stop(); return; }
-
+    if (active) { stopRecognition(); return; }
     setError(null);
-    const rec = new SR();
-    rec.lang            = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
-    rec.continuous      = true;
-    rec.interimResults  = true;
-    recRef.current = rec;
-
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      let final = '';
-      let inter = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i] as SpeechRecognitionResult | undefined;
-        if (!r) continue;
-        const transcript = r[0]?.transcript ?? '';
-        if (r.isFinal) final += transcript;
-        else            inter += transcript;
-      }
-      if (final) onTranscript(final);
-      setInterim(inter);
-    };
-
-    rec.onerror = (e: Event) => {
-      const err = (e as unknown as Record<string, unknown>).error as string | undefined;
-      if (err === 'not-allowed') setError(tr('coachDna.components.voiceBar.micDenied'));
-      else if (err === 'no-speech') setError(tr('coachDna.components.voiceBar.noSpeech'));
-      else setError(tr('coachDna.components.voiceBar.speechError'));
-      setActive(false);
-    };
-
-    rec.onend = () => { setActive(false); setInterim(''); onStop?.(); };
-
-    rec.start();
-    setActive(true);
+    lastFinalLenRef.current = 0;
+    start();
   };
-
-  React.useEffect(() => {
-    return () => { recRef.current?.stop(); };
-  }, []);
 
   if (!supported) return null;
 
   return (
     <div
-      onClick={active ? stop : undefined}
+      onClick={active ? stopRecognition : undefined}
       style={{
         display:      'flex',
         alignItems:   'center',

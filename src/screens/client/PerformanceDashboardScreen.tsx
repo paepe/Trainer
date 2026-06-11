@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { Spinner } from '../../ui';
 import { RefreshChip } from '../../components/RefreshChip';
-import i18n, { BCP47 } from '../../i18n';
+import i18n from '../../i18n';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import type { NavFn } from '../../types';
 import { useM5Data, C, scoreColor, goodScoreColor, band } from './performance/perf-engines';
 import {
@@ -809,10 +810,8 @@ function processVoiceQuery(intent: VoiceIntent | null, data: M5Data): string {
 
 function TelaVoz({ data }: { data: M5Data }) {
   const { t: tr } = useTranslation();
-  const [query,     setQuery]     = React.useState('');
-  const [response,  setResponse]  = React.useState<string | null>(null);
-  const [listening, setListening] = React.useState(false);
-  const [noSupport, setNoSupport] = React.useState(false);
+  const [query,    setQuery]    = React.useState('');
+  const [response, setResponse] = React.useState<string | null>(null);
 
   // Free-speech (STT) input: detect intent via multi-language keyword matching.
   const processFreeText = (q: string) => {
@@ -826,25 +825,25 @@ function TelaVoz({ data }: { data: M5Data }) {
     setResponse(processVoiceQuery(SUGGESTION_INTENTS[index] ?? null, data));
   };
 
+  const [voiceError, setVoiceError] = React.useState<string | null>(null);
+
+  const { supported, listening, start } = useSpeechRecognition({
+    continuous: false,
+    onEnd: transcript => {
+      if (transcript) processFreeText(transcript);
+    },
+    onError: type => {
+      if (type === 'not-allowed') setVoiceError(tr('perf.voice.errMicDenied'));
+      else if (type === 'no-speech') setVoiceError(tr('perf.voice.errNoSpeech'));
+      else setVoiceError(tr('perf.voice.errMic'));
+    },
+  });
+  const noSupport = !supported;
+
   const startListening = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
-    if (!SR) { setNoSupport(true); return; }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rec = new SR() as any;
-    rec.lang = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.start();
-    setListening(true);
     setResponse(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rec.onresult = (e: any) => {
-      setListening(false);
-      processFreeText(e.results[0][0].transcript as string);
-    };
-    rec.onerror = () => setListening(false);
-    rec.onend   = () => setListening(false);
+    setVoiceError(null);
+    start();
   };
 
   const questions = React.useMemo(
@@ -888,6 +887,11 @@ function TelaVoz({ data }: { data: M5Data }) {
         {noSupport && (
           <div style={{ fontSize: 11, color: C.coral, textAlign: 'center' }}>
             {tr('perf.voice.notSupported')}
+          </div>
+        )}
+        {voiceError && (
+          <div style={{ fontSize: 11, color: C.coral, textAlign: 'center' }}>
+            {voiceError}
           </div>
         )}
       </div>

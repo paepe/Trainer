@@ -1,23 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n, { BCP47 } from '../../../i18n';
 import { primaryBtn, surfRaised, textPri, textSec, textMute, borderSubtle } from '../../../theme';
 import { HStack } from '../../../ui';
 import { Icon } from '../../../components/Icon';
 import { cleanupVoiceNote } from '../../../lib/cleanupVoiceNote';
-
-const SpeechRecognitionAPI =
-  (typeof window !== 'undefined')
-    ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
-    : null;
-
-// Mobile (Android/iOS) speech engines tend to be on-device and re-emit
-// overlapping/rephrased interim results for the same utterance, which reads
-// as an "echo" (repeated words/phrases) in the live transcript. Desktop
-// engines stream cleaner interim results. So: live preview only on desktop;
-// on mobile we wait for finalized segments only.
-const isMobileDevice = (typeof navigator !== 'undefined')
-  && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+import { useSpeechRecognition } from '../../../hooks/useSpeechRecognition';
 
 interface WizardVoiceOverlayProps {
   dark?: boolean;
@@ -31,60 +18,32 @@ export function WizardVoiceOverlay({
   dark = true, primary = '#2DD4E0', context, onConfirm, onClose,
 }: WizardVoiceOverlayProps) {
   const { t: tr } = useTranslation();
-  const [text,       setText]       = React.useState('');
-  const [listening,  setListening]  = React.useState(false);
-  const [supported,  setSupported]  = React.useState(!!SpeechRecognitionAPI);
+  const [manualText, setManualText] = React.useState('');
+  // Text already confirmed before the current recognition session started —
+  // recognition results are appended after this prefix.
+  const [prefix,     setPrefix]     = React.useState('');
   const [error,      setError]      = React.useState<string | null>(null);
   const [cleaning,   setCleaning]   = React.useState(false);
-  const recognitionRef = React.useRef<any>(null);
-  // Accumulates only finalized segments — `e.results` replays already-final
-  // entries alongside new interim ones on every `onresult` tick, so joining
-  // the whole array each time re-appends finished phrases and sounds like an
-  // echo in the transcript ("nome nome completo" etc).
-  const finalTextRef = React.useRef('');
+
+  const { supported, listening, transcript, interim, start, stop } = useSpeechRecognition({
+    onEnd: finalTranscript => {
+      if (finalTranscript) setManualText((prefix + finalTranscript).trim());
+    },
+    onError: type => {
+      if (type === 'not-allowed') setError(tr('wizard.voice.micDenied'));
+      else setError(tr('wizard.voice.audioError'));
+    },
+  });
+
+  const text = listening
+    ? (prefix + transcript + interim).trim()
+    : manualText;
 
   const startListening = () => {
-    if (!SpeechRecognitionAPI) { setSupported(false); return; }
     setError(null);
-    finalTextRef.current = text ? `${text} ` : '';
-
-    const rec = new SpeechRecognitionAPI();
-    rec.lang           = BCP47[i18n.language as keyof typeof BCP47] ?? 'en-US';
-    rec.continuous     = true;
-    rec.interimResults = !isMobileDevice;
-
-    rec.onresult = (e: any) => {
-      let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const result = e.results[i];
-        const chunk = result[0].transcript;
-        if (result.isFinal) finalTextRef.current += chunk;
-        else interim += chunk;
-      }
-      setText((finalTextRef.current + interim).trim());
-    };
-    rec.onerror = (e: any) => {
-      if (e.error === 'not-allowed') {
-        setError(tr('wizard.voice.micDenied'));
-        setSupported(false);
-      } else {
-        setError(tr('wizard.voice.audioError'));
-      }
-      setListening(false);
-    };
-    rec.onend = () => setListening(false);
-
-    recognitionRef.current = rec;
-    rec.start();
-    setListening(true);
+    setPrefix(text ? `${text} ` : '');
+    start();
   };
-
-  const stopListening = () => {
-    recognitionRef.current?.stop();
-    setListening(false);
-  };
-
-  React.useEffect(() => () => recognitionRef.current?.stop(), []);
 
   const canConfirm = text.trim().length > 3 && !cleaning;
 
@@ -142,7 +101,7 @@ export function WizardVoiceOverlay({
         {supported && (
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <button
-              onClick={listening ? stopListening : startListening}
+              onClick={listening ? stop : startListening}
               aria-label={listening ? tr('wizard.voice.stopRecording') : tr('wizard.voice.startRecording')}
               style={{
                 width: 76, height: 76, borderRadius: '50%',
@@ -193,7 +152,7 @@ export function WizardVoiceOverlay({
           </div>
           <textarea
             value={text}
-            onChange={e => setText(e.target.value)}
+            onChange={e => setManualText(e.target.value)}
             placeholder={
               supported
                 ? tr('wizard.voice.transcribedPlaceholder')
