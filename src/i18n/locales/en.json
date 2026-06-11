@@ -1,7 +1,7 @@
 {
   "common": {
     "avatarSlot": {
-      "changeLabel": "CHANGE",
+      "alt": "Avatar",
       "changeImage": "Change image",
       "uploadImage": "Upload image"
     },
@@ -152,6 +152,9 @@
   "perf": {
     "noData": "No data available",
     "region": "Region",
+    "bodyDiagram": {
+      "alt": "Body diagram"
+    },
     "refreshing": "REFRESHING…",
     "viewing": "Viewing",
     "calculating": "Calculating indicators…",

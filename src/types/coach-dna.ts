@@ -14,7 +14,6 @@ export type CoachArchetype =
 // ─── Block shapes (mirrors DB JSONB columns) ──────────────────────────────────
 
 export interface CoachDNAIdentity {
-  photo:   string | null;
   name:    string;
   gender:  string;
   age:     string;
@@ -96,7 +95,7 @@ export interface CoachDNAData {
 }
 
 export const COACH_DNA_DEFAULTS: CoachDNAData = {
-  identity:   { photo: null, name: '', gender: '', age: '' },
+  identity:   { name: '', gender: '', age: '' },
   background: { years: 0, certs: [] },
   fitness:    { level: null },
   training:   { methods: [], envs: [], intensity: '' },

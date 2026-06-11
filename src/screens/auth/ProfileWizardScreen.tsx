@@ -5,6 +5,7 @@ import { textMute, textPri, surfRaised, borderSubtle, primaryBtn } from '../../t
 import { Icon } from '../../components/Icon';
 import { AvatarImage } from '../../components/Avatar';
 import { useAvatarUpload } from '../../hooks/useAvatarUpload';
+import { usePersistedAvatar } from '../../hooks/usePersistedAvatar';
 import type { NavFn, Profile } from '../../types';
 import type { ProfileV2Step, RiskClassification } from '../../types/profile-v2';
 import type { WizardData } from './wizard/types';
@@ -397,25 +398,12 @@ interface UnifiedProfileViewProps {
 
 function UnifiedProfileView({ user, dark, primary, data, onEditStep, onStart, saveUser }: UnifiedProfileViewProps) {
   const { t: tr } = useTranslation();
-  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(user?.avatar_url ?? null);
   const fileRef = React.useRef<HTMLInputElement>(null);
+  const { avatarUrl, persist } = usePersistedAvatar(user, saveUser);
 
   const { uploading, upload } = useAvatarUpload({
-    buildPath: ext => `${user?.id}/avatar.${ext}`,
-    onUploaded: async publicUrl => {
-      setAvatarUrl(publicUrl);
-      // normalizeProfileUpdates fills unsent personal fields with '' on upsert,
-      // so the existing profile fields must be re-sent alongside avatar_url.
-      await saveUser?.({
-        name:     user?.name ?? '',
-        email:    user?.email ?? '',
-        phone:    user?.phone ?? '',
-        dob:      user?.dob ?? '',
-        location: user?.location ?? '',
-        ...(user?.gender ? { gender: user.gender as Profile['gender'] } : {}),
-        avatar_url: publicUrl.split('?')[0] as string,
-      });
-    },
+    buildPath:  ext => `${user?.id}/avatar.${ext}`,
+    onUploaded: persist,
   });
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

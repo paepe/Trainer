@@ -7,17 +7,22 @@ import { Chip }        from '../components/Chip';
 import { VoiceBar }    from '../components/VoiceBar';
 import { FieldLabel }  from '../components/FieldLabel';
 import { useTheme }    from '../../contexts';
+import { usePersistedAvatar } from '../../hooks/usePersistedAvatar';
+import type { PersistedAvatarUser, SaveUserFn } from '../../hooks/usePersistedAvatar';
 import type { CoachDNAIdentity } from '../../types/coach-dna';
 
 interface Step01Props {
   data:      CoachDNAIdentity;
   onChange:  (v: Partial<CoachDNAIdentity>) => void;
   trainerId: string;
+  user?:     PersistedAvatarUser | undefined;
+  saveUser?: SaveUserFn | undefined;
 }
 
-export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerId }) => {
+export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerId, user, saveUser }) => {
   const { t: theme } = useTheme();
   const { t: tr } = useTranslation();
+  const { avatarUrl, persist } = usePersistedAvatar(user, saveUser);
   const genders = tr('coachDna.step01.genders', { returnObjects: true }) as unknown as string[];
 
   // Name dictation: VoiceBar fires onTranscript per finalized chunk during a continuous
@@ -48,9 +53,9 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
     <Hint>{tr('coachDna.step01.hint')}</Hint>
 
     <AvatarSlot
-      value={data.photo}
-      onChange={photo => onChange({ photo })}
-      buildPath={ext => `${trainerId}/coach-dna-avatar.${ext}`}
+      value={avatarUrl}
+      onChange={persist}
+      buildPath={ext => `${trainerId}/avatar.${ext}`}
       name={data.name}
       label={tr('coachDna.components.photoSlot.photoLabel')}
       accent={theme.accent}

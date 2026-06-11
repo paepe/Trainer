@@ -59,22 +59,12 @@ export const AvatarSlot: React.FC<AvatarSlotProps> = ({
         }}
       >
         {hasImage ? (
-          <>
-            <img
-              src={value!}
-              alt="avatar"
-              onError={() => setFailed(true)}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-            <div style={{
-              position: 'absolute', bottom: 0, insetInline: 0,
-              background: 'rgba(0,0,0,.55)', padding: '4px 0',
-              fontSize: 9, fontWeight: 700, letterSpacing: '.08em',
-              textTransform: 'uppercase', color: '#fff', textAlign: 'center',
-            }}>
-              {tr('common.avatarSlot.changeLabel')}
-            </div>
-          </>
+          <img
+            src={value!}
+            alt={tr('common.avatarSlot.alt')}
+            onError={() => setFailed(true)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         ) : uploading ? (
           <Spinner size={20} thickness={2} color={accent} trackColor={DARK.border} />
         ) : name ? (

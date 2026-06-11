@@ -1,7 +1,7 @@
 {
   "common": {
     "avatarSlot": {
-      "changeLabel": "ALTERAR",
+      "alt": "Avatar",
       "changeImage": "Alterar imagem",
       "uploadImage": "Enviar imagem"
     },
@@ -152,6 +152,9 @@
   "perf": {
     "noData": "Sem dados disponíveis",
     "region": "Região",
+    "bodyDiagram": {
+      "alt": "Diagrama corporal"
+    },
     "tabs": {
       "overview": "Visão Geral",
       "aderencia": "Aderência",

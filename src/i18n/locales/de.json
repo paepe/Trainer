@@ -1,7 +1,7 @@
 {
   "common": {
     "avatarSlot": {
-      "changeLabel": "ÄNDERN",
+      "alt": "Avatar",
       "changeImage": "Bild ändern",
       "uploadImage": "Bild hochladen"
     },
@@ -152,6 +152,9 @@
   "perf": {
     "noData": "Keine Daten verfügbar",
     "region": "Region",
+    "bodyDiagram": {
+      "alt": "Körperdiagramm"
+    },
     "refreshing": "WIRD AKTUALISIERT…",
     "viewing": "Ansicht",
     "calculating": "Indikatoren werden berechnet…",

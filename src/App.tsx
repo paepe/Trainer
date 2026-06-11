@@ -642,7 +642,7 @@ export default function App() {
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient} freeSession={freeSession}/>;
       case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen nav={nav} user={trainerUser}/>;
-      case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser}/>;
+      case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser} saveUser={handleSetUser}/>;
       case 'alerts':              return <TrainerAlertsScreen nav={nav} user={trainerUser}/>;
       case 'inbox':               return <ClientInboxScreen   nav={nav} user={user}/> ;
       default:                   return <WelcomeScreen           {...common}/>;

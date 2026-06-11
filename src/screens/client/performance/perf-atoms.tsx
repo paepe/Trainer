@@ -362,6 +362,7 @@ const REGION_PCT: Record<string, number> = {
 };
 
 export function BodyDiagram({ region, gender }: BodyDiagramProps) {
+  const { t: tr } = useTranslation();
   const IMG_H     = 200;
   const IMG_W     = 100;
   const pct       = region ? (REGION_PCT[region.toLowerCase()] ?? 0.435) : null;
@@ -375,7 +376,7 @@ export function BodyDiagram({ region, gender }: BodyDiagramProps) {
     <div style={{ position: 'relative', width: IMG_W, height: IMG_H + 16, flexShrink: 0 }}>
       <img
         src={resolveBodyImg(gender)}
-        alt="body diagram"
+        alt={tr('perf.bodyDiagram.alt')}
         style={{ width: IMG_W, height: IMG_H, objectFit: 'contain', display: 'block' }}
       />
 

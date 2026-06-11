@@ -16,6 +16,7 @@ import {
 import type { NavFn }       from '../types/auth';
 import type { CoachDNAData, CoachDNAStep } from '../types/coach-dna';
 import { COACH_DNA_DEFAULTS } from '../types/coach-dna';
+import type { PersistedAvatarUser, SaveUserFn } from '../hooks/usePersistedAvatar';
 
 // ─── Step → DB key map (index 0 = step 1) ────────────────────────────────────
 
@@ -31,14 +32,15 @@ const OUTPUT_STEP = TOTAL_STEPS + 1;
 
 interface CoachDNAScreenProps {
   nav:  NavFn;
-  user: { id: string; name?: string };
+  user: { id: string; name?: string } & PersistedAvatarUser;
   // trainerId override for Studio context; defaults to user.id
   trainerId?: string;
+  saveUser?:  SaveUserFn | undefined;
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
-export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNAScreenProps) {
+export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp, saveUser }: CoachDNAScreenProps) {
   const trainerId = trainerIdProp ?? user.id;
   const { t: theme } = useTheme();
   const { t: tr } = useTranslation();
@@ -151,7 +153,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp }: CoachDNA
   const stepContent = (() => {
     switch (step) {
       case 0:  return <StepIntro/>;
-      case 1:  return <Step01Identity  data={data.identity}   onChange={v => set('identity',   { ...data.identity,   ...v })} trainerId={trainerId}/>;
+      case 1:  return <Step01Identity  data={data.identity}   onChange={v => set('identity',   { ...data.identity,   ...v })} trainerId={trainerId} user={user} saveUser={saveUser}/>;
       case 2:  return <Step02Background data={data.background} onChange={v => set('background', { ...data.background, ...v })}/>;
       case 3:  return <Step03Fitness    data={data.fitness}    onChange={v => set('fitness',    { ...data.fitness,    ...v })}/>;
       case 4:  return <Step04Training   data={data.training}   onChange={v => set('training',   { ...data.training,   ...v })}/>;
