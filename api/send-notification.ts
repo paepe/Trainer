@@ -8,7 +8,9 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { userId, title, body, url, type, entityType, entityId, fromUserId, expiresAt, templateKey, params } = req.body || {};
-  if (!userId || !title || !body) return res.status(400).json({ error: 'userId, title, body required' });
+  // title/body may be empty when templateKey is set — the recipient renders
+  // the localized text from templateKey/params on-device (see notify.ts).
+  if (!userId || (!templateKey && (!title || !body))) return res.status(400).json({ error: 'userId and (title+body or templateKey) required' });
 
   const supabaseUrl  = process.env.VITE_SUPABASE_URL        || '';
   const serviceKey   = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
