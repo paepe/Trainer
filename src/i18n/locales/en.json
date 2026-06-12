@@ -1827,7 +1827,8 @@
       "charactersSuffix": " characters",
       "confirm": "Confirm and continue →",
       "cleaning": "Cleaning up…",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "notSupported": "Voice recognition isn't available on this device/browser. Type your answer below."
     }
   },
   "coachDna": {

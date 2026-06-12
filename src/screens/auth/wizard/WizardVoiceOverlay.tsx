@@ -90,7 +90,7 @@ export function WizardVoiceOverlay({
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
             aria-label={tr('wizard.voice.close')}
           >
-            <Icon name="more" size={20} color={textMute(dark)} stroke={2}/>
+            <Icon name="close" size={20} color={textMute(dark)} stroke={2}/>
           </button>
         </HStack>
 
@@ -130,6 +130,16 @@ export function WizardVoiceOverlay({
             <div style={{ fontSize: 12, color: listening ? '#EF5B3C' : textMute(dark), marginTop: 8, fontWeight: 600 }}>
               {listening ? tr('wizard.voice.recording') : tr('wizard.voice.tapToSpeak')}
             </div>
+          </div>
+        )}
+
+        {!supported && (
+          <div style={{
+            padding: '10px 14px', borderRadius: 10, marginBottom: 14,
+            background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
+            fontSize: 12, color: textSec(dark), lineHeight: 1.45,
+          }}>
+            {tr('wizard.voice.notSupported')}
           </div>
         )}
 

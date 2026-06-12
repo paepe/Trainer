@@ -1827,7 +1827,8 @@
       "charactersSuffix": " caracteres",
       "confirm": "Confirmar e continuar →",
       "cleaning": "Aprimorando…",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "notSupported": "Reconhecimento de voz não disponível neste dispositivo/navegador. Digite sua resposta abaixo."
     }
   },
   "coachDna": {

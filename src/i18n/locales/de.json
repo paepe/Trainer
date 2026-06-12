@@ -1827,7 +1827,8 @@
       "charactersSuffix": " Zeichen",
       "confirm": "Bestätigen und fortfahren →",
       "cleaning": "Wird bereinigt…",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "notSupported": "Spracherkennung ist auf diesem Gerät/Browser nicht verfügbar. Gib deine Antwort unten ein."
     }
   },
   "coachDna": {
