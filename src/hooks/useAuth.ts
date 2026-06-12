@@ -23,18 +23,15 @@ interface UseAuthReturn {
   resendConfirmation:   (email: string) => Promise<ResetResult>;
 }
 
-function normalizeProfileUpdates(updates: Partial<Profile>, userId: string, currentAvatarUrl?: string | null): Partial<Profile> & { id: string } {
-  return {
-    id: userId,
-    ...updates,
-    name:       updates.name?.trim() ?? '',
-    email:      updates.email?.trim() ?? '',
-    phone:      updates.phone?.trim() || '',
-    dob:        updates.dob || '',
-    location:   updates.location?.trim() || '',
-    gender:     updates.gender || '',
-    avatar_url: updates.avatar_url !== undefined ? updates.avatar_url : (currentAvatarUrl ?? null),
-  };
+// Partial PATCH: only trims/normalizes fields the caller actually included —
+// fields not present in `updates` are left untouched in the database.
+function normalizeProfileUpdates(updates: Partial<Profile>): Partial<Profile> {
+  const normalized: Partial<Profile> = { ...updates };
+  if (normalized.name     !== undefined) normalized.name     = normalized.name.trim();
+  if (normalized.email    !== undefined) normalized.email    = normalized.email.trim();
+  if (normalized.phone    !== undefined) normalized.phone    = normalized.phone.trim();
+  if (normalized.location !== undefined) normalized.location = normalized.location.trim();
+  return normalized;
 }
 
 export function useAuth(): UseAuthReturn {
@@ -94,10 +91,11 @@ export function useAuth(): UseAuthReturn {
 
   async function updateProfile(updates: Partial<Profile>): Promise<UpdateResult> {
     if (!session) return { error: null };
-    const payload = normalizeProfileUpdates(updates, session.user.id, profile?.avatar_url);
+    const payload = normalizeProfileUpdates(updates);
     const { error } = await supabase
       .from('profiles')
-      .upsert(payload, { onConflict: 'id' });
+      .update(payload)
+      .eq('id', session.user.id);
     if (error) console.error('[useAuth] updateProfile error:', error);
     else setProfile(prev => prev ? { ...prev, ...updates } : prev);
     return { error };

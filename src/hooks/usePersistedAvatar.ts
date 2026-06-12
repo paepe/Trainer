@@ -21,9 +21,9 @@ export interface UsePersistedAvatarResult {
 
 /**
  * Local display state + persistence for the user's profile avatar
- * (`profiles.avatar_url`). `normalizeProfileUpdates` (useAuth) fills any
- * unsent personal fields with '' on upsert, so every save re-sends the
- * existing profile fields alongside the new avatar_url.
+ * (`profiles.avatar_url`). `updateProfile` (useAuth) does a partial PATCH,
+ * so only `avatar_url` strictly needs to be sent — the personal fields are
+ * included here just to keep local state in sync with what's displayed.
  */
 export function usePersistedAvatar(
   user:     PersistedAvatarUser | undefined,
