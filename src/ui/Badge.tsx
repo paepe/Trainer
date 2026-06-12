@@ -1,7 +1,7 @@
 import React from 'react';
 import { BRAND } from '../theme/tokens';
 
-export type BadgeVariant = 'default' | 'sensitive' | 'selective' | 'blinded' | 'opt-in' | 'lgpd' | 'technical';
+export type BadgeVariant = 'default' | 'sensitive' | 'selective' | 'blinded' | 'opt-in' | 'privacy' | 'technical';
 
 export interface BadgeProps {
   children?: React.ReactNode;
@@ -14,7 +14,7 @@ const BADGE_CFG: Record<BadgeVariant, { bg: string; fg: string; label?: string }
   selective:  { bg: '#F5A62322', fg: '#F5A623', label: 'SELECTIVE' },
   blinded:    { bg: '#EF5B3C22', fg: '#EF5B3C', label: 'CONFIDENTIAL' },
   'opt-in':   { bg: '#8B5CF622', fg: '#8B5CF6', label: 'OPT-IN' },
-  lgpd:       { bg: '#2DD4E022', fg: '#2DD4E0', label: 'LGPD' },
+  privacy:    { bg: '#2DD4E022', fg: '#2DD4E0', label: 'PRIVACY' },
   technical:  { bg: '#F5A62322', fg: '#F5A623', label: 'TECHNICAL' },
 };
 

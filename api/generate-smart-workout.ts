@@ -2,7 +2,8 @@
 // Input:  SmartWorkoutRequest  (trainer + client + today + stats + library + task)
 // Output: SmartWorkoutResponse (workout | objectives | insight + usage + context_snapshot)
 // Uses DeepSeek deepseek-chat. No Supabase calls — client pre-fetches and sends data.
-// LGPD: sensitive_factors and body_rhythm raw data must be stripped client-side before sending.
+// Privacy: sensitive_factors/body_rhythm are included in client.sensitiveFactors/bodyRhythm only when
+// consent.allow_ai_adaptation is true (gated in buildAIContext.ts). When false, both are omitted before the request is sent.
 // NOTE: All types and prompt-building logic are inlined (self-contained) for Vercel bundling.
 
 // ─── Inlined types (from src/ai/types.ts + src/types/coach-dna.ts) ────────────

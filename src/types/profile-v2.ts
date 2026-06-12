@@ -208,7 +208,7 @@ export interface ProfilePreferences {
   support_level:       SupportLevel;
 }
 
-// ── LGPD consent matrix ───────────────────────────────────────────────────────
+// ── Privacy consent matrix ──────────────────────────────────────────────────────
 
 export interface ConsentCategory {
   training_objective:            ConsentValue;

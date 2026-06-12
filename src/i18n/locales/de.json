@@ -1374,7 +1374,7 @@
         "rhythm": "Körperrhythmus — optional, immer privat"
       },
       "privacy": "Du kannst jederzeit speichern und zurückkehren. Es gehen keine Teildaten verloren. Alle sensiblen Informationen werden maskiert, bevor sie deinen Trainer erreichen.",
-      "meta": "≈ 6–9 Min · 14 Blöcke · DSGVO-konform",
+      "meta": "≈ 6–9 Min · 14 Blöcke · Datenschutz an erster Stelle",
       "ctaEdit": "Intelligentes Profil bearbeiten",
       "ctaBuild": "Mein intelligentes Profil erstellen"
     },
@@ -1794,6 +1794,7 @@
       "sensitive": "SENSIBEL",
       "aiUseLabel": "KI-Nutzung zur Plananpassung erlauben",
       "aiUseDesc": "Die KI verwendet autorisierte Daten — sie hat keinen Zugriff auf das, was du verborgen hast.",
+      "aiUseOffNote": "Mit aktivierter Erlaubnis ist dein Plan genauer und besser auf dich abgestimmt. Ist sie deaktiviert, verwendet die KI deine sensiblen Gesundheits- oder Körperrhythmusdaten nicht zur Personalisierung deines Plans — du kannst die Erlaubnis jederzeit wieder aktivieren.",
       "maintainHistoryLabel": "Zugriffshistorie pflegen",
       "maintainHistoryDesc": "Du kannst prüfen, wer wann auf was zugegriffen hat.",
       "revokeNote": "Das Widerrufen der Einwilligung verhindert künftige unbefugte Nutzung und führt ein prüfbares Entscheidungsprotokoll."

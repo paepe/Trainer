@@ -61,6 +61,8 @@ export function buildClientContext(
   if (risk?.flags.ai_privacy_masking_required) riskFlags.push('ai_privacy_masking_required');
   if (risk?.flags.safety_gate_required)        riskFlags.push('safety_gate_required');
 
+  const aiAdaptationAllowed = profile.consent?.allow_ai_adaptation !== false;
+
   return {
     id:                  profile.user_id,
     name:                profile.basic_data?.name ?? '',
@@ -104,13 +106,13 @@ export function buildClientContext(
     riskLevel:           risk?.level ?? 'R0',
     riskFlags,
     lifestyleBarriers:   profile.habits?.lifestyle_barriers,
-    sensitiveFactors:    profile.sensitive_factors ? {
+    sensitiveFactors:    (aiAdaptationAllowed && profile.sensitive_factors) ? {
       regularMedications:    profile.sensitive_factors.regular_medications,
       emotionalHistory:      profile.sensitive_factors.declares_emotional_history,
       recreationalSubstance: profile.sensitive_factors.declares_recreational_substance,
       voiceNote:             profile.sensitive_factors.voice_note,
     } : undefined,
-    bodyRhythm:          profile.body_rhythm?.enabled ? {
+    bodyRhythm:          (aiAdaptationAllowed && profile.body_rhythm?.enabled) ? {
       enabled:              true,
       cycleCurrentDay:      profile.body_rhythm.cycle_current_day,
       cycleDurationDays:    profile.body_rhythm.cycle_duration_days,

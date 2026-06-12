@@ -1374,7 +1374,7 @@
         "rhythm": "Body Rhythm — opt-in, always private"
       },
       "privacy": "You can save and return at any time. No partial data is lost. All sensitive information is masked before reaching your trainer.",
-      "meta": "≈ 6–9 min · 14 blocks · LGPD compatible",
+      "meta": "≈ 6–9 min · 14 blocks · privacy-first",
       "ctaEdit": "Edit Smart Profile",
       "ctaBuild": "Build my Smart Profile"
     },
@@ -1794,6 +1794,7 @@
       "sensitive": "SENSITIVE",
       "aiUseLabel": "Allows AI use for plan adaptation",
       "aiUseDesc": "The AI uses authorized data — it does not have access to what you have hidden.",
+      "aiUseOffNote": "With this authorization on, your plan is more accurate and personalized to you. With it off, the AI won't use your sensitive health or body-rhythm data to personalize your plan — you can turn it back on anytime.",
       "maintainHistoryLabel": "Maintain access history",
       "maintainHistoryDesc": "You will be able to audit who accessed what and when.",
       "revokeNote": "Revoking consent prevents unauthorized future use and maintains an auditable decision record."

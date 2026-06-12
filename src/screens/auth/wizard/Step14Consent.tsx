@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../theme';
-import { WizardHeader, WizardFooter, VStack, Spacer, Toggle } from '../../../ui';
+import { WizardHeader, WizardFooter, VStack, Spacer, Toggle, Alert } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { ConsentCategory, ConsentValue } from '../../../types/profile-v2';
 
@@ -59,7 +59,7 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
 
   return (
     <VStack padding="20px 24px 28px" style={{ minHeight: '100%' }}>
-      <WizardHeader currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack} badge="lgpd" title={tr('wizard.step14.title')} subtitle={tr('wizard.step14.subtitle')} />
+      <WizardHeader currentStep={stepNum} stepPrefix={tr('wizard.blockPrefix')} totalSteps={totalSteps} onBack={onBack} badge="privacy" title={tr('wizard.step14.title')} subtitle={tr('wizard.step14.subtitle')} />
 
       
       
@@ -114,6 +114,9 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
           onChange={v => onUpdate({ consent: { ...consent, allow_ai_adaptation: v } })}
           dark={dark}
         />
+        {!consent.allow_ai_adaptation && (
+          <Alert variant="info" text={tr('wizard.step14.aiUseOffNote')} />
+        )}
         <GlobalToggle
           label={tr('wizard.step14.maintainHistoryLabel')}
           description={tr('wizard.step14.maintainHistoryDesc')}

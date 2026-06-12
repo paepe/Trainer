@@ -1374,7 +1374,7 @@
         "rhythm": "Ritmo Corporal — opcional, sempre privado"
       },
       "privacy": "Você pode salvar e voltar a qualquer momento. Nenhum dado parcial é perdido. Toda informação sensível é mascarada antes de chegar ao seu treinador.",
-      "meta": "≈ 6–9 min · 14 blocos · compatível com LGPD",
+      "meta": "≈ 6–9 min · 14 blocos · privacidade em primeiro lugar",
       "ctaEdit": "Editar Perfil Inteligente",
       "ctaBuild": "Criar meu Perfil Inteligente"
     },
@@ -1794,6 +1794,7 @@
       "sensitive": "SENSÍVEL",
       "aiUseLabel": "Permite uso de IA para adaptação do plano",
       "aiUseDesc": "A IA usa dados autorizados — não tem acesso ao que você ocultou.",
+      "aiUseOffNote": "Com a autorização ativa, o plano é mais preciso e personalizado para você. Sem ela, a IA não usará seus dados de saúde sensíveis nem do ritmo corporal para personalizar o plano — você pode ativar novamente quando quiser.",
       "maintainHistoryLabel": "Manter histórico de acesso",
       "maintainHistoryDesc": "Você poderá auditar quem acessou o quê e quando.",
       "revokeNote": "Revogar o consentimento impede uso futuro não autorizado e mantém um registro de decisão auditável."

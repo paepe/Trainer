@@ -11,7 +11,8 @@ type IconName =
   // Coach DNA icons
   | 'fingerprint' | 'compass' | 'wave' | 'mountain' | 'quote' | 'grip'
   | 'brain' | 'camera' | 'ban' | 'percent' | 'layers' | 'gauge' | 'run'
-  | 'zap' | 'minus' | 'users' | 'shieldCheck' | 'arrowUp' | 'arrowDown' | 'refresh';
+  | 'zap' | 'minus' | 'users' | 'shieldCheck' | 'arrowUp' | 'arrowDown' | 'refresh'
+  | 'info';
 
 interface IconProps {
   name:    IconName | string;
@@ -89,6 +90,7 @@ export const Icon: React.FC<IconProps> = ({ name, size = 22, color = 'currentCol
     arrowUp:      <><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></>,
     arrowDown:    <><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></>,
     refresh:      <><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></>,
+    info:         <><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></>,
   };
 
   return (

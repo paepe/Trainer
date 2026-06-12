@@ -109,7 +109,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
         {tr('wizard.step01.privacy')}
       </p>
 
-      {/* time / LGPD note */}
+      {/* time / privacy note */}
       <div style={{
         fontSize: 11, color: textMute(dark),
         fontFamily: '"JetBrains Mono",ui-monospace,monospace',
