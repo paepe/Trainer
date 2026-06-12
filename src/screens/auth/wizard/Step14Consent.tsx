@@ -4,6 +4,7 @@ import { textPri, textSec, textMute, surfRaised, borderSubtle } from '../../../t
 import { WizardHeader, WizardFooter, VStack, Spacer, Toggle, Alert } from '../../../ui';
 import type { WizardStepProps } from './types';
 import type { ConsentCategory, ConsentValue } from '../../../types/profile-v2';
+import { DEFAULT_PERSONAL_CONSENT, DEFAULT_STUDIO_CONSENT } from '../../../types/profile-v2';
 
 type ConsentKey = keyof ConsentCategory;
 
@@ -21,30 +22,11 @@ const VALUE_COLOR: Record<ConsentValue, string> = {
   hidden:         '#EF5B3C',
 };
 
-const DEFAULT_PERSONAL: ConsentCategory = {
-  training_objective:           'share',
-  training_history:             'share',
-  pain_operational_restriction: 'share',
-  relevant_comorbidity:         'authorized_only',
-  sensitive_medication:         'authorized_only',
-  emotional_psychiatric_health: 'hidden',
-  body_rhythm:                  'authorized_only',
-};
-const DEFAULT_STUDIO: ConsentCategory = {
-  training_objective:           'share',
-  training_history:             'summary',
-  pain_operational_restriction: 'summary',
-  relevant_comorbidity:         'hidden',
-  sensitive_medication:         'hidden',
-  emotional_psychiatric_health: 'hidden',
-  body_rhythm:                  'hidden',
-};
-
 export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, onBack, onSaveLater, saving, stepNum, totalSteps }: WizardStepProps) {
   const { t: tr } = useTranslation();
   const consent = data.consent ?? {
-    personal: DEFAULT_PERSONAL,
-    studio:   DEFAULT_STUDIO,
+    personal: DEFAULT_PERSONAL_CONSENT,
+    studio:   DEFAULT_STUDIO_CONSENT,
     allow_ai_adaptation: true,
     maintain_access_log: true,
   };
@@ -93,12 +75,12 @@ export function Step14Consent({ dark, primary, accent, data, onUpdate, onNext, o
               )}
             </div>
             <ConsentPicker
-              value={(consent.personal?.[rowKey] ?? DEFAULT_PERSONAL[rowKey]) as ConsentValue}
+              value={(consent.personal?.[rowKey] ?? DEFAULT_PERSONAL_CONSENT[rowKey]) as ConsentValue}
               onChange={v => setPersonal(rowKey, v)}
               labelFn={consentLabel}
             />
             <ConsentPicker
-              value={(consent.studio?.[rowKey] ?? DEFAULT_STUDIO[rowKey]) as ConsentValue}
+              value={(consent.studio?.[rowKey] ?? DEFAULT_STUDIO_CONSENT[rowKey]) as ConsentValue}
               onChange={v => setStudio(rowKey, v)}
               labelFn={consentLabel}
             />

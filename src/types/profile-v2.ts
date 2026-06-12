@@ -227,6 +227,26 @@ export interface ConsentMatrix {
   maintain_access_log:  boolean;
 }
 
+export const DEFAULT_PERSONAL_CONSENT: ConsentCategory = {
+  training_objective:           'share',
+  training_history:             'share',
+  pain_operational_restriction: 'share',
+  relevant_comorbidity:         'authorized_only',
+  sensitive_medication:         'authorized_only',
+  emotional_psychiatric_health: 'hidden',
+  body_rhythm:                  'authorized_only',
+};
+
+export const DEFAULT_STUDIO_CONSENT: ConsentCategory = {
+  training_objective:           'share',
+  training_history:             'summary',
+  pain_operational_restriction: 'summary',
+  relevant_comorbidity:         'hidden',
+  sensitive_medication:         'hidden',
+  emotional_psychiatric_health: 'hidden',
+  body_rhythm:                  'hidden',
+};
+
 // ── Operational risk classification ──────────────────────────────────────────
 
 export interface OperationalRiskFlags {

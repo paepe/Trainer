@@ -9,6 +9,8 @@ import type {
   CreateProtocolPayload,
   ProtocolExercise,
 } from '../../types';
+import type { ConsentMatrix } from '../../types/profile-v2';
+import { applyConsentToProfile } from '../../profile/consentVisibility';
 
 interface MutateResult      { error: unknown }
 interface CreateStudioResult { data: Studio | null; error: unknown }
@@ -77,7 +79,7 @@ export function useStudioData(userId: string | undefined) {
         const [profRes, physRes] = await Promise.all([
           supabase.from('profiles').select('id, name, email, avatar_url').in('id', clientIds),
           supabase.from('profile_v2')
-            .select('user_id, objectives, movement_history, availability, environment')
+            .select('user_id, objectives, movement_history, availability, environment, consent')
             .in('user_id', clientIds),
         ]);
         if (profRes.error) console.error('[useStudioData] profiles error:', profRes.error);
@@ -91,11 +93,23 @@ export function useStudioData(userId: string | undefined) {
             movement_history?: { fitness_level?: string } | null;
             availability?:    { session_duration_min?: number } | null;
             environment?:     { locations?: string[] }    | null;
+            consent?:         ConsentMatrix | null;
           };
+
+          // Visual consent matrix (studio) — gates primary_goal/fitness_level shown
+          // in ClientsView. Does not affect any AI pipeline.
+          const consentView = applyConsentToProfile({
+            objectives:       pv2.objectives,
+            movement_history: pv2.movement_history,
+            consent:          pv2.consent,
+          }, 'studio');
+          const showGoal  = consentView.training_objective.mode === 'full' || consentView.training_objective.mode === 'summary';
+          const showLevel = consentView.training_history.mode   === 'full' || consentView.training_history.mode   === 'summary';
+
           return [pv2.user_id, {
             user_id:             pv2.user_id,
-            primary_goal:        pv2.objectives?.primary_goal              ?? null,
-            fitness_level:       pv2.movement_history?.fitness_level       ?? null,
+            primary_goal:        showGoal  ? (pv2.objectives?.primary_goal        ?? null) : null,
+            fitness_level:       showLevel ? (pv2.movement_history?.fitness_level ?? null) : null,
             available_minutes:   pv2.availability?.session_duration_min    ?? null,
             location_preference: (pv2.environment?.locations?.[0]         ?? null) as string | null,
           }];

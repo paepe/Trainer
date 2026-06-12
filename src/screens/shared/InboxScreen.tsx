@@ -176,10 +176,11 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     return () => { void supabase.removeChannel(channel); };
   }, [userId, loading, enrichBatch]);
 
-  // ── Trainer: Approve / Reject ──────────────────────────────────────────────
+  // ── Trainer: Approve / Reject (workout_ready) · Client: Grant / Deny (access_request) ──
 
   const respond = async (item: InboxItem, response: 'approved' | 'rejected') => {
-    if (!item.from_user_id || !isTrainer) return;
+    const isAccessRequest = item.type === 'access_request';
+    if (!item.from_user_id || (!isTrainer && !isAccessRequest)) return;
     setBusy(item.id);
 
     await supabase
@@ -188,15 +189,32 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
       .eq('id', item.id)
       .is('response', null);
 
-    const trainerFirst = userName?.split(' ')[0] || tr('inbox.yourTrainerFallback');
-    if (response === 'approved') {
-      notify(item.from_user_id, 'Workout approved',
-        'Your trainer reviewed your readiness and gave the green light.',
-        undefined, { type: 'workout_approved', templateKey: 'workout_approved', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
+    if (isAccessRequest) {
+      if (item.entity_id) {
+        await supabase
+          .from('profile_access_grants')
+          .update({ status: response === 'approved' ? 'granted' : 'denied', responded_at: new Date().toISOString() })
+          .eq('id', item.entity_id);
+      }
+      const clientFirst = userName?.split(' ')[0] || tr('inbox.yourClientFallback');
+      const category = item.params?.category;
+      notify(item.from_user_id, '', '', undefined, {
+        type: response === 'approved' ? 'access_granted' : 'access_denied',
+        templateKey: response === 'approved' ? 'access_granted' : 'access_denied',
+        params: { clientName: clientFirst, category },
+        ...(userId ? { fromUserId: userId } : {}),
+      });
     } else {
-      notify(item.from_user_id, 'Workout request returned',
-        'Your trainer reviewed your readiness and recommends skipping today\'s session.',
-        undefined, { type: 'workout_rejected', templateKey: 'workout_rejected', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
+      const trainerFirst = userName?.split(' ')[0] || tr('inbox.yourTrainerFallback');
+      if (response === 'approved') {
+        notify(item.from_user_id, 'Workout approved',
+          'Your trainer reviewed your readiness and gave the green light.',
+          undefined, { type: 'workout_approved', templateKey: 'workout_approved', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
+      } else {
+        notify(item.from_user_id, 'Workout request returned',
+          'Your trainer reviewed your readiness and recommends skipping today\'s session.',
+          undefined, { type: 'workout_rejected', templateKey: 'workout_rejected', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
+      }
     }
 
     setItems(prev => prev.map(i =>
@@ -213,10 +231,18 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
   // Render notification text: template keys are resolved in the RECIPIENT's locale.
   // Legacy rows without template_key fall back to stored title/body.
+  const ACCESS_TYPES = ['access_request', 'access_granted', 'access_denied'];
+  const templateParams = (item: InboxItem): Record<string, unknown> => {
+    const params = item.params ?? {};
+    if (params.category && ACCESS_TYPES.includes(item.type ?? '')) {
+      return { ...params, category: tr(`wizard.step14.rows.${params.category as string}`) };
+    }
+    return params;
+  };
   const renderTitle = (item: InboxItem) =>
-    item.template_key ? tr(`inbox.templates.${item.template_key}`, item.params ?? {}) : item.title;
+    item.template_key ? tr(`inbox.templates.${item.template_key}`, templateParams(item)) : item.title;
   const renderBody = (item: InboxItem) =>
-    item.template_key ? tr(`inbox.templates.${item.template_key}_body`, item.params ?? {}) : item.body;
+    item.template_key ? tr(`inbox.templates.${item.template_key}_body`, templateParams(item)) : item.body;
 
   return (
     <>
@@ -245,7 +271,9 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
             const open    = expanded === item.id;
             const expired = isExpired(item);
             const isReady = item.type === 'workout_ready';
-            const pending = isTrainer && isReady && !item.response && !expired;
+            const isAccessRequest = item.type === 'access_request';
+            const pending = (isTrainer && isReady && !item.response && !expired)
+              || (!isTrainer && isAccessRequest && !item.response && !expired);
             const isNewPlan = !isTrainer && item.type === 'plan_sent';
 
             const accentColor = getBadgeColor(item, expired, isTrainer, t, dark);
@@ -377,7 +405,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                       </button>
                     )}
 
-                    {/* Response record (trainer responded) */}
+                    {/* Response record (trainer / client responded) */}
                     {item.response && item.response_at && (
                       <div style={{
                         padding: '8px 12px', borderRadius: 8, marginTop: pending ? 0 : 0,
@@ -385,7 +413,10 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                         border: `1px solid ${item.response === 'approved' ? '#4ade8040' : `${t.accent}40`}`,
                         fontSize: 11.5, color: item.response === 'approved' ? '#4ade80' : t.accent, fontWeight: 600,
                       }}>
-                        {item.response === 'approved' ? tr('inbox.responses.approved') : tr('inbox.responses.rejected')} · {fmtDate(item.response_at, i18n.language)}
+                        {isAccessRequest
+                          ? (item.response === 'approved' ? tr('inbox.responses.accessGranted') : tr('inbox.responses.accessDenied'))
+                          : (item.response === 'approved' ? tr('inbox.responses.approved') : tr('inbox.responses.rejected'))
+                        } · {fmtDate(item.response_at, i18n.language)}
                       </div>
                     )}
                   </div>
@@ -416,10 +447,11 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
     }}>{label}</span>
   );
 
-  if (item.response === 'approved' || item.type === 'workout_approved') return badge(tr('inbox.badges.approved'), '#4ade80');
-  if (item.response === 'rejected' || item.type === 'workout_rejected') return badge(tr('inbox.badges.rejected'), t.accent);
+  if (item.response === 'approved' || item.type === 'workout_approved' || item.type === 'access_granted') return badge(tr('inbox.badges.approved'), '#4ade80');
+  if (item.response === 'rejected' || item.type === 'workout_rejected' || item.type === 'access_denied') return badge(tr('inbox.badges.rejected'), t.accent);
   if (expired && item.type === 'workout_ready') return badge(tr('inbox.badges.expired'), textMute(dark), true);
   if (item.type === 'workout_ready' && isTrainer)                        return badge(tr('inbox.badges.pending'), t.primary);
+  if (item.type === 'access_request' && !isTrainer)                      return badge(tr('inbox.badges.pending'), t.primary);
   if (item.type === 'plan_sent')                                          return badge(tr('inbox.badges.newPlan'), t.primary);
   if (item.type === 'plan_cancelled')                                     return badge(tr('inbox.badges.cancelled'), t.accent);
   if (item.type === 'plan_postponed')                                     return badge(tr('inbox.badges.postponed'), '#F5B45A');
@@ -434,10 +466,11 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
 // ── Badge color resolver (mirrors StatusBadge logic, returns the color string) ─
 
 function getBadgeColor(item: InboxItem, expired: boolean, isTrainer: boolean, t: any, dark: boolean): string {
-  if (item.response === 'approved' || item.type === 'workout_approved') return '#4ade80';
-  if (item.response === 'rejected' || item.type === 'workout_rejected') return t.accent;
+  if (item.response === 'approved' || item.type === 'workout_approved' || item.type === 'access_granted') return '#4ade80';
+  if (item.response === 'rejected' || item.type === 'workout_rejected' || item.type === 'access_denied') return t.accent;
   if (expired && item.type === 'workout_ready') return textMute(dark);
   if (item.type === 'workout_ready' && isTrainer) return t.primary;
+  if (item.type === 'access_request' && !isTrainer) return t.primary;
   if (item.type === 'plan_sent')       return t.primary;
   if (item.type === 'plan_cancelled')  return t.accent;
   if (item.type === 'plan_postponed')  return '#F5B45A';

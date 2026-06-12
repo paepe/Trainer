@@ -19,6 +19,9 @@ import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme }  from '../../hooks/useTrainerTheme';
 import { autoExpirePlans } from '../../lib/autoExpirePlans';
 import { parseCheckinData } from '../../lib/parseCheckinData';
+import { notify } from '../../lib/notify';
+import type { ConsentCategory, ConsentMatrix } from '../../types/profile-v2';
+import { applyConsentToProfile, type CategoryRender } from '../../profile/consentVisibility';
 
 const PROFILE_VALUE_MAP: Record<string, string> = {
   // Bio
@@ -210,7 +213,20 @@ interface ProfileV2Row {
   declared_health:     Record<string, unknown> | null;
   sensitive_factors:   Record<string, unknown> | null;
   body_rhythm:         Record<string, unknown> | null;
+  consent:             ConsentMatrix | null;
   completed_at:        string | null;
+}
+
+interface TrainerDashboardUser {
+  id:    string;
+  name?: string;
+  email?: string;
+}
+
+interface AccessGrant {
+  id:       string;
+  category: string;
+  status:   string;
 }
 
 interface CheckInReadiness {
@@ -232,6 +248,7 @@ interface CheckInReadiness {
 
 interface TrainerClientDetailScreenProps {
   nav:             NavFn;
+  user:            TrainerDashboardUser | null;
   selectedClient?: ClientProfile | null;
   planExpiryDays?: number;
   dashboardLimit?: number;
@@ -275,6 +292,7 @@ const tierColor = (value: number, t: { accent: string }): string =>
 
 export function TrainerClientDetailScreen({
   nav,
+  user,
   selectedClient,
   planExpiryDays = 10,
   dashboardLimit = 10,
@@ -286,10 +304,12 @@ export function TrainerClientDetailScreen({
   const [profileV2, setProfileV2]   = React.useState<ProfileV2Row | null>(null);
   const [readiness, setReadiness]   = React.useState<CheckInReadiness[]>([]);
   const [decisions, setDecisions]   = React.useState<ReadinessDecision[]>([]);
+  const [grants, setGrants]         = React.useState<Map<string, AccessGrant>>(new Map());
   const [loading, setLoading]       = React.useState(true);
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const [expandedPlan, setExpandedPlan] = React.useState<string | null>(null);
   const [feedbackBySession, setFeedbackBySession] = React.useState<Record<string, PostWorkoutFeedback>>({});
+  const loggedViewsRef = React.useRef<Set<string>>(new Set());
 
   const clientId = selectedClient?.id;
 
@@ -297,15 +317,17 @@ export function TrainerClientDetailScreen({
     if (!clientId) return;
     if (showSpinner) setLoading(true);
     void autoExpirePlans(clientId, 'trainer', planExpiryDays);
-    const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes, feedbackRes] = await Promise.all([
+    const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes, feedbackRes, grantsRes] = await Promise.all([
       supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(dashboardLimit),
-      supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,completed_at').eq('user_id', clientId).maybeSingle(),
+      supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,consent,completed_at').eq('user_id', clientId).maybeSingle(),
       supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,pain_intensity,sleep_quality,available_minutes,training_location,input_source,variant,quick_data,detailed_data').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(7),
       // C — trainer's past approve/reject decisions for this client (RLS scopes to_user_id = this trainer)
       supabase.from('notification_log').select('id,response,response_at,created_at,body').eq('from_user_id', clientId).eq('type', 'workout_ready').not('response', 'is', null).order('response_at', { ascending: false }).limit(8),
       // Read-only: student's own post-workout self-evaluations (trainer never edits — "quem executou avalia")
       supabase.from('post_workout_feedback').select('session_id,overall_feeling,energy_after,notes,submitted_at').eq('user_id', clientId).order('submitted_at', { ascending: false }),
+      // Phase 4 — latest access-grant request per category, for "authorized_only" categories
+      supabase.from('profile_access_grants').select('id,category,status').eq('client_id', clientId).eq('trainer_id', user?.id ?? '').order('requested_at', { ascending: false }),
     ]);
     setSessions(sessionsRes.data || []);
     setPlans(plansRes.data || []);
@@ -317,9 +339,14 @@ export function TrainerClientDetailScreen({
       if (!feedbackMap[f.session_id]) feedbackMap[f.session_id] = f;
     }
     setFeedbackBySession(feedbackMap);
+    const grantsMap = new Map<string, AccessGrant>();
+    for (const g of (grantsRes.data || []) as AccessGrant[]) {
+      if (!grantsMap.has(g.category)) grantsMap.set(g.category, g);
+    }
+    setGrants(grantsMap);
     setLastUpdated(new Date());
     setLoading(false);
-  }, [clientId, planExpiryDays, dashboardLimit]);
+  }, [clientId, user?.id, planExpiryDays, dashboardLimit]);
 
   // Initial load + Realtime: client check-ins and sessions update the screen live
   React.useEffect(() => {
@@ -332,10 +359,23 @@ export function TrainerClientDetailScreen({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_sessions',  filter: `user_id=eq.${clientId}` }, () => void load(false))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_plans',      filter: `assigned_to=eq.${clientId}` }, () => void load(false))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'post_workout_feedback', filter: `user_id=eq.${clientId}` }, () => void load(false))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profile_access_grants', filter: `client_id=eq.${clientId}` }, () => void load(false))
       .subscribe();
 
     return () => { void supabase.removeChannel(channel); };
   }, [clientId, load]);
+
+  // Phase 4 — when maintain_access_log is on, count each view of a granted category once per mount.
+  React.useEffect(() => {
+    if (!profileV2?.consent?.maintain_access_log) return;
+    for (const [category, grant] of grants.entries()) {
+      if (grant.status !== 'granted') continue;
+      if (loggedViewsRef.current.has(grant.id)) continue;
+      if (profileV2.consent?.personal?.[category as keyof ConsentCategory] !== 'authorized_only') continue;
+      loggedViewsRef.current.add(grant.id);
+      void supabase.rpc('log_profile_access_view', { p_grant_id: grant.id });
+    }
+  }, [grants, profileV2]);
 
   if (!selectedClient) {
     return (
@@ -394,24 +434,50 @@ export function TrainerClientDetailScreen({
   };
 
   const ps = tr('trainer.detail.profileSections', { returnObjects: true }) as Record<string, string | undefined>;
-  const T1_SECTIONS: [string, Record<string, unknown> | null][] = [
-    [ps.basic_data          ?? '', profileV2?.basic_data          ?? null],
-    [ps.objectives          ?? '', profileV2?.objectives          ?? null],
-    [ps.movement_history    ?? '', profileV2?.movement_history    ?? null],
-    [ps.functional_capacity ?? '', profileV2?.functional_capacity ?? null],
-    [ps.environment         ?? '', profileV2?.environment         ?? null],
-    [ps.availability        ?? '', profileV2?.availability        ?? null],
+
+  // Operational sections — not covered by the consent matrix, always visible.
+  const ALWAYS_SECTIONS: [string, Record<string, unknown> | null][] = [
+    [ps.basic_data   ?? '', profileV2?.basic_data   ?? null],
+    [ps.environment  ?? '', profileV2?.environment  ?? null],
+    [ps.availability ?? '', profileV2?.availability ?? null],
+    [ps.preferences  ?? '', profileV2?.preferences  ?? null],
+    [ps.habits       ?? '', profileV2?.habits       ?? null],
   ];
 
-  const T2_SECTIONS: [string, Record<string, unknown> | null][] = [
-    [ps.preferences    ?? '', profileV2?.preferences    ?? null],
-    [ps.habits         ?? '', profileV2?.habits         ?? null],
-    [ps.comorbidities  ?? '', profileV2?.comorbidities  ?? null],
-    [ps.declared_health ?? '', profileV2?.declared_health ?? null],
-  ];
+  // Phase 4 — categories with a granted access request elevate authorized_only → full.
+  const grantedCategories = new Set<keyof ConsentCategory>(
+    [...grants.entries()].filter(([, g]) => g.status === 'granted').map(([cat]) => cat as keyof ConsentCategory)
+  );
 
-  const t3Count = [profileV2?.sensitive_factors, profileV2?.body_rhythm]
-    .filter(d => d != null && Object.keys(d).length > 0).length;
+  // Visual consent matrix (display-only filter for the trainer). The AI keeps
+  // full access regardless — gated only by consent.allow_ai_adaptation.
+  const consentView = profileV2 ? applyConsentToProfile(profileV2, 'personal', grantedCategories) : null;
+  const CONSENT_SECTIONS: [string, CategoryRender, keyof ConsentCategory][] = consentView ? [
+    [tr('wizard.step14.rows.training_objective'),           consentView.training_objective,           'training_objective'],
+    [tr('wizard.step14.rows.training_history'),             consentView.training_history,             'training_history'],
+    [tr('wizard.step14.rows.pain_operational_restriction'), consentView.pain_operational_restriction, 'pain_operational_restriction'],
+    [tr('wizard.step14.rows.relevant_comorbidity'),         consentView.relevant_comorbidity,         'relevant_comorbidity'],
+    [tr('wizard.step14.rows.sensitive_medication'),         consentView.sensitive_medication,         'sensitive_medication'],
+    [tr('wizard.step14.rows.emotional_psychiatric_health'), consentView.emotional_psychiatric_health, 'emotional_psychiatric_health'],
+    [tr('wizard.step14.rows.body_rhythm'),                  consentView.body_rhythm,                  'body_rhythm'],
+  ] : [];
+
+  // Phase 4 — trainer requests access to an "authorized_only" category.
+  const requestAccess = async (categoryKey: keyof ConsentCategory) => {
+    if (!clientId || !user?.id) return;
+    const { data, error } = await supabase
+      .from('profile_access_grants')
+      .insert({ client_id: clientId, trainer_id: user.id, category: categoryKey })
+      .select('id, category, status')
+      .single();
+    if (error || !data) { console.error('[TrainerClientDetailScreen] requestAccess error:', error); return; }
+    setGrants(prev => new Map(prev).set(categoryKey, data as AccessGrant));
+    notify(clientId, '', '', undefined, {
+      type: 'access_request', entityType: 'profile_access_grant', entityId: data.id as string,
+      fromUserId: user.id, templateKey: 'access_request',
+      params: { trainerName: user.name?.split(' ')[0] ?? '', category: categoryKey },
+    });
+  };
 
   return (
     <>
@@ -468,8 +534,8 @@ export function TrainerClientDetailScreen({
                 )}
               </div>
 
-              {/* T1 — visible */}
-              {T1_SECTIONS.map(([label, data]) => {
+              {/* Operational sections — always visible */}
+              {ALWAYS_SECTIONS.map(([label, data]) => {
                 const rendered = renderFields(data);
                 if (!rendered) return null;
                 return (
@@ -482,40 +548,47 @@ export function TrainerClientDetailScreen({
                 );
               })}
 
-              {/* T2 — conditional */}
-              {T2_SECTIONS.some(([, d]) => d != null) && (
-                <div style={{ padding: '10px 12px', borderRadius: 10, background: `${t.accent}08`, border: `1px solid ${t.accent}22` }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', color: t.accent, marginBottom: 10 }}>
-                    {tr('trainer.detail.t2Conditional')}
-                  </div>
-                  {T2_SECTIONS.map(([label, data]) => {
-                    const rendered = renderFields(data);
-                    if (!rendered) return null;
-                    return (
-                      <div key={label} style={{ marginBottom: 10 }}>
-                        <div style={{ fontSize: 9.5, fontWeight: 600, color: textSec(dark), marginBottom: 5 }}>
-                          {label}
+              {/* Visual consent matrix (personal) — full / summary / locked / hidden per category */}
+              {CONSENT_SECTIONS.map(([label, cat, categoryKey]) => {
+                if (cat.mode === 'hidden') return null;
+                if (cat.mode === 'locked') {
+                  const pending = grants.get(categoryKey)?.status === 'pending';
+                  return (
+                    <div key={label} style={{
+                      marginBottom: 10, padding: '8px 12px', borderRadius: 10,
+                      background: DARK.surface, display: 'flex', alignItems: 'center', gap: 8,
+                    }}>
+                      <span style={{ fontSize: 13 }}>🔒</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 9.5, fontWeight: 700, color: textSec(dark) }}>{label}</div>
+                        <div style={{ fontSize: 11, color: textMute(dark) }}>
+                          {pending ? tr('trainer.detail.requestPending') : tr('trainer.detail.consentLocked')}
                         </div>
-                        {rendered}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* T3 — masked */}
-              {t3Count > 0 && (
-                <div style={{
-                  marginTop: 10, padding: '8px 12px', borderRadius: 10,
-                  background: DARK.surface,
-                  display: 'flex', alignItems: 'center', gap: 8,
-                }}>
-                  <span style={{ fontSize: 13 }}>🔒</span>
-                  <span style={{ fontSize: 11, color: textMute(dark) }}>
-                    {tr('trainer.detail.t3Confidential', { count: t3Count })}
-                  </span>
-                </div>
-              )}
+                      {!pending && (
+                        <button onClick={() => void requestAccess(categoryKey)} style={{ ...ghostBtn(dark), fontSize: 10, padding: '5px 10px', flexShrink: 0 }}>
+                          {tr('trainer.detail.requestAccess')}
+                        </button>
+                      )}
+                    </div>
+                  );
+                }
+                const rendered = renderFields(cat.data);
+                if (!rendered) return null;
+                return (
+                  <div key={label} style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, color: t.primary, marginBottom: 6, letterSpacing: '.04em' }}>
+                      {label}
+                    </div>
+                    {rendered}
+                    {cat.mode === 'summary' && (
+                      <div style={{ fontSize: 9.5, color: textMute(dark), marginTop: 4, fontStyle: 'italic' }}>
+                        {tr('trainer.detail.consentSummaryNote')}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 

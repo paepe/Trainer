@@ -22,6 +22,8 @@ import type { ProtocolExerciseItem } from '../../types/workout';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
+import type { ConsentMatrix } from '../../types/profile-v2';
+import { applyConsentToProfile } from '../../profile/consentVisibility';
 
 interface ClientProfile {
   id:         string;
@@ -86,6 +88,7 @@ export function WorkoutPlanEditorScreen({
   const { t, dark } = useTrainerTheme();
   const { t: tr } = useTranslation();
   const [context, setContext] = React.useState<WorkoutPlanEditorContext | null>(null);
+  const [personalConsent, setPersonalConsent] = React.useState<ConsentMatrix | null>(null);
   const [exercises, setExercises] = React.useState<WorkoutExercise[]>([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
   const [nameError,   setNameError]   = React.useState(false);
@@ -215,7 +218,7 @@ export function WorkoutPlanEditorScreen({
     Promise.all([
       supabase
         .from('profile_v2')
-        .select('objectives, movement_history, environment, availability')
+        .select('objectives, movement_history, environment, availability, consent')
         .eq('user_id', selectedClient.id)
         .maybeSingle(),
       supabase
@@ -231,11 +234,13 @@ export function WorkoutPlanEditorScreen({
         movement_history?: { fitness_level?: string } | null;
         environment?:      { equipment?: string[] }   | null;
         availability?:     { session_duration_min?: number } | null;
+        consent?:          ConsentMatrix | null;
       } | null;
 
       const ci = checkinRes.data;
       const qd = ci?.quick_data as { pain?: { region?: string } } | null | undefined;
 
+      setPersonalConsent(pv2?.consent ?? null);
       setContext({
         physicalProfile: pv2 ? {
           primary_goal:  pv2.objectives?.primary_goal  ?? null,
@@ -372,6 +377,16 @@ export function WorkoutPlanEditorScreen({
 
   const hasPain = !!(context?.latestCheckin?.pain_present && context?.latestCheckin?.pain_region);
 
+  // Visual consent matrix (personal) — gates the "today's context" card only.
+  // Does not affect what's sent to the AI in askAI() (context.physicalProfile is untouched).
+  const consentView = applyConsentToProfile({
+    objectives:       context?.physicalProfile?.primary_goal  != null ? { primary_goal:  context.physicalProfile.primary_goal }  : undefined,
+    movement_history: context?.physicalProfile?.fitness_level != null ? { fitness_level: context.physicalProfile.fitness_level } : undefined,
+    consent:          personalConsent,
+  }, 'personal');
+  const showGoal  = consentView.training_objective.mode === 'full' || consentView.training_objective.mode === 'summary';
+  const showLevel = consentView.training_history.mode   === 'full' || consentView.training_history.mode   === 'summary';
+
   return (
     <>
 
@@ -424,12 +439,12 @@ export function WorkoutPlanEditorScreen({
             ) : (
               <span style={{ fontSize: 12, color: textMute(dark) }}>{tr('trainer.planner.noCheckin')}</span>
             )}
-            {context.physicalProfile?.primary_goal && (
+            {showGoal && context.physicalProfile?.primary_goal && (
               <span style={{ fontSize: 12, color: textSec(dark) }}>
                 {tr('trainer.planner.goal')}<span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.primary_goal}</span>
               </span>
             )}
-            {context.physicalProfile?.fitness_level && (
+            {showLevel && context.physicalProfile?.fitness_level && (
               <span style={{ fontSize: 12, color: textSec(dark) }}>
                 {tr('trainer.planner.level')}<span style={{ fontWeight: 700, color: textPri(dark) }}>{context.physicalProfile.fitness_level}</span>
               </span>

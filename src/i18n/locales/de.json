@@ -77,7 +77,9 @@
     },
     "responses": {
       "approved": "Vom Trainer genehmigt",
-      "rejected": "Überspringen vom Trainer empfohlen"
+      "rejected": "Überspringen vom Trainer empfohlen",
+      "accessGranted": "Zugriff gewährt",
+      "accessDenied": "Zugriff verweigert"
     },
     "badges": {
       "expired": "Abgelaufen",
@@ -91,6 +93,7 @@
       "done": "Erledigt"
     },
     "yourTrainerFallback": "Dein Trainer",
+    "yourClientFallback": "Dein Kunde",
     "templates": {
       "workout_approved": "{{trainerName}} hat dein Training genehmigt!",
       "workout_approved_body": "Dein Trainingsplan wurde genehmigt. Zeit zu trainieren!",
@@ -117,7 +120,13 @@
       "high_pain_alert": "Hoher Schmerz gemeldet — {{region}}",
       "high_pain_alert_body": "Intensität {{intensity}}/10 während der Einheit. Plan überprüfen und anpassen.",
       "review_pain": "Schmerz überprüfen — {{region}}",
-      "review_pain_body": "Kunde meldete {{intensity}}/10 Intensität in {{region}}."
+      "review_pain_body": "Kunde meldete {{intensity}}/10 Intensität in {{region}}.",
+      "access_request": "Zugriffsanfrage",
+      "access_request_body": "{{trainerName}} bittet um Zugriff auf deine Informationen zu {{category}}.",
+      "access_granted": "Zugriff gewährt",
+      "access_granted_body": "{{clientName}} hat dir Zugriff auf die Informationen zu {{category}} gewährt.",
+      "access_denied": "Anfrage abgelehnt",
+      "access_denied_body": "{{clientName}} hat deine Anfrage auf Zugriff zu den Informationen zu {{category}} abgelehnt."
     }
   },
   "postWorkout": {
@@ -769,15 +778,10 @@
       },
       "profileSections": {
         "basic_data": "Grunddaten",
-        "objectives": "Ziele",
-        "movement_history": "Bewegungsverlauf",
-        "functional_capacity": "Funktionelle Kapazität",
         "environment": "Umgebung",
         "availability": "Verfügbarkeit",
         "preferences": "Präferenzen",
-        "habits": "Gewohnheiten",
-        "comorbidities": "Begleiterkrankungen",
-        "declared_health": "Angegebene Gesundheit"
+        "habits": "Gewohnheiten"
       },
       "noClientSelected": "Kein Kunde ausgewählt.",
       "backBtn": "← Zurück",
@@ -786,9 +790,10 @@
       "loading": "Wird geladen…",
       "smartProfileV2": "Intelligentes Profil v2",
       "complete": "VOLLSTÄNDIG",
-      "t2Conditional": "T2 · BEDINGT",
-      "t3Confidential_one": "{{count}} vertraulicher Abschnitt (T3 — nicht geteilt)",
-      "t3Confidential_other": "{{count}} vertrauliche Abschnitte (T3 — nicht geteilt)",
+      "consentLocked": "Auf Anfrage verfügbar — vom Kunden nicht freigegeben",
+      "consentSummaryNote": "Nur Zusammenfassung — vollständige Details nicht freigegeben",
+      "requestAccess": "Zugriff anfragen",
+      "requestPending": "Anfrage gesendet — Antwort steht aus",
       "readinessLast": "Bereitschaft · Letzte {{n}}",
       "voz": "STIMME",
       "readinessDecisions": "Bereitschaftsentscheidungen",
@@ -2416,6 +2421,11 @@
     "cycle_current_day": "Aktueller Tag",
     "cycle_duration_days": "Zyklusdauer",
     "adaptation_preference": "Anpassungspräferenz",
+    "regular_medications": "Regelmäßige Medikamente",
+    "declares_emotional_history": "Emotionale/psychiatrische Vorgeschichte",
+    "declares_recreational_substance": "Konsum von Genussmitteln",
+    "uses_medication": "Nimmt Medikamente",
+    "free_text": "Zusätzliche Hinweise",
     "yes": "Ja",
     "no": "Nein"
   },

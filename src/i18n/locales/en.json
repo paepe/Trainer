@@ -77,7 +77,9 @@
     },
     "responses": {
       "approved": "Approved by trainer",
-      "rejected": "Recommended skipping by trainer"
+      "rejected": "Recommended skipping by trainer",
+      "accessGranted": "Access granted",
+      "accessDenied": "Access denied"
     },
     "badges": {
       "expired": "Expired",
@@ -91,6 +93,7 @@
       "done": "Done"
     },
     "yourTrainerFallback": "Your trainer",
+    "yourClientFallback": "Your client",
     "templates": {
       "workout_approved": "{{trainerName}} approved your workout!",
       "workout_approved_body": "Your workout plan was approved. Time to train!",
@@ -117,7 +120,13 @@
       "high_pain_alert": "High pain reported — {{region}}",
       "high_pain_alert_body": "Intensity {{intensity}}/10 during workout session. Review and adjust plan.",
       "review_pain": "Review pain — {{region}}",
-      "review_pain_body": "Client reported {{intensity}}/10 intensity in {{region}}."
+      "review_pain_body": "Client reported {{intensity}}/10 intensity in {{region}}.",
+      "access_request": "Access request",
+      "access_request_body": "{{trainerName}} is requesting access to your {{category}} information.",
+      "access_granted": "Access granted",
+      "access_granted_body": "{{clientName}} granted you access to {{category}} information.",
+      "access_denied": "Request declined",
+      "access_denied_body": "{{clientName}} declined your request to access {{category}} information."
     }
   },
   "postWorkout": {
@@ -769,15 +778,10 @@
       },
       "profileSections": {
         "basic_data": "Basic Data",
-        "objectives": "Objectives",
-        "movement_history": "Movement History",
-        "functional_capacity": "Functional Capacity",
         "environment": "Environment",
         "availability": "Availability",
         "preferences": "Preferences",
-        "habits": "Habits",
-        "comorbidities": "Comorbidities",
-        "declared_health": "Declared Health"
+        "habits": "Habits"
       },
       "noClientSelected": "No client selected.",
       "backBtn": "← Back",
@@ -786,9 +790,10 @@
       "loading": "Loading…",
       "smartProfileV2": "Smart Profile v2",
       "complete": "COMPLETE",
-      "t2Conditional": "T2 · CONDITIONAL",
-      "t3Confidential_one": "{{count}} confidential section (T3 — not shared)",
-      "t3Confidential_other": "{{count}} confidential sections (T3 — not shared)",
+      "consentLocked": "Available on request — not shared by the client",
+      "consentSummaryNote": "Summary only — full details not shared",
+      "requestAccess": "Request access",
+      "requestPending": "Request sent — awaiting response",
       "readinessLast": "Readiness · Last {{n}}",
       "voz": "VOZ",
       "readinessDecisions": "Readiness Decisions",
@@ -2416,6 +2421,11 @@
     "cycle_current_day": "Current day",
     "cycle_duration_days": "Cycle duration",
     "adaptation_preference": "Adaptation preference",
+    "regular_medications": "Regular medications",
+    "declares_emotional_history": "Emotional/psychiatric history",
+    "declares_recreational_substance": "Recreational substance use",
+    "uses_medication": "Uses medication",
+    "free_text": "Additional notes",
     "yes": "Yes",
     "no": "No"
   },

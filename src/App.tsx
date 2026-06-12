@@ -639,7 +639,7 @@ export default function App() {
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)} isMale={user.gender === 'male'}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient} startFreeSession={startFreeSession}/>;
-      case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
+      case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} user={trainerUser} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient} freeSession={freeSession}/>;
       case 'trainerLibraryExercises': return <TrainerLibraryExercisesScreen nav={nav} user={trainerUser}/>;
       case 'coachDNA':            return <CoachDNAScreen nav={nav} user={trainerUser} saveUser={handleSetUser}/>;

@@ -1073,6 +1073,60 @@ export type Database = {
           },
         ]
       }
+      profile_access_grants: {
+        Row: {
+          category: string
+          client_id: string
+          expires_at: string | null
+          id: string
+          last_viewed_at: string | null
+          requested_at: string
+          responded_at: string | null
+          status: string
+          trainer_id: string
+          view_count: number
+        }
+        Insert: {
+          category: string
+          client_id: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          requested_at?: string
+          responded_at?: string | null
+          status?: string
+          trainer_id: string
+          view_count?: number
+        }
+        Update: {
+          category?: string
+          client_id?: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          requested_at?: string
+          responded_at?: string | null
+          status?: string
+          trainer_id?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_access_grants_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_access_grants_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_v2: {
         Row: {
           abandon_history: Json | null
@@ -2107,6 +2161,14 @@ export type Database = {
         }[]
       }
       auto_close_stale_sessions: { Args: never; Returns: number }
+      create_free_session_subject: {
+        Args: { p_trainer_id: string }
+        Returns: {
+          client_id: string
+          email: string
+          name: string
+        }[]
+      }
       get_active_role: { Args: { uid?: string }; Returns: string }
       get_device_tokens: {
         Args: never
@@ -2133,6 +2195,10 @@ export type Database = {
         }[]
       }
       has_permission: { Args: { perm: string; uid?: string }; Returns: boolean }
+      log_profile_access_view: {
+        Args: { p_grant_id: string }
+        Returns: undefined
+      }
       studio_has_trainer: { Args: { trainer_uuid: string }; Returns: boolean }
     }
     Enums: {
