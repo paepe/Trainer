@@ -23,7 +23,7 @@ interface UseAuthReturn {
   resendConfirmation:   (email: string) => Promise<ResetResult>;
 }
 
-function normalizeProfileUpdates(updates: Partial<Profile>, userId: string): Partial<Profile> & { id: string } {
+function normalizeProfileUpdates(updates: Partial<Profile>, userId: string, currentAvatarUrl?: string | null): Partial<Profile> & { id: string } {
   return {
     id: userId,
     ...updates,
@@ -33,7 +33,7 @@ function normalizeProfileUpdates(updates: Partial<Profile>, userId: string): Par
     dob:        updates.dob || '',
     location:   updates.location?.trim() || '',
     gender:     updates.gender || '',
-    avatar_url: updates.avatar_url ?? null,
+    avatar_url: updates.avatar_url !== undefined ? updates.avatar_url : (currentAvatarUrl ?? null),
   };
 }
 
@@ -94,7 +94,7 @@ export function useAuth(): UseAuthReturn {
 
   async function updateProfile(updates: Partial<Profile>): Promise<UpdateResult> {
     if (!session) return { error: null };
-    const payload = normalizeProfileUpdates(updates, session.user.id);
+    const payload = normalizeProfileUpdates(updates, session.user.id, profile?.avatar_url);
     const { error } = await supabase
       .from('profiles')
       .upsert(payload, { onConflict: 'id' });
