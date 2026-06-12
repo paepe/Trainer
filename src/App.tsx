@@ -281,25 +281,24 @@ export default function App() {
   React.useEffect(() => {
     if (!isTrainer || !profile?.id) return;
 
-    // Initial count of unresponded workout_ready notifications
+    // Initial count of unread notifications (mirrors client inbox badge semantics)
     supabase
       .from('notification_log')
       .select('id', { count: 'exact', head: true })
       .eq('to_user_id', profile.id)
-      .eq('type', 'workout_ready')
-      .is('response', null)
+      .is('read_at', null)
       .then(({ count }) => setPendingAlerts(count ?? 0));
 
-    // Realtime: increment on new insert, re-count on update (response set)
+    // Realtime: increment on new insert, decrement once marked as read
     const ch = supabase
       .channel(`alerts_badge:${profile.id}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        (p) => { if ((p.new as NotificationLogRow).type === 'workout_ready') setPendingAlerts(n => n + 1); }
+        () => setPendingAlerts(n => n + 1)
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        (p) => { if ((p.new as NotificationLogRow).response != null) setPendingAlerts(n => Math.max(0, n - 1)); }
+        (p) => { if ((p.new as NotificationLogRow).read_at != null) setPendingAlerts(n => Math.max(0, n - 1)); }
       )
       .subscribe();
 
