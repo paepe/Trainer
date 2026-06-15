@@ -139,9 +139,13 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
       </div>
 
       {/* OAuth bypasses the locked-email flow — skip it for invite-originated signups */}
-      {!isInviteFlow && <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel={tr('auth.oauth.dividerRegister')}/>}
+      {!isInviteFlow && (
+        <div style={{ marginBottom: 28 }}>
+          <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel={tr('auth.oauth.dividerRegister')}/>
+        </div>
+      )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <TextInput icon="user" placeholder={tr('auth.common.fullName')}        value={name}  onChange={setName}/>
         <TextInput icon="mail" placeholder={tr('auth.common.email')} type="email" value={email} onChange={setEmail} disabled={!!lockedEmail}/>
         <TextInput icon="lock" placeholder={tr('auth.common.password')}        value={pw}    onChange={setPw}    type="password"/>
@@ -149,7 +153,7 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
       </div>
       {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
 
-      <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ marginTop: 32, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button onClick={submit} disabled={loading} style={primaryBtn(t.primary, loading)}>
           {loading ? tr('auth.register.loading') : tr('auth.common.register')}
         </button>
@@ -157,6 +161,8 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
           {tr('auth.register.haveAccount')}
         </button>
       </div>
+
+      <div style={{ flex: 1, minHeight: 8 }}/>
     </div>
   );
 }
