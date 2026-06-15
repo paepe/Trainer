@@ -302,7 +302,10 @@
       "title": "9 indicadores preditivos.",
       "insights": "Insights acionáveis · {{count}}",
       "disclaimerBold": "ℹ Predição ≠ diagnóstico.",
-      "disclaimerBody": "Todas as pontuações são probabilísticas e destinam-se a apoiar decisões do treinador, não substituindo avaliação profissional. Dados sensíveis são processados localmente."
+      "disclaimerBody": "Todas as pontuações são probabilísticas e destinam-se a apoiar decisões do treinador, não substituindo avaliação profissional. Dados sensíveis são processados localmente.",
+      "premiumBadge": "AI Performance",
+      "premiumLocked": "Este indicador faz parte do AI Performance.",
+      "premiumCta": "Desbloquear com AI Performance"
     },
     "scoreDefs": {
       "churnRisk": {
@@ -2464,5 +2467,81 @@
     "goHome": "Ir para o TrAIner",
     "trainerPushTitle": "{{clientName}} aceitou seu convite",
     "trainerPushBody": "{{clientName}} agora é seu aluno(a) no TrAIner."
+  },
+  "plans": {
+    "kicker": "Escolha sua licença",
+    "headingRecPre": "Pelas suas respostas, ",
+    "headingRecPost": " combina melhor.",
+    "headingNoRec": "Escolha o plano ideal.",
+    "sub": "É só uma sugestão — qualquer plano é seu para escolher, e dá para trocar quando quiser.",
+    "monthly": "Mensal",
+    "annual": "Anual · economize 17%",
+    "bestFit": "Combina com você",
+    "monthsFree": "2 meses grátis",
+    "perMo": "/mês",
+    "billedAnnually": " · cobrança anual",
+    "footPre": "Cobrança ",
+    "footMonthly": "mensal",
+    "footAnnual": "anual",
+    "footPost": " · cancele quando quiser · sem taxas escondidas",
+    "selectCta": "Confirmar minha licença",
+    "text": {
+      "free": {
+        "tag": "Mantenha o movimento",
+        "blurb": "Treine com orientação inteligente — sem cartão, sem pressão.",
+        "features": ["Biblioteca de treinos inteligente", "Acompanhamento básico de progresso", "Algumas dicas de IA por semana"]
+      },
+      "ai_fitness": {
+        "tag": "Sua IA no comando",
+        "blurb": "Um plano que se reescreve em torno do seu dia.",
+        "features": ["Planos de IA totalmente personalizados", "Ajustes diários por energia e dores", "Programação sensível ao ciclo", "Histórico e insights completos"]
+      },
+      "ai_performance": {
+        "tag": "Resultado de quem tem coach",
+        "blurb": "Carga preditiva e olhos humanos nos seus números.",
+        "features": ["Tudo do AI Fitness", "Análises avançadas de desempenho", "Carga e recuperação preditivas", "Revisão humana prioritária"]
+      },
+      "trial": {
+        "tag": "Teste o estúdio",
+        "sub": "14 dias",
+        "blurb": "Veja a IA montar planos antes de gastar um centavo.",
+        "features": ["Até 3 alunos", "Construtor de planos com IA", "Painel básico do estúdio"]
+      },
+      "pro": {
+        "tag": "Toque seu trabalho",
+        "blurb": "Transforme seu método em planos que a IA escreve por você.",
+        "features": ["Alunos ilimitados", "Motor de metodologia com IA", "Espaço de estúdio com sua marca", "Insights de adesão e de alunos"]
+      },
+      "elite": {
+        "tag": "Escale seu método",
+        "blurb": "White-label em tudo e cresça no marketplace.",
+        "features": ["Tudo do Pro", "App white-label para alunos", "Suíte de análises avançadas", "Destaque no marketplace"],
+        "note": "+ 15% de participação na receita de alunos vindos do marketplace"
+      }
+    },
+    "confirm": {
+      "onPlanPre": "Você está no ",
+      "subscribed": "Assinante",
+      "free": "Grátis",
+      "whatNext": "O que acontece agora",
+      "nextStudent": ["Monte seu Perfil Inteligente para a IA conhecer seu corpo", "Receba seu primeiro plano personalizado por IA", "Check-ins diários afinam tudo conforme você avança"],
+      "nextTrainer": ["Monte seu Perfil Inteligente para a IA conhecer seu corpo", "Configure seu estúdio e convide os primeiros alunos", "Check-ins diários afinam tudo conforme você avança"],
+      "billedMonthly": "cobrança mensal",
+      "billedAnnually": "cobrança anual"
+    },
+    "peek": {
+      "live": "Ao vivo · Encontrando seu plano",
+      "role": "Perfil",
+      "answers": "Respostas",
+      "matchConf": "CONFIANÇA DA SUGESTÃO",
+      "bestMatch": "Melhor opção até aqui",
+      "yourChoice": "Sua escolha",
+      "awaiting": "Aguardando respostas",
+      "emptyHint": "Escolha um perfil e responda algumas perguntas para ver sua licença recomendada.",
+      "noLock": "Sem amarras",
+      "noLockQuote": "Uma recomendação, nunca uma parede. Comece grátis e suba só quando a IA realmente valer a pena.",
+      "perMo": "/mês",
+      "free": "Grátis"
+    }
   }
 }

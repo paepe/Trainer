@@ -24,6 +24,7 @@ const StartWorkoutScreen         = React.lazy(() => import('./screens/client/Sta
 const WorkoutModeScreen          = React.lazy(() => import('./screens/client/WorkoutModeScreen').then(m => ({ default: m.WorkoutModeScreen })));
 const PostWorkoutSummaryScreen   = React.lazy(() => import('./screens/client/PostWorkoutSummaryScreen').then(m => ({ default: m.PostWorkoutSummaryScreen })));
 const PerformanceDashboardScreen = React.lazy(() => import('./screens/client/PerformanceDashboardScreen').then(m => ({ default: m.PerformanceDashboardScreen })));
+const PlansScreen                = React.lazy(() => import('./screens/client/PlansScreen').then(m => ({ default: m.PlansScreen })));
 const HistoryScreen              = React.lazy(() => import('./screens/client/HistoryScreen').then(m => ({ default: m.HistoryScreen })));
 const CycleScreen                = React.lazy(() => import('./screens/client/CycleScreen').then(m => ({ default: m.CycleScreen })));
 const SettingsScreen             = React.lazy(() => import('./screens/client/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
@@ -642,6 +643,7 @@ export default function App() {
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)} isMale={user.gender === 'male'}/>;
+      case 'plans':              return <PlansScreen             nav={nav} t={t} dark={dark} user={user}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient} startFreeSession={startFreeSession}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} user={trainerUser} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient} freeSession={freeSession}/>;

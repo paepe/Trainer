@@ -1,4 +1,5 @@
 export * from './PerformanceDashboardScreen';
+export * from './PlansScreen';
 export * from './HistoryScreen';
 export * from './CycleScreen';
 export * from './SettingsScreen';

@@ -305,7 +305,10 @@
       "title": "9 predictive indicators.",
       "insights": "Actionable insights · {{count}}",
       "disclaimerBold": "ℹ Prediction ≠ diagnosis.",
-      "disclaimerBody": "All scores are probabilistic and are intended to support personal trainer decisions, not replace professional evaluation. Sensitive data is processed locally."
+      "disclaimerBody": "All scores are probabilistic and are intended to support personal trainer decisions, not replace professional evaluation. Sensitive data is processed locally.",
+      "premiumBadge": "AI Performance",
+      "premiumLocked": "This indicator is part of AI Performance.",
+      "premiumCta": "Unlock with AI Performance"
     },
     "scoreDefs": {
       "churnRisk": {
@@ -2464,5 +2467,81 @@
     "goHome": "Go to TrAIner",
     "trainerPushTitle": "{{clientName}} accepted your invitation",
     "trainerPushBody": "{{clientName}} is now your client on TrAIner."
+  },
+  "plans": {
+    "kicker": "Choose your license",
+    "headingRecPre": "Based on your answers, ",
+    "headingRecPost": " fits best.",
+    "headingNoRec": "Pick the plan that fits.",
+    "sub": "It's only a suggestion — every plan is yours to pick, and you can switch anytime.",
+    "monthly": "Monthly",
+    "annual": "Annual · save 17%",
+    "bestFit": "Best fit for you",
+    "monthsFree": "2 months free",
+    "perMo": "/mo",
+    "billedAnnually": " · billed annually",
+    "footPre": "Billed ",
+    "footMonthly": "monthly",
+    "footAnnual": "annually",
+    "footPost": " · cancel anytime · no hidden fees",
+    "selectCta": "Confirm my license",
+    "text": {
+      "free": {
+        "tag": "Stay in motion",
+        "blurb": "Move with smart guidance — no card, no pressure.",
+        "features": ["Smart workout library", "Basic progress tracking", "A few AI tips each week"]
+      },
+      "ai_fitness": {
+        "tag": "Your AI in the loop",
+        "blurb": "A plan that rewrites itself around your day.",
+        "features": ["Fully personalized AI plans", "Daily adjustments to energy & soreness", "Cycle-aware programming", "Full history & insights"]
+      },
+      "ai_performance": {
+        "tag": "Coach-grade results",
+        "blurb": "Predictive load and human eyes on your numbers.",
+        "features": ["Everything in AI Fitness", "Advanced performance analytics", "Predictive load & recovery", "Priority human review"]
+      },
+      "trial": {
+        "tag": "Test the studio",
+        "sub": "14 days",
+        "blurb": "See the AI build plans before you commit a cent.",
+        "features": ["Up to 3 clients", "AI plan builder", "Basic studio dashboard"]
+      },
+      "pro": {
+        "tag": "Run your practice",
+        "blurb": "Turn your method into plans the AI writes for you.",
+        "features": ["Unlimited clients", "AI methodology engine", "Branded studio space", "Adherence & client insights"]
+      },
+      "elite": {
+        "tag": "Scale your method",
+        "blurb": "White-label everything and grow on the marketplace.",
+        "features": ["Everything in Pro", "White-label client app", "Advanced analytics suite", "Marketplace priority placement"],
+        "note": "+ 15% revenue share on clients acquired through the marketplace"
+      }
+    },
+    "confirm": {
+      "onPlanPre": "You're on ",
+      "subscribed": "Subscribed",
+      "free": "Free",
+      "whatNext": "What happens next",
+      "nextStudent": ["Build your Smart Profile so the AI knows your body", "Get your first AI-personalized plan", "Daily check-ins fine-tune everything as you go"],
+      "nextTrainer": ["Build your Smart Profile so the AI knows your body", "Set up your studio & invite first clients", "Daily check-ins fine-tune everything as you go"],
+      "billedMonthly": "billed monthly",
+      "billedAnnually": "billed annually"
+    },
+    "peek": {
+      "live": "Live · Finding your fit",
+      "role": "Role",
+      "answers": "Answers",
+      "matchConf": "MATCH CONFIDENCE",
+      "bestMatch": "Best match so far",
+      "yourChoice": "Your choice",
+      "awaiting": "Awaiting answers",
+      "emptyHint": "Pick a role and answer a couple of questions to see your recommended license.",
+      "noLock": "No lock-in",
+      "noLockQuote": "A recommendation, never a wall. Start free and move up only when the AI is clearly worth it.",
+      "perMo": "/mo",
+      "free": "Free"
+    }
   }
 }

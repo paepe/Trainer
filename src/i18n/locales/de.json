@@ -305,7 +305,10 @@
       "title": "9 prädiktive Indikatoren.",
       "insights": "Umsetzbare Erkenntnisse · {{count}}",
       "disclaimerBold": "ℹ Vorhersage ≠ Diagnose.",
-      "disclaimerBody": "Alle Scores sind probabilistisch und dienen zur Unterstützung von Trainerentscheidungen, nicht als Ersatz für professionelle Beurteilung. Sensible Daten werden lokal verarbeitet."
+      "disclaimerBody": "Alle Scores sind probabilistisch und dienen zur Unterstützung von Trainerentscheidungen, nicht als Ersatz für professionelle Beurteilung. Sensible Daten werden lokal verarbeitet.",
+      "premiumBadge": "AI Performance",
+      "premiumLocked": "Dieser Indikator ist Teil von AI Performance.",
+      "premiumCta": "Mit AI Performance freischalten"
     },
     "scoreDefs": {
       "churnRisk": {
@@ -2464,5 +2467,81 @@
     "goHome": "Zu TrAIner",
     "trainerPushTitle": "{{clientName}} hat deine Einladung angenommen",
     "trainerPushBody": "{{clientName}} ist jetzt dein Klient auf TrAIner."
+  },
+  "plans": {
+    "kicker": "Wähle deine Lizenz",
+    "headingRecPre": "Anhand deiner Antworten passt ",
+    "headingRecPost": " am besten.",
+    "headingNoRec": "Wähle den passenden Plan.",
+    "sub": "Nur ein Vorschlag — jeder Plan steht dir offen, und du kannst jederzeit wechseln.",
+    "monthly": "Monatlich",
+    "annual": "Jährlich · 17% sparen",
+    "bestFit": "Passt zu dir",
+    "monthsFree": "2 Monate gratis",
+    "perMo": "/Mon.",
+    "billedAnnually": " · jährliche Abrechnung",
+    "footPre": "Abrechnung ",
+    "footMonthly": "monatlich",
+    "footAnnual": "jährlich",
+    "footPost": " · jederzeit kündbar · keine versteckten Kosten",
+    "selectCta": "Meine Lizenz bestätigen",
+    "text": {
+      "free": {
+        "tag": "In Bewegung bleiben",
+        "blurb": "Trainiere mit smarter Anleitung — ohne Karte, ohne Druck.",
+        "features": ["Intelligente Trainingsbibliothek", "Basis-Fortschritt-Tracking", "Ein paar KI-Tipps pro Woche"]
+      },
+      "ai_fitness": {
+        "tag": "Deine KI mit dabei",
+        "blurb": "Ein Plan, der sich um deinen Tag herum neu schreibt.",
+        "features": ["Voll personalisierte KI-Pläne", "Tägliche Anpassung an Energie & Muskelkater", "Zyklus-bewusste Programmierung", "Vollständiger Verlauf & Insights"]
+      },
+      "ai_performance": {
+        "tag": "Ergebnisse wie mit Coach",
+        "blurb": "Prädiktive Belastung und menschlicher Blick auf deine Zahlen.",
+        "features": ["Alles aus AI Fitness", "Erweiterte Leistungsanalysen", "Prädiktive Belastung & Erholung", "Bevorzugte menschliche Prüfung"]
+      },
+      "trial": {
+        "tag": "Studio testen",
+        "sub": "14 Tage",
+        "blurb": "Sieh die KI Pläne bauen, bevor du einen Cent ausgibst.",
+        "features": ["Bis zu 3 Kunden", "KI-Planbaukasten", "Basis-Studio-Dashboard"]
+      },
+      "pro": {
+        "tag": "Deine Praxis führen",
+        "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
+        "features": ["Unbegrenzte Kunden", "KI-Methoden-Engine", "Studio-Bereich mit deiner Marke", "Adhärenz- & Kunden-Insights"]
+      },
+      "elite": {
+        "tag": "Methode skalieren",
+        "blurb": "Alles als White-Label und auf dem Marktplatz wachsen.",
+        "features": ["Alles aus Pro", "White-Label-App für Kunden", "Suite für erweiterte Analysen", "Bevorzugte Platzierung im Marktplatz"],
+        "note": "+ 15% Umsatzbeteiligung bei über den Marktplatz gewonnenen Kunden"
+      }
+    },
+    "confirm": {
+      "onPlanPre": "Du bist bei ",
+      "subscribed": "Abonniert",
+      "free": "Gratis",
+      "whatNext": "Was als Nächstes passiert",
+      "nextStudent": ["Erstelle dein Smart-Profil, damit die KI deinen Körper kennt", "Erhalte deinen ersten KI-personalisierten Plan", "Tägliche Check-ins justieren alles, während du dranbleibst"],
+      "nextTrainer": ["Erstelle dein Smart-Profil, damit die KI deinen Körper kennt", "Richte dein Studio ein und lade erste Kunden ein", "Tägliche Check-ins justieren alles, während du dranbleibst"],
+      "billedMonthly": "monatliche Abrechnung",
+      "billedAnnually": "jährliche Abrechnung"
+    },
+    "peek": {
+      "live": "Live · Deinen Plan finden",
+      "role": "Profil",
+      "answers": "Antworten",
+      "matchConf": "TREFFER-SICHERHEIT",
+      "bestMatch": "Bisher beste Wahl",
+      "yourChoice": "Deine Wahl",
+      "awaiting": "Warte auf Antworten",
+      "emptyHint": "Wähle ein Profil und beantworte ein paar Fragen, um deine empfohlene Lizenz zu sehen.",
+      "noLock": "Keine Bindung",
+      "noLockQuote": "Eine Empfehlung, nie eine Mauer. Starte kostenlos und steig erst auf, wenn die KI es klar wert ist.",
+      "perMo": "/Mon.",
+      "free": "Gratis"
+    }
   }
 }

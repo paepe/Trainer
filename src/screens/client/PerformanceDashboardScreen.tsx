@@ -102,7 +102,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
             case 'dor':         return <TelaDor         data={data} gender={targetGender ?? null}/>;
-            case 'scores':      return <TelaScores      data={data}/>;
+            case 'scores':      return <TelaScores      data={data} nav={nav} isPremium={!!selectedClient}/>;
             case 'voz':         return <TelaVoz data={data}/>;
             case 'marcos':      return <TelaMarcos      data={data}/>;
           }
@@ -639,7 +639,16 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
 
 // ── Tela 05 — Scores Preditivos ───────────────────────────────────────────────
 
-function TelaScores({ data }: { data: M5Data }) {
+// Scores included in the free tier. Remaining scores are shown as locked
+// teasers to drive upgrades to AI Performance.
+const FREE_SCORE_CODES = new Set([
+  'session_completion_score',
+  'churn_risk_score',
+  'pain_recurrence_score',
+  'plan_fit_score',
+]);
+
+export function TelaScores({ data, nav, isPremium }: { data: M5Data; nav: NavFn; isPremium: boolean }) {
   const { t: tr } = useTranslation();
   const scoreList = [
     data.scores.churnRisk,
@@ -664,6 +673,9 @@ function TelaScores({ data }: { data: M5Data }) {
       {/* Score grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {scoreList.map(s => {
+          const locked = !isPremium && !FREE_SCORE_CODES.has(s.code);
+          if (locked) return <LockedScoreCard key={s.code} nameKey={s.nameKey} nav={nav}/>;
+
           const c = s.isGoodScore ? goodScoreColor(s.score) : scoreColor(s.score);
           const b = band(s.score);
           const badgeLabel = s.isGoodScore
@@ -738,6 +750,50 @@ function TelaScores({ data }: { data: M5Data }) {
         {tr('perf.scores.disclaimerBody')}
       </div>
     </ScreenWrap>
+  );
+}
+
+function LockedScoreCard({ nameKey, nav }: { nameKey: string; nav: NavFn }) {
+  const { t: tr } = useTranslation();
+  return (
+    <button
+      onClick={() => nav('plans', { source: 'perf_scores' })}
+      style={{
+        padding: 12, borderRadius: 12, textAlign: 'left', cursor: 'pointer',
+        background: T.surf, border: `1px solid ${C.lavender}33`,
+        display: 'flex', flexDirection: 'column',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: T.text }}>{tr(nameKey)}</span>
+        <span style={{
+          padding: '2px 6px', borderRadius: 4,
+          background: `${C.lavender}22`, color: C.lavender,
+          fontFamily: FF_MONO, fontSize: 9, fontWeight: 700,
+        }}>
+          🔒 {tr('perf.scores.premiumBadge')}
+        </span>
+      </div>
+      <div style={{
+        fontFamily: FF_DISPLAY, fontSize: 28, fontWeight: 800,
+        color: T.textMute, letterSpacing: '-0.02em', lineHeight: 1.05, marginBottom: 6,
+        filter: 'blur(5px)', userSelect: 'none',
+      }}>
+        87
+      </div>
+      <div style={{ height: 6, borderRadius: 999, background: T.navy, marginBottom: 6, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%', borderRadius: 14, width: '60%',
+          background: `linear-gradient(90deg, ${C.lavender}55 0%, ${C.lavender}22 100%)`,
+        }}/>
+      </div>
+      <div style={{ fontSize: 10.5, color: T.textSec, lineHeight: 1.4 }}>
+        {tr('perf.scores.premiumLocked')}
+      </div>
+      <div style={{ fontFamily: FF_MONO, fontSize: 9, color: C.lavender, marginTop: 4 }}>
+        → {tr('perf.scores.premiumCta')}
+      </div>
+    </button>
   );
 }
 
