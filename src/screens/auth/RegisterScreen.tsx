@@ -19,14 +19,6 @@ interface RegisterScreenProps {
   inviteToken?: string | undefined;
 }
 
-// Labels/descriptions are translated at render via auth.roles.<key>.*
-const ROLES = [
-  { key: 'client',         icon: 'user' },
-  { key: 'trainer',        icon: 'dumbbell' },
-  { key: 'studio_trainer', icon: 'grad' },
-  { key: 'studio_admin',   icon: 'grad' },
-] as const;
-
 function OAuthButton({ provider, onClick, dark, primary }: {
   provider: 'google'; onClick: () => void; dark: boolean; primary: string;
 }) {
@@ -87,7 +79,6 @@ function OAuthSection({ onProvider, dark, primary, dividerLabel }: {
 
 export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken }: RegisterScreenProps) {
   const { t: tr } = useTranslation();
-  const [role,    setRole]    = React.useState<string>('client');
   const isInviteFlow = !!lockedEmail;
   const [name,    setName]    = React.useState('');
   const [email,   setEmail]   = React.useState(lockedEmail ?? '');
@@ -100,7 +91,7 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
     if (!name || !email || !pw) { setErr(tr('auth.register.errFields')); return; }
     if (pw !== pw2) { setErr(tr('auth.register.errMatch')); return; }
     setLoading(true); setErr('');
-    const { data, error } = await signUp(email, pw, name, role);
+    const { data, error } = await signUp(email, pw, name, 'client');
     if (error) { setErr(friendlyError(error, tr)); setLoading(false); return; }
     const d = data as { session?: unknown; user?: { id: string } } | null;
     if (!d?.session) {
@@ -116,7 +107,7 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
       nav('checkin');
       return;
     }
-    nav(role === 'client' ? 'profile' : 'trainerDashboard');
+    nav('plans', { source: 'onboarding' });
   };
 
   const oauth = async (provider: 'google') => {
@@ -142,28 +133,6 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
       <div style={{ color: textSec(dark), fontSize: 13, marginBottom: 14 }}>
         {tr('auth.register.subtitle')}
       </div>
-
-      {/* Role selector — hidden for invite-originated signups (always client) */}
-      {!isInviteFlow && <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-        {ROLES.map(r => {
-          const on = role === r.key;
-          return (
-            <button key={r.key} onClick={() => setRole(r.key)} style={{
-              flex: 1, padding: '10px 4px', borderRadius: 14,
-              border: `1.5px solid ${on ? t.primary : 'var(--border)'}`,
-              background: on ? `${t.primary}1A` : 'var(--surface)',
-              color: on ? t.primary : textSec(dark),
-              fontFamily: 'inherit', cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-              transition: 'border-color .15s, background .15s',
-            }}>
-              <Icon name={r.icon} size={18} color={on ? t.primary : textSec(dark)} stroke={on ? 2.5 : 2}/>
-              <span style={{ fontSize: 11, fontWeight: on ? 700 : 500 }}>{tr(`auth.roles.${r.key}.label`)}</span>
-              <span style={{ fontSize: 9.5, color: on ? t.primary : textMute(dark), textAlign: 'center', lineHeight: 1.3 }}>{tr(`auth.roles.${r.key}.desc`)}</span>
-            </button>
-          );
-        })}
-      </div>}
 
       {/* OAuth bypasses the locked-email flow — skip it for invite-originated signups */}
       {!isInviteFlow && <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel={tr('auth.oauth.dividerRegister')}/>}

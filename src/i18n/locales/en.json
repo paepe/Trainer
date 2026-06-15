@@ -1280,27 +1280,13 @@
       "errMatch": "Passwords do not match."
     },
     "register": {
-      "title": "Create account",
-      "subtitle": "Get a coach in your pocket — backed by real trainers.",
+      "title": "Start training today",
+      "subtitle": "Follow a personalized plan guided by experienced trainers.",
       "loading": "Creating account…",
       "haveAccount": "Already have an account?",
       "confirmEmail": "Account created! Check your email to confirm your address before logging in.",
       "errFields": "All fields are required.",
       "errMatch": "Passwords do not match."
-    },
-    "roles": {
-      "client": {
-        "label": "Client",
-        "desc": "I want to train"
-      },
-      "trainer": {
-        "label": "Trainer",
-        "desc": "I prescribe workouts"
-      },
-      "studio_admin": {
-        "label": "Studio",
-        "desc": "I run a gym"
-      }
     }
   },
   "wizard": {

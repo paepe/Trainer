@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '../../i18n';
 import { PlansScreen } from './PlansScreen';
+import type { UserRole, PlanKey } from '../../types';
 
 function mockUpsert() {
   return vi.fn().mockResolvedValue({ error: null });
@@ -64,6 +65,46 @@ describe('PlansScreen', () => {
     await waitFor(() => {
       expect(upsertSubscription).toHaveBeenCalledWith('free', 'monthly');
       expect(nav).toHaveBeenCalledWith('settings');
+    });
+  });
+
+  it('navigates to the profile wizard on confirm when reached from onboarding', async () => {
+    const nav = vi.fn();
+    const upsertSubscription = mockUpsert();
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client', plan_key: 'free' }} source="onboarding" upsertSubscription={upsertSubscription}/>);
+
+    fireEvent.click(screen.getByText('Stay in motion'));
+    fireEvent.click(screen.getByText('Confirm my license'));
+
+    await waitFor(() => {
+      expect(upsertSubscription).toHaveBeenCalledWith('free', 'monthly');
+      expect(nav).toHaveBeenCalledWith('profile');
+    });
+  });
+
+  describe('onboarding flow per profile', () => {
+    const cases: { role: UserRole; selectLabel: string; expectedPlanKey: PlanKey }[] = [
+      { role: 'client',                selectLabel: 'Stay in motion',          expectedPlanKey: 'free'  },
+      { role: 'trainer',                selectLabel: 'Test the studio',         expectedPlanKey: 'trial' },
+      { role: 'studio_trainer',         selectLabel: 'Test the studio',         expectedPlanKey: 'trial' },
+      { role: 'studio_admin',           selectLabel: 'Test the studio',         expectedPlanKey: 'trial' },
+      { role: 'internal_trainer',       selectLabel: 'Test the studio',         expectedPlanKey: 'trial' },
+      { role: 'technical_coordinator',  selectLabel: 'Test the studio',         expectedPlanKey: 'trial' },
+      { role: 'studio_manager',         selectLabel: 'Test the studio',         expectedPlanKey: 'trial' },
+    ];
+
+    it.each(cases)('role=$role selects the free-tier plan and lands on the profile wizard', async ({ role, selectLabel, expectedPlanKey }) => {
+      const nav = vi.fn();
+      const upsertSubscription = mockUpsert();
+      render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role, plan_key: 'free' }} source="onboarding" upsertSubscription={upsertSubscription}/>);
+
+      fireEvent.click(screen.getByText(selectLabel));
+      fireEvent.click(screen.getByText('Confirm my license'));
+
+      await waitFor(() => {
+        expect(upsertSubscription).toHaveBeenCalledWith(expectedPlanKey, 'monthly');
+        expect(nav).toHaveBeenCalledWith('profile');
+      });
     });
   });
 });

@@ -1280,27 +1280,13 @@
       "errMatch": "Die Passwörter stimmen nicht überein."
     },
     "register": {
-      "title": "Konto erstellen",
-      "subtitle": "Ein Coach in deiner Tasche — gestützt von echten Trainern.",
+      "title": "Starte dein Training heute",
+      "subtitle": "Folge einem personalisierten Trainingsplan mit Anleitung erfahrener Trainer.",
       "loading": "Konto wird erstellt…",
       "haveAccount": "Hast du bereits ein Konto?",
       "confirmEmail": "Konto erstellt! Bestätige deine Adresse über die E-Mail, bevor du dich anmeldest.",
       "errFields": "Alle Felder sind erforderlich.",
       "errMatch": "Die Passwörter stimmen nicht überein."
-    },
-    "roles": {
-      "client": {
-        "label": "Kunde",
-        "desc": "Ich möchte trainieren"
-      },
-      "trainer": {
-        "label": "Trainer",
-        "desc": "Ich erstelle Workouts"
-      },
-      "studio_admin": {
-        "label": "Studio",
-        "desc": "Ich leite ein Fitnessstudio"
-      }
     }
   },
   "wizard": {

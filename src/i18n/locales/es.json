@@ -1280,27 +1280,13 @@
       "errMatch": "Las contraseñas no coinciden."
     },
     "register": {
-      "title": "Crear cuenta",
-      "subtitle": "Un entrenador en tu bolsillo — respaldado por entrenadores reales.",
+      "title": "Empieza a entrenar hoy",
+      "subtitle": "Sigue un plan personalizado con la guía de entrenadores expertos.",
       "loading": "Creando cuenta…",
       "haveAccount": "¿Ya tienes una cuenta?",
       "confirmEmail": "¡Cuenta creada! Revisa tu correo para confirmar tu dirección antes de iniciar sesión.",
       "errFields": "Todos los campos son obligatorios.",
       "errMatch": "Las contraseñas no coinciden."
-    },
-    "roles": {
-      "client": {
-        "label": "Cliente",
-        "desc": "Quiero entrenar"
-      },
-      "trainer": {
-        "label": "Entrenador",
-        "desc": "Prescribo entrenamientos"
-      },
-      "studio_admin": {
-        "label": "Studio",
-        "desc": "Dirijo un gimnasio"
-      }
     }
   },
   "wizard": {

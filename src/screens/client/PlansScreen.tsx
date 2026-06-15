@@ -9,10 +9,11 @@ interface Theme { primary: string; accent: string }
 interface AppUser { id: string | null; role?: UserRole; plan_key?: PlanKey }
 
 interface Props {
-  nav:  NavFn;
-  t:    Theme;
-  dark: boolean;
-  user: AppUser;
+  nav:    NavFn;
+  t:      Theme;
+  dark:   boolean;
+  user:   AppUser;
+  source?: string | undefined;
   upsertSubscription: (planKey: PlanKey, billingCycle: 'monthly' | 'annual') => Promise<{ error: unknown }>;
 }
 
@@ -45,7 +46,7 @@ function annualMonthly(p: number): number {
   return p === 0 ? 0 : (p * 10) / 12;
 }
 
-export function PlansScreen({ nav, user, upsertSubscription }: Props) {
+export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
   const { t: tr } = useTranslation();
   const isTrainer = !!user.role && (TRAINER_ROLES as readonly string[]).includes(user.role);
   const plans = isTrainer ? TRAINER_PLANS : STUDENT_PLANS;
@@ -57,7 +58,7 @@ export function PlansScreen({ nav, user, upsertSubscription }: Props) {
   const handleConfirm = async () => {
     if (!selected) return;
     const { error } = await upsertSubscription(selected as PlanKey, billing);
-    if (!error) nav('settings');
+    if (!error) nav(source === 'onboarding' ? 'profile' : 'settings');
   };
 
   return (

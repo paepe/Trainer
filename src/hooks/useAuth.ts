@@ -50,14 +50,14 @@ export function useAuth(): UseAuthReturn {
       else setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription: authListener } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       setSession(session);
       if (session) void fetchProfile(session.user.id);
       else { setProfile(null); setSubscription(null); setLoading(false); }
     });
 
-    return () => subscription.unsubscribe();
+    return () => authListener.unsubscribe();
   }, []);
 
   async function fetchProfile(userId: string): Promise<void> {

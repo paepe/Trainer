@@ -11,7 +11,12 @@
       "Bash(brew install *)",
       "Bash(npx vercel *)",
       "Bash(vercel env *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(node -e ' *)",
+      "Bash(python3)",
+      "Bash(grep -B2 -A6 \"WizardFooter$\" src/screens/auth/wizard/Step02BasicData.tsx src/screens/auth/wizard/Step03Objectives.tsx src/screens/auth/wizard/Step07FunctionalCapacity.tsx src/screens/auth/wizard/Step11Environment.tsx src/screens/auth/wizard/Step04MovementHistory.tsx)",
+      "Bash(python3 -c ' *)",
+      "Bash(awk 'NR>=200 && NR<=440 && /^function |^const.*=.*\\\\\\(\\\\{|export function/' src/screens/trainer/TrainerDashboardScreen.tsx)"
     ]
   }
 }
