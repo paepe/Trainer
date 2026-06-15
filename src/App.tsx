@@ -1,6 +1,5 @@
 import React from 'react';
 import { supabase } from './supabase';
-import type { Database } from './types/supabase';
 import { BRAND, TRAINER_BRAND, setVizProfile } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { useProfileData }  from './hooks/useProfileData';
@@ -37,8 +36,6 @@ const CoachDNAScreen             = React.lazy(() => import('./coach-dna/CoachDNA
 const TrainerAlertsScreen        = React.lazy(() => import('./screens/trainer/TrainerAlertsScreen').then(m => ({ default: m.TrainerAlertsScreen })));
 const ClientInboxScreen          = React.lazy(() => import('./screens/client/ClientInboxScreen').then(m => ({ default: m.ClientInboxScreen })));
 const AcceptInvitationScreen     = React.lazy(() => import('./screens/auth/AcceptInvitationScreen').then(m => ({ default: m.AcceptInvitationScreen })));
-
-type NotificationLogRow = Database['public']['Tables']['notification_log']['Row'];
 
 const PUBLIC_SCREENS = ['welcome', 'login', 'register', 'acceptInvitation', 'resetPassword'];
 
@@ -281,24 +278,28 @@ export default function App() {
   React.useEffect(() => {
     if (!isTrainer || !profile?.id) return;
 
-    // Initial count of unread notifications (mirrors client inbox badge semantics)
-    supabase
-      .from('notification_log')
-      .select('id', { count: 'exact', head: true })
-      .eq('to_user_id', profile.id)
-      .is('read_at', null)
-      .then(({ count }) => setPendingAlerts(count ?? 0));
+    const refreshCount = () => {
+      void supabase
+        .from('notification_log')
+        .select('id', { count: 'exact', head: true })
+        .eq('to_user_id', profile.id)
+        .is('read_at', null)
+        .then(({ count }) => setPendingAlerts(count ?? 0));
+    };
 
-    // Realtime: increment on new insert, decrement once marked as read
+    refreshCount();
+
+    // Re-fetch the exact count on any insert/update — avoids drift from
+    // incremental +1/-1 deltas missing events (e.g. batched read updates).
     const ch = supabase
       .channel(`alerts_badge:${profile.id}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        () => setPendingAlerts(n => n + 1)
+        refreshCount
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        (p) => { if ((p.new as NotificationLogRow).read_at != null) setPendingAlerts(n => Math.max(0, n - 1)); }
+        refreshCount
       )
       .subscribe();
 
@@ -309,22 +310,26 @@ export default function App() {
   React.useEffect(() => {
     if (isTrainer || !profile?.id) return;
 
-    supabase
-      .from('notification_log')
-      .select('id', { count: 'exact', head: true })
-      .eq('to_user_id', profile.id)
-      .is('read_at', null)
-      .then(({ count }) => setPendingInbox(count ?? 0));
+    const refreshCount = () => {
+      void supabase
+        .from('notification_log')
+        .select('id', { count: 'exact', head: true })
+        .eq('to_user_id', profile.id)
+        .is('read_at', null)
+        .then(({ count }) => setPendingInbox(count ?? 0));
+    };
+
+    refreshCount();
 
     const ch = supabase
       .channel(`inbox_badge:${profile.id}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        () => setPendingInbox(n => n + 1)
+        refreshCount
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${profile.id}` },
-        (p) => { if ((p.new as NotificationLogRow).read_at != null) setPendingInbox(n => Math.max(0, n - 1)); }
+        refreshCount
       )
       .subscribe();
 

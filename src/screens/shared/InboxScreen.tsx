@@ -120,13 +120,14 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
           const enriched = await enrichBatch(rows);
           setItems(enriched);
 
-          const unreadIds = rows.filter(d => d.read_at == null).map(d => d.id);
-          if (unreadIds.length) {
-            supabase.from('notification_log')
-              .update({ read_at: new Date().toISOString() })
-              .in('id', unreadIds)
-              .then(({ error: uErr }) => { if (uErr) console.error('[Inbox] mark-read failed:', uErr.message); });
-          }
+          // Mark ALL unread rows as read, not just the ones loaded here —
+          // items beyond the 50-row window would otherwise stay unread
+          // forever and permanently inflate the unread badge.
+          supabase.from('notification_log')
+            .update({ read_at: new Date().toISOString() })
+            .eq('to_user_id', userId)
+            .is('read_at', null)
+            .then(({ error: uErr }) => { if (uErr) console.error('[Inbox] mark-read failed:', uErr.message); });
         }
         setLoading(false);
       });
@@ -277,6 +278,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
             const isNewPlan = !isTrainer && item.type === 'plan_sent';
 
             const accentColor = getBadgeColor(item, expired, isTrainer, t, dark);
+            const unread = item.read_at == null;
 
             return (
               <div key={item.id} style={{
@@ -284,9 +286,10 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                 background: surfRaised(dark),
                 border: `1px solid ${dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)'}`,
                 display: 'flex',
+                opacity: unread ? 1 : 0.7,
               }}>
-                {/* Colour accent stripe */}
-                <div style={{ width: 4, flexShrink: 0, background: accentColor, borderRadius: '14px 0 0 14px' }} />
+                {/* Colour accent stripe — only shown for unread cards */}
+                <div style={{ width: 4, flexShrink: 0, background: unread ? accentColor : 'transparent', borderRadius: '14px 0 0 14px' }} />
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Card header */}
