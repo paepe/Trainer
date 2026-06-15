@@ -94,11 +94,11 @@ const PROFILE_VALUE_MAP: Record<string, string> = {
   home: 'wizard.step11.locations.home', gym: 'wizard.step11.locations.gym',
   studio: 'wizard.step11.locations.studio', park: 'wizard.step11.locations.park',
   condo: 'wizard.step11.locations.condo', online: 'wizard.step11.locations.online',
-  dumbbells: 'wizard.step11.equipment.dumbbells', resistance_bands: 'wizard.step11.equipment.bands',
+  dumbbells: 'wizard.step11.equipment.dumbbells', resistance_bands: 'wizard.step11.equipment.resistance_bands',
   barbell: 'wizard.step11.equipment.barbell', bench: 'wizard.step11.equipment.bench',
   treadmill: 'wizard.step11.equipment.treadmill', bike: 'wizard.step11.equipment.bike',
   machines: 'wizard.step11.equipment.machines', kettlebell: 'wizard.step11.equipment.kettlebell',
-  cable_pulley: 'wizard.step11.equipment.cable',
+  cable_pulley: 'wizard.step11.equipment.cable_pulley',
   // Availability
   morning: 'wizard.step12.times.morning', afternoon: 'wizard.step12.times.afternoon',
   evening: 'wizard.step12.times.evening', variable: 'wizard.step12.times.variable',
@@ -404,6 +404,12 @@ export function TrainerClientDetailScreen({
     if (v == null || v === '') return null;
     if (typeof v === 'boolean') return v ? tr('profileFields.yes') : tr('profileFields.no');
     if (Array.isArray(v)) {
+      if (parentKey === 'preferred_days') {
+        const dayLabels = tr('wizard.step12.days', { returnObjects: true }) as unknown as string[];
+        const days = v.filter((x): x is number => typeof x === 'number' && x >= 0 && x <= 6);
+        const items = [...days].sort((a, b) => a - b).map(d => dayLabels[d] ?? String(d));
+        return items.length > 0 ? items.join(', ') : null;
+      }
       const items = v.filter(x => x != null && x !== '').map(x => translateVal(String(x)));
       return items.length > 0 ? items.join(', ') : null;
     }
