@@ -5,7 +5,7 @@ import { Spinner } from '../../ui';
 import { RefreshChip } from '../../components/RefreshChip';
 import i18n from '../../i18n';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
-import type { NavFn } from '../../types';
+import type { NavFn, PlanKey } from '../../types';
 import { useM5Data, C, scoreColor, goodScoreColor, band } from './performance/perf-engines';
 import {
   T, FF_DISPLAY, FF_MONO,
@@ -34,7 +34,7 @@ function fmtRegion(
 // ── Prop types ────────────────────────────────────────────────────────────────
 
 interface Theme { primary: string; accent: string }
-interface AppUser { id: string | null; name?: string; gender?: string }
+interface AppUser { id: string | null; name?: string; gender?: string; plan_key?: PlanKey }
 
 interface Props {
   nav:  NavFn;
@@ -67,6 +67,9 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
   const targetUserId = selectedClient?.id ?? user.id;
   const targetName   = selectedClient?.name ?? user.name;
   const targetGender = user.gender;
+  // Trainer viewing a client always sees the full picture; a client viewing
+  // their own dashboard sees AI Performance scores only on the matching plan.
+  const isPremium = !!selectedClient || user.plan_key === 'ai_performance';
   const [activeScreen, setActiveScreen] = React.useState<ScreenId>('overview');
   const { data, loading, lastUpdated, reload } = useM5Data(targetUserId);
 
@@ -102,7 +105,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
             case 'dor':         return <TelaDor         data={data} gender={targetGender ?? null}/>;
-            case 'scores':      return <TelaScores      data={data} nav={nav} isPremium={!!selectedClient}/>;
+            case 'scores':      return <TelaScores      data={data} nav={nav} isPremium={isPremium}/>;
             case 'voz':         return <TelaVoz data={data}/>;
             case 'marcos':      return <TelaMarcos      data={data}/>;
           }

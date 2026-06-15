@@ -10,8 +10,20 @@ Baseado em `Recommended_Monetization_Model_Years_1_3 (2).pdf`. Avaliação de pr
 
 **Estimativa**: 3-4 dias
 
+**"Fase 0 light" (2026-06-15, sem Stripe)**: como a conta Stripe ainda não existe,
+avançamos a parte que não depende dela. Tabela `subscriptions` criada no Supabase
+(`supabase/sql-archive/supabase-subscriptions-20260615.sql`) com `plan_key`,
+`status`, `billing_cycle`, `current_period_end` e colunas `stripe_*` já
+preparadas (nullable) para quando o Stripe existir — RLS: usuário lê/grava
+apenas a própria assinatura (modelo "self-assign", sem checkout real).
+`useAuth.ts` agora expõe `subscription`/`upsertSubscription`; `AppUser.plan_key`
+propagado a todas as telas. `PlansScreen.tsx` grava o plano selecionado via
+`upsertSubscription` (sem cobrança) e exibe badge "Plano atual". O gate de
+`isPremium` em `PerformanceDashboardScreen.tsx` agora lê
+`user.plan_key === 'ai_performance'` (mantendo `selectedClient` = trainer vê tudo).
+
 - [ ] Definir tiers no Stripe Dashboard (produtos/preços): Trainer Pro (€49), Trainer Elite (€99), Client AI Fitness (€9.99), Client AI Performance (€24.99) — modo teste
-- [ ] Schema Supabase: tabela `subscriptions` (`user_id`, `stripe_customer_id`, `stripe_subscription_id`, `plan_key`, `status`, `current_period_end`, `created_at`) + RLS (usuário só lê a própria)
+- [x] Schema Supabase: tabela `subscriptions` (`user_id`, `stripe_customer_id`, `stripe_subscription_id`, `plan_key`, `status`, `billing_cycle`, `current_period_end`, `created_at`) + RLS (usuário só lê/grava a própria) — criada sem Stripe, modo self-assign
 - [ ] Env vars no Vercel (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PUBLISHABLE_KEY`)
 - [ ] `/api/create-checkout-session` — gera sessão Stripe Checkout (hospedado) para um `plan_key`
 - [ ] `/api/stripe-webhook` — trata `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`; idempotência via `stripe_event_id`
@@ -64,8 +76,11 @@ o `TelaScores` (tela "AI Scores") já foi dividido em:
 - Implementado em `src/screens/client/PerformanceDashboardScreen.tsx` (`FREE_SCORE_CODES`,
   `LockedScoreCard`), CTA navega para a tela `plans` (`src/screens/client/PlansScreen.tsx`, ver abaixo).
 - i18n adicionado (en/pt/es/de): `perf.scores.premiumBadge/premiumLocked/premiumCta`.
-- Gate hoje é **estático** (`isPremium = !!selectedClient`, i.e. trainer vendo cliente sempre vê tudo;
-  cliente sempre vê free). Falta ligar a um tier real de assinatura quando a Fase 0 existir.
+- Gate ligado à tabela `subscriptions` (Fase 0 light, 2026-06-15): `isPremium =
+  !!selectedClient || user.plan_key === 'ai_performance'` — trainer vendo
+  cliente sempre vê tudo; cliente vê os 5 scores avançados apenas com
+  `plan_key === 'ai_performance'`. `ai_fitness` não desbloqueia os scores
+  avançados (apenas o ajuste de IA por check-in, conforme item abaixo).
 
 - [ ] Definir o que cada tier desbloqueia (decisão de produto — exemplos a validar):
   - Free: planos de treino fixos, sem ajuste de IA, 4 scores preditivos básicos
@@ -80,12 +95,13 @@ o `TelaScores` (tela "AI Scores") já foi dividido em:
 - [x] Tela "Planos" (`src/screens/client/PlansScreen.tsx`, rota `plans`): grid de `PlanCard`
   (free/AI Fitness/AI Performance para `client`, trial/pro/elite para roles em `TRAINER_ROLES`) +
   `BillingToggle` mensal/anual com badge "2 meses grátis", reaproveitando o i18n acima e os átomos
-  `perf-atoms`. CTA do `LockedScoreCard` agora navega para `plans`. Seleção de plano hoje só marca
-  estado local e volta para `settings` — sem checkout real (depende da Fase 0).
+  `perf-atoms`. CTA do `LockedScoreCard` agora navega para `plans`.
+- [x] `PlansScreen` ligada a `subscriptions` (Fase 0 light, sem checkout): seleção de plano grava
+  `plan_key`/`billing_cycle` via `upsertSubscription` (self-assign), badge "Plano atual" no card
+  correspondente, e `isPremium` em `PerformanceDashboardScreen.tsx` lê `user.plan_key` real.
+  Checkout real (Stripe) continua dependendo da Fase 0 completa.
 - [ ] Quiz de recomendação (`QuizOption`/`computeRec`, `plans.peek`) — não implementado nesta etapa;
   é parte do fluxo de onboarding "Inception", escopo separado da tela de Planos em si.
-- [ ] Ligar `PlansScreen` a `subscriptions` (Fase 0): estado real de assinatura, checkout, e
-  `isPremium = !!selectedClient` em `PerformanceDashboardScreen.tsx` deve passar a ler o tier do cliente
 - [ ] Gate de feature: pontos de ajuste de IA em `buildAIContext.ts`/`askAI()` condicionados ao tier do cliente
 - [ ] Gate de feature: telas/seções premium (ex: body rhythm avançado) com placeholder de upsell
   (mesmo padrão visual do `LockedScoreCard`)

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Session, AuthError, PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
-import type { Profile } from '../types';
+import type { Profile, PlanKey, Subscription } from '../types';
 
 interface SignInResult  { error: AuthError | null }
 interface SignUpResult  { data: unknown; error: AuthError | null }
@@ -11,12 +11,14 @@ interface ResetResult  { error: AuthError | null }
 interface UseAuthReturn {
   session:           Session | null;
   profile:           Profile | null;
+  subscription:      Subscription | null;
   loading:           boolean;
   passwordRecovery:  boolean;
   signIn:            (email: string, password: string) => Promise<SignInResult>;
   signUp:            (email: string, password: string, name: string, role?: string) => Promise<SignUpResult>;
   signOut:           () => Promise<void>;
   updateProfile:     (updates: Partial<Profile>) => Promise<UpdateResult>;
+  upsertSubscription:   (planKey: PlanKey, billingCycle: 'monthly' | 'annual') => Promise<UpdateResult>;
   requestPasswordReset: (email: string) => Promise<ResetResult>;
   updatePassword:       (password: string) => Promise<ResetResult>;
   clearPasswordRecovery: () => void;
@@ -37,6 +39,7 @@ function normalizeProfileUpdates(updates: Partial<Profile>): Partial<Profile> {
 export function useAuth(): UseAuthReturn {
   const [session, setSession]   = useState<Session | null>(null);
   const [profile, setProfile]   = useState<Profile | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading]   = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
 
@@ -51,7 +54,7 @@ export function useAuth(): UseAuthReturn {
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       setSession(session);
       if (session) void fetchProfile(session.user.id);
-      else { setProfile(null); setLoading(false); }
+      else { setProfile(null); setSubscription(null); setLoading(false); }
     });
 
     return () => subscription.unsubscribe();
@@ -65,6 +68,15 @@ export function useAuth(): UseAuthReturn {
       .single();
     if (error) console.error('[useAuth] fetchProfile error:', error);
     setProfile(data as Profile | null);
+
+    const { data: sub, error: subError } = await supabase
+      .from('subscriptions')
+      .select('plan_key, status, billing_cycle')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (subError) console.error('[useAuth] fetchSubscription error:', subError);
+    setSubscription((sub as Subscription | null) ?? { plan_key: 'free', status: 'active', billing_cycle: null });
+
     setLoading(false);
   }
 
@@ -101,6 +113,23 @@ export function useAuth(): UseAuthReturn {
     return { error };
   }
 
+  async function upsertSubscription(planKey: PlanKey, billingCycle: 'monthly' | 'annual'): Promise<UpdateResult> {
+    if (!session) return { error: null };
+    const billing_cycle = planKey === 'free' ? null : billingCycle;
+    const { error } = await supabase
+      .from('subscriptions')
+      .upsert({
+        user_id: session.user.id,
+        plan_key: planKey,
+        status: 'active',
+        billing_cycle,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    if (error) console.error('[useAuth] upsertSubscription error:', error);
+    else setSubscription({ plan_key: planKey, status: 'active', billing_cycle });
+    return { error };
+  }
+
   async function requestPasswordReset(email: string): Promise<ResetResult> {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
@@ -127,8 +156,8 @@ export function useAuth(): UseAuthReturn {
   }
 
   return {
-    session, profile, loading, passwordRecovery,
-    signIn, signUp, signOut, updateProfile,
+    session, profile, subscription, loading, passwordRecovery,
+    signIn, signUp, signOut, updateProfile, upsertSubscription,
     requestPasswordReset, updatePassword, clearPasswordRecovery, resendConfirmation,
   };
 }

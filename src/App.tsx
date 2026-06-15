@@ -12,7 +12,7 @@ import { AppLayout } from './layouts';
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
 import { Spinner } from './ui';
 import { NotificationProvider, useNotification, ThemeProvider } from './contexts';
-import type { Profile, CheckIn, Exercise, UserRole, ClientProfile } from './types';
+import type { Profile, CheckIn, Exercise, UserRole, ClientProfile, PlanKey } from './types';
 import type { AppPreferences } from './types/preferences';
 import { TRAINER_ROLES } from './types/auth';
 import i18n, { detectDeviceLanguage } from './i18n';
@@ -56,12 +56,13 @@ interface AppUser {
   location: string;
   gender: string;
   avatar_url: string | null;
+  plan_key: PlanKey;
 }
 
 export default function App() {
   const {
-    session, profile, loading, passwordRecovery,
-    signIn, signUp, signOut, updateProfile,
+    session, profile, subscription, loading, passwordRecovery,
+    signIn, signUp, signOut, updateProfile, upsertSubscription,
     requestPasswordReset, updatePassword, clearPasswordRecovery, resendConfirmation,
   } = useAuth();
   const { t: tr } = useTranslation();  // i18n translate (distinct from theme `t`)
@@ -473,8 +474,9 @@ export default function App() {
         location:   profile.location   ?? '',
         gender:     profile.gender     ?? '',
         avatar_url: profile.avatar_url ?? null,
+        plan_key:   subscription?.plan_key ?? 'free',
       }
-    : { id: null, name: '', email: '', role: 'client', phone: '', dob: '', location: '', gender: '', avatar_url: null };
+    : { id: null, name: '', email: '', role: 'client', phone: '', dob: '', location: '', gender: '', avatar_url: null, plan_key: 'free' };
 
   const trainerUser = {
     ...user,
@@ -643,7 +645,7 @@ export default function App() {
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)} isMale={user.gender === 'male'}/>;
-      case 'plans':              return <PlansScreen             nav={nav} t={t} dark={dark} user={user}/>;
+      case 'plans':              return <PlansScreen             nav={nav} t={t} dark={dark} user={user} upsertSubscription={upsertSubscription}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient} startFreeSession={startFreeSession}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} user={trainerUser} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient} freeSession={freeSession}/>;

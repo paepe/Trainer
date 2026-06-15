@@ -1,18 +1,19 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
-import { TRAINER_ROLES, type NavFn, type UserRole } from '../../types';
+import { TRAINER_ROLES, type NavFn, type UserRole, type PlanKey } from '../../types';
 import { C } from './performance/perf-engines';
 import { T, FF_DISPLAY, FF_MONO, ScreenWrap, ScreenTitle } from './performance/perf-atoms';
 
 interface Theme { primary: string; accent: string }
-interface AppUser { id: string | null; role?: UserRole }
+interface AppUser { id: string | null; role?: UserRole; plan_key?: PlanKey }
 
 interface Props {
   nav:  NavFn;
   t:    Theme;
   dark: boolean;
   user: AppUser;
+  upsertSubscription: (planKey: PlanKey, billingCycle: 'monthly' | 'annual') => Promise<{ error: unknown }>;
 }
 
 type BillingCycle = 'monthly' | 'annual';
@@ -44,7 +45,7 @@ function annualMonthly(p: number): number {
   return p === 0 ? 0 : (p * 10) / 12;
 }
 
-export function PlansScreen({ nav, user }: Props) {
+export function PlansScreen({ nav, user, upsertSubscription }: Props) {
   const { t: tr } = useTranslation();
   const isTrainer = !!user.role && (TRAINER_ROLES as readonly string[]).includes(user.role);
   const plans = isTrainer ? TRAINER_PLANS : STUDENT_PLANS;
@@ -52,6 +53,12 @@ export function PlansScreen({ nav, user }: Props) {
 
   const [billing, setBilling] = React.useState<BillingCycle>('monthly');
   const [selected, setSelected] = React.useState<string | null>(null);
+
+  const handleConfirm = async () => {
+    if (!selected) return;
+    const { error } = await upsertSubscription(selected as PlanKey, billing);
+    if (!error) nav('settings');
+  };
 
   return (
     <ScreenWrap>
@@ -86,6 +93,7 @@ export function PlansScreen({ nav, user }: Props) {
           const monthly  = isAnnual ? annualMonthly(plan.price) : plan.price;
           const free     = plan.price === 0;
           const isSel    = selected === plan.id;
+          const isCurrent = user.plan_key === plan.id;
           const recommended = i === 1; // middle tier as default highlight
 
           const tag      = tr(`plans.text.${plan.id}.tag`);
@@ -114,6 +122,16 @@ export function PlansScreen({ nav, user }: Props) {
                   boxShadow: `0 6px 16px ${accent}55`,
                 }}>
                   <Icon name="sparkle" size={10} color={T.navy} stroke={2.4}/> {tr('plans.bestFit')}
+                </div>
+              )}
+
+              {isCurrent && (
+                <div style={{
+                  position: 'absolute', top: -10, right: 16, padding: '3px 9px', borderRadius: 999,
+                  background: T.surf2, color: T.textSec, fontSize: 9.5, fontWeight: 800, letterSpacing: '.06em',
+                  textTransform: 'uppercase', fontFamily: FF_MONO, border: `1px solid ${T.border}`,
+                }}>
+                  {tr('plans.currentPlan')}
                 </div>
               )}
 
@@ -194,7 +212,7 @@ export function PlansScreen({ nav, user }: Props) {
       {/* Confirm CTA */}
       <button
         disabled={!selected}
-        onClick={() => nav('settings')}
+        onClick={handleConfirm}
         style={{
           padding: '14px 20px', borderRadius: 14, border: 'none', cursor: selected ? 'pointer' : 'not-allowed',
           background: selected ? accent : T.surf2, color: selected ? T.navy : T.textMute,
