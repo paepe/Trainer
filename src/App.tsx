@@ -61,7 +61,7 @@ interface AppUser {
 
 export default function App() {
   const {
-    session, profile, subscription, loading, passwordRecovery,
+    session, profile, subscription, hasSubscription, loading, passwordRecovery,
     signIn, signUp, signOut, updateProfile, upsertSubscription,
     requestPasswordReset, updatePassword, clearPasswordRecovery, resendConfirmation,
   } = useAuth();
@@ -356,7 +356,7 @@ export default function App() {
 
   // Role-based navigation after login (only when both session and profile are loaded)
   React.useEffect(() => {
-    if (!session || !profile || passwordRecovery) return;
+    if (!session || !profile || loading || passwordRecovery) return;
     if (!['welcome', 'login', 'register'].includes(screen)) return;
     let cancelled = false;
     // Resolve any pending invitation server-side (by the authenticated user's
@@ -373,6 +373,10 @@ export default function App() {
         return;
       }
       if (!['welcome', 'login'].includes(screen)) return;
+      // No subscription row yet → user hasn't been through plan selection
+      // (e.g. signup required e-mail confirmation, so RegisterScreen's
+      // post-signup nav('plans') never ran). Send them there first.
+      if (!hasSubscription) { setScreen('plans'); setScreenPayload({ source: 'onboarding' }); return; }
       if (isTrainer) { setScreen('trainerDashboard'); return; }
       // For clients: check if profile wizard was already completed
       fetchProfileV2().then(({ data }) => {
@@ -382,7 +386,7 @@ export default function App() {
       });
     });
     return () => { cancelled = true; };
-  }, [session, profile, isTrainer, screen, fetchProfileV2]);
+  }, [session, profile, isTrainer, screen, fetchProfileV2, hasSubscription, loading]);
 
   // Deep link: /invite/:token → AcceptInvitationScreen (web path; native opens via universal/app links to the same URL)
   React.useEffect(() => {

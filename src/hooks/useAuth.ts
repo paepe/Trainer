@@ -12,6 +12,7 @@ interface UseAuthReturn {
   session:           Session | null;
   profile:           Profile | null;
   subscription:      Subscription | null;
+  hasSubscription:   boolean;
   loading:           boolean;
   passwordRecovery:  boolean;
   signIn:            (email: string, password: string) => Promise<SignInResult>;
@@ -40,6 +41,7 @@ export function useAuth(): UseAuthReturn {
   const [session, setSession]   = useState<Session | null>(null);
   const [profile, setProfile]   = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [hasSubscription, setHasSubscription] = useState(false);
   const [loading, setLoading]   = useState(true);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
 
@@ -54,7 +56,7 @@ export function useAuth(): UseAuthReturn {
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       setSession(session);
       if (session) void fetchProfile(session.user.id);
-      else { setProfile(null); setSubscription(null); setLoading(false); }
+      else { setProfile(null); setSubscription(null); setHasSubscription(false); setLoading(false); }
     });
 
     return () => authListener.unsubscribe();
@@ -75,6 +77,7 @@ export function useAuth(): UseAuthReturn {
       .eq('user_id', userId)
       .maybeSingle();
     if (subError) console.error('[useAuth] fetchSubscription error:', subError);
+    setHasSubscription(!!sub);
     setSubscription((sub as Subscription | null) ?? { plan_key: 'free', status: 'active', billing_cycle: null });
 
     setLoading(false);
@@ -126,7 +129,7 @@ export function useAuth(): UseAuthReturn {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
     if (error) console.error('[useAuth] upsertSubscription error:', error);
-    else setSubscription({ plan_key: planKey, status: 'active', billing_cycle });
+    else { setSubscription({ plan_key: planKey, status: 'active', billing_cycle }); setHasSubscription(true); }
     return { error };
   }
 
@@ -156,7 +159,7 @@ export function useAuth(): UseAuthReturn {
   }
 
   return {
-    session, profile, subscription, loading, passwordRecovery,
+    session, profile, subscription, hasSubscription, loading, passwordRecovery,
     signIn, signUp, signOut, updateProfile, upsertSubscription,
     requestPasswordReset, updatePassword, clearPasswordRecovery, resendConfirmation,
   };
