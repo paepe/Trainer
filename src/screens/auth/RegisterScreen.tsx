@@ -119,19 +119,23 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
   };
 
   return (
-    <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <button onClick={() => nav('welcome')} style={{ ...iconBtn(dark), marginLeft: -8 }}>
+    <div style={{ padding: '20px 28px 28px', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+      <button onClick={() => nav('welcome')} style={{ ...iconBtn(dark), marginLeft: -8, alignSelf: 'flex-start' }}>
         <Icon name="chevL" size={22} color={textPri(dark)}/>
       </button>
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0 2px' }}>
-        <img src="assets/trainer-logo-clean.png" alt="TrAIner" width={90} height={90}
-          style={{ width: 90, height: 90, objectFit: 'contain', filter: `drop-shadow(0 8px 20px ${t.primary}55)` }}/>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+        <img src="assets/trainer-logo-clean.png" alt="TrAIner" width={64} height={64}
+          style={{ width: 64, height: 64, objectFit: 'contain', filter: `drop-shadow(0 8px 20px ${t.primary}55)` }}/>
       </div>
-      <h1 style={{ margin: '4px 0 2px', fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 22, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em' }}>
-        {tr('auth.register.title')}
-      </h1>
-      <div style={{ color: textSec(dark), fontSize: 13, marginBottom: 14 }}>
-        {tr('auth.register.subtitle')}
+
+      <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 24 }}>
+        <h1 style={{ margin: 0, fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 24, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em' }}>
+          {tr('auth.register.title')}
+        </h1>
+        <div style={{ color: textSec(dark), fontSize: 13, marginTop: 6, lineHeight: 1.5 }}>
+          {tr('auth.register.subtitle')}
+        </div>
       </div>
 
       {/* OAuth bypasses the locked-email flow — skip it for invite-originated signups */}
@@ -144,13 +148,15 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
         <TextInput icon="lock" placeholder={tr('auth.common.confirmPassword')} value={pw2}   onChange={setPw2}   type="password"/>
       </div>
       {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
-      <div style={{ flex: 1, minHeight: 10 }}/>
-      <button onClick={submit} disabled={loading} style={primaryBtn(t.primary, loading)}>
-        {loading ? tr('auth.register.loading') : tr('auth.common.register')}
-      </button>
-      <button onClick={() => nav('login')} style={{ ...textBtn(dark), alignSelf: 'center' }}>
-        {tr('auth.register.haveAccount')}
-      </button>
+
+      <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button onClick={submit} disabled={loading} style={primaryBtn(t.primary, loading)}>
+          {loading ? tr('auth.register.loading') : tr('auth.common.register')}
+        </button>
+        <button onClick={() => nav('login')} style={{ ...textBtn(dark), alignSelf: 'center' }}>
+          {tr('auth.register.haveAccount')}
+        </button>
+      </div>
     </div>
   );
 }
