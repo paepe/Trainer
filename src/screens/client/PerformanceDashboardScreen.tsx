@@ -43,6 +43,7 @@ interface Props {
   dark: boolean;
   user: AppUser;
   selectedClient?: ClientProfile | null;
+  performanceWindowWeeks?: 4 | 6 | 8 | 12;
 }
 
 interface ClientProfile { id: string; name?: string; avatar_url?: string | null }
@@ -63,7 +64,7 @@ const NAV_TABS: { id: ScreenId; label: string }[] = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient }: Props) {
+export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient, performanceWindowWeeks = 6 }: Props) {
   const { t: tr } = useTranslation();
   const targetUserId = selectedClient?.id ?? user.id;
   const targetName   = selectedClient?.name ?? user.name;
@@ -77,7 +78,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
   );
   const advancedScoresAllowed = accessMap['scores.advanced']?.allowed ?? false;
   const [activeScreen, setActiveScreen] = React.useState<ScreenId>('overview');
-  const { data, loading, lastUpdated, reload } = useM5Data(targetUserId);
+  const { data, loading, lastUpdated, reload } = useM5Data(targetUserId, performanceWindowWeeks);
 
   const tabBarRef = React.useRef<HTMLDivElement>(null);
 

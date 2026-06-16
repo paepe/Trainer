@@ -2255,6 +2255,11 @@
         "label": "Sitzungslimit im Verlauf",
         "hint": "Maximale Sitzungen pro Liste."
       },
+      "performanceWindow": {
+        "label": "Analysezeitraum",
+        "hint": "Wie viele Wochen das Leistungs-Dashboard analysiert.",
+        "opt": "{{n}} Wochen"
+      },
       "readyWindow": {
         "label": "Bereitschaftsalarm-Ablauf",
         "hint": "Trainer-Alarm läuft ohne Aktion ab."

@@ -78,6 +78,7 @@ export default function App() {
     lightPalette: 'arctic',
     aiFocusStrength: 5, aiFocusEndurance: 5, aiFocusMobility: 5,
     sessionHistoryLimit: 50, trainerDashboardLimit: 10,
+    performanceWindowWeeks: 6,
     language: detectDeviceLanguage(),
   });
 
@@ -247,9 +248,10 @@ export default function App() {
         aiFocusStrength:       (data.ai_focus_strength        as number | undefined) ?? 5,
         aiFocusEndurance:      (data.ai_focus_endurance       as number | undefined) ?? 5,
         aiFocusMobility:       (data.ai_focus_mobility        as number | undefined) ?? 5,
-        sessionHistoryLimit:   (data.session_history_limit    as AppPreferences['sessionHistoryLimit']   | undefined) ?? 50,
-        trainerDashboardLimit: (data.trainer_dashboard_limit  as AppPreferences['trainerDashboardLimit'] | undefined) ?? 10,
-        language:              (data.language                 as AppPreferences['language']              | undefined) ?? detectDeviceLanguage(),
+        sessionHistoryLimit:      (data.session_history_limit      as AppPreferences['sessionHistoryLimit']      | undefined) ?? 50,
+        trainerDashboardLimit:    (data.trainer_dashboard_limit    as AppPreferences['trainerDashboardLimit']    | undefined) ?? 10,
+        performanceWindowWeeks:   (data.performance_window_weeks   as AppPreferences['performanceWindowWeeks']   | undefined) ?? 6,
+        language:                 (data.language                   as AppPreferences['language']                 | undefined) ?? detectDeviceLanguage(),
       });
       // Seed the check-in defaults from saved training preferences (pre-fill)
       const loc = (data.default_location     as CheckIn['location'] | undefined) ?? 'gym';
@@ -446,9 +448,10 @@ export default function App() {
       ai_focus_strength:        newPrefs.aiFocusStrength,
       ai_focus_endurance:       newPrefs.aiFocusEndurance,
       ai_focus_mobility:        newPrefs.aiFocusMobility,
-      session_history_limit:    newPrefs.sessionHistoryLimit,
-      trainer_dashboard_limit:  newPrefs.trainerDashboardLimit,
-      language:                 newPrefs.language,
+      session_history_limit:      newPrefs.sessionHistoryLimit,
+      trainer_dashboard_limit:    newPrefs.trainerDashboardLimit,
+      performance_window_weeks:   newPrefs.performanceWindowWeeks,
+      language:                   newPrefs.language,
       white_label:              newPrefs.whiteLabel,
     }).then(({ error }) => {
       if (error) setPrefSaveError(tr('settings.saveFailed'));
@@ -638,7 +641,7 @@ export default function App() {
       case 'stats':              return (
         <>
           {noClient && noClientBanner}
-          <PerformanceDashboardScreen nav={nav} t={t} dark={dark} user={user} selectedClient={selectedClient}/>
+          <PerformanceDashboardScreen nav={nav} t={t} dark={dark} user={user} selectedClient={selectedClient} performanceWindowWeeks={prefs.performanceWindowWeeks}/>
         </>
       );
       case 'history':            return (

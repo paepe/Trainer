@@ -2255,6 +2255,11 @@
         "label": "Limite de Sessões no Histórico",
         "hint": "Máximo de sessões exibidas por lista."
       },
+      "performanceWindow": {
+        "label": "Janela de Desempenho",
+        "hint": "Quantas semanas o dashboard de desempenho analisa.",
+        "opt": "{{n}} semanas"
+      },
       "readyWindow": {
         "label": "Expiração de Alerta de Prontidão",
         "hint": "Alerta do treinador expira se não houver ação."

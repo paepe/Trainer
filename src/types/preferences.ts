@@ -12,7 +12,8 @@ export type TrainingIntensity = 'gradual' | 'moderate' | 'intense';
 export type PlanExpiryDays   = 7 | 10 | 14 | 21 | 30;
 export type WorkoutReadyExpiryMin = 15 | 30 | 60 | 120;
 export type SessionHistoryLimit   = 25 | 50 | 100 | 200;
-export type TrainerDashboardLimit = 5 | 10 | 20 | 50;
+export type TrainerDashboardLimit  = 5 | 10 | 20 | 50;
+export type PerformanceWindowWeeks = 4 | 6 | 8 | 12;
 
 export interface AppPreferences {
   // Boolean toggles
@@ -44,8 +45,11 @@ export interface AppPreferences {
   aiFocusMobility:        number;
 
   // Tier 3 — power-user data limits (how many rows each list fetches)
-  sessionHistoryLimit:    SessionHistoryLimit;     // client history list
-  trainerDashboardLimit:  TrainerDashboardLimit;   // trainer client-detail lists
+  sessionHistoryLimit:      SessionHistoryLimit;       // client history list
+  trainerDashboardLimit:    TrainerDashboardLimit;     // trainer client-detail lists
+
+  // Tier 4 — performance analysis window
+  performanceWindowWeeks:   PerformanceWindowWeeks;   // dashboard lookback (4/6/8/12 weeks)
 }
 
 // Keys whose value is a boolean — used by the Settings toggle list for

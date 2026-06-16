@@ -62,6 +62,8 @@ export function SettingsScreen({ nav: _nav, t, prefs, setPrefs, dark, isTrainer 
   const dataPrefs: SelectorRow<keyof AppPreferences>[] = [
     { key: 'sessionHistoryLimit', label: tr('settings.fields.historyDepth.label'), hint: tr('settings.fields.historyDepth.hint'),
       options: [25, 50, 100, 200].map(n => ({ value: n as AppPreferences['sessionHistoryLimit'], label: `${n}` })) },
+    { key: 'performanceWindowWeeks', label: tr('settings.fields.performanceWindow.label'), hint: tr('settings.fields.performanceWindow.hint'),
+      options: [4, 6, 8, 12].map(n => ({ value: n as AppPreferences['performanceWindowWeeks'], label: tr('settings.fields.performanceWindow.opt', { n }) })) },
   ];
 
   const appearancePrefs: SelectorRow<keyof AppPreferences>[] = [

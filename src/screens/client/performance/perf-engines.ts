@@ -315,7 +315,7 @@ function buildMilestones(totalCompleted: number, streak: number): Milestone[] {
 
 // ── Main data hook ────────────────────────────────────────────────────────────
 
-export function useM5Data(userId: string | null) {
+export function useM5Data(userId: string | null, windowWeeks: 4 | 6 | 8 | 12 = 6) {
   const [data,    setData]    = React.useState<M5Data | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState<string | null>(null);
@@ -325,10 +325,10 @@ export function useM5Data(userId: string | null) {
   const reload = React.useCallback(() => {
     if (!userId) { setLoading(false); return; }
     setLoading(true);
-    fetchM5Data(userId)
+    fetchM5Data(userId, windowWeeks)
       .then(d  => { staleRef.current = d; setData(d); setLastUpdated(new Date()); setLoading(false); })
       .catch(e => { setError(String(e)); setLoading(false); });
-  }, [userId]);
+  }, [userId, windowWeeks]);
 
   React.useEffect(() => { reload(); }, [reload]);
 
@@ -366,16 +366,17 @@ interface RawCheckin {
   detailed_data: { sleep_hours?: number } | null;
 }
 
-async function fetchM5Data(userId: string): Promise<M5Data> {
-  const since6w  = new Date(Date.now() - 42 * 86_400_000).toISOString();
-  const since14d = new Date(Date.now() - 14 * 86_400_000).toISOString();
+async function fetchM5Data(userId: string, windowWeeks: 4 | 6 | 8 | 12 = 6): Promise<M5Data> {
+  const windowDays = windowWeeks * 7;
+  const sinceWindow = new Date(Date.now() - windowDays * 86_400_000).toISOString();
+  const since14d    = new Date(Date.now() - 14   * 86_400_000).toISOString();
 
   const [sessionsRes, checkinRes] = await Promise.all([
     supabase
       .from('workout_sessions')
       .select('id, status, started_at, completed_at, total_duration_min')
       .eq('user_id', userId)
-      .gte('started_at', since6w)
+      .gte('started_at', sinceWindow)
       .order('started_at'),
     supabase
       .from('checkin_prontidao')
@@ -420,9 +421,8 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
     : 0;
 
   // Streak: consecutive days with a completed session ending today.
-  // Lookback capped at the same 42-day window used for `sessions` (since6w),
-  // plus margin — sessions outside that window can't contribute anyway.
-  const MAX_STREAK_LOOKBACK_DAYS = 60;
+  // Lookback capped at the fetch window plus a margin for streak calculation.
+  const MAX_STREAK_LOOKBACK_DAYS = windowDays + 14;
   const completedDates = new Set(
     sessions.filter(s => s.status === 'completed').map(s => new Date(s.started_at).toDateString()),
   );
@@ -435,10 +435,10 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
     }
   }
 
-  // Weeks active: based on the first session in the 6-week window, capped to
-  // the window size (6) and floored at 1 to avoid div-by-zero in "frequency".
+  // Weeks active: based on the first session in the window, capped to windowWeeks,
+  // floored at 1 to avoid div-by-zero in "frequency".
   const weeksActive = sessions.length > 0
-    ? Math.max(1, Math.min(6, Math.ceil((daysSince(sessions[0]!.started_at) + 1) / 7)))
+    ? Math.max(1, Math.min(windowWeeks, Math.ceil((daysSince(sessions[0]!.started_at) + 1) / 7)))
     : 0;
 
   // Week strip (last 7 Mon→Sun)
@@ -454,14 +454,14 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
     return daySessions.some(s => s.status === 'completed') ? 1 : 0.5;
   });
 
-  // ── Weekly stats (6 buckets) ──────────────────────────────────────────────
+  // ── Weekly stats (windowWeeks buckets) ───────────────────────────────────
   const weekKeys: string[] = [];
   const weekMap: Record<string, WeeklyStats> = {};
-  for (let i = 5; i >= 0; i--) {
+  for (let i = windowWeeks - 1; i >= 0; i--) {
     const d   = new Date(Date.now() - i * 7 * 86_400_000);
     const key = startOfWeek(d);
-    const lbl = `W${6 - i}`;
-    weekMap[key] = { weekNum: 6 - i, label: lbl, volume: 0, rpe: 0, sessions: 0 };
+    const lbl = `W${windowWeeks - i}`;
+    weekMap[key] = { weekNum: windowWeeks - i, label: lbl, volume: 0, rpe: 0, sessions: 0 };
     weekKeys.push(key);
   }
 
@@ -492,15 +492,18 @@ async function fetchM5Data(userId: string): Promise<M5Data> {
   const rpeAvg   = rpeTrend.length > 0  ? rpeTrend.reduce((a, b) => a + b) / rpeTrend.length : 0;
 
   // ── Load change (plateau detection) ──────────────────────────────────────
-  const earlyLoads  = setLogs.filter(l => daysSince(l.completed_at) >= 21 && l.load_kg).map(l => l.load_kg!);
-  const recentLoads = setLogs.filter(l => daysSince(l.completed_at) <  21 && l.load_kg).map(l => l.load_kg!);
+  // Split window in half: early = first half, recent = second half.
+  const halfDays    = Math.round(windowDays / 2);
+  const earlyLoads  = setLogs.filter(l => daysSince(l.completed_at) >= halfDays && l.load_kg).map(l => l.load_kg!);
+  const recentLoads = setLogs.filter(l => daysSince(l.completed_at) <  halfDays && l.load_kg).map(l => l.load_kg!);
   const avgEarly    = earlyLoads.length  > 0 ? earlyLoads.reduce((a, b)  => a + b) / earlyLoads.length  : 0;
   const avgRecent   = recentLoads.length > 0 ? recentLoads.reduce((a, b) => a + b) / recentLoads.length : 0;
   const loadChange3w = avgEarly > 0 ? Math.abs(avgRecent - avgEarly) / avgEarly : 0.05;
 
-  const weekVols   = weeklyStats.map(w => w.volume);
-  const earlyVol   = weekVols.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
-  const recentVol  = weekVols.slice(3).reduce((a, b)  => a + b, 0) / 3;
+  const halfBuckets = Math.floor(windowWeeks / 2);
+  const weekVols    = weeklyStats.map(w => w.volume);
+  const earlyVol    = weekVols.slice(0, halfBuckets).reduce((a, b) => a + b, 0) / halfBuckets;
+  const recentVol   = weekVols.slice(halfBuckets).reduce((a, b)   => a + b, 0) / halfBuckets;
   const volDeltaPct = earlyVol > 0 ? (recentVol - earlyVol) / earlyVol : 0;
 
   // ── Sleep / energy ────────────────────────────────────────────────────────

@@ -1,16 +1,11 @@
 import { supabase } from '../supabase';
 import type { CoachDNARow, CoachDNAStep, CoachDNAUpsert } from '../types/coach-dna';
 
-// coach_dna is not yet in the auto-generated Database types (added by migration).
-// Cast via unknown to bypass the strict table union until types are regenerated.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (t: string) => any };
-
 export function useCoachDNA(trainerId: string | undefined) {
 
   async function fetchCoachDNA(): Promise<{ data: CoachDNARow | null; error: unknown }> {
     if (!trainerId) return { data: null, error: null };
-    const { data, error } = await db
+    const { data, error } = await supabase
       .from('coach_dna')
       .select('*')
       .eq('trainer_id', trainerId)
@@ -35,9 +30,11 @@ export function useCoachDNA(trainerId: string | undefined) {
       ...updates,
       ...(step ? { current_step: step } : {}),
     };
-    const { error } = await db
+    // CoachDNA sub-types (CoachDNAAudience, etc.) are stricter than Supabase's Json — cast at boundary only.
+    const { error } = await supabase
       .from('coach_dna')
-      .upsert(payload, { onConflict: 'trainer_id' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .upsert(payload as any, { onConflict: 'trainer_id' });
     if (error) console.error('[useCoachDNA] saveCoachDNA:', error);
     return { error };
   }

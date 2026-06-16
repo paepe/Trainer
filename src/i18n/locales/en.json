@@ -2255,6 +2255,11 @@
         "label": "History Session Limit",
         "hint": "Max sessions shown per list."
       },
+      "performanceWindow": {
+        "label": "Performance Window",
+        "hint": "How many weeks the performance dashboard analyses.",
+        "opt": "{{n}} weeks"
+      },
       "readyWindow": {
         "label": "Workout Ready Expiry",
         "hint": "Trainer alert expires if not actioned."
