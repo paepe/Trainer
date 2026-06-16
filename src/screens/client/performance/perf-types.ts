@@ -55,6 +55,23 @@ export interface Milestone {
   unlocked:        boolean;
 }
 
+// ── Training Load model (ATL/CTL/TSB) ────────────────────────────────────────
+// Classic periodisation model used by TrainingPeaks, Garmin, Strava.
+// Calculated from RPE × volume (no external hardware required).
+//
+// ATL  — Acute Training Load   (7-day exp. weighted avg)  → fatigue proxy
+// CTL  — Chronic Training Load (42-day exp. weighted avg) → fitness proxy
+// TSB  — Training Stress Balance = CTL − ATL              → form/freshness
+// Monotonia — load_avg / load_stddev over 7d              → variety indicator
+// Strain     — ATL × Monotonia                            → accumulated stress
+export interface TrainingLoad {
+  atl:       number;   // 0–∞  (arbitrary load units: kg×reps per day, avg)
+  ctl:       number;
+  tsb:       number;   // positive = fresh, negative = fatigued
+  monotonia: number;   // >2 = dangerously monotonous
+  strain:    number;
+}
+
 export interface M5Data {
   weeksActive:        number;
   plannedSessions:    number;
@@ -73,6 +90,7 @@ export interface M5Data {
   primaryPainRegion:  string | null;
   sleepAvg:           number;
   energyAvg:          number;
+  trainingLoad:       TrainingLoad;
   scores: {
     churnRisk:             PredictiveScore;
     fatigueRisk:           PredictiveScore;
@@ -83,6 +101,10 @@ export interface M5Data {
     recoveryInstability:   PredictiveScore;
     responseCompatibility: PredictiveScore;
     plateauRisk:           PredictiveScore;
+    // Training Load scores (ai_performance gate)
+    acuteLoad:             PredictiveScore;
+    trainingForm:          PredictiveScore;
+    trainingStrain:        PredictiveScore;
   };
   insights:   PerformanceInsight[];
   milestones: Milestone[];

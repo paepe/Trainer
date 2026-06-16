@@ -368,6 +368,25 @@
         "desc": "Stagnationsrisiko basierend auf Lastveränderung (3 Wochen).",
         "actionLow": "Reiz variieren: Technik, Volumen oder Frequenz",
         "actionHigh": "Progression im Gange"
+      },
+      "acuteLoad": {
+        "name": "Akute Last",
+        "desc": "Akut:Chronisches Belastungsverhältnis — Überlastungsrisiko durch jüngste Spitzenbelastung.",
+        "actionHigh": "Trainingsvolumen 3–5 Tage reduzieren, um Verletzungen zu vermeiden",
+        "actionLow": "Belastung im sicheren Bereich — aktuellen Reiz beibehalten"
+      },
+      "trainingForm": {
+        "name": "Trainingsform",
+        "desc": "Frischheitsindex (TSB = Fitness − Müdigkeit). Positiv = leistungsbereit.",
+        "actionHigh": "Optimale Frische — intensive Einheiten oder Wettkampf empfohlen",
+        "actionMid": "Im Trainingsblock — Last und Erholung ausbalancieren",
+        "actionLow": "Angesammelte Müdigkeit — Entlastungswoche oder aktive Erholung einplanen"
+      },
+      "trainingStrain": {
+        "name": "Trainingsbelastung",
+        "desc": "Angesammelter Stress aus Volumen × Monotonie. Hohe Monotonie = Verletzungs- oder Krankheitsrisiko.",
+        "actionHigh": "Einheitentyp und Intensität variieren, um gefährliche Monotonie zu durchbrechen",
+        "actionLow": "Belastung im gesunden Bereich — Abwechslung im Training beibehalten"
       }
     },
     "insightDefs": {

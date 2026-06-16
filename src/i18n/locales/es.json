@@ -365,6 +365,25 @@
         "desc": "Riesgo de estancamiento basado en la variación de carga (3 semanas).",
         "actionLow": "Variar el estímulo: técnica, volumen o frecuencia",
         "actionHigh": "Progresión en curso"
+      },
+      "acuteLoad": {
+        "name": "Carga Aguda",
+        "desc": "Relación Carga Aguda:Crónica — señal de riesgo de sobrecarga por pico reciente.",
+        "actionHigh": "Reduce el volumen de entrenamiento 3–5 días para prevenir lesiones",
+        "actionLow": "Carga dentro de la zona segura — mantén el estímulo actual"
+      },
+      "trainingForm": {
+        "name": "Forma Atlética",
+        "desc": "Índice de frescura (TSB = condición − fatiga). Positivo = listo para rendir.",
+        "actionHigh": "Frescura óptima — sesiones intensas o competición recomendados",
+        "actionMid": "En bloque de entrenamiento — equilibra carga y recuperación",
+        "actionLow": "Fatiga acumulada — programa descarga o semana de recuperación activa"
+      },
+      "trainingStrain": {
+        "name": "Estrés de Entrenamiento",
+        "desc": "Estrés acumulado de volumen × monotonía. Alta monotonía = riesgo de lesión o enfermedad.",
+        "actionHigh": "Varía tipo e intensidad de sesiones para romper la monotonía peligrosa",
+        "actionLow": "Estrés dentro del rango saludable — mantén variedad en el entrenamiento"
       }
     },
     "insightDefs": {

@@ -368,6 +368,25 @@
         "desc": "Risk of stagnation based on load variation (3 weeks).",
         "actionLow": "Vary stimulus: technique, volume or frequency",
         "actionHigh": "Progression in progress"
+      },
+      "acuteLoad": {
+        "name": "Acute Load",
+        "desc": "Acute:Chronic Workload Ratio — overload risk signal based on recent load spike.",
+        "actionHigh": "Reduce training volume for 3–5 days to prevent injury",
+        "actionLow": "Load within safe zone — maintain current stimulus"
+      },
+      "trainingForm": {
+        "name": "Training Form",
+        "desc": "Freshness index (TSB = fitness − fatigue). Positive = primed for performance.",
+        "actionHigh": "Optimal freshness — ideal for high-intensity sessions or competition",
+        "actionMid": "In training block — balance load and recovery",
+        "actionLow": "Accumulated fatigue — schedule a deload or active recovery week"
+      },
+      "trainingStrain": {
+        "name": "Training Strain",
+        "desc": "Accumulated stress from volume × monotony. High monotony = injury/illness risk.",
+        "actionHigh": "Vary session type and intensity to break dangerous monotony",
+        "actionLow": "Strain within healthy range — keep variety in training"
       }
     },
     "insightDefs": {

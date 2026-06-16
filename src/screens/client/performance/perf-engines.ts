@@ -233,6 +233,132 @@ function computePlateauRisk(loadChange3w: number): PredictiveScore {
   };
 }
 
+// ── Training Load model (ATL / CTL / TSB / Monotonia / Strain) ───────────────
+// Industry-standard periodisation model (TrainingPeaks / Garmin / Strava).
+// Calculated from kg×reps daily load — no external hardware required.
+//
+// Exponential weighted moving average constants match TrainingPeaks defaults:
+//   ATL: k = 1 − e^(−1/7)   ≈ 0.1335  (7-day time constant)
+//   CTL: k = 1 − e^(−1/42)  ≈ 0.0233  (42-day time constant)
+import type { TrainingLoad } from './perf-types';
+
+function computeTrainingLoad(
+  setLogs: { completed_at: string; load_kg: number | null; reps_done: number | null }[],
+  windowDays: number,
+): TrainingLoad {
+  // Build a map of daily raw load (kg × reps) within the fetch window + 42d history
+  // We need up to 42 days of history regardless of windowWeeks for CTL accuracy.
+  const historyDays = Math.max(windowDays, 42);
+  const dailyLoad: Record<string, number> = {};
+
+  for (const log of setLogs) {
+    if (!log.load_kg || !log.reps_done) continue;
+    const day = log.completed_at.slice(0, 10); // YYYY-MM-DD
+    dailyLoad[day] = (dailyLoad[day] ?? 0) + log.load_kg * log.reps_done;
+  }
+
+  // Scale to per-day units (hundreds of kg×reps → manageable numbers)
+  const SCALE = 100;
+
+  const kATL = 1 - Math.exp(-1 / 7);
+  const kCTL = 1 - Math.exp(-1 / 42);
+
+  let atl = 0;
+  let ctl = 0;
+  const last7: number[] = [];
+
+  for (let i = historyDays - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86_400_000);
+    const key = d.toISOString().slice(0, 10);
+    const load = (dailyLoad[key] ?? 0) / SCALE;
+
+    atl = atl + kATL * (load - atl);
+    ctl = ctl + kCTL * (load - ctl);
+
+    if (i < 7) last7.push(load);
+  }
+
+  // Monotonia = mean7 / stddev7 (Foster 1998)
+  const mean7 = last7.length > 0 ? last7.reduce((a, b) => a + b, 0) / last7.length : 0;
+  const variance7 = last7.length > 1
+    ? last7.reduce((s, v) => s + (v - mean7) ** 2, 0) / last7.length
+    : 0;
+  const stddev7 = Math.sqrt(variance7);
+  const monotonia = stddev7 > 0 ? mean7 / stddev7 : 0;
+  const strain    = atl * monotonia;
+  const tsb       = ctl - atl;
+
+  return {
+    atl:       Math.round(atl   * 10) / 10,
+    ctl:       Math.round(ctl   * 10) / 10,
+    tsb:       Math.round(tsb   * 10) / 10,
+    monotonia: Math.round(monotonia * 100) / 100,
+    strain:    Math.round(strain * 10) / 10,
+  };
+}
+
+// ATL score: high ATL relative to CTL = acute overload risk
+function computeAcuteLoad(atl: number, ctl: number): PredictiveScore {
+  // ATL/CTL ratio — "acute:chronic workload ratio" (ACWR)
+  // < 0.8 = undertraining, 0.8–1.3 = optimal, > 1.3 = overload risk
+  const acwr = ctl > 0 ? atl / ctl : 1;
+  let score: number;
+  if (acwr > 1.5)      score = 85; // severe overload
+  else if (acwr > 1.3) score = 60; // moderate overload
+  else if (acwr < 0.6) score = 50; // undertraining
+  else if (acwr < 0.8) score = 30;
+  else                 score = 10; // optimal zone
+  return {
+    score,
+    nameKey:   'perf.scoreDefs.acuteLoad.name',
+    code:      'acute_load_score',
+    descKey:   'perf.scoreDefs.acuteLoad.desc',
+    actionKey: score >= 60 ? 'perf.scoreDefs.acuteLoad.actionHigh' : 'perf.scoreDefs.acuteLoad.actionLow',
+  };
+}
+
+// TSB score: form/freshness — positive = fresh, negative = fatigued
+function computeTrainingForm(tsb: number, ctl: number): PredictiveScore {
+  // Normalise TSB as a 0–100 "freshness" index; positive TSB = higher score
+  // Reference: TrainingPeaks form zones: <−30 overreaching, −10 to +5 optimal, >+10 transition
+  let score: number;
+  if      (tsb >  10) score = 90;  // very fresh (taper / deload)
+  else if (tsb >   5) score = 75;  // fresh, good race readiness
+  else if (tsb >  -10) score = 60; // optimal training zone
+  else if (tsb > -20) score = 40;  // moderate fatigue
+  else if (tsb > -30) score = 25;  // high fatigue
+  else                score = 10;  // overreaching
+  // No CTL yet → neutral
+  if (ctl < 0.5) score = 60;
+  return {
+    score,
+    nameKey:   'perf.scoreDefs.trainingForm.name',
+    code:      'training_form_score',
+    descKey:   'perf.scoreDefs.trainingForm.desc',
+    actionKey: score >= 75 ? 'perf.scoreDefs.trainingForm.actionHigh' : score < 40 ? 'perf.scoreDefs.trainingForm.actionLow' : 'perf.scoreDefs.trainingForm.actionMid',
+    isGoodScore: true,
+  };
+}
+
+// Strain score: accumulated stress (ATL × Monotonia)
+function computeTrainingStrain(strain: number, monotonia: number): PredictiveScore {
+  // Strain > 6000 (Foster 1998) correlates with illness/injury risk
+  // We normalise differently since our load units are scaled
+  let score: number;
+  if (monotonia > 2.0)      score = 80; // dangerous monotony regardless of strain
+  else if (strain > 50)     score = 70;
+  else if (strain > 25)     score = 45;
+  else if (strain > 10)     score = 25;
+  else                      score = 10;
+  return {
+    score,
+    nameKey:   'perf.scoreDefs.trainingStrain.name',
+    code:      'training_strain_score',
+    descKey:   'perf.scoreDefs.trainingStrain.desc',
+    actionKey: score >= 60 ? 'perf.scoreDefs.trainingStrain.actionHigh' : 'perf.scoreDefs.trainingStrain.actionLow',
+  };
+}
+
 // ── Insight generation (RF-5.10) ──────────────────────────────────────────────
 
 function generateInsights(params: {
@@ -557,6 +683,8 @@ async function fetchM5Data(userId: string, windowWeeks: 4 | 6 | 8 | 12 = 6): Pro
     painRecurrenceCount >= 2 &&
     pain14dRaw.some(e => e.intensity <= 4);
 
+  const trainingLoad = computeTrainingLoad(setLogs, windowDays);
+
   const scores = {
     churnRisk:             computeChurnRisk(adherenceRate, checkinDropRate, missedSessions),
     fatigueRisk:           computeFatigueRisk(rpeDelta, sleepAvg),
@@ -567,6 +695,9 @@ async function fetchM5Data(userId: string, windowWeeks: 4 | 6 | 8 | 12 = 6): Pro
     recoveryInstability:   computeRecoveryInstability(sleepAvg, rpeAvg, painLightRecurrent),
     responseCompatibility: computeResponseCompatibility(loadChange3w, volDeltaPct),
     plateauRisk:           computePlateauRisk(loadChange3w),
+    acuteLoad:             computeAcuteLoad(trainingLoad.atl, trainingLoad.ctl),
+    trainingForm:          computeTrainingForm(trainingLoad.tsb, trainingLoad.ctl),
+    trainingStrain:        computeTrainingStrain(trainingLoad.strain, trainingLoad.monotonia),
   };
 
   const insights = generateInsights({
@@ -595,6 +726,7 @@ async function fetchM5Data(userId: string, windowWeeks: 4 | 6 | 8 | 12 = 6): Pro
     primaryPainRegion,
     sleepAvg,
     energyAvg,
+    trainingLoad,
     scores,
     insights,
     milestones: buildMilestones(completedSessions, workoutStreak),

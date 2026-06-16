@@ -656,11 +656,15 @@ export function TelaScores({ data, nav, advancedAllowed }: { data: M5Data; nav: 
   // The distinction (which codes are basic vs advanced) is owned by the DB seed —
   // here we only need to know the resolved permission flag.
   const ADVANCED_SCORE_CODES = new Set([
-    'fatigue_risk',
-    'recovery_instability',
-    'progression_readiness',
-    'response_compatibility',
-    'plateau_risk',
+    'fatigue_risk_score',
+    'recovery_instability_score',
+    'progression_readiness_score',
+    'response_compatibility_score',
+    'plateau_risk_score',
+    // Training load scores require ai_performance plan
+    'acute_load_score',
+    'training_form_score',
+    'training_strain_score',
   ]);
 
   const scoreList = [
@@ -673,6 +677,9 @@ export function TelaScores({ data, nav, advancedAllowed }: { data: M5Data; nav: 
     data.scores.recoveryInstability,
     data.scores.responseCompatibility,
     data.scores.plateauRisk,
+    data.scores.acuteLoad,
+    data.scores.trainingForm,
+    data.scores.trainingStrain,
   ];
 
   return (

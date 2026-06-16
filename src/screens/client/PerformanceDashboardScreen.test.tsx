@@ -27,6 +27,9 @@ const PREMIUM_CODES = [
   'progression_readiness_score',
   'response_compatibility_score',
   'plateau_risk_score',
+  'acute_load_score',
+  'training_form_score',
+  'training_strain_score',
 ];
 
 const mockData: M5Data = {
@@ -57,13 +60,17 @@ const mockData: M5Data = {
     recoveryInstability:   score('recovery_instability_score'),
     responseCompatibility: score('response_compatibility_score'),
     plateauRisk:           score('plateau_risk_score'),
+    acuteLoad:             score('acute_load_score'),
+    trainingForm:          score('training_form_score', 75),
+    trainingStrain:        score('training_strain_score'),
   },
+  trainingLoad: { atl: 12.5, ctl: 10.2, tsb: -2.3, monotonia: 1.4, strain: 17.5 },
   insights: [],
   milestones: [],
 };
 
 describe('TelaScores — free vs AI Performance gating', () => {
-  it('renders all 9 scores unlocked for premium viewers (trainer viewing client)', () => {
+  it('renders all 12 scores unlocked for premium viewers (trainer viewing client)', () => {
     const nav = vi.fn();
     const { container } = render(<TelaScores data={mockData} nav={nav} advancedAllowed={true}/>);
 
