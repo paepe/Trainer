@@ -224,7 +224,7 @@
       "consecutiveDays": "consecutive days"
     },
     "adherence": {
-      "kicker": "ADHERENCE · 6 WEEKS",
+      "kicker": "ADHERENCE · {{weeksActive}} WEEKS",
       "title": "Your training consistency.",
       "label": "ADHERENCE",
       "currentWeek": "Current week",

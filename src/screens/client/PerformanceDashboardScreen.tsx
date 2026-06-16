@@ -342,7 +342,7 @@ function TelaAderencia({ data }: { data: M5Data }) {
 
   return (
     <ScreenWrap>
-      <ScreenTitle kicker={tr('perf.adherence.kicker')} title={tr('perf.adherence.title')}/>
+      <ScreenTitle kicker={tr('perf.adherence.kicker', { weeksActive: data.weeksActive })} title={tr('perf.adherence.title')}/>
 
       {/* Hero ring */}
       <div style={{

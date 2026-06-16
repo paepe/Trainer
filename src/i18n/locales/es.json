@@ -221,7 +221,7 @@
       "consecutiveDays": "días consecutivos"
     },
     "adherence": {
-      "kicker": "ADHERENCIA · 6 SEMANAS",
+      "kicker": "ADHERENCIA · {{weeksActive}} SEMANAS",
       "title": "Tu consistencia de entrenamiento.",
       "label": "ADHERENCIA",
       "currentWeek": "Semana actual",
