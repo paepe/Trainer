@@ -7,6 +7,7 @@ import { useCheckinData }  from './hooks/useCheckinData';
 import { useWorkoutData }  from './hooks/useWorkoutData';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useTrainerLink } from './hooks/useTrainerLink';
+import { useTrialStatus } from './hooks/useTrialStatus';
 import { WelcomeScreen, LoginScreen, RegisterScreen, ResetPasswordScreen } from './screens/auth';
 import { AppLayout } from './layouts';
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
@@ -650,6 +651,7 @@ export default function App() {
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)} isMale={user.gender === 'male'}/>;
       case 'plans':              return <PlansScreen             nav={nav} t={t} dark={dark} user={user} source={screenPayload?.source as string | undefined} upsertSubscription={upsertSubscription}/>;
+      case 'planConfirm':        return <PlanConfirmScreen       nav={nav} t={t} planKey={(screenPayload?.planKey as string | undefined) ?? 'free'} isTrainer={!!(screenPayload?.isTrainer)}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient} startFreeSession={startFreeSession}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} user={trainerUser} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
       case 'workoutPlanEditor':   return <WorkoutPlanEditorScreen    nav={nav} user={trainerUser} selectedClient={selectedClient} freeSession={freeSession}/>;
@@ -664,6 +666,8 @@ export default function App() {
   // Trainer tabs/menu items that require a selected client to be usable.
   // Keys match both the bottom-tab key and the screen/route key used in SideMenu.
   const TRAINER_CLIENT_REQUIRED = ['checkin', 'history', 'stats'];
+
+  const trialStatus = useTrialStatus(isTrainer ? subscription : null);
 
   const layoutProps = {
     contentRef,
@@ -690,6 +694,15 @@ export default function App() {
       <NotificationProvider t={t}>
         <PushListener push={push} />
         <AppLayout role={isTrainer ? "trainer" : "client"} {...layoutProps}>
+          {(trialStatus.state === 'expiring' || trialStatus.state === 'expired') && (
+            <TrialBanner
+              state={trialStatus.state}
+              daysLeft={trialStatus.state === 'expiring' ? trialStatus.daysLeft : 0}
+              accent={t.accent}
+              onUpgrade={() => nav('plans')}
+              tr={tr}
+            />
+          )}
           <ChunkErrorBoundary primary={t.primary}>
             <React.Suspense fallback={<LoadingScreen primary={t.primary} />}>
               {screenContent}
@@ -721,6 +734,134 @@ function LoadingScreen({ primary }: { primary: string }) {
       background: 'var(--bg)',
     }}>
       <Spinner color={primary} trackColor="var(--border)" size={36} thickness={3} />
+    </div>
+  );
+}
+
+function PlanConfirmScreen({
+  nav, t, planKey, isTrainer,
+}: {
+  nav:      (screen: string) => void;
+  t:        { primary: string; accent: string };
+  planKey:  string;
+  isTrainer: boolean;
+}) {
+  const { t: tr } = useTranslation();
+  const isFree = !planKey || planKey === 'free' || planKey === 'trial';
+  const planLabel = (planKey ?? 'free').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const nextSteps = tr(
+    isTrainer ? 'plans.confirm.nextTrainer' : 'plans.confirm.nextStudent',
+    { returnObjects: true },
+  ) as string[];
+
+  return (
+    <div style={{
+      minHeight: '100%', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '40px 24px', background: 'var(--bg)',
+      fontFamily: '"Plus Jakarta Sans",sans-serif', textAlign: 'center',
+    }}>
+      {/* Badge */}
+      <div style={{
+        width: 72, height: 72, borderRadius: 22, marginBottom: 24,
+        background: `${t.primary}22`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span style={{ fontSize: 34 }}>🎉</span>
+      </div>
+
+      {/* Headline */}
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: t.primary, marginBottom: 6 }}>
+        {tr('plans.confirm.subscribed')}
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-pri)', letterSpacing: '-0.02em', marginBottom: 6 }}>
+        {tr('plans.confirm.onPlanPre')}<span style={{ color: t.primary }}>{isFree ? tr('plans.confirm.free') : planLabel}</span>
+      </div>
+
+      {/* What's next */}
+      <div style={{
+        margin: '28px 0', padding: '20px 20px', borderRadius: 16,
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        width: '100%', maxWidth: 360, textAlign: 'left',
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-mute)', marginBottom: 14 }}>
+          {tr('plans.confirm.whatNext')}
+        </div>
+        {(Array.isArray(nextSteps) ? nextSteps : []).map((step, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: i < nextSteps.length - 1 ? 12 : 0 }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+              background: `${t.primary}22`, color: t.primary,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 800,
+            }}>
+              {i + 1}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.5 }}>{step}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* CTA */}
+      <button
+        onClick={() => nav(isTrainer ? 'trainerDashboard' : 'checkin')}
+        style={{
+          padding: '15px 36px', borderRadius: 14, border: 'none',
+          background: t.primary, color: '#0E1A2B',
+          fontFamily: '"Plus Jakarta Sans",sans-serif',
+          fontSize: 15, fontWeight: 800, cursor: 'pointer',
+          width: '100%', maxWidth: 360,
+        }}
+      >
+        {isTrainer ? tr('nav.clients') : tr('nav.checkin')} →
+      </button>
+    </div>
+  );
+}
+
+function TrialBanner({
+  state, daysLeft, accent, onUpgrade, tr,
+}: {
+  state:     'expiring' | 'expired';
+  daysLeft:  number;
+  accent:    string;
+  onUpgrade: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tr:        (key: string, opts?: any) => string;
+}) {
+  const isExpired = state === 'expired';
+  const bg        = isExpired ? '#EF5B3C' : accent;
+  return (
+    <div style={{
+      padding: '10px 18px',
+      background: `${bg}18`,
+      borderBottom: `1.5px solid ${bg}55`,
+      display: 'flex', alignItems: 'center', gap: 10,
+      flexShrink: 0,
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: bg }}>
+          {isExpired
+            ? tr('trainer.trial.trialExpired')
+            : tr('trainer.trial.trialExpiring', { days: daysLeft })}
+        </div>
+        <div style={{ fontSize: 11.5, color: 'var(--text-sec)', lineHeight: 1.4, marginTop: 1 }}>
+          {isExpired
+            ? tr('trainer.trial.trialExpiredNote')
+            : tr('trainer.trial.trialExpiringNote')}
+        </div>
+      </div>
+      <button
+        onClick={onUpgrade}
+        style={{
+          padding: '8px 14px', borderRadius: 10, border: 'none',
+          background: bg, color: '#fff',
+          fontFamily: '"Plus Jakarta Sans",sans-serif',
+          fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+        }}
+      >
+        {tr('trainer.trial.upgradeNow')}
+      </button>
     </div>
   );
 }

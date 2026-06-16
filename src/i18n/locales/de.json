@@ -740,7 +740,12 @@
       "resolve": "Lösen",
       "loading": "Wird geladen…",
       "clientFallback": "Kunde",
-      "unknown": "Unbekannt"
+      "unknown": "Unbekannt",
+      "clientLimitReached": "Kundenlimit erreicht",
+      "clientLimitReachedNote": "Dein {{plan}}-Plan beinhaltet bis zu {{limit}} aktive Kunden. Upgrade für mehr.",
+      "upgradeNow": "Plan upgraden",
+      "coachDnaLocked": "Coach DNA erfordert Pro-Plan",
+      "coachDnaLockedNote": "Dein {{plan}}-Plan enthält kein Coach DNA. Upgrade auf Pro oder Elite, um deine Methodik und dein Coaching-Archetyp zu definieren."
     },
     "studio": {
       "title": "Trainer Studio",
@@ -963,6 +968,13 @@
           "restrictBurpee": "Burpee als eingeschränkt für Anfänger markieren"
         }
       }
+    },
+    "trial": {
+      "trialExpiring": "Testphase endet in {{days}} Tag(en)",
+      "trialExpiringNote": "Jetzt upgraden, um Kunden und Funktionen zu behalten.",
+      "trialExpired": "Testphase abgelaufen",
+      "trialExpiredNote": "Deine Testphase ist beendet. Upgrade, um TrAIner weiter zu nutzen.",
+      "upgradeNow": "Jetzt upgraden"
     }
   },
   "client": {
@@ -1099,7 +1111,9 @@
       "notificationUnknownDate": "unbekanntes Datum",
       "notificationBodyCancelled": "{{name}} hat den Trainingsplan vom {{planDate}} storniert.",
       "notificationBodyPostponed": "{{name}} hat den Trainingsplan vom {{planDate}} verschoben.",
-      "unknownError": "Unbekannter Fehler"
+      "unknownError": "Unbekannter Fehler",
+      "aiLockedFree": "KI-Personalisierung ist ab dem AI Fitness-Plan verfügbar.",
+      "aiLockedFreeNote": "Dein Training verwendet eine Standardvorlage. Upgrade für KI-angepasste Pläne basierend auf deinem täglichen Check-in."
     },
     "mode": {
       "finishWorkout": "Training beenden",
@@ -2476,33 +2490,61 @@
       "free": {
         "tag": "In Bewegung bleiben",
         "blurb": "Trainiere mit smarter Anleitung — ohne Karte, ohne Druck.",
-        "features": ["Intelligente Trainingsbibliothek", "Basis-Fortschritt-Tracking", "Ein paar KI-Tipps pro Woche"]
+        "features": [
+          "Intelligente Trainingsbibliothek",
+          "Basis-Fortschritt-Tracking",
+          "Ein paar KI-Tipps pro Woche"
+        ]
       },
       "ai_fitness": {
         "tag": "Deine KI mit dabei",
         "blurb": "Ein Plan, der sich um deinen Tag herum neu schreibt.",
-        "features": ["Voll personalisierte KI-Pläne", "Tägliche Anpassung an Energie & Muskelkater", "Zyklus-bewusste Programmierung", "Vollständiger Verlauf & Insights"]
+        "features": [
+          "Voll personalisierte KI-Pläne",
+          "Tägliche Anpassung an Energie & Muskelkater",
+          "Zyklus-bewusste Programmierung",
+          "Vollständiger Verlauf & Insights"
+        ]
       },
       "ai_performance": {
         "tag": "Ergebnisse wie mit Coach",
         "blurb": "Prädiktive Belastung und menschlicher Blick auf deine Zahlen.",
-        "features": ["Alles aus AI Fitness", "Erweiterte Leistungsanalysen", "Prädiktive Belastung & Erholung", "Bevorzugte menschliche Prüfung"]
+        "features": [
+          "Alles aus AI Fitness",
+          "Erweiterte Leistungsanalysen",
+          "Prädiktive Belastung & Erholung",
+          "Bevorzugte menschliche Prüfung"
+        ]
       },
       "trial": {
         "tag": "Studio testen",
         "sub": "14 Tage",
         "blurb": "Sieh die KI Pläne bauen, bevor du einen Cent ausgibst.",
-        "features": ["Bis zu 3 Kunden", "KI-Planbaukasten", "Basis-Studio-Dashboard"]
+        "features": [
+          "Bis zu 3 Kunden",
+          "KI-Planbaukasten",
+          "Basis-Studio-Dashboard"
+        ]
       },
       "pro": {
         "tag": "Deine Praxis führen",
         "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
-        "features": ["Unbegrenzte Kunden", "KI-Methoden-Engine", "Studio-Bereich mit deiner Marke", "Adhärenz- & Kunden-Insights"]
+        "features": [
+          "Unbegrenzte Kunden",
+          "KI-Methoden-Engine",
+          "Studio-Bereich mit deiner Marke",
+          "Adhärenz- & Kunden-Insights"
+        ]
       },
       "elite": {
         "tag": "Methode skalieren",
         "blurb": "Alles als White-Label und auf dem Marktplatz wachsen.",
-        "features": ["Alles aus Pro", "White-Label-App für Kunden", "Suite für erweiterte Analysen", "Bevorzugte Platzierung im Marktplatz"],
+        "features": [
+          "Alles aus Pro",
+          "White-Label-App für Kunden",
+          "Suite für erweiterte Analysen",
+          "Bevorzugte Platzierung im Marktplatz"
+        ],
         "note": "+ 15% Umsatzbeteiligung bei über den Marktplatz gewonnenen Kunden"
       }
     },
@@ -2511,8 +2553,16 @@
       "subscribed": "Abonniert",
       "free": "Gratis",
       "whatNext": "Was als Nächstes passiert",
-      "nextStudent": ["Erstelle dein Smart-Profil, damit die KI deinen Körper kennt", "Erhalte deinen ersten KI-personalisierten Plan", "Tägliche Check-ins justieren alles, während du dranbleibst"],
-      "nextTrainer": ["Erstelle dein Smart-Profil, damit die KI deinen Körper kennt", "Richte dein Studio ein und lade erste Kunden ein", "Tägliche Check-ins justieren alles, während du dranbleibst"],
+      "nextStudent": [
+        "Erstelle dein Smart-Profil, damit die KI deinen Körper kennt",
+        "Erhalte deinen ersten KI-personalisierten Plan",
+        "Tägliche Check-ins justieren alles, während du dranbleibst"
+      ],
+      "nextTrainer": [
+        "Erstelle dein Smart-Profil, damit die KI deinen Körper kennt",
+        "Richte dein Studio ein und lade erste Kunden ein",
+        "Tägliche Check-ins justieren alles, während du dranbleibst"
+      ],
       "billedMonthly": "monatliche Abrechnung",
       "billedAnnually": "jährliche Abrechnung"
     },

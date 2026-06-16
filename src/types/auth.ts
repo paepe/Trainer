@@ -34,7 +34,8 @@ export type NavFn = (screen: string, payload?: Record<string, unknown>) => void;
 export type PlanKey = 'free' | 'ai_fitness' | 'ai_performance' | 'trial' | 'pro' | 'elite';
 
 export interface Subscription {
-  plan_key:      PlanKey;
-  status:        'active' | 'trialing' | 'canceled' | 'past_due';
-  billing_cycle: 'monthly' | 'annual' | null;
+  plan_key:           PlanKey;
+  status:             'active' | 'trialing' | 'canceled' | 'past_due';
+  billing_cycle:      'monthly' | 'annual' | null;
+  current_period_end: string | null;
 }

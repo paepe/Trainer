@@ -740,7 +740,12 @@
       "resolve": "Resolve",
       "loading": "Loading…",
       "clientFallback": "Cliente",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "clientLimitReached": "Client limit reached",
+      "clientLimitReachedNote": "Your {{plan}} plan includes up to {{limit}} active clients. Upgrade to add more.",
+      "upgradeNow": "Upgrade plan",
+      "coachDnaLocked": "Coach DNA requires a Pro plan",
+      "coachDnaLockedNote": "Your {{plan}} plan does not include Coach DNA. Upgrade to Pro or Elite to define your methodology and coaching archetype."
     },
     "studio": {
       "title": "Trainer Studio",
@@ -963,6 +968,13 @@
           "restrictBurpee": "Mark burpee as restricted for beginners"
         }
       }
+    },
+    "trial": {
+      "trialExpiring": "Trial expires in {{days}} day(s)",
+      "trialExpiringNote": "Upgrade now to keep your clients and features.",
+      "trialExpired": "Trial expired",
+      "trialExpiredNote": "Your trial has ended. Upgrade to continue using TrAIner.",
+      "upgradeNow": "Upgrade now"
     }
   },
   "client": {
@@ -1099,7 +1111,9 @@
       "notificationUnknownDate": "unknown date",
       "notificationBodyCancelled": "{{name}} cancelled the workout plan from {{planDate}}.",
       "notificationBodyPostponed": "{{name}} postponed the workout plan from {{planDate}}.",
-      "unknownError": "Unknown error"
+      "unknownError": "Unknown error",
+      "aiLockedFree": "AI personalization is available from AI Fitness plan.",
+      "aiLockedFreeNote": "Your workout will use a standard template. Upgrade to get AI-adjusted plans based on your daily check-in."
     },
     "mode": {
       "finishWorkout": "Finish Workout",
@@ -2476,33 +2490,61 @@
       "free": {
         "tag": "Stay in motion",
         "blurb": "Move with smart guidance — no card, no pressure.",
-        "features": ["Smart workout library", "Basic progress tracking", "A few AI tips each week"]
+        "features": [
+          "Smart workout library",
+          "Basic progress tracking",
+          "A few AI tips each week"
+        ]
       },
       "ai_fitness": {
         "tag": "Your AI in the loop",
         "blurb": "A plan that rewrites itself around your day.",
-        "features": ["Fully personalized AI plans", "Daily adjustments to energy & soreness", "Cycle-aware programming", "Full history & insights"]
+        "features": [
+          "Fully personalized AI plans",
+          "Daily adjustments to energy & soreness",
+          "Cycle-aware programming",
+          "Full history & insights"
+        ]
       },
       "ai_performance": {
         "tag": "Coach-grade results",
         "blurb": "Predictive load and human eyes on your numbers.",
-        "features": ["Everything in AI Fitness", "Advanced performance analytics", "Predictive load & recovery", "Priority human review"]
+        "features": [
+          "Everything in AI Fitness",
+          "Advanced performance analytics",
+          "Predictive load & recovery",
+          "Priority human review"
+        ]
       },
       "trial": {
         "tag": "Test the studio",
         "sub": "14 days",
         "blurb": "See the AI build plans before you commit a cent.",
-        "features": ["Up to 3 clients", "AI plan builder", "Basic studio dashboard"]
+        "features": [
+          "Up to 3 clients",
+          "AI plan builder",
+          "Basic studio dashboard"
+        ]
       },
       "pro": {
         "tag": "Run your practice",
         "blurb": "Turn your method into plans the AI writes for you.",
-        "features": ["Unlimited clients", "AI methodology engine", "Branded studio space", "Adherence & client insights"]
+        "features": [
+          "Unlimited clients",
+          "AI methodology engine",
+          "Branded studio space",
+          "Adherence & client insights"
+        ]
       },
       "elite": {
         "tag": "Scale your method",
         "blurb": "White-label everything and grow on the marketplace.",
-        "features": ["Everything in Pro", "White-label client app", "Advanced analytics suite", "Marketplace priority placement"],
+        "features": [
+          "Everything in Pro",
+          "White-label client app",
+          "Advanced analytics suite",
+          "Marketplace priority placement"
+        ],
         "note": "+ 15% revenue share on clients acquired through the marketplace"
       }
     },
@@ -2511,8 +2553,16 @@
       "subscribed": "Subscribed",
       "free": "Free",
       "whatNext": "What happens next",
-      "nextStudent": ["Build your Smart Profile so the AI knows your body", "Get your first AI-personalized plan", "Daily check-ins fine-tune everything as you go"],
-      "nextTrainer": ["Build your Smart Profile so the AI knows your body", "Set up your studio & invite first clients", "Daily check-ins fine-tune everything as you go"],
+      "nextStudent": [
+        "Build your Smart Profile so the AI knows your body",
+        "Get your first AI-personalized plan",
+        "Daily check-ins fine-tune everything as you go"
+      ],
+      "nextTrainer": [
+        "Build your Smart Profile so the AI knows your body",
+        "Set up your studio & invite first clients",
+        "Daily check-ins fine-tune everything as you go"
+      ],
       "billedMonthly": "billed monthly",
       "billedAnnually": "billed annually"
     },

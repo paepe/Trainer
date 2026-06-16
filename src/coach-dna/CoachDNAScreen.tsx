@@ -17,6 +17,7 @@ import type { NavFn }       from '../types/auth';
 import type { CoachDNAData, CoachDNAStep } from '../types/coach-dna';
 import { COACH_DNA_DEFAULTS } from '../types/coach-dna';
 import type { PersistedAvatarUser, SaveUserFn } from '../hooks/usePersistedAvatar';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
 
 // ─── Step → DB key map (index 0 = step 1) ────────────────────────────────────
 
@@ -32,7 +33,7 @@ const OUTPUT_STEP = TOTAL_STEPS + 1;
 
 interface CoachDNAScreenProps {
   nav:  NavFn;
-  user: { id: string; name?: string } & PersistedAvatarUser;
+  user: { id: string; name?: string; plan_key?: string } & PersistedAvatarUser;
   // trainerId override for Studio context; defaults to user.id
   trainerId?: string;
   saveUser?:  SaveUserFn | undefined;
@@ -45,6 +46,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp, saveUser }
   const { t: theme } = useTheme();
   const { t: tr } = useTranslation();
   const { fetchCoachDNA, saveCoachDNA } = useCoachDNA(trainerId);
+  const coachDnaAccess = useFeatureAccess(user.plan_key ?? 'trial', 'coach_dna');
 
   const [step,      setStep]      = React.useState(0);
   const [data,      setData]      = React.useState<CoachDNAData>(COACH_DNA_DEFAULTS);
@@ -180,13 +182,63 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp, saveUser }
     return tr('coachDna.screen.blockOf', { step, total: TOTAL_STEPS });
   })();
 
-  if (loading) {
+  if (loading || coachDnaAccess.loading) {
     return (
       <div style={{
         height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: DARK.bg,
       }}>
         <Spinner size={32} thickness={3} color={theme.accent} trackColor={DARK.border} />
+      </div>
+    );
+  }
+
+  if (!coachDnaAccess.allowed) {
+    return (
+      <div style={{
+        height: '100%', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        background: DARK.bg, padding: '32px 24px', textAlign: 'center',
+      }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: 20, marginBottom: 20,
+          background: `${theme.accent}22`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon name="lock" size={28} color={theme.accent} />
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: DARK.textPri, marginBottom: 8 }}>
+          {tr('trainer.dashboard.coachDnaLocked')}
+        </div>
+        <div style={{ fontSize: 13, color: DARK.textSec, lineHeight: 1.6, marginBottom: 28, maxWidth: 320 }}>
+          {tr('trainer.dashboard.coachDnaLockedNote', {
+            plan: (user.plan_key ?? 'trial').toUpperCase(),
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button
+            onClick={() => nav('trainerDashboard')}
+            style={{
+              padding: '12px 20px', borderRadius: 12,
+              background: DARK.surface, color: DARK.textSec,
+              border: `1px solid ${DARK.border}`,
+              fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            {tr('trainer.dashboard.cancel')}
+          </button>
+          <button
+            onClick={() => nav('plans')}
+            style={{
+              padding: '12px 24px', borderRadius: 12,
+              background: theme.accent, color: '#fff',
+              border: 'none',
+              fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}
+          >
+            {tr('trainer.dashboard.upgradeNow')}
+          </button>
+        </div>
       </div>
     );
   }

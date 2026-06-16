@@ -14,7 +14,7 @@ const INVITE_TTL_DAYS = 7;
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { trainerId, trainerName, invitedEmail, invitedName } = req.body || {};
+  const { trainerId, trainerName, invitedEmail, invitedName, planKey } = req.body || {};
   if (!trainerId || !invitedEmail || !invitedName) {
     return res.status(400).json({ error: 'trainerId, invitedEmail, invitedName required' });
   }
@@ -31,6 +31,31 @@ export default async function handler(req: any, res: any) {
   };
 
   try {
+    // ── 0. Plan limit guard — check feature_permissions for clients.limit ──────
+    const [permRes, countRes] = await Promise.all([
+      fetch(
+        `${supabaseUrl}/rest/v1/feature_permissions?select=allowed,limit_value&feature_key=eq.clients.limit&plan_key=eq.${encodeURIComponent(planKey ?? 'trial')}`,
+        { headers: restHeaders },
+      ),
+      fetch(
+        `${supabaseUrl}/rest/v1/trainer_clients?select=id&trainer_id=eq.${encodeURIComponent(trainerId)}&status=eq.active`,
+        { headers: restHeaders },
+      ),
+    ]);
+
+    if (permRes.ok && countRes.ok) {
+      const [permRows, activeRows] = await Promise.all([permRes.json(), countRes.json()]) as [
+        { allowed: boolean; limit_value: number | null }[],
+        { id: string }[],
+      ];
+      const perm = permRows[0];
+      if (perm && perm.allowed && perm.limit_value !== null) {
+        if (activeRows.length >= perm.limit_value) {
+          return res.status(403).json({ error: 'client_limit_reached', limit: perm.limit_value });
+        }
+      }
+    }
+
     // ── 1. Exclusivity guard — candidate may only have ONE active trainer ──────
     const existingRes = await fetch(
       `${supabaseUrl}/rest/v1/profiles?select=id,trainer_clients!inner(trainer_id,status)&email=eq.${encodeURIComponent(invitedEmail)}&trainer_clients.status=eq.active`,

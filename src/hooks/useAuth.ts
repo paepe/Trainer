@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Session, AuthError, PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
 import type { Profile, PlanKey, Subscription } from '../types';
+import { clearFeaturePermissionCache } from './useFeatureAccess';
 
 interface SignInResult  { error: AuthError | null }
 interface SignUpResult  { data: unknown; error: AuthError | null }
@@ -73,12 +74,12 @@ export function useAuth(): UseAuthReturn {
 
     const { data: sub, error: subError } = await supabase
       .from('subscriptions')
-      .select('plan_key, status, billing_cycle')
+      .select('plan_key, status, billing_cycle, current_period_end')
       .eq('user_id', userId)
       .maybeSingle();
     if (subError) console.error('[useAuth] fetchSubscription error:', subError);
     setHasSubscription(!!sub);
-    setSubscription((sub as Subscription | null) ?? { plan_key: 'free', status: 'active', billing_cycle: null });
+    setSubscription((sub as Subscription | null) ?? { plan_key: 'free', status: 'active', billing_cycle: null, current_period_end: null });
 
     setLoading(false);
   }
@@ -100,6 +101,7 @@ export function useAuth(): UseAuthReturn {
   }
 
   async function signOut(): Promise<void> {
+    clearFeaturePermissionCache();
     const { error } = await supabase.auth.signOut();
     if (error) console.error('[useAuth] signOut error:', error);
   }
@@ -129,7 +131,11 @@ export function useAuth(): UseAuthReturn {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
     if (error) console.error('[useAuth] upsertSubscription error:', error);
-    else { setSubscription({ plan_key: planKey, status: 'active', billing_cycle }); setHasSubscription(true); }
+    else {
+      clearFeaturePermissionCache();
+      setSubscription({ plan_key: planKey, status: 'active', billing_cycle, current_period_end: null });
+      setHasSubscription(true);
+    }
     return { error };
   }
 

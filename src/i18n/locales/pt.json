@@ -740,7 +740,12 @@
       "resolve": "Resolver",
       "loading": "Carregando…",
       "clientFallback": "Cliente",
-      "unknown": "Desconhecido"
+      "unknown": "Desconhecido",
+      "clientLimitReached": "Limite de alunos atingido",
+      "clientLimitReachedNote": "O plano {{plan}} inclui até {{limit}} alunos ativos. Faça upgrade para adicionar mais.",
+      "upgradeNow": "Fazer upgrade",
+      "coachDnaLocked": "Coach DNA requer o plano Pro",
+      "coachDnaLockedNote": "O plano {{plan}} não inclui o Coach DNA. Faça upgrade para Pro ou Elite para definir sua metodologia e arquétipo de coaching."
     },
     "studio": {
       "title": "Trainer Studio",
@@ -963,6 +968,13 @@
           "restrictBurpee": "Marcar burpee como restrito para iniciantes"
         }
       }
+    },
+    "trial": {
+      "trialExpiring": "Trial expira em {{days}} dia(s)",
+      "trialExpiringNote": "Faça upgrade agora para manter seus alunos e funcionalidades.",
+      "trialExpired": "Trial expirado",
+      "trialExpiredNote": "Seu período de trial encerrou. Faça upgrade para continuar usando o TrAIner.",
+      "upgradeNow": "Fazer upgrade"
     }
   },
   "client": {
@@ -1099,7 +1111,9 @@
       "notificationBodyCancelled": "{{name}} cancelou o plano de treino de {{planDate}}.",
       "notificationBodyPostponed": "{{name}} adiou o plano de treino de {{planDate}}.",
       "unknownError": "Erro desconhecido",
-      "cancelLabel": "Cancelar"
+      "cancelLabel": "Cancelar",
+      "aiLockedFree": "A personalização por IA está disponível a partir do plano AI Fitness.",
+      "aiLockedFreeNote": "Seu treino usará um modelo padrão. Faça upgrade para receber planos ajustados pela IA com base no seu check-in diário."
     },
     "mode": {
       "finishWorkout": "Finalizar Treino",
@@ -2476,33 +2490,61 @@
       "free": {
         "tag": "Mantenha o movimento",
         "blurb": "Treine com orientação inteligente — sem cartão, sem pressão.",
-        "features": ["Biblioteca de treinos inteligente", "Acompanhamento básico de progresso", "Algumas dicas de IA por semana"]
+        "features": [
+          "Biblioteca de treinos inteligente",
+          "Acompanhamento básico de progresso",
+          "Algumas dicas de IA por semana"
+        ]
       },
       "ai_fitness": {
         "tag": "Sua IA no comando",
         "blurb": "Um plano que se reescreve em torno do seu dia.",
-        "features": ["Planos de IA totalmente personalizados", "Ajustes diários por energia e dores", "Programação sensível ao ciclo", "Histórico e insights completos"]
+        "features": [
+          "Planos de IA totalmente personalizados",
+          "Ajustes diários por energia e dores",
+          "Programação sensível ao ciclo",
+          "Histórico e insights completos"
+        ]
       },
       "ai_performance": {
         "tag": "Resultado de quem tem coach",
         "blurb": "Carga preditiva e olhos humanos nos seus números.",
-        "features": ["Tudo do AI Fitness", "Análises avançadas de desempenho", "Carga e recuperação preditivas", "Revisão humana prioritária"]
+        "features": [
+          "Tudo do AI Fitness",
+          "Análises avançadas de desempenho",
+          "Carga e recuperação preditivas",
+          "Revisão humana prioritária"
+        ]
       },
       "trial": {
         "tag": "Teste o estúdio",
         "sub": "14 dias",
         "blurb": "Veja a IA montar planos antes de gastar um centavo.",
-        "features": ["Até 3 alunos", "Construtor de planos com IA", "Painel básico do estúdio"]
+        "features": [
+          "Até 3 alunos",
+          "Construtor de planos com IA",
+          "Painel básico do estúdio"
+        ]
       },
       "pro": {
         "tag": "Toque seu trabalho",
         "blurb": "Transforme seu método em planos que a IA escreve por você.",
-        "features": ["Alunos ilimitados", "Motor de metodologia com IA", "Espaço de estúdio com sua marca", "Insights de adesão e de alunos"]
+        "features": [
+          "Alunos ilimitados",
+          "Motor de metodologia com IA",
+          "Espaço de estúdio com sua marca",
+          "Insights de adesão e de alunos"
+        ]
       },
       "elite": {
         "tag": "Escale seu método",
         "blurb": "White-label em tudo e cresça no marketplace.",
-        "features": ["Tudo do Pro", "App white-label para alunos", "Suíte de análises avançadas", "Destaque no marketplace"],
+        "features": [
+          "Tudo do Pro",
+          "App white-label para alunos",
+          "Suíte de análises avançadas",
+          "Destaque no marketplace"
+        ],
         "note": "+ 15% de participação na receita de alunos vindos do marketplace"
       }
     },
@@ -2511,8 +2553,16 @@
       "subscribed": "Assinante",
       "free": "Grátis",
       "whatNext": "O que acontece agora",
-      "nextStudent": ["Monte seu Perfil Inteligente para a IA conhecer seu corpo", "Receba seu primeiro plano personalizado por IA", "Check-ins diários afinam tudo conforme você avança"],
-      "nextTrainer": ["Monte seu Perfil Inteligente para a IA conhecer seu corpo", "Configure seu estúdio e convide os primeiros alunos", "Check-ins diários afinam tudo conforme você avança"],
+      "nextStudent": [
+        "Monte seu Perfil Inteligente para a IA conhecer seu corpo",
+        "Receba seu primeiro plano personalizado por IA",
+        "Check-ins diários afinam tudo conforme você avança"
+      ],
+      "nextTrainer": [
+        "Monte seu Perfil Inteligente para a IA conhecer seu corpo",
+        "Configure seu estúdio e convide os primeiros alunos",
+        "Check-ins diários afinam tudo conforme você avança"
+      ],
       "billedMonthly": "cobrança mensal",
       "billedAnnually": "cobrança anual"
     },

@@ -10,6 +10,7 @@ import { ScreenTitle } from '../../components/ScreenTitle';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, ghostBtn } from '../../theme';
 import type { NavFn } from '../../types';
 import type { TrainerAlert, OperationalTask } from '../../types/workout';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
@@ -54,9 +55,10 @@ interface TrainerInvitation {
 }
 
 interface TrainerDashboardUser {
-  id:    string;
-  name?: string;
-  email?: string;
+  id:       string;
+  name?:    string;
+  email?:   string;
+  plan_key?: string;
 }
 
 const invitationsTable = () => supabase.from('trainer_invitations');
@@ -77,6 +79,8 @@ export function TrainerDashboardScreen({
   const { t, dark } = useTrainerTheme();
   const { t: tr } = useTranslation();
   const { alerts, tasks, acknowledgeAlert, resolveAlert, completeTask } = useAlerts(user?.id);
+
+  const clientLimitAccess = useFeatureAccess(user?.plan_key ?? 'trial', 'clients.limit');
 
   const [clients, setClients]           = React.useState<TrainerClient[]>([]);
   const [loading, setLoading]           = React.useState(true);
@@ -215,7 +219,7 @@ export function TrainerDashboardScreen({
     setInvitations(data ?? []);
   }
 
-  async function sendInvite(email: string, name: string): Promise<{ ok: boolean; emailSent?: boolean; error?: string }> {
+  async function sendInvite(email: string, name: string): Promise<{ ok: boolean; emailSent?: boolean; error?: string; limit?: number }> {
     if (!user?.id) return { ok: false };
     const isNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
     const apiBase  = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
@@ -227,6 +231,7 @@ export function TrainerDashboardScreen({
         trainerName:  user.name ?? '',
         invitedEmail: email,
         invitedName:  name,
+        planKey:      user.plan_key ?? 'trial',
       }),
     });
     const json = await res.json().catch(() => ({}));
@@ -242,9 +247,11 @@ export function TrainerDashboardScreen({
     try {
       const result = await sendInvite(inviteEmail, inviteName);
       if (!result.ok) {
-        setInviteErr(result.error === 'already_linked_elsewhere'
-          ? tr('trainer.dashboard.errAlreadyLinked')
-          : tr('trainer.dashboard.errInviteFailed'));
+        setInviteErr(
+          result.error === 'already_linked_elsewhere' ? tr('trainer.dashboard.errAlreadyLinked')
+          : result.error === 'client_limit_reached'   ? tr('trainer.dashboard.clientLimitReached')
+          : tr('trainer.dashboard.errInviteFailed')
+        );
         setInviting(false);
         return;
       }
@@ -280,6 +287,13 @@ export function TrainerDashboardScreen({
 
   const activeClients  = clients.filter(c => c.status === 'active');
   const pendingClients = clients.filter(c => c.status === 'pending');
+
+  const atClientLimit = (
+    !clientLimitAccess.loading &&
+    clientLimitAccess.allowed &&
+    clientLimitAccess.limitValue !== null &&
+    activeClients.length >= clientLimitAccess.limitValue
+  );
 
   const clientNameMap = React.useMemo(() => {
     const map: Record<string, string> = {};
@@ -581,6 +595,33 @@ export function TrainerDashboardScreen({
                 })}
               </div>
             )}
+          </div>
+        ) : atClientLimit ? (
+          <div style={{
+            padding: '16px 18px', borderRadius: 14,
+            border: `1.5px solid ${t.accent}55`,
+            background: `${t.accent}0D`,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: t.accent, marginBottom: 4 }}>
+              {tr('trainer.dashboard.clientLimitReached')}
+            </div>
+            <div style={{ fontSize: 12, color: textSec(dark), marginBottom: 12 }}>
+              {tr('trainer.dashboard.clientLimitReachedNote', {
+                plan: (user?.plan_key ?? 'trial').toUpperCase(),
+                limit: clientLimitAccess.limitValue,
+              })}
+            </div>
+            <button
+              onClick={() => _nav('plans')}
+              style={{
+                padding: '10px 18px', borderRadius: 10,
+                background: t.accent, color: '#fff',
+                border: 'none', fontFamily: '"Plus Jakarta Sans",sans-serif',
+                fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              {tr('trainer.dashboard.upgradeNow')}
+            </button>
           </div>
         ) : (
           <button

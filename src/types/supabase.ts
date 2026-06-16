@@ -1550,6 +1550,30 @@ export type Database = {
           },
         ]
       }
+      feature_permissions: {
+        Row: {
+          feature_key:  string
+          plan_key:     string
+          allowed:      boolean
+          limit_value:  number | null
+          updated_at:   string
+        }
+        Insert: {
+          feature_key:  string
+          plan_key:     string
+          allowed:      boolean
+          limit_value?: number | null
+          updated_at?:  string
+        }
+        Update: {
+          feature_key?: string
+          plan_key?:    string
+          allowed?:     boolean
+          limit_value?: number | null
+          updated_at?:  string
+        }
+        Relationships: []
+      }
       system_events: {
         Row: {
           created_at: string

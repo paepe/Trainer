@@ -6,6 +6,7 @@ import { RefreshChip } from '../../components/RefreshChip';
 import i18n from '../../i18n';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import type { NavFn, PlanKey } from '../../types';
+import { useFeatureAccessMap } from '../../hooks/useFeatureAccess';
 import { useM5Data, C, scoreColor, goodScoreColor, band } from './performance/perf-engines';
 import {
   T, FF_DISPLAY, FF_MONO,
@@ -67,9 +68,14 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
   const targetUserId = selectedClient?.id ?? user.id;
   const targetName   = selectedClient?.name ?? user.name;
   const targetGender = user.gender;
-  // Trainer viewing a client always sees the full picture; a client viewing
-  // their own dashboard sees AI Performance scores only on the matching plan.
-  const isPremium = !!selectedClient || user.plan_key === 'ai_performance';
+  // Trainer viewing a client's dashboard gets full access regardless of their own plan.
+  const isTrainerOverride = !!selectedClient;
+  const accessMap = useFeatureAccessMap(
+    user.plan_key,
+    ['scores.basic', 'scores.advanced'],
+    isTrainerOverride,
+  );
+  const advancedScoresAllowed = accessMap['scores.advanced']?.allowed ?? false;
   const [activeScreen, setActiveScreen] = React.useState<ScreenId>('overview');
   const { data, loading, lastUpdated, reload } = useM5Data(targetUserId);
 
@@ -105,7 +111,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient 
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
             case 'dor':         return <TelaDor         data={data} gender={targetGender ?? null}/>;
-            case 'scores':      return <TelaScores      data={data} nav={nav} isPremium={isPremium}/>;
+            case 'scores':      return <TelaScores      data={data} nav={nav} advancedAllowed={advancedScoresAllowed}/>;
             case 'voz':         return <TelaVoz data={data}/>;
             case 'marcos':      return <TelaMarcos      data={data}/>;
           }
@@ -642,17 +648,20 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
 
 // ── Tela 05 — Scores Preditivos ───────────────────────────────────────────────
 
-// Scores included in the free tier. Remaining scores are shown as locked
-// teasers to drive upgrades to AI Performance.
-const FREE_SCORE_CODES = new Set([
-  'session_completion_score',
-  'churn_risk_score',
-  'pain_recurrence_score',
-  'plan_fit_score',
-]);
-
-export function TelaScores({ data, nav, isPremium }: { data: M5Data; nav: NavFn; isPremium: boolean }) {
+export function TelaScores({ data, nav, advancedAllowed }: { data: M5Data; nav: NavFn; advancedAllowed: boolean }) {
   const { t: tr } = useTranslation();
+
+  // Basic scores are always visible; advanced scores require scores.advanced permission.
+  // The distinction (which codes are basic vs advanced) is owned by the DB seed —
+  // here we only need to know the resolved permission flag.
+  const ADVANCED_SCORE_CODES = new Set([
+    'fatigue_risk',
+    'recovery_instability',
+    'progression_readiness',
+    'response_compatibility',
+    'plateau_risk',
+  ]);
+
   const scoreList = [
     data.scores.churnRisk,
     data.scores.fatigueRisk,
@@ -676,7 +685,7 @@ export function TelaScores({ data, nav, isPremium }: { data: M5Data; nav: NavFn;
       {/* Score grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {scoreList.map(s => {
-          const locked = !isPremium && !FREE_SCORE_CODES.has(s.code);
+          const locked = !advancedAllowed && ADVANCED_SCORE_CODES.has(s.code);
           if (locked) return <LockedScoreCard key={s.code} nameKey={s.nameKey} nav={nav}/>;
 
           const c = s.isGoodScore ? goodScoreColor(s.score) : scoreColor(s.score);

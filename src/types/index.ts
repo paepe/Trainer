@@ -4,3 +4,4 @@ export * from './studio';
 export * from './profile-v2';
 export * from './checkin-v2';
 export * from './coach-dna';
+export * from './feature-permissions';

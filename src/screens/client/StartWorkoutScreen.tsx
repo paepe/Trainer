@@ -11,6 +11,7 @@ import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGenera
 import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext } from '../../ai/buildAIContext';
 import type { TrainerContext, TaskContext } from '../../ai/types';
+import { useFeatureAccessMap } from '../../hooks/useFeatureAccess';
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
@@ -43,6 +44,7 @@ interface AppUser {
   role:       string;
   avatar_url: string | null;
   gender?:    string;
+  plan_key?:  string;
 }
 
 interface AppCycleConfig {
@@ -168,6 +170,16 @@ function generateFallbackPlan(
 
 export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', prefs }: StartWorkoutScreenProps) {
   const { t: tr } = useTranslation();
+
+  // Feature gate: trainers viewing a client always get full AI; clients follow the matrix.
+  const isTrainerView = !!linkedTrainerId && user.role !== 'client';
+  const aiAccessMap = useFeatureAccessMap(
+    user.plan_key ?? 'free',
+    ['ai.checkin_adjustment', 'ai.advanced_analysis'],
+    isTrainerView,
+  );
+  const aiCheckinAllowed  = aiAccessMap['ai.checkin_adjustment']?.allowed  ?? false;
+  const aiAdvancedAllowed = aiAccessMap['ai.advanced_analysis']?.allowed   ?? false;
   const [genState, setGenState] = React.useState<GenState>({ phase: 'idle' });
   const [planSource, setPlanSource] = React.useState<string | null>(null);
   const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
@@ -444,11 +456,27 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         };
 
         // ── Call smart endpoint ─────────────────────────────────────────────
-        const useSmart = prefs?.aiPersonalization !== false || !!linkedTrainerId;
+        // ai.checkin_adjustment gate: free plan always gets the template fallback.
+        // ai.advanced_analysis gate: ai_fitness gets smart workout but without M5 predictive scores.
+        const useSmart = aiCheckinAllowed && (prefs?.aiPersonalization !== false || !!linkedTrainerId);
+
+        // Strip advanced predictive scores from stats context when not allowed —
+        // avoids leaking premium signals to the AI prompt for free/ai_fitness clients.
+        const gatedStatsCtx = aiAdvancedAllowed ? statsCtx : {
+          ...statsCtx,
+          predictiveScores: {
+            progressionReadiness: 50,
+            fatigueRisk:          20,
+            painRecurrence:       10,
+            sessionCompletion:    70,
+            planFit:              70,
+          },
+        };
+
         const result = useSmart
           ? await requestSmartWorkout({
               trainer: trainerCtx, client: clientCtx,
-              today: todayCtx as any, stats: statsCtx,
+              today: todayCtx as any, stats: gatedStatsCtx,
               library: libraryCtx, task: taskCtx,
               locale: i18n.language,
             })
@@ -791,6 +819,33 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {/* Today's AI plan — only when no actionable trainer plan exists */}
       {!hasTrainerPlans && (
       <div style={{ padding: '4px 22px 0' }}>
+        {!aiCheckinAllowed && (
+          <div style={{
+            padding: '12px 14px', borderRadius: 12, marginBottom: 10,
+            background: `${t.primary}10`, border: `1px solid ${t.primary}33`,
+            display: 'flex', alignItems: 'flex-start', gap: 10,
+          }}>
+            <Icon name="sparkle" size={15} color={t.primary} stroke={2}/>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: textPri(dark), marginBottom: 2 }}>
+                {tr('client.workout.aiLockedFree')}
+              </div>
+              <div style={{ fontSize: 11.5, color: textSec(dark), lineHeight: 1.5, marginBottom: 8 }}>
+                {tr('client.workout.aiLockedFreeNote')}
+              </div>
+              <button
+                onClick={() => nav('plans')}
+                style={{
+                  padding: '6px 14px', borderRadius: 8, border: 'none',
+                  background: t.primary, color: '#fff',
+                  fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                {tr('trainer.dashboard.upgradeNow')}
+              </button>
+            </div>
+          </div>
+        )}
         <SectionLabel dark={dark}>{tr('client.workout.todaysAiPlan')}</SectionLabel>
 
         {loading && (

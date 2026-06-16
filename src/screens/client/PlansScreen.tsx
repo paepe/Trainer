@@ -58,7 +58,12 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
   const handleConfirm = async () => {
     if (!selected) return;
     const { error } = await upsertSubscription(selected as PlanKey, billing);
-    if (!error) nav(source === 'onboarding' ? 'profile' : 'settings');
+    if (error) return;
+    if (source === 'onboarding') {
+      nav(isTrainer ? 'trainerDashboard' : 'profile');
+    } else {
+      nav('planConfirm', { planKey: selected, isTrainer });
+    }
   };
 
   return (

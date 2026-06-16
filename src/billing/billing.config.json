@@ -1,0 +1,23 @@
+{
+  "_comment": "Billing module configuration. Price IDs are populated once the Stripe account exists. Provider 'mock' requires no external credentials and is safe for dev/test.",
+  "provider": "mock",
+  "currency": "EUR",
+  "plans": {
+    "ai_fitness": {
+      "monthly": "",
+      "annual":  ""
+    },
+    "ai_performance": {
+      "monthly": "",
+      "annual":  ""
+    },
+    "pro": {
+      "monthly": "",
+      "annual":  ""
+    },
+    "elite": {
+      "monthly": "",
+      "annual":  ""
+    }
+  }
+}
