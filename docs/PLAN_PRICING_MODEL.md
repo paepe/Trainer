@@ -1,6 +1,6 @@
 # Plan Pricing Model — Design & Implementation Plan
 
-**Status:** Aguardando aprovação  
+**Status:** Fase 1 ✓ · Fase 2 ✓ · Fase 3 pendente  
 **Data:** 2026-06-17  
 **Autor:** Paulo Peres + Claude Sonnet 4.6
 
@@ -162,17 +162,19 @@ subscriptions  ← estado actual (sem alteração ao schema)
 
 ## 6. Plano de implementação — 3 Fases
 
-### Fase 1 — Schema + seed (sem impacto no produto)
-- [ ] Criar `plan_definitions`, `plan_prices`, `subscription_events`
-- [ ] Popular `plan_definitions` com os 6 planos actuais
-- [ ] Popular `plan_prices` com os preços EUR actuais
-- [ ] Arquivar SQL em `supabase/sql-archive/`
+### Fase 1 — Schema + seed (sem impacto no produto) ✓ 2026-06-17
+- [x] Criar `plan_definitions`, `plan_prices`, `subscription_events`
+- [x] Popular `plan_definitions` com os 6 planos actuais
+- [x] Popular `plan_prices` com os preços EUR actuais
+- [x] Arquivar SQL em `supabase/sql-archive/20260617_plan_pricing_model_phase1.sql`
 
-### Fase 2 — Frontend desacoplado
-- [ ] Hook `usePlanPrices(audience)` — lê `plan_definitions` + `plan_prices` activos
-- [ ] `PlansScreen` consome o hook; remove arrays hardcoded
-- [ ] `fmtPrice` substituído por `Intl.NumberFormat`
-- [ ] `plan_definitions` passa a ser a fonte de `icon` e `sort_order`
+### Fase 2
+ — Frontend desacoplado ✓ 2026-06-17
+- [x] Hook `usePlanPrices(audience)` — lê `plan_definitions` + `plan_prices` activos
+- [x] `PlansScreen` consome o hook; remove arrays hardcoded
+- [x] `fmtPrice` substituído por `Intl.NumberFormat` (cents, locale `de-DE`)
+- [x] `plan_definitions` passa a ser a fonte de `icon` e `sort_order`
+- [x] Tipos Supabase regenerados (`src/types/supabase.ts`)
 
 ### Fase 3 — Stripe wired + ledger activo
 - [ ] `stripe_price_id` populado em `plan_prices` (via Supabase dashboard ou migration)

@@ -573,6 +573,30 @@ export type Database = {
           },
         ]
       }
+      feature_permissions: {
+        Row: {
+          allowed: boolean
+          feature_key: string
+          limit_value: number | null
+          plan_key: string
+          updated_at: string
+        }
+        Insert: {
+          allowed?: boolean
+          feature_key: string
+          limit_value?: number | null
+          plan_key: string
+          updated_at?: string
+        }
+        Update: {
+          allowed?: boolean
+          feature_key?: string
+          limit_value?: number | null
+          plan_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       masked_operational_contexts: {
         Row: {
           context_token: string
@@ -862,6 +886,33 @@ export type Database = {
           },
         ]
       }
+      plan_definitions: {
+        Row: {
+          audience: string
+          created_at: string
+          icon: string
+          is_active: boolean
+          plan_key: string
+          sort_order: number
+        }
+        Insert: {
+          audience: string
+          created_at?: string
+          icon: string
+          is_active?: boolean
+          plan_key: string
+          sort_order?: number
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          icon?: string
+          is_active?: boolean
+          plan_key?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       plan_exercises: {
         Row: {
           actual_load_kg: number | null
@@ -933,6 +984,56 @@ export type Database = {
           },
         ]
       }
+      plan_prices: {
+        Row: {
+          amount_cents: number
+          billing_cycle: string
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          label: string | null
+          plan_key: string
+          stripe_price_id: string | null
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          amount_cents: number
+          billing_cycle: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          plan_key: string
+          stripe_price_id?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          billing_cycle?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          plan_key?: string
+          stripe_price_id?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_prices_plan_key_fkey"
+            columns: ["plan_key"]
+            isOneToOne: false
+            referencedRelation: "plan_definitions"
+            referencedColumns: ["plan_key"]
+          },
+        ]
+      }
       post_workout_feedback: {
         Row: {
           created_at: string | null
@@ -999,6 +1100,7 @@ export type Database = {
           language: string | null
           light_palette: string | null
           notifications: boolean | null
+          performance_window_weeks: number
           plan_expiry_days: number | null
           preferred_intensity: string | null
           session_history_limit: number | null
@@ -1026,6 +1128,7 @@ export type Database = {
           language?: string | null
           light_palette?: string | null
           notifications?: boolean | null
+          performance_window_weeks?: number
           plan_expiry_days?: number | null
           preferred_intensity?: string | null
           session_history_limit?: number | null
@@ -1053,6 +1156,7 @@ export type Database = {
           language?: string | null
           light_palette?: string | null
           notifications?: boolean | null
+          performance_window_weeks?: number
           plan_expiry_days?: number | null
           preferred_intensity?: string | null
           session_history_limit?: number | null
@@ -1503,6 +1607,56 @@ export type Database = {
           },
         ]
       }
+      subscription_events: {
+        Row: {
+          amount_cents: number | null
+          billing_cycle: string | null
+          created_at: string
+          currency: string | null
+          discount_cents: number
+          event_type: string
+          id: string
+          plan_key: string
+          price_id: string | null
+          stripe_invoice_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          billing_cycle?: string | null
+          created_at?: string
+          currency?: string | null
+          discount_cents?: number
+          event_type: string
+          id?: string
+          plan_key: string
+          price_id?: string | null
+          stripe_invoice_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number | null
+          billing_cycle?: string | null
+          created_at?: string
+          currency?: string | null
+          discount_cents?: number
+          event_type?: string
+          id?: string
+          plan_key?: string
+          price_id?: string | null
+          stripe_invoice_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_price_id_fkey"
+            columns: ["price_id"]
+            isOneToOne: false
+            referencedRelation: "plan_prices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           billing_cycle: string | null
@@ -1549,30 +1703,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      feature_permissions: {
-        Row: {
-          feature_key:  string
-          plan_key:     string
-          allowed:      boolean
-          limit_value:  number | null
-          updated_at:   string
-        }
-        Insert: {
-          feature_key:  string
-          plan_key:     string
-          allowed:      boolean
-          limit_value?: number | null
-          updated_at?:  string
-        }
-        Update: {
-          feature_key?: string
-          plan_key?:    string
-          allowed?:     boolean
-          limit_value?: number | null
-          updated_at?:  string
-        }
-        Relationships: []
       }
       system_events: {
         Row: {
