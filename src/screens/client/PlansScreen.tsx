@@ -18,6 +18,7 @@ interface Props {
 }
 
 type BillingCycle = 'monthly' | 'annual';
+type AudienceMode = 'client' | 'trainer';
 
 interface PlanDef {
   id:    string;
@@ -37,6 +38,10 @@ const TRAINER_PLANS: PlanDef[] = [
   { id: 'elite', icon: 'brain',  price: 99 },
 ];
 
+// Trainer brand coral — matches TRAINER_BRAND.primary in tokens.ts
+const TRAINER_PRIMARY = '#EF5B3C';
+const TRAINER_DEEP    = '#C23B22';
+
 function fmtPrice(p: number): string {
   if (p === 0) return '€0';
   return '€' + p.toFixed(2).replace(/\.00$/, '');
@@ -49,36 +54,74 @@ function annualMonthly(p: number): number {
 export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
   const { t: tr } = useTranslation();
   const isTrainer = !!user.role && (TRAINER_ROLES as readonly string[]).includes(user.role);
-  const plans = isTrainer ? TRAINER_PLANS : STUDENT_PLANS;
-  const accent = C.cyan;
-  const isManage = source === 'manage';
+  const isManage  = source === 'manage';
+
+  // Logged-in trainers always see trainer plans; clients start on client tab.
+  // On the public/onboarding version, anonymous visitors can toggle.
+  const [audienceMode, setAudienceMode] = React.useState<AudienceMode>(isTrainer ? 'trainer' : 'client');
+  const showingTrainer = audienceMode === 'trainer';
+
+  const plans  = showingTrainer ? TRAINER_PLANS : STUDENT_PLANS;
+  const accent = showingTrainer ? TRAINER_PRIMARY : C.cyan;
 
   const [billing, setBilling] = React.useState<BillingCycle>('monthly');
   const [selected, setSelected] = React.useState<string | null>(null);
+  const [confirming, setConfirming] = React.useState(false);
+
+  // Reset selection when audience tab changes
+  React.useEffect(() => { setSelected(null); }, [audienceMode]);
+
+  const canConfirm = !!selected && selected !== user.plan_key && !confirming;
 
   const handleConfirm = async () => {
-    if (!selected) return;
+    if (!selected || confirming) return;
+    setConfirming(true);
     const { error } = await upsertSubscription(selected as PlanKey, billing);
+    setConfirming(false);
     if (error) return;
     if (source === 'onboarding') {
       nav(isTrainer ? 'trainerDashboard' : 'profile');
     } else {
-      nav('planConfirm', { planKey: selected, isTrainer });
+      nav('planConfirm', { planKey: selected, isTrainer: showingTrainer });
     }
   };
 
   return (
     <ScreenWrap>
+      {/* Back — only in manage mode */}
       {isManage && (
         <button
-          onClick={() => nav(-1 as unknown as string)}
+          onClick={() => nav(isTrainer ? 'trainerDashboard' : 'checkin')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, color: T.textSec, fontSize: 13 }}
         >
           <Icon name="chevL" size={16} color={T.textSec} stroke={2}/> {tr('common.back')}
         </button>
       )}
+
+      {/* Audience toggle — hidden for logged-in trainers (always show trainer plans) */}
+      {!isTrainer && (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'inline-flex', padding: 4, borderRadius: 999, background: T.navy, border: `1px solid ${T.border}`, gap: 2 }}>
+            {(['client', 'trainer'] as AudienceMode[]).map(mode => {
+              const on = audienceMode === mode;
+              const modeAccent = mode === 'trainer' ? TRAINER_PRIMARY : C.cyan;
+              return (
+                <button key={mode} onClick={() => setAudienceMode(mode)} style={{
+                  padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                  background: on ? modeAccent : 'transparent',
+                  color: on ? T.navy : T.textSec,
+                  fontFamily: FF_DISPLAY, fontWeight: 700, fontSize: 12, transition: 'all .14s ease',
+                }}>
+                  {tr(mode === 'client' ? 'plans.tabClient' : 'plans.tabTrainer')}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <ScreenTitle
-        kicker={isManage ? tr('plans.manageKicker') : tr('plans.kicker')}
+        kicker={isManage ? tr('plans.manageKicker') : showingTrainer ? tr('plans.kickerTrainer') : tr('plans.kicker')}
         title={isManage ? tr('plans.manageHeading') : tr('plans.headingNoRec')}
         sub={isManage ? tr('plans.manageSub') : tr('plans.sub')}
       />
@@ -104,17 +147,24 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
       {/* Plan cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {plans.map((plan, i) => {
-          const isAnnual = billing === 'annual';
-          const monthly  = isAnnual ? annualMonthly(plan.price) : plan.price;
-          const free     = plan.price === 0;
-          const isSel    = selected === plan.id;
+          const isAnnual  = billing === 'annual';
+          const monthly   = isAnnual ? annualMonthly(plan.price) : plan.price;
+          const free      = plan.price === 0;
+          const isSel     = selected === plan.id;
           const isCurrent = user.plan_key === plan.id;
-          const recommended = i === 1; // middle tier as default highlight
+          const recommended = i === 1;
 
           const tag      = tr(`plans.text.${plan.id}.tag`);
           const blurb    = tr(`plans.text.${plan.id}.blurb`);
           const features = tr(`plans.text.${plan.id}.features`, { returnObjects: true }) as string[];
           const note     = tr(`plans.text.${plan.id}.note`, { defaultValue: '' });
+
+          // CTA label inside the card
+          const ctaLabel = isCurrent
+            ? tr('plans.alreadyOnPlan')
+            : isManage
+              ? tr('plans.changePlanCta')
+              : tr('plans.selectCta');
 
           return (
             <button
@@ -214,6 +264,37 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
                   {note}
                 </div>
               )}
+
+              {/* In-card CTA — only on selected card */}
+              {isSel && (
+                <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-start' }}>
+                  <button
+                    disabled={!canConfirm}
+                    onClick={e => { e.stopPropagation(); void handleConfirm(); }}
+                    style={{
+                      padding: '9px 18px', borderRadius: 10, border: 'none',
+                      background: isCurrent
+                        ? T.surf2
+                        : showingTrainer
+                          ? `linear-gradient(135deg, ${TRAINER_PRIMARY} 0%, ${TRAINER_DEEP} 100%)`
+                          : C.green,
+                      color: isCurrent ? T.textMute : T.navy,
+                      fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 13,
+                      cursor: canConfirm ? 'pointer' : 'not-allowed',
+                      opacity: canConfirm || isCurrent ? 1 : 0.55,
+                      transition: 'all .15s ease',
+                      boxShadow: canConfirm
+                        ? showingTrainer
+                          ? `0 6px 18px ${TRAINER_PRIMARY}55`
+                          : `0 6px 18px ${C.green}55`
+                        : 'none',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {confirming ? tr('plans.confirming') : ctaLabel}
+                  </button>
+                </div>
+              )}
             </button>
           );
         })}
@@ -223,27 +304,6 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
       <div style={{ textAlign: 'center', fontSize: 11, color: T.textMute, fontFamily: FF_MONO }}>
         {tr('plans.footPre')}{tr(billing === 'monthly' ? 'plans.footMonthly' : 'plans.footAnnual')}{tr('plans.footPost')}
       </div>
-
-      {/* Confirm CTA */}
-      <button
-        disabled={!selected || selected === user.plan_key}
-        onClick={handleConfirm}
-        style={{
-          padding: '14px 20px', borderRadius: 14, border: 'none',
-          cursor: (selected && selected !== user.plan_key) ? 'pointer' : 'not-allowed',
-          background: (selected && selected !== user.plan_key) ? accent : T.surf2,
-          color: (selected && selected !== user.plan_key) ? T.navy : T.textMute,
-          fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 14,
-          opacity: (selected && selected !== user.plan_key) ? 1 : 0.6,
-          transition: 'all .15s ease',
-        }}
-      >
-        {selected === user.plan_key
-          ? tr('plans.alreadyOnPlan')
-          : isManage
-            ? tr('plans.changePlanCta')
-            : tr('plans.selectCta')}
-      </button>
     </ScreenWrap>
   );
 }

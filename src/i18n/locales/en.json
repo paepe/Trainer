@@ -719,7 +719,7 @@
     "coachDna": "Coach DNA",
     "trainerStudio": "Trainer Studio",
     "exerciseLibrary": "Exercise Library",
-    "subscription": "Plan & Subscription",
+    "subscription": "My Subscription",
     "settings": "Settings"
   },
   "trainer": {
@@ -2525,6 +2525,10 @@
     "selectCta": "Confirm my license",
     "changePlanCta": "Switch to this plan",
     "alreadyOnPlan": "You're already on this plan",
+    "confirming": "Confirming…",
+    "tabClient": "Student",
+    "tabTrainer": "Trainer",
+    "kickerTrainer": "Trainer plans",
     "manageKicker": "Your subscription",
     "manageHeading": "Manage your plan.",
     "manageSub": "Your current plan is highlighted. Select another to switch.",

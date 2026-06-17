@@ -31,7 +31,7 @@ const MENU_ITEMS: [string, string, string][] = [
   ['settings',          'settings',                 'settings'],
 ];
 
-const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'cycle', 'studio', 'plans']);
+const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'cycle', 'studio']);
 const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA']);
 
 import { TRAINER_ROLES } from '../types/auth';
@@ -78,7 +78,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
           }}>
             {(user.role ?? 'CLIENT').toUpperCase()}
           </div>
-          {!isTrainerRole && user.plan_key && (
+          {user.plan_key && (
             <div style={{
               padding: '3px 9px', borderRadius: 999,
               background: 'rgba(14,26,43,.18)', color: '#0E1A2B', fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em',

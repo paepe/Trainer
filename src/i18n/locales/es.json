@@ -719,7 +719,7 @@
     "coachDna": "Coach DNA",
     "trainerStudio": "Trainer Studio",
     "exerciseLibrary": "Biblioteca de Ejercicios",
-    "subscription": "Plan & Suscripción",
+    "subscription": "Mi Suscripción",
     "settings": "Ajustes"
   },
   "trainer": {
@@ -2525,6 +2525,10 @@
     "selectCta": "Confirmar mi licencia",
     "changePlanCta": "Cambiar a este plan",
     "alreadyOnPlan": "Ya estás en este plan",
+    "confirming": "Confirmando…",
+    "tabClient": "Alumno",
+    "tabTrainer": "Entrenador",
+    "kickerTrainer": "Planes de entrenador",
     "manageKicker": "Tu suscripción",
     "manageHeading": "Gestiona tu plan.",
     "manageSub": "Tu plan actual está resaltado. Selecciona otro para cambiar.",
