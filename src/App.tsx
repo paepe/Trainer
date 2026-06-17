@@ -747,7 +747,7 @@ function PlanConfirmScreen({
 }) {
   const { t: tr } = useTranslation();
   const isFree = !planKey || planKey === 'free' || planKey === 'trial';
-  const planLabel = (planKey ?? 'free').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const planLabel = tr(`plans.text.${planKey ?? 'free'}.name`, { defaultValue: planKey });
   const nextSteps = tr(
     isTrainer ? 'plans.confirm.nextTrainer' : 'plans.confirm.nextStudent',
     { returnObjects: true },
