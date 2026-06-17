@@ -65,7 +65,10 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
   const accent = showingTrainer ? TRAINER_PRIMARY : C.cyan;
 
   const [billing, setBilling] = React.useState<BillingCycle>('monthly');
-  const [selected, setSelected] = React.useState<string | null>(null);
+  // Pre-select the user's current plan when managing; nothing on onboarding
+  const [selected, setSelected] = React.useState<string | null>(
+    isManage && user.plan_key ? user.plan_key : null
+  );
   const [confirming, setConfirming] = React.useState(false);
 
   // Reset selection when audience tab changes
@@ -152,7 +155,12 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
           const free      = plan.price === 0;
           const isSel     = selected === plan.id;
           const isCurrent = user.plan_key === plan.id;
-          const recommended = i === 1;
+          // In manage mode: badge on current plan. In onboarding: badge on user's plan if known, else middle tier.
+          const recommended = isManage
+            ? isCurrent
+            : user.plan_key
+              ? isCurrent
+              : i === 1;
 
           const name     = tr(`plans.text.${plan.id}.name`);
           const tag      = tr(`plans.text.${plan.id}.tag`);
