@@ -119,6 +119,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           isClient={!!clientName}
           onSelect={setStage}
           onBack={() => nav(clientUserId ? 'trainerDashboard' : 'profile')}
+          onUpgrade={() => nav('plans', { source: 'manage' })}
           streak={last.streak}
           lastCheckin={last.lastCheckin}
           freeSession={freeSession}

@@ -1057,7 +1057,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 {tr('client.workout.cancelLabel')}
               </button>
               <button
-                onClick={() => { setTrainerPlanLocked(false); nav('plans', { source: 'trainer_plan_lock' }); }}
+                onClick={() => { setTrainerPlanLocked(false); nav('plans', { source: 'manage' }); }}
                 style={{
                   flex: 1, padding: '12px 0', borderRadius: 10, fontFamily: 'inherit',
                   background: t.primary, color: '#0E1A2B',

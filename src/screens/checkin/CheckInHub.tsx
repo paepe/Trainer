@@ -13,6 +13,7 @@ interface CheckInHubProps {
   isClient?:          boolean;
   onSelect:           (v: Variant) => void;
   onBack:             () => void;
+  onUpgrade?:         () => void;
   streak?:            number;
   lastCheckin?:       string;
   freeSession?:       boolean; // Free Training Session: only the Detailed check-in is offered
@@ -25,7 +26,7 @@ const OPTIONS: { key: Variant; icon: string; time: string; badge?: true }[] = [
   { key: 'detailed',icon: 'list',  time: '~5 min'  },
 ];
 
-export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin, freeSession, fullCheckinAllowed = true }: CheckInHubProps) {
+export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, onUpgrade, streak, lastCheckin, freeSession, fullCheckinAllowed = true }: CheckInHubProps) {
   const { t: tr } = useTranslation();
   // Free Training Session mandates the Complete (Detailed) check-in as the sole,
   // authoritative input — Quick and Voice are withheld to maximise data quality.
@@ -158,7 +159,7 @@ export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect
                 {tr('checkin.hub.fullLockedNote')}
               </div>
               <button
-                onClick={() => onBack()}
+                onClick={() => onUpgrade ? onUpgrade() : onBack()}
                 style={{
                   fontSize: 11, fontWeight: 700, color: primary,
                   background: 'none', border: `1px solid ${primary}`,
