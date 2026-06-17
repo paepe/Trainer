@@ -13,6 +13,7 @@ interface SideMenuProps {
   user:             SideMenuUser;
   current:          string;
   setUser:          (data: Partial<Profile>) => void;
+  signOut:          () => void;
   role?:            string | undefined;
   disabledScreens?: string[];
 }
@@ -36,7 +37,7 @@ const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA
 
 import { TRAINER_ROLES } from '../types/auth';
 
-export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, role, disabledScreens = [] }) => {
+export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, signOut, role, disabledScreens = [] }) => {
   const { t: tr } = useTranslation();
   const isTrainerRole = role != null && (TRAINER_ROLES as readonly string[]).includes(role);
   const isMale = user.gender === 'male';
@@ -115,7 +116,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
       </div>
 
       <button
-        onClick={() => { void setUser({ name: 'Frances Scott', email: 'frances@trainer.app', role: 'client' }); nav('welcome'); }}
+        onClick={() => { signOut(); }}
         style={{
           display: 'flex', alignItems: 'center', gap: 14,
           padding: '14px 28px', border: 'none', background: 'transparent',

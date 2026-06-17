@@ -2534,6 +2534,7 @@
     "manageSub": "Tu plan actual está resaltado. Selecciona otro para cambiar.",
     "text": {
       "free": {
+        "name": "Gratis",
         "tag": "Mantén el movimiento",
         "blurb": "Entrena con guía inteligente — sin tarjeta, sin presión.",
         "features": [
@@ -2543,6 +2544,7 @@
         ]
       },
       "ai_fitness": {
+        "name": "AI Fitness",
         "tag": "Tu IA al mando",
         "blurb": "Un plan que se reescribe en torno a tu día.",
         "features": [
@@ -2553,6 +2555,7 @@
         ]
       },
       "ai_performance": {
+        "name": "AI Performance",
         "tag": "Resultados de quien tiene coach",
         "blurb": "Carga predictiva y ojos humanos en tus números.",
         "features": [
@@ -2563,6 +2566,7 @@
         ]
       },
       "trial": {
+        "name": "Trial",
         "tag": "Prueba el estudio",
         "sub": "14 días",
         "blurb": "Mira a la IA crear planes antes de gastar un céntimo.",
@@ -2573,6 +2577,7 @@
         ]
       },
       "pro": {
+        "name": "Pro",
         "tag": "Lleva tu trabajo",
         "blurb": "Convierte tu método en planes que la IA escribe por ti.",
         "features": [
@@ -2583,6 +2588,7 @@
         ]
       },
       "elite": {
+        "name": "Elite",
         "tag": "Escala tu método",
         "blurb": "White-label en todo y crece en el marketplace.",
         "features": [

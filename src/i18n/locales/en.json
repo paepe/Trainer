@@ -2534,6 +2534,7 @@
     "manageSub": "Your current plan is highlighted. Select another to switch.",
     "text": {
       "free": {
+        "name": "Free",
         "tag": "Stay in motion",
         "blurb": "Move with smart guidance — no card, no pressure.",
         "features": [
@@ -2543,6 +2544,7 @@
         ]
       },
       "ai_fitness": {
+        "name": "AI Fitness",
         "tag": "Your AI in the loop",
         "blurb": "A plan that rewrites itself around your day.",
         "features": [
@@ -2553,6 +2555,7 @@
         ]
       },
       "ai_performance": {
+        "name": "AI Performance",
         "tag": "Coach-grade results",
         "blurb": "Predictive load and human eyes on your numbers.",
         "features": [
@@ -2563,6 +2566,7 @@
         ]
       },
       "trial": {
+        "name": "Trial",
         "tag": "Test the studio",
         "sub": "14 days",
         "blurb": "See the AI build plans before you commit a cent.",
@@ -2573,6 +2577,7 @@
         ]
       },
       "pro": {
+        "name": "Pro",
         "tag": "Run your practice",
         "blurb": "Turn your method into plans the AI writes for you.",
         "features": [
@@ -2583,6 +2588,7 @@
         ]
       },
       "elite": {
+        "name": "Elite",
         "tag": "Scale your method",
         "blurb": "White-label everything and grow on the marketplace.",
         "features": [

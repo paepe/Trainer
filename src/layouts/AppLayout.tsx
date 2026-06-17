@@ -17,6 +17,7 @@ export interface AppLayoutProps {
   menuOpen: boolean;
   setMenuOpen: (open: boolean) => void;
   handleSetUser: (data: any) => Promise<{ error: unknown }>;
+  signOut: () => void;
   profile: any;
   tabBadges?:       Record<string, number>;
   disabledNavKeys?: string[];
@@ -37,6 +38,7 @@ export function AppLayout({
   menuOpen,
   setMenuOpen,
   handleSetUser,
+  signOut,
   profile,
   tabBadges = {},
   disabledNavKeys = [],
@@ -78,8 +80,8 @@ export function AppLayout({
 
       <SideMenu
         open={menuOpen}
-        nav={(s) => { setMenuOpen(false); if (s && s !== 'menu') nav(s); }}
-        t={t} user={user} current={screen} setUser={handleSetUser} role={profile?.role}
+        nav={(s, p) => { setMenuOpen(false); if (s && s !== 'menu') nav(s, p); }}
+        t={t} user={user} current={screen} setUser={handleSetUser} signOut={signOut} role={profile?.role}
         disabledScreens={disabledNavKeys}
       />
     </VStack>

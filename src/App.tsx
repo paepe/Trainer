@@ -459,11 +459,6 @@ export default function App() {
   };
 
   const handleSetUser = async (data: Partial<Profile> & { email?: string }): Promise<{ error: unknown }> => {
-    if (!data || data.email === 'frances@trainer.app') {
-      await signOut();
-      setScreen('welcome');
-      return { error: null };
-    }
     const result = await updateProfile(data);
     if (!result?.error && data.gender !== undefined && data.gender !== profile?.gender) {
       handleSetPrefs({ ...prefs, cycle: data.gender === 'female' });
@@ -685,6 +680,7 @@ export default function App() {
     menuOpen,
     setMenuOpen,
     handleSetUser,
+    signOut,
     profile,
     tabBadges: isTrainer
       ? (pendingAlerts > 0 ? { alerts: pendingAlerts } : {})

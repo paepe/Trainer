@@ -2534,6 +2534,7 @@
     "manageSub": "O seu plano actual está destacado. Selecione outro para mudar.",
     "text": {
       "free": {
+        "name": "Grátis",
         "tag": "Mantenha o movimento",
         "blurb": "Treine com orientação inteligente — sem cartão, sem pressão.",
         "features": [
@@ -2543,6 +2544,7 @@
         ]
       },
       "ai_fitness": {
+        "name": "AI Fitness",
         "tag": "Sua IA no comando",
         "blurb": "Um plano que se reescreve em torno do seu dia.",
         "features": [
@@ -2553,6 +2555,7 @@
         ]
       },
       "ai_performance": {
+        "name": "AI Performance",
         "tag": "Resultado de quem tem coach",
         "blurb": "Carga preditiva e olhos humanos nos seus números.",
         "features": [
@@ -2563,6 +2566,7 @@
         ]
       },
       "trial": {
+        "name": "Trial",
         "tag": "Teste o estúdio",
         "sub": "14 dias",
         "blurb": "Veja a IA montar planos antes de gastar um centavo.",
@@ -2573,6 +2577,7 @@
         ]
       },
       "pro": {
+        "name": "Pro",
         "tag": "Toque seu trabalho",
         "blurb": "Transforme seu método em planos que a IA escreve por você.",
         "features": [
@@ -2583,6 +2588,7 @@
         ]
       },
       "elite": {
+        "name": "Elite",
         "tag": "Escale seu método",
         "blurb": "White-label em tudo e cresça no marketplace.",
         "features": [

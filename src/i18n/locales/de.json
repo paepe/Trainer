@@ -2534,6 +2534,7 @@
     "manageSub": "Dein aktueller Plan ist hervorgehoben. Wähle einen anderen, um zu wechseln.",
     "text": {
       "free": {
+        "name": "Gratis",
         "tag": "In Bewegung bleiben",
         "blurb": "Trainiere mit smarter Anleitung — ohne Karte, ohne Druck.",
         "features": [
@@ -2543,6 +2544,7 @@
         ]
       },
       "ai_fitness": {
+        "name": "AI Fitness",
         "tag": "Deine KI mit dabei",
         "blurb": "Ein Plan, der sich um deinen Tag herum neu schreibt.",
         "features": [
@@ -2553,6 +2555,7 @@
         ]
       },
       "ai_performance": {
+        "name": "AI Performance",
         "tag": "Ergebnisse wie mit Coach",
         "blurb": "Prädiktive Belastung und menschlicher Blick auf deine Zahlen.",
         "features": [
@@ -2563,6 +2566,7 @@
         ]
       },
       "trial": {
+        "name": "Trial",
         "tag": "Studio testen",
         "sub": "14 Tage",
         "blurb": "Sieh die KI Pläne bauen, bevor du einen Cent ausgibst.",
@@ -2573,6 +2577,7 @@
         ]
       },
       "pro": {
+        "name": "Pro",
         "tag": "Deine Praxis führen",
         "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
         "features": [
@@ -2583,6 +2588,7 @@
         ]
       },
       "elite": {
+        "name": "Elite",
         "tag": "Methode skalieren",
         "blurb": "Alles als White-Label und auf dem Marktplatz wachsen.",
         "features": [

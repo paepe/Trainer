@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { TRAINER_ROLES, type NavFn, type UserRole, type PlanKey } from '../../types';
+import { TRAINER_BRAND } from '../../theme/tokens';
 import { C } from './performance/perf-engines';
 import { T, FF_DISPLAY, FF_MONO, ScreenWrap, ScreenTitle } from './performance/perf-atoms';
 
@@ -38,9 +39,8 @@ const TRAINER_PLANS: PlanDef[] = [
   { id: 'elite', icon: 'brain',  price: 99 },
 ];
 
-// Trainer brand coral — matches TRAINER_BRAND.primary in tokens.ts
-const TRAINER_PRIMARY = '#EF5B3C';
-const TRAINER_DEEP    = '#C23B22';
+const TRAINER_PRIMARY = TRAINER_BRAND.primary;
+const TRAINER_DEEP    = TRAINER_BRAND.primaryDeep;
 
 function fmtPrice(p: number): string {
   if (p === 0) return '€0';
@@ -82,7 +82,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
     if (source === 'onboarding') {
       nav(isTrainer ? 'trainerDashboard' : 'profile');
     } else {
-      nav('planConfirm', { planKey: selected, isTrainer: showingTrainer });
+      nav('planConfirm', { planKey: selected, isTrainer });
     }
   };
 
@@ -154,6 +154,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
           const isCurrent = user.plan_key === plan.id;
           const recommended = i === 1;
 
+          const name     = tr(`plans.text.${plan.id}.name`);
           const tag      = tr(`plans.text.${plan.id}.tag`);
           const blurb    = tr(`plans.text.${plan.id}.blurb`);
           const features = tr(`plans.text.${plan.id}.features`, { returnObjects: true }) as string[];
@@ -212,7 +213,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 16.5 }}>
-                      {plan.id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                      {name}
                     </span>
                     {plan.id === 'trial' && (
                       <span style={{ fontSize: 10, fontFamily: FF_MONO, color: accent, padding: '1px 6px', borderRadius: 5, background: `${accent}1f` }}>
@@ -281,7 +282,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
                       color: isCurrent ? T.textMute : T.navy,
                       fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 13,
                       cursor: canConfirm ? 'pointer' : 'not-allowed',
-                      opacity: canConfirm || isCurrent ? 1 : 0.55,
+                      opacity: canConfirm ? 1 : 0.45,
                       transition: 'all .15s ease',
                       boxShadow: canConfirm
                         ? showingTrainer
