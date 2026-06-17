@@ -4,7 +4,7 @@ import { Icon } from './Icon';
 import { AvatarImage } from './Avatar';
 import type { NavFn, Profile } from '../types';
 
-type SideMenuUser = Pick<Profile, 'name' | 'email' | 'role' | 'avatar_url'> & { gender?: string | undefined };
+type SideMenuUser = Pick<Profile, 'name' | 'email' | 'role' | 'avatar_url'> & { gender?: string | undefined; plan_key?: string | undefined };
 
 interface SideMenuProps {
   open:             boolean;
@@ -27,10 +27,11 @@ const MENU_ITEMS: [string, string, string][] = [
   ['coachDna',          'coachDNA',                 'fingerprint'],
   ['trainerStudio',     'studio',                   'flask'],
   ['exerciseLibrary',   'trainerLibraryExercises',  'dumbbell'],
+  ['subscription',      'plans',                    'zap'],
   ['settings',          'settings',                 'settings'],
 ];
 
-const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'cycle', 'studio']);
+const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'cycle', 'studio', 'plans']);
 const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA']);
 
 import { TRAINER_ROLES } from '../types/auth';
@@ -70,11 +71,22 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
           {user.name}
         </div>
         <div style={{ fontSize: 12.5, opacity: .75 }}>{user.email}</div>
-        <div style={{
-          display: 'inline-block', marginTop: 10, padding: '3px 9px', borderRadius: 999,
-          background: 'rgba(14,26,43,.25)', color: '#0E1A2B', fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em',
-        }}>
-          {(user.role ?? 'CLIENT').toUpperCase()}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+          <div style={{
+            padding: '3px 9px', borderRadius: 999,
+            background: 'rgba(14,26,43,.25)', color: '#0E1A2B', fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em',
+          }}>
+            {(user.role ?? 'CLIENT').toUpperCase()}
+          </div>
+          {!isTrainerRole && user.plan_key && (
+            <div style={{
+              padding: '3px 9px', borderRadius: 999,
+              background: 'rgba(14,26,43,.18)', color: '#0E1A2B', fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em',
+              border: '1px solid rgba(14,26,43,.2)',
+            }}>
+              {user.plan_key.replace(/_/g, ' ').toUpperCase()}
+            </div>
+          )}
         </div>
       </div>
 
@@ -84,7 +96,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
         {items.map(([lbl, screen, ic]) => {
           const disabled = disabledScreens.includes(screen);
           return (
-            <button key={lbl} onClick={() => { if (!disabled) nav(screen); }} style={{
+            <button key={lbl} onClick={() => { if (!disabled) nav(screen, screen === 'plans' ? { source: 'manage' } : undefined); }} style={{
               display: 'flex', alignItems: 'center', gap: 14, width: '100%',
               padding: '12px 18px', border: 'none',
               background: current === screen ? 'rgba(14,26,43,.16)' : 'transparent',

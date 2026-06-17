@@ -51,6 +51,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
   const isTrainer = !!user.role && (TRAINER_ROLES as readonly string[]).includes(user.role);
   const plans = isTrainer ? TRAINER_PLANS : STUDENT_PLANS;
   const accent = C.cyan;
+  const isManage = source === 'manage';
 
   const [billing, setBilling] = React.useState<BillingCycle>('monthly');
   const [selected, setSelected] = React.useState<string | null>(null);
@@ -68,10 +69,18 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
 
   return (
     <ScreenWrap>
+      {isManage && (
+        <button
+          onClick={() => nav(-1 as unknown as string)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, color: T.textSec, fontSize: 13 }}
+        >
+          <Icon name="chevL" size={16} color={T.textSec} stroke={2}/> {tr('common.back')}
+        </button>
+      )}
       <ScreenTitle
-        kicker={tr('plans.kicker')}
-        title={tr('plans.headingNoRec')}
-        sub={tr('plans.sub')}
+        kicker={isManage ? tr('plans.manageKicker') : tr('plans.kicker')}
+        title={isManage ? tr('plans.manageHeading') : tr('plans.headingNoRec')}
+        sub={isManage ? tr('plans.manageSub') : tr('plans.sub')}
       />
 
       {/* Billing toggle */}
@@ -217,16 +226,23 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
 
       {/* Confirm CTA */}
       <button
-        disabled={!selected}
+        disabled={!selected || selected === user.plan_key}
         onClick={handleConfirm}
         style={{
-          padding: '14px 20px', borderRadius: 14, border: 'none', cursor: selected ? 'pointer' : 'not-allowed',
-          background: selected ? accent : T.surf2, color: selected ? T.navy : T.textMute,
-          fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 14, opacity: selected ? 1 : 0.6,
+          padding: '14px 20px', borderRadius: 14, border: 'none',
+          cursor: (selected && selected !== user.plan_key) ? 'pointer' : 'not-allowed',
+          background: (selected && selected !== user.plan_key) ? accent : T.surf2,
+          color: (selected && selected !== user.plan_key) ? T.navy : T.textMute,
+          fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 14,
+          opacity: (selected && selected !== user.plan_key) ? 1 : 0.6,
           transition: 'all .15s ease',
         }}
       >
-        {tr('plans.selectCta')}
+        {selected === user.plan_key
+          ? tr('plans.alreadyOnPlan')
+          : isManage
+            ? tr('plans.changePlanCta')
+            : tr('plans.selectCta')}
       </button>
     </ScreenWrap>
   );

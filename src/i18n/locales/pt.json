@@ -719,6 +719,7 @@
     "coachDna": "Coach DNA",
     "trainerStudio": "Trainer Studio",
     "exerciseLibrary": "Biblioteca de Exercícios",
+    "subscription": "Plano & Subscrição",
     "settings": "Configurações"
   },
   "trainer": {
@@ -2522,6 +2523,11 @@
     "footAnnual": "anual",
     "footPost": " · cancele quando quiser · sem taxas escondidas",
     "selectCta": "Confirmar minha licença",
+    "changePlanCta": "Mudar para este plano",
+    "alreadyOnPlan": "Você já está neste plano",
+    "manageKicker": "A sua subscrição",
+    "manageHeading": "Gerencie o seu plano.",
+    "manageSub": "O seu plano actual está destacado. Selecione outro para mudar.",
     "text": {
       "free": {
         "tag": "Mantenha o movimento",

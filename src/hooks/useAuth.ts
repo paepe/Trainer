@@ -78,7 +78,20 @@ export function useAuth(): UseAuthReturn {
       .eq('user_id', userId)
       .maybeSingle();
     if (subError) console.error('[useAuth] fetchSubscription error:', subError);
-    setHasSubscription(!!sub);
+
+    if (!sub) {
+      // No subscription row — silently provision free tier so the user
+      // never gets redirected to plan selection on subsequent logins.
+      await supabase.from('subscriptions').upsert({
+        user_id: userId,
+        plan_key: 'free',
+        status: 'active',
+        billing_cycle: null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    }
+
+    setHasSubscription(true);
     setSubscription((sub as Subscription | null) ?? { plan_key: 'free', status: 'active', billing_cycle: null, current_period_end: null });
 
     setLoading(false);
