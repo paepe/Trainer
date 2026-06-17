@@ -134,6 +134,45 @@ export function useAuth(): UseAuthReturn {
   async function upsertSubscription(planKey: PlanKey, billingCycle: 'monthly' | 'annual'): Promise<UpdateResult> {
     if (!session) return { error: null };
     const billing_cycle = planKey === 'free' ? null : billingCycle;
+
+    // Resolve price and event_type before writing
+    const [priceRes, prevSub] = await Promise.all([
+      supabase
+        .from('plan_prices')
+        .select('id, amount_cents')
+        .eq('plan_key', planKey)
+        .eq('billing_cycle', billing_cycle ?? 'monthly')
+        .eq('currency', 'EUR')
+        .eq('is_active', true)
+        .is('valid_until', null)
+        .maybeSingle(),
+      Promise.resolve(subscription),
+    ]);
+
+    const priceRow = priceRes.data;
+    const prevKey  = prevSub?.plan_key ?? null;
+
+    type EventType = 'activated' | 'upgraded' | 'downgraded' | 'renewed';
+    let event_type: EventType = 'activated';
+    if (prevKey) {
+      if (prevKey === planKey)  event_type = 'renewed';
+      else {
+        // Compare by amount_cents for up/down determination
+        const { data: prevPrice } = await supabase
+          .from('plan_prices')
+          .select('amount_cents')
+          .eq('plan_key', prevKey)
+          .eq('billing_cycle', prevSub?.billing_cycle ?? 'monthly')
+          .eq('currency', 'EUR')
+          .eq('is_active', true)
+          .is('valid_until', null)
+          .maybeSingle();
+        const prevCents = prevPrice?.amount_cents ?? 0;
+        const newCents  = priceRow?.amount_cents   ?? 0;
+        event_type = newCents >= prevCents ? 'upgraded' : 'downgraded';
+      }
+    }
+
     const { error } = await supabase
       .from('subscriptions')
       .upsert({
@@ -143,8 +182,20 @@ export function useAuth(): UseAuthReturn {
         billing_cycle,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
-    if (error) console.error('[useAuth] upsertSubscription error:', error);
-    else {
+
+    if (error) {
+      console.error('[useAuth] upsertSubscription error:', error);
+    } else {
+      // Append immutable event to ledger (fire-and-forget; non-blocking)
+      void supabase.from('subscription_events').insert({
+        user_id:       session.user.id,
+        event_type,
+        plan_key:      planKey,
+        billing_cycle: billing_cycle ?? null,
+        currency:      'EUR',
+        amount_cents:  priceRow?.amount_cents ?? 0,
+        price_id:      priceRow?.id ?? null,
+      });
       clearFeaturePermissionCache();
       setSubscription({ plan_key: planKey, status: 'active', billing_cycle, current_period_end: null });
       setHasSubscription(true);
