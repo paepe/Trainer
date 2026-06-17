@@ -110,36 +110,66 @@ export function LoginScreen({ nav, t, dark, signIn, requestPasswordReset }: Logi
   };
 
   return (
-    <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <button onClick={() => nav('welcome')} style={{ ...iconBtn(dark), marginLeft: -8 }}>
+    <div style={{ padding: '20px 28px 32px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Back */}
+      <button onClick={() => nav('welcome')} style={{ ...iconBtn(dark), marginLeft: -8, alignSelf: 'flex-start' }}>
         <Icon name="chevL" size={22} color={textPri(dark)}/>
       </button>
-      <div style={{ marginTop: 4, display: 'flex', justifyContent: 'center', position: 'relative', padding: '6px 0 4px' }}>
+
+      {/* Logo block */}
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', position: 'relative' }}>
+        <div style={{
+          position: 'absolute', inset: -20,
+          background: `radial-gradient(ellipse 70% 60% at 50% 50%, ${t.primary}22 0%, transparent 70%)`,
+          borderRadius: '50%', pointerEvents: 'none',
+        }}/>
         <img
-          src="assets/trainer-logo-clean.png" alt="TrAIner" width={120} height={120}
-          style={{ width: 120, height: 120, objectFit: 'contain', filter: `drop-shadow(0 10px 24px ${t.primary}55)` }}
+          src="assets/trainer-logo-clean.png" alt="TrAIner" width={128} height={128}
+          style={{ width: 128, height: 128, objectFit: 'contain', filter: `drop-shadow(0 12px 28px ${t.primary}66)`, position: 'relative' }}
         />
       </div>
-      <div style={{ marginTop: 8 }}>
-        <h1 style={{ margin: 0, fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 26, fontWeight: 700, color: textPri(dark), letterSpacing: '-0.02em' }}>
+
+      {/* Heading — centred */}
+      <div style={{ marginTop: 24, textAlign: 'center' }}>
+        <h1 style={{ margin: 0, fontFamily: '"Plus Jakarta Sans",sans-serif', fontSize: 28, fontWeight: 800, color: textPri(dark), letterSpacing: '-0.03em', lineHeight: 1.15 }}>
           {tr('auth.login.title')}
         </h1>
-        <div style={{ color: textSec(dark), fontSize: 13, marginTop: 4 }}>{tr('auth.login.subtitle')}</div>
+        <div style={{ color: textSec(dark), fontSize: 13.5, marginTop: 6, lineHeight: 1.5 }}>
+          {tr('auth.login.subtitle')}
+        </div>
       </div>
-      <div style={{ marginTop: 18 }}>
+
+      {/* OAuth */}
+      <div style={{ marginTop: 28 }}>
         <OAuthSection onProvider={oauth} dark={dark} primary={t.primary} dividerLabel={tr('auth.oauth.dividerLogin')}/>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+      {/* Email + password */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <TextInput icon="mail" placeholder={tr('auth.common.email')}    type="email"    value={email} onChange={setEmail}/>
         <TextInput icon="lock" placeholder={tr('auth.common.password')} type="password" value={pw}    onChange={setPw}/>
       </div>
-      {err  && <div style={{ color: t.accent,  fontSize: 12, marginTop: 10 }}>{err}</div>}
-      {info && <div style={{ color: textSec(dark), fontSize: 12, marginTop: 10 }}>{info}</div>}
-      <div style={{ flex: 1, minHeight: 12 }}/>
-      <button onClick={submit} disabled={loading} style={primaryBtn(t.primary, loading)}>
+
+      {/* Feedback */}
+      {err  && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12,
+          background: `${t.accent}18`, border: `1px solid ${t.accent}44`,
+          borderRadius: 10, padding: '8px 12px' }}>
+          <Icon name="info" size={14} color={t.accent}/>
+          <span style={{ color: t.accent, fontSize: 12.5, lineHeight: 1.4 }}>{err}</span>
+        </div>
+      )}
+      {info && (
+        <div style={{ fontSize: 12.5, color: textSec(dark), marginTop: 10, textAlign: 'center' }}>{info}</div>
+      )}
+
+      <div style={{ flex: 1, minHeight: 20 }}/>
+
+      {/* CTA */}
+      <button onClick={submit} disabled={loading} style={{ ...primaryBtn(t.primary, loading), padding: '16px 0', fontSize: 15, fontWeight: 700, letterSpacing: '.01em' }}>
         {loading ? tr('auth.login.loading') : tr('auth.common.login')}
       </button>
-      <button onClick={forgotPassword} disabled={resetting} style={{ ...textBtn(dark), alignSelf: 'center' }}>
+      <button onClick={forgotPassword} disabled={resetting} style={{ ...textBtn(dark), alignSelf: 'center', marginTop: 4, fontSize: 13 }}>
         {resetting ? tr('auth.login.resetSending') : tr('auth.login.forgot')}
       </button>
     </div>
