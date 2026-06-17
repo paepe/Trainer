@@ -28,8 +28,8 @@ const MENU_ITEMS: [string, string, string][] = [
   ['coachDna',          'coachDNA',                 'fingerprint'],
   ['trainerStudio',     'studio',                   'flask'],
   ['exerciseLibrary',   'trainerLibraryExercises',  'dumbbell'],
-  ['subscription',      'plans',                    'zap'],
   ['settings',          'settings',                 'settings'],
+  ['subscription',      'plans',                    'zap'],
 ];
 
 const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'cycle', 'studio']);
