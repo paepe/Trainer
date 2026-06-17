@@ -267,7 +267,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
 
               {/* In-card CTA — only on selected card */}
               {isSel && (
-                <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
                   <button
                     disabled={!canConfirm}
                     onClick={e => { e.stopPropagation(); void handleConfirm(); }}
