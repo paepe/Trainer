@@ -612,7 +612,7 @@ export function TrainerDashboardScreen({
               })}
             </div>
             <button
-              onClick={() => _nav('plans')}
+              onClick={() => _nav('plans', { source: 'manage' })}
               style={{
                 padding: '10px 18px', borderRadius: 10,
                 background: t.accent, color: '#fff',

@@ -98,8 +98,8 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
         </button>
       )}
 
-      {/* Audience toggle — hidden for logged-in trainers (always show trainer plans) */}
-      {!isTrainer && (
+      {/* Audience toggle — only on first plan selection (onboarding) */}
+      {source === 'onboarding' && !isTrainer && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <div style={{ display: 'inline-flex', padding: 4, borderRadius: 999, background: T.navy, border: `1px solid ${T.border}`, gap: 2 }}>
             {(['client', 'trainer'] as AudienceMode[]).map(mode => {

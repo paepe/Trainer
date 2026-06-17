@@ -698,7 +698,7 @@ export default function App() {
               state={trialStatus.state}
               daysLeft={trialStatus.state === 'expiring' ? trialStatus.daysLeft : 0}
               accent={t.accent}
-              onUpgrade={() => nav('plans')}
+              onUpgrade={() => nav('plans', { source: 'manage' })}
               tr={tr}
             />
           )}

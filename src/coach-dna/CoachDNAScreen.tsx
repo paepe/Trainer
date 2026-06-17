@@ -228,7 +228,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp, saveUser }
             {tr('trainer.dashboard.cancel')}
           </button>
           <button
-            onClick={() => nav('plans')}
+            onClick={() => nav('plans', { source: 'manage' })}
             style={{
               padding: '12px 24px', borderRadius: 12,
               background: theme.accent, color: '#fff',

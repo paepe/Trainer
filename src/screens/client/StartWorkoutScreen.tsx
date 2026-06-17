@@ -869,7 +869,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 {tr('client.workout.aiLockedFreeNote')}
               </div>
               <button
-                onClick={() => nav('plans')}
+                onClick={() => nav('plans', { source: 'manage' })}
                 style={{
                   padding: '6px 14px', borderRadius: 8, border: 'none',
                   background: t.primary, color: '#fff',
