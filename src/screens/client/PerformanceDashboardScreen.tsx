@@ -73,10 +73,12 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient,
   const isTrainerOverride = !!selectedClient;
   const accessMap = useFeatureAccessMap(
     user.plan_key,
-    ['scores.basic', 'scores.advanced'],
+    ['scores.basic', 'scores.advanced', 'progress.fitness_advanced', 'progress.performance'],
     isTrainerOverride,
   );
-  const advancedScoresAllowed = accessMap['scores.advanced']?.allowed ?? false;
+  const advancedScoresAllowed    = accessMap['scores.advanced']?.allowed          ?? false;
+  const fitnessAdvancedAllowed   = accessMap['progress.fitness_advanced']?.allowed ?? false;
+  const performanceAllowed       = accessMap['progress.performance']?.allowed      ?? false;
   const [activeScreen, setActiveScreen] = React.useState<ScreenId>('overview');
   const { data, loading, lastUpdated, reload } = useM5Data(targetUserId, performanceWindowWeeks);
 
@@ -112,7 +114,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient,
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
             case 'dor':         return <TelaDor         data={data} gender={targetGender ?? null}/>;
-            case 'scores':      return <TelaScores      data={data} nav={nav} advancedAllowed={advancedScoresAllowed}/>;
+            case 'scores':      return <TelaScores      data={data} nav={nav} advancedAllowed={advancedScoresAllowed} fitnessAdvancedAllowed={fitnessAdvancedAllowed} performanceAllowed={performanceAllowed}/>;
             case 'voz':         return <TelaVoz data={data}/>;
             case 'marcos':      return <TelaMarcos      data={data}/>;
           }
@@ -649,19 +651,27 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
 
 // ── Tela 05 — Scores Preditivos ───────────────────────────────────────────────
 
-export function TelaScores({ data, nav, advancedAllowed }: { data: M5Data; nav: NavFn; advancedAllowed: boolean }) {
+export function TelaScores({
+  data, nav, advancedAllowed, fitnessAdvancedAllowed = false, performanceAllowed = false,
+}: {
+  data: M5Data; nav: NavFn;
+  advancedAllowed: boolean;
+  fitnessAdvancedAllowed?: boolean;
+  performanceAllowed?: boolean;
+}) {
   const { t: tr } = useTranslation();
 
-  // Basic scores are always visible; advanced scores require scores.advanced permission.
-  // The distinction (which codes are basic vs advanced) is owned by the DB seed —
-  // here we only need to know the resolved permission flag.
-  const ADVANCED_SCORE_CODES = new Set([
+  // Fitness-advanced scores: require progress.fitness_advanced (ai_fitness+)
+  const FITNESS_ADVANCED_CODES = new Set([
     'fatigue_risk_score',
     'recovery_instability_score',
     'progression_readiness_score',
     'response_compatibility_score',
     'plateau_risk_score',
-    // Training load scores require ai_performance plan
+  ]);
+
+  // Performance scores: require progress.performance (ai_performance only)
+  const PERFORMANCE_CODES = new Set([
     'acute_load_score',
     'training_form_score',
     'training_strain_score',
@@ -693,7 +703,9 @@ export function TelaScores({ data, nav, advancedAllowed }: { data: M5Data; nav: 
       {/* Score grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {scoreList.map(s => {
-          const locked = !advancedAllowed && ADVANCED_SCORE_CODES.has(s.code);
+          const locked =
+            (!fitnessAdvancedAllowed && FITNESS_ADVANCED_CODES.has(s.code)) ||
+            (!performanceAllowed     && PERFORMANCE_CODES.has(s.code));
           if (locked) return <LockedScoreCard key={s.code} nameKey={s.nameKey} nav={nav}/>;
 
           const c = s.isGoodScore ? goodScoreColor(s.score) : scoreColor(s.score);

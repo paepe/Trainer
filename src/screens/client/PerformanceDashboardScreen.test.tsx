@@ -21,12 +21,15 @@ const FREE_CODES = [
   'plan_fit_score',
 ];
 
-const PREMIUM_CODES = [
+const FITNESS_ADVANCED_CODES = [
   'fatigue_risk_score',
   'recovery_instability_score',
   'progression_readiness_score',
   'response_compatibility_score',
   'plateau_risk_score',
+];
+
+const PERFORMANCE_CODES = [
   'acute_load_score',
   'training_form_score',
   'training_strain_score',
@@ -69,38 +72,72 @@ const mockData: M5Data = {
   milestones: [],
 };
 
-describe('TelaScores — free vs AI Performance gating', () => {
-  it('renders all 12 scores unlocked for premium viewers (trainer viewing client)', () => {
+describe('TelaScores — plano de acesso por tier', () => {
+  it('FREE: bloqueia 8 scores (5 fitness-advanced + 3 performance)', () => {
     const nav = vi.fn();
-    const { container } = render(<TelaScores data={mockData} nav={nav} advancedAllowed={true}/>);
+    const { container } = render(
+      <TelaScores data={mockData} nav={nav}
+        advancedAllowed={false}
+        fitnessAdvancedAllowed={false}
+        performanceAllowed={false}
+      />
+    );
+    const locked = container.querySelectorAll('button');
+    expect(locked.length).toBe(FITNESS_ADVANCED_CODES.length + PERFORMANCE_CODES.length); // 8
+    expect(container.textContent).toContain('50'); // free scores visíveis
+  });
 
-    // No locked teaser cards (rendered as <button>) should appear
+  it('AI FITNESS: desbloqueia fitness-advanced, mantém performance bloqueado', () => {
+    const nav = vi.fn();
+    const { container } = render(
+      <TelaScores data={mockData} nav={nav}
+        advancedAllowed={true}
+        fitnessAdvancedAllowed={true}
+        performanceAllowed={false}
+      />
+    );
+    const locked = container.querySelectorAll('button');
+    expect(locked.length).toBe(PERFORMANCE_CODES.length); // 3
+  });
+
+  it('AI PERFORMANCE: nenhum score bloqueado', () => {
+    const nav = vi.fn();
+    const { container } = render(
+      <TelaScores data={mockData} nav={nav}
+        advancedAllowed={true}
+        fitnessAdvancedAllowed={true}
+        performanceAllowed={true}
+      />
+    );
     expect(container.querySelectorAll('button').length).toBe(0);
   });
 
-  it('locks the 5 advanced scores and keeps the 4 free scores visible for non-premium viewers', () => {
+  it('navega para plans ao clicar num score bloqueado', () => {
     const nav = vi.fn();
-    const { container } = render(<TelaScores data={mockData} nav={nav} advancedAllowed={false}/>);
-
-    // 5 locked cards rendered as <button> teasers
-    const lockedButtons = container.querySelectorAll('button');
-    expect(lockedButtons.length).toBe(PREMIUM_CODES.length);
-
-    // Free score codes are present as plain (non-button) cards — check their score values render
-    FREE_CODES.forEach(() => {
-      // score value 50 should appear as rounded "50" text somewhere for free cards
-      expect(container.textContent).toContain('50');
-    });
-  });
-
-  it('navigates to the plans screen when a locked score card is clicked', () => {
-    const nav = vi.fn();
-    const { container } = render(<TelaScores data={mockData} nav={nav} advancedAllowed={false}/>);
-
+    const { container } = render(
+      <TelaScores data={mockData} nav={nav}
+        advancedAllowed={false}
+        fitnessAdvancedAllowed={false}
+        performanceAllowed={false}
+      />
+    );
     const lockedButtons = container.querySelectorAll('button');
     expect(lockedButtons.length).toBeGreaterThan(0);
     fireEvent.click(lockedButtons[0]!);
-
     expect(nav).toHaveBeenCalledWith('plans', { source: 'perf_scores' });
+  });
+
+  it('FREE_CODES visíveis independentemente do tier', () => {
+    const nav = vi.fn();
+    const { container } = render(
+      <TelaScores data={mockData} nav={nav}
+        advancedAllowed={false}
+        fitnessAdvancedAllowed={false}
+        performanceAllowed={false}
+      />
+    );
+    FREE_CODES.forEach(() => {
+      expect(container.textContent).toContain('50');
+    });
   });
 });
