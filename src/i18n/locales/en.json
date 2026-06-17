@@ -1132,7 +1132,11 @@
       "notificationBodyPostponed": "{{name}} postponed the workout plan from {{planDate}}.",
       "unknownError": "Unknown error",
       "aiLockedFree": "AI personalization is available from AI Fitness plan.",
-      "aiLockedFreeNote": "Your workout will use a standard template. Upgrade to get AI-adjusted plans based on your daily check-in."
+      "aiLockedFreeNote": "Your workout will use a standard template. Upgrade to get AI-adjusted plans based on your daily check-in.",
+      "limitWeekly": "You've reached your {{n}} session/week limit on the Free plan.",
+      "limitWeeklyCta": "Upgrade to AI Fitness for 7 sessions/week",
+      "limitType": "Performance exercises require the AI Performance plan.",
+      "limitTypeCta": "Upgrade to unlock performance training"
     },
     "mode": {
       "finishWorkout": "Finish Workout",

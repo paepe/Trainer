@@ -1132,7 +1132,11 @@
       "unknownError": "Erro desconhecido",
       "cancelLabel": "Cancelar",
       "aiLockedFree": "A personalização por IA está disponível a partir do plano AI Fitness.",
-      "aiLockedFreeNote": "Seu treino usará um modelo padrão. Faça upgrade para receber planos ajustados pela IA com base no seu check-in diário."
+      "aiLockedFreeNote": "Seu treino usará um modelo padrão. Faça upgrade para receber planos ajustados pela IA com base no seu check-in diário.",
+      "limitWeekly": "Atingiu o limite de {{n}} sessão/semana do plano Free.",
+      "limitWeeklyCta": "Actualize para AI Fitness — 7 sessões/semana",
+      "limitType": "Exercícios de Desempenho requerem o plano AI Performance.",
+      "limitTypeCta": "Actualize para desbloquear o treino de desempenho"
     },
     "mode": {
       "finishWorkout": "Finalizar Treino",

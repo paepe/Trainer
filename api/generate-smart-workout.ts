@@ -512,6 +512,8 @@ function buildUserPrompt(ctx: AIContext): string {
   if (task.durationMin)       lines.push(`Target duration: ${task.durationMin} min`);
   if (task.focusOverride)     lines.push(`Focus override: ${task.focusOverride}`);
   if (task.extraInstructions) lines.push(`Additional instructions: ${task.extraInstructions}`);
+  if (task.maxExercises)      lines.push(`PLAN LIMIT — max exercises this session: ${task.maxExercises}. Do not exceed this number.`);
+  if (task.fitnessOnly)       lines.push(`PLAN LIMIT — fitness exercises only. Do NOT include performance, sport-specific, or high-intensity power exercises. Keep all exercises in the general fitness / hypertrophy / endurance categories.`);
 
   return lines.join('\n');
 }

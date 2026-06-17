@@ -1132,7 +1132,11 @@
       "notificationBodyPostponed": "{{name}} hat den Trainingsplan vom {{planDate}} verschoben.",
       "unknownError": "Unbekannter Fehler",
       "aiLockedFree": "KI-Personalisierung ist ab dem AI Fitness-Plan verfügbar.",
-      "aiLockedFreeNote": "Dein Training verwendet eine Standardvorlage. Upgrade für KI-angepasste Pläne basierend auf deinem täglichen Check-in."
+      "aiLockedFreeNote": "Dein Training verwendet eine Standardvorlage. Upgrade für KI-angepasste Pläne basierend auf deinem täglichen Check-in.",
+      "limitWeekly": "Du hast das Limit von {{n}} Einheit/Woche im Free-Plan erreicht.",
+      "limitWeeklyCta": "Upgrade auf AI Fitness — 7 Einheiten/Woche",
+      "limitType": "Performance-Übungen erfordern den AI Performance-Plan.",
+      "limitTypeCta": "Upgrade, um Performance-Training freizuschalten"
     },
     "mode": {
       "finishWorkout": "Training beenden",

@@ -175,11 +175,16 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const isTrainerView = !!linkedTrainerId && user.role !== 'client';
   const aiAccessMap = useFeatureAccessMap(
     user.plan_key ?? 'free',
-    ['ai.checkin_adjustment', 'ai.advanced_analysis'],
+    ['ai.checkin_adjustment', 'ai.advanced_analysis',
+     'workout.sessions_per_week', 'workout.exercises_per_session', 'workout.exercise_type'],
     isTrainerView,
   );
-  const aiCheckinAllowed  = aiAccessMap['ai.checkin_adjustment']?.allowed  ?? false;
-  const aiAdvancedAllowed = aiAccessMap['ai.advanced_analysis']?.allowed   ?? false;
+  const aiCheckinAllowed    = aiAccessMap['ai.checkin_adjustment']?.allowed    ?? false;
+  const aiAdvancedAllowed   = aiAccessMap['ai.advanced_analysis']?.allowed     ?? false;
+  const sessionsPerWeekCap  = aiAccessMap['workout.sessions_per_week']?.limitValue  ?? null; // null = unlimited
+  const exercisesPerSession = aiAccessMap['workout.exercises_per_session']?.limitValue ?? null;
+  // workout.exercise_type: limit_value 0 = fitness only, null = all
+  const fitnessOnlyWorkout  = (aiAccessMap['workout.exercise_type']?.limitValue ?? null) === 0;
   const [genState, setGenState] = React.useState<GenState>({ phase: 'idle' });
   const [planSource, setPlanSource] = React.useState<string | null>(null);
   const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
@@ -415,6 +420,26 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
         // 4. StatsContext from fetched data
         const sessions = sessionsRes.status === 'fulfilled' ? (sessionsRes.value.data ?? []) : [];
+
+        // ── Weekly session cap (workout.sessions_per_week gate) ────────────────
+        // Count sessions started this calendar week (Monday–Sunday).
+        if (sessionsPerWeekCap !== null) {
+          const now = new Date();
+          const dayOfWeek = (now.getDay() + 6) % 7; // 0=Mon … 6=Sun
+          const weekStart = new Date(now);
+          weekStart.setHours(0, 0, 0, 0);
+          weekStart.setDate(now.getDate() - dayOfWeek);
+          const weekCount = sessions.filter((s: any) =>
+            new Date(s.started_at) >= weekStart
+          ).length;
+          if (weekCount >= sessionsPerWeekCap) {
+            setGenState({
+              phase:         'error',
+              error:         tr('workout.limitWeekly', { n: sessionsPerWeekCap }),
+            });
+            return;
+          }
+        }
         const checkinHist = checkinHistRes.status === 'fulfilled' ? (checkinHistRes.value.data ?? []) : [];
         const avgEnergy = checkinHist.length
           ? Math.round(checkinHist.reduce((s, c) => s + (c.energy_level ?? 0), 0) / checkinHist.length * 10) / 10 : 0;
@@ -449,10 +474,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           trainerAvoid:     trainerCtx.avoidExercises,
         });
 
-        // 7. TaskContext
+        // 7. TaskContext — includes plan-gated limits
         const taskCtx: TaskContext = {
           type: 'generate_workout',
-          durationMin: resolvedCheckin.minutes ?? clientCtx.sessionDuration,
+          durationMin:       resolvedCheckin.minutes ?? clientCtx.sessionDuration,
+          maxExercises:      exercisesPerSession ?? undefined,
+          fitnessOnly:       fitnessOnlyWorkout,
         };
 
         // ── Call smart endpoint ─────────────────────────────────────────────

@@ -172,6 +172,8 @@ export interface TaskContext {
   durationMin?:        number | undefined;
   focusOverride?:      string | undefined;
   extraInstructions?:  string | undefined;
+  maxExercises?:       number | undefined; // plan gate: max exercises per session (null = unlimited)
+  fitnessOnly?:        boolean;            // plan gate: exclude performance exercises
 }
 
 // ─── Unified AI Context ───────────────────────────────────────────────────────
