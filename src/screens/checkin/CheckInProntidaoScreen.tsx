@@ -5,6 +5,7 @@ import type { CheckInQuick, CheckInDetailed, CheckInVoice, SafetyGateResult } fr
 import type { RiskClassification } from '../../types/profile-v2';
 import { computeSafetyGate } from './safetyGate';
 import { useLatestCheckin } from '../../hooks/useLatestCheckin';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { supabase } from '../../supabase';
 import { notify }   from '../../lib/notify';
 
@@ -38,7 +39,7 @@ interface CheckInProntidaoScreenProps {
   nav:                   NavFn;
   t:                     Theme;
   dark:                  boolean;
-  user:                  { id: string | null };
+  user:                  { id: string | null; plan_key?: string };
   userName?:             string | undefined;
   clientUserId?:         string;
   clientName?:           string;
@@ -53,6 +54,10 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
   const { t: tr } = useTranslation();
   const mode = resolveMode(clientUserId, linkedTrainerId);
   const last = useLatestCheckin(clientUserId ?? user?.id);
+  // Trainers viewing a client always get full check-in (override=true)
+  const isTrainerContext = !!clientUserId;
+  const checkinFullAccess = useFeatureAccess(user.plan_key, 'checkin.full', isTrainerContext);
+  const fullCheckinAllowed = checkinFullAccess.allowed;
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
   const [risk,   setRisk]         = React.useState<RiskClassification | null>(null);
@@ -117,6 +122,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           streak={last.streak}
           lastCheckin={last.lastCheckin}
           freeSession={freeSession}
+          fullCheckinAllowed={fullCheckinAllowed}
         />
       );
 

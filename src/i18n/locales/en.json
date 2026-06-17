@@ -1200,6 +1200,9 @@
       "back": "Back",
       "lastCheckin": "Last check-in · {{date}}",
       "streak": "streak · {{count}} days",
+      "fullLocked": "Full Check-in — AI Fitness plan required",
+      "fullLockedNote": "Your Free plan includes Quick Check-in only. Upgrade to AI Fitness to unlock Voice and Detailed check-ins.",
+      "fullLockedCta": "View plans",
       "options": {
         "voice": {
           "label": "Speak to the app",

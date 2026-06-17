@@ -1200,6 +1200,9 @@
       "back": "Volver",
       "lastCheckin": "Último check-in · {{date}}",
       "streak": "racha · {{count}} días",
+      "fullLocked": "Check-in Completo — requiere plan AI Fitness",
+      "fullLockedNote": "Tu plan Free incluye solo el Check-in Rápido. Actualiza a AI Fitness para desbloquear los check-ins por Voz y Detallado.",
+      "fullLockedCta": "Ver planes",
       "options": {
         "voice": {
           "label": "Habla con la app",

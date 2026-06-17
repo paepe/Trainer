@@ -6,16 +6,17 @@ import { Icon } from '../../components/Icon';
 type Variant = 'voice' | 'quick' | 'detailed';
 
 interface CheckInHubProps {
-  dark:         boolean;
-  primary:      string;
-  accent:       string;
-  userName?:    string | undefined;
-  isClient?:    boolean;
-  onSelect:     (v: Variant) => void;
-  onBack:       () => void;
-  streak?:      number;
-  lastCheckin?: string;
-  freeSession?: boolean; // Free Training Session: only the Detailed check-in is offered
+  dark:               boolean;
+  primary:            string;
+  accent:             string;
+  userName?:          string | undefined;
+  isClient?:          boolean;
+  onSelect:           (v: Variant) => void;
+  onBack:             () => void;
+  streak?:            number;
+  lastCheckin?:       string;
+  freeSession?:       boolean; // Free Training Session: only the Detailed check-in is offered
+  fullCheckinAllowed?: boolean; // plan gate: false = Quick only (free plan clients)
 }
 
 const OPTIONS: { key: Variant; icon: string; time: string; badge?: true }[] = [
@@ -24,11 +25,16 @@ const OPTIONS: { key: Variant; icon: string; time: string; badge?: true }[] = [
   { key: 'detailed',icon: 'list',  time: '~5 min'  },
 ];
 
-export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin, freeSession }: CheckInHubProps) {
+export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, streak, lastCheckin, freeSession, fullCheckinAllowed = true }: CheckInHubProps) {
   const { t: tr } = useTranslation();
   // Free Training Session mandates the Complete (Detailed) check-in as the sole,
   // authoritative input — Quick and Voice are withheld to maximise data quality.
-  const options = freeSession ? OPTIONS.filter(o => o.key === 'detailed') : OPTIONS;
+  // Plan gate: free-plan clients see only Quick check-in (no Detailed or Voice).
+  const options = freeSession
+    ? OPTIONS.filter(o => o.key === 'detailed')
+    : !fullCheckinAllowed
+      ? OPTIONS.filter(o => o.key === 'quick')
+      : OPTIONS;
   const greeting = () => {
     const h = new Date().getHours();
     return h < 12 ? tr('checkin.hub.greet.morning') : h < 18 ? tr('checkin.hub.greet.afternoon') : tr('checkin.hub.greet.evening');
@@ -135,6 +141,36 @@ export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect
             </button>
           ))}
         </div>
+
+        {/* Plan upgrade teaser — shown when full check-in is gated */}
+        {!freeSession && !fullCheckinAllowed && (
+          <div style={{
+            padding: '12px 14px', borderRadius: 12, marginBottom: 10,
+            background: `${primary}10`, border: `1px solid ${primary}33`,
+            display: 'flex', gap: 10, alignItems: 'flex-start',
+          }}>
+            <span style={{ fontSize: 14, flexShrink: 0 }}>🔒</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: primary, marginBottom: 2 }}>
+                {tr('checkin.hub.fullLocked')}
+              </div>
+              <div style={{ fontSize: 11, color: textSec(dark), lineHeight: 1.45, marginBottom: 8 }}>
+                {tr('checkin.hub.fullLockedNote')}
+              </div>
+              <button
+                onClick={() => onBack()}
+                style={{
+                  fontSize: 11, fontWeight: 700, color: primary,
+                  background: 'none', border: `1px solid ${primary}`,
+                  borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
+                  letterSpacing: '.04em',
+                }}
+              >
+                {tr('checkin.hub.fullLockedCta')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Safety Gate note */}
         <div style={{
