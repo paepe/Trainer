@@ -1138,6 +1138,11 @@
       "limitType": "Performance-Übungen erfordern den AI Performance-Plan.",
       "limitTypeCta": "Upgrade, um Performance-Training freizuschalten"
     },
+    "trainerPlan": {
+      "dayLocked": "Trainingstag gesperrt",
+      "dayLockedNote": "Dein {{plan}}-Plan erlaubt {{n}} Trainertag(e)/Woche. Upgrade, um mehr Tage freizuschalten.",
+      "dayLockedCta": "Pläne ansehen"
+    },
     "mode": {
       "finishWorkout": "Training beenden",
       "saving": "Wird gespeichert…",

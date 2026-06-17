@@ -1138,6 +1138,11 @@
       "limitType": "Exercícios de Desempenho requerem o plano AI Performance.",
       "limitTypeCta": "Actualize para desbloquear o treino de desempenho"
     },
+    "trainerPlan": {
+      "dayLocked": "Dia de treino bloqueado",
+      "dayLockedNote": "O seu plano {{plan}} permite {{n}} dia(s)/semana do plano do treinador. Actualize para desbloquear mais dias.",
+      "dayLockedCta": "Ver planos"
+    },
     "mode": {
       "finishWorkout": "Finalizar Treino",
       "saving": "Salvando…",

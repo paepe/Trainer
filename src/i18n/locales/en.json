@@ -1138,6 +1138,11 @@
       "limitType": "Performance exercises require the AI Performance plan.",
       "limitTypeCta": "Upgrade to unlock performance training"
     },
+    "trainerPlan": {
+      "dayLocked": "Training day locked",
+      "dayLockedNote": "Your {{plan}} plan allows {{n}} trainer-plan day(s) per week. Upgrade to unlock more days.",
+      "dayLockedCta": "View plans"
+    },
     "mode": {
       "finishWorkout": "Finish Workout",
       "saving": "Saving…",

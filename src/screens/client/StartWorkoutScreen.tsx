@@ -176,7 +176,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const aiAccessMap = useFeatureAccessMap(
     user.plan_key ?? 'free',
     ['ai.checkin_adjustment', 'ai.advanced_analysis',
-     'workout.sessions_per_week', 'workout.exercises_per_session', 'workout.exercise_type'],
+     'workout.sessions_per_week', 'workout.exercises_per_session', 'workout.exercise_type',
+     'trainer_plan.days_per_week'],
     isTrainerView,
   );
   const aiCheckinAllowed    = aiAccessMap['ai.checkin_adjustment']?.allowed    ?? false;
@@ -185,6 +186,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const exercisesPerSession = aiAccessMap['workout.exercises_per_session']?.limitValue ?? null;
   // workout.exercise_type: limit_value 0 = fitness only, null = all
   const fitnessOnlyWorkout  = (aiAccessMap['workout.exercise_type']?.limitValue ?? null) === 0;
+  // trainer_plan.days_per_week: max plans the client can execute per week (null = unlimited)
+  const trainerPlanDaysCap  = aiAccessMap['trainer_plan.days_per_week']?.limitValue ?? null;
   const [genState, setGenState] = React.useState<GenState>({ phase: 'idle' });
   const [planSource, setPlanSource] = React.useState<string | null>(null);
   const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
@@ -192,6 +195,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [trainerPlans, setTrainerPlans] = React.useState<PlanCard[]>([]);
+  const [trainerPlanLocked, setTrainerPlanLocked] = React.useState(false);
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
@@ -711,6 +715,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 ? new Date(p.sentAt).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric' })
                 : tr('client.workout.plan');
               const startLabel = p.status === 'sent' ? tr('client.workout.startLabel') : tr('client.workout.resumeLabel');
+              // Plan is locked when plan index exceeds the weekly cap (0-based: cap=1 → only index 0 is free)
+              const isPlanLocked = trainerPlanDaysCap !== null && i >= trainerPlanDaysCap;
               return (
                 <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${t.primary}22` : undefined }}>
 
@@ -797,15 +803,17 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                           </button>
                         )}
                         <button
-                          onClick={() => startPlan(p)}
+                          onClick={() => isPlanLocked ? setTrainerPlanLocked(true) : startPlan(p)}
                           style={{
                             flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
-                            background: t.primary, color: '#0E1A2B', fontSize: 12, fontWeight: 700,
+                            background: isPlanLocked ? 'rgba(255,255,255,.12)' : t.primary,
+                            color: isPlanLocked ? 'rgba(255,255,255,.4)' : '#0E1A2B',
+                            fontSize: 12, fontWeight: 700,
                             cursor: 'pointer', fontFamily: 'inherit',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                           }}
                         >
-                          {startLabel}
+                          {isPlanLocked ? '🔒' : ''}{startLabel}
                         </button>
                       </div>
                     </div>
@@ -1014,6 +1022,49 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 }}
               >
                 {tr('client.workout.yesCancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trainer plan locked — days_per_week cap reached */}
+      {trainerPlanLocked && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 24,
+        }}>
+          <div style={{
+            background: 'var(--navy)', borderRadius: 18, padding: '28px 24px',
+            maxWidth: 340, width: '100%', border: '1px solid rgba(255,255,255,.1)',
+          }}>
+            <div style={{ fontSize: 24, textAlign: 'center', marginBottom: 12 }}>🔒</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 8, textAlign: 'center' }}>
+              {tr('trainerPlan.dayLocked')}
+            </div>
+            <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,.6)', lineHeight: 1.55, textAlign: 'center', marginBottom: 20 }}>
+              {tr('trainerPlan.dayLockedNote', { plan: user.plan_key ?? 'free', n: trainerPlanDaysCap ?? 1 })}
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setTrainerPlanLocked(false)}
+                style={{
+                  flex: 1, padding: '12px 0', borderRadius: 10, fontFamily: 'inherit',
+                  background: 'rgba(255,255,255,.08)', color: 'rgba(255,255,255,.6)',
+                  border: '1px solid rgba(255,255,255,.12)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                {tr('client.workout.cancelLabel')}
+              </button>
+              <button
+                onClick={() => { setTrainerPlanLocked(false); nav('plans', { source: 'trainer_plan_lock' }); }}
+                style={{
+                  flex: 1, padding: '12px 0', borderRadius: 10, fontFamily: 'inherit',
+                  background: t.primary, color: '#0E1A2B',
+                  border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                {tr('trainerPlan.dayLockedCta')}
               </button>
             </div>
           </div>
