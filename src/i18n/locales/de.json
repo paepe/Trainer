@@ -2528,6 +2528,7 @@
     "selectCta": "Meine Lizenz bestätigen",
     "changePlanCta": "Zu diesem Plan wechseln",
     "alreadyOnPlan": "Du bist bereits in diesem Plan",
+    "comingSoon": "Demnächst",
     "confirming": "Wird bestätigt…",
     "tabClient": "Student",
     "tabTrainer": "Trainer",
@@ -2543,7 +2544,8 @@
         "features": [
           "Intelligente Trainingsbibliothek",
           "Basis-Fortschritt-Tracking",
-          "Ein paar KI-Tipps pro Woche"
+          "Ein paar KI-Tipps pro Woche",
+          "1 Trainertag/Woche im Trainingsplan"
         ]
       },
       "ai_fitness": {
@@ -2554,7 +2556,8 @@
           "Voll personalisierte KI-Pläne",
           "Tägliche Anpassung an Energie & Muskelkater",
           "Zyklus-bewusste Programmierung",
-          "Vollständiger Verlauf & Insights"
+          "Vollständiger Verlauf & Insights",
+          "3 Trainertage/Woche im Trainingsplan"
         ]
       },
       "ai_performance": {
@@ -2565,18 +2568,20 @@
           "Alles aus AI Fitness",
           "Erweiterte Leistungsanalysen",
           "Prädiktive Belastung & Erholung",
-          "Bevorzugte menschliche Prüfung"
+          "Bevorzugte menschliche Prüfung",
+          "Alle Trainertage des Trainingsplans freigeschaltet"
         ]
       },
       "trial": {
         "name": "Trial",
         "tag": "Studio testen",
-        "sub": "14 Tage",
-        "blurb": "Sieh die KI Pläne bauen, bevor du einen Cent ausgibst.",
+        "sub": "21 Tage",
+        "blurb": "Erlebe das volle Pro-Studio 21 Tage lang kostenlos.",
         "features": [
-          "Bis zu 3 Kunden",
+          "Volle Pro-Erfahrung für 21 Tage",
           "KI-Planbaukasten",
-          "Basis-Studio-Dashboard"
+          "Coach DNA Methoden-Engine",
+          "Bis zu 3 Kunden nach dem Trial"
         ]
       },
       "pro": {
@@ -2584,10 +2589,12 @@
         "tag": "Deine Praxis führen",
         "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
         "features": [
-          "Unbegrenzte Kunden",
+          "Bis zu 50 Kunden",
           "KI-Methoden-Engine",
-          "Studio-Bereich mit deiner Marke",
           "Adhärenz- & Kunden-Insights"
+        ],
+        "comingSoon": [
+          "Studio-Bereich mit deiner Marke"
         ]
       },
       "elite": {
@@ -2596,8 +2603,11 @@
         "blurb": "Alles als White-Label und auf dem Marktplatz wachsen.",
         "features": [
           "Alles aus Pro",
+          "Unbegrenzte Kunden",
+          "Suite für erweiterte Analysen"
+        ],
+        "comingSoon": [
           "White-Label-App für Kunden",
-          "Suite für erweiterte Analysen",
           "Bevorzugte Platzierung im Marktplatz"
         ],
         "note": "+ 15% Umsatzbeteiligung bei über den Marktplatz gewonnenen Kunden"

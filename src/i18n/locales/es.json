@@ -2528,6 +2528,7 @@
     "selectCta": "Confirmar mi licencia",
     "changePlanCta": "Cambiar a este plan",
     "alreadyOnPlan": "Ya estás en este plan",
+    "comingSoon": "Próximamente",
     "confirming": "Confirmando…",
     "tabClient": "Alumno",
     "tabTrainer": "Entrenador",
@@ -2543,7 +2544,8 @@
         "features": [
           "Biblioteca de entrenos inteligente",
           "Seguimiento básico de progreso",
-          "Algunos consejos de IA por semana"
+          "Algunos consejos de IA por semana",
+          "1 día/semana del plan del entrenador"
         ]
       },
       "ai_fitness": {
@@ -2554,7 +2556,8 @@
           "Planes de IA totalmente personalizados",
           "Ajustes diarios por energía y agujetas",
           "Programación sensible al ciclo",
-          "Historial e insights completos"
+          "Historial e insights completos",
+          "3 días/semana del plan del entrenador"
         ]
       },
       "ai_performance": {
@@ -2565,18 +2568,20 @@
           "Todo lo de AI Fitness",
           "Analíticas avanzadas de rendimiento",
           "Carga y recuperación predictivas",
-          "Revisión humana prioritaria"
+          "Revisión humana prioritaria",
+          "Todos los días del plan del entrenador"
         ]
       },
       "trial": {
         "name": "Trial",
         "tag": "Prueba el estudio",
-        "sub": "14 días",
-        "blurb": "Mira a la IA crear planes antes de gastar un céntimo.",
+        "sub": "21 días",
+        "blurb": "Experimenta el estudio Pro completo gratis durante 21 días.",
         "features": [
-          "Hasta 3 clientes",
+          "Experiencia Pro completa durante 21 días",
           "Creador de planes con IA",
-          "Panel básico del estudio"
+          "Motor Coach DNA de metodología",
+          "Hasta 3 clientes tras el trial"
         ]
       },
       "pro": {
@@ -2584,10 +2589,12 @@
         "tag": "Lleva tu trabajo",
         "blurb": "Convierte tu método en planes que la IA escribe por ti.",
         "features": [
-          "Clientes ilimitados",
+          "Hasta 50 clientes",
           "Motor de metodología con IA",
-          "Espacio de estudio con tu marca",
           "Insights de adherencia y clientes"
+        ],
+        "comingSoon": [
+          "Espacio de estudio con tu marca"
         ]
       },
       "elite": {
@@ -2596,8 +2603,11 @@
         "blurb": "White-label en todo y crece en el marketplace.",
         "features": [
           "Todo lo de Pro",
+          "Clientes ilimitados",
+          "Suite de analíticas avanzadas"
+        ],
+        "comingSoon": [
           "App white-label para clientes",
-          "Suite de analíticas avanzadas",
           "Posición destacada en el marketplace"
         ],
         "note": "+ 15% de participación en ingresos de clientes captados en el marketplace"

@@ -140,8 +140,9 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
             const name     = tr(`plans.text.${plan.id}.name`);
             const tag      = tr(`plans.text.${plan.id}.tag`);
             const blurb    = tr(`plans.text.${plan.id}.blurb`);
-            const features = tr(`plans.text.${plan.id}.features`, { returnObjects: true }) as string[];
-            const note     = tr(`plans.text.${plan.id}.note`, { defaultValue: '' });
+            const features    = tr(`plans.text.${plan.id}.features`, { returnObjects: true }) as string[];
+            const comingSoon  = tr(`plans.text.${plan.id}.comingSoon`, { returnObjects: true, defaultValue: [] }) as string[];
+            const note        = tr(`plans.text.${plan.id}.note`, { defaultValue: '' });
 
             const priceLabel = billing === 'annual' ? plan.annual_label : plan.monthly_label;
 
@@ -240,6 +241,22 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
                     <div key={fi} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5 }}>
                       <Icon name="check" size={13} color={accent} stroke={2.6}/>
                       <span style={{ color: T.text }}>{f}</span>
+                    </div>
+                  ))}
+                  {comingSoon.map((f, fi) => (
+                    <div key={`cs-${fi}`} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5 }}>
+                      <Icon name="check" size={13} color={T.textMute} stroke={2.6}/>
+                      <span style={{ color: T.textMute }}>{f}</span>
+                      <span style={{
+                        marginLeft: 'auto', flexShrink: 0,
+                        fontSize: 9, fontWeight: 700, letterSpacing: '.05em',
+                        color: accent, background: `${accent}18`,
+                        border: `1px solid ${accent}44`,
+                        padding: '1px 6px', borderRadius: 4,
+                        fontFamily: FF_MONO,
+                      }}>
+                        {tr('plans.comingSoon')}
+                      </span>
                     </div>
                   ))}
                 </div>

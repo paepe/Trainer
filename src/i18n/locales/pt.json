@@ -2528,6 +2528,7 @@
     "selectCta": "Confirmar minha licença",
     "changePlanCta": "Mudar para este plano",
     "alreadyOnPlan": "Você já está neste plano",
+    "comingSoon": "Em breve",
     "confirming": "Confirmando…",
     "tabClient": "Aluno",
     "tabTrainer": "Treinador",
@@ -2543,7 +2544,8 @@
         "features": [
           "Biblioteca de treinos inteligente",
           "Acompanhamento básico de progresso",
-          "Algumas dicas de IA por semana"
+          "Algumas dicas de IA por semana",
+          "1 dia/semana do plano do treinador"
         ]
       },
       "ai_fitness": {
@@ -2554,7 +2556,8 @@
           "Planos de IA totalmente personalizados",
           "Ajustes diários por energia e dores",
           "Programação sensível ao ciclo",
-          "Histórico e insights completos"
+          "Histórico e insights completos",
+          "3 dias/semana do plano do treinador"
         ]
       },
       "ai_performance": {
@@ -2565,18 +2568,20 @@
           "Tudo do AI Fitness",
           "Análises avançadas de desempenho",
           "Carga e recuperação preditivas",
-          "Revisão humana prioritária"
+          "Revisão humana prioritária",
+          "Todos os dias do plano do treinador"
         ]
       },
       "trial": {
         "name": "Trial",
         "tag": "Teste o estúdio",
-        "sub": "14 dias",
-        "blurb": "Veja a IA montar planos antes de gastar um centavo.",
+        "sub": "21 dias",
+        "blurb": "Experimente o estúdio Pro completo gratuitamente por 21 dias.",
         "features": [
-          "Até 3 alunos",
+          "Experiência Pro completa por 21 dias",
           "Construtor de planos com IA",
-          "Painel básico do estúdio"
+          "Motor Coach DNA de metodologia",
+          "Até 3 alunos após o trial"
         ]
       },
       "pro": {
@@ -2584,10 +2589,12 @@
         "tag": "Toque seu trabalho",
         "blurb": "Transforme seu método em planos que a IA escreve por você.",
         "features": [
-          "Alunos ilimitados",
+          "Até 50 alunos",
           "Motor de metodologia com IA",
-          "Espaço de estúdio com sua marca",
           "Insights de adesão e de alunos"
+        ],
+        "comingSoon": [
+          "Espaço de estúdio com sua marca"
         ]
       },
       "elite": {
@@ -2596,8 +2603,11 @@
         "blurb": "White-label em tudo e cresça no marketplace.",
         "features": [
           "Tudo do Pro",
+          "Alunos ilimitados",
+          "Suíte de análises avançadas"
+        ],
+        "comingSoon": [
           "App white-label para alunos",
-          "Suíte de análises avançadas",
           "Destaque no marketplace"
         ],
         "note": "+ 15% de participação na receita de alunos vindos do marketplace"

@@ -2528,6 +2528,7 @@
     "selectCta": "Confirm my license",
     "changePlanCta": "Switch to this plan",
     "alreadyOnPlan": "You're already on this plan",
+    "comingSoon": "Soon",
     "confirming": "Confirming…",
     "tabClient": "Student",
     "tabTrainer": "Trainer",
@@ -2543,7 +2544,8 @@
         "features": [
           "Smart workout library",
           "Basic progress tracking",
-          "A few AI tips each week"
+          "A few AI tips each week",
+          "1 trainer plan day per week"
         ]
       },
       "ai_fitness": {
@@ -2554,7 +2556,8 @@
           "Fully personalized AI plans",
           "Daily adjustments to energy & soreness",
           "Cycle-aware programming",
-          "Full history & insights"
+          "Full history & insights",
+          "3 trainer plan days per week"
         ]
       },
       "ai_performance": {
@@ -2565,18 +2568,20 @@
           "Everything in AI Fitness",
           "Advanced performance analytics",
           "Predictive load & recovery",
-          "Priority human review"
+          "Priority human review",
+          "All trainer plan days unlocked"
         ]
       },
       "trial": {
         "name": "Trial",
         "tag": "Test the studio",
-        "sub": "14 days",
-        "blurb": "See the AI build plans before you commit a cent.",
+        "sub": "21 days",
+        "blurb": "Experience the full Pro studio free for 21 days.",
         "features": [
-          "Up to 3 clients",
+          "Full Pro experience for 21 days",
           "AI plan builder",
-          "Basic studio dashboard"
+          "Coach DNA methodology engine",
+          "Up to 3 clients after trial"
         ]
       },
       "pro": {
@@ -2584,10 +2589,12 @@
         "tag": "Run your practice",
         "blurb": "Turn your method into plans the AI writes for you.",
         "features": [
-          "Unlimited clients",
+          "Up to 50 clients",
           "AI methodology engine",
-          "Branded studio space",
           "Adherence & client insights"
+        ],
+        "comingSoon": [
+          "Branded studio space"
         ]
       },
       "elite": {
@@ -2596,8 +2603,11 @@
         "blurb": "White-label everything and grow on the marketplace.",
         "features": [
           "Everything in Pro",
+          "Unlimited clients",
+          "Advanced analytics suite"
+        ],
+        "comingSoon": [
           "White-label client app",
-          "Advanced analytics suite",
           "Marketplace priority placement"
         ],
         "note": "+ 15% revenue share on clients acquired through the marketplace"
