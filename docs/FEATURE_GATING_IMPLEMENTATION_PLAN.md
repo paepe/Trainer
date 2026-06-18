@@ -368,6 +368,63 @@ Tornar visível o valor real de cada plano na tela de comparação, especialment
 
 ---
 
+## Fase 9 — Categorização de Exercícios: Fitness vs. Desempenho
+
+**Esforço:** ~6h
+**Risco:** Médio
+**Dependências:** Nenhuma (schema independente das fases anteriores)
+
+### Contexto
+
+A IA já distingue fitness de desempenho via instrução no prompt (`fitnessOnly = true`). O treinador, ao construir planos manualmente, não tem essa distinção disponível — `exercise_catalog` e `plan_exercises` não têm coluna de categoria. Isso cria uma assimetria: a IA filtra, o plano do treinador não.
+
+**Decisão de produto (2026-06-18):** exercícios custom criados pelo treinador sem categoria são exibidos ao aluno sem filtro — confiamos na expertise do profissional. O campo `exercise_category` é opcional nesses casos, com fallback para `'fitness'` na ausência de classificação explícita.
+
+### 9A — Schema DB
+
+- [ ] Adicionar coluna `exercise_category TEXT CHECK (exercise_category IN ('fitness', 'performance', 'mobility'))` à tabela `exercise_catalog`
+  - [ ] `DEFAULT 'fitness'` — conservador; não quebra exercícios existentes
+  - [ ] `NULLABLE` — exercícios custom sem classificação explícita ficam `NULL` (tratados como sem filtro)
+- [ ] Adicionar coluna `exercise_category TEXT` à tabela `plan_exercises`
+  - [ ] Propagada automaticamente ao adicionar exercício do catálogo ao plano
+  - [ ] `NULL` para exercícios custom — exibidos sem filtro no cliente
+- [ ] Classificar exercícios existentes no catálogo (batch via script SQL assistido por IA)
+- [ ] Arquivar migration em `supabase/sql-archive/`
+- [ ] Commit: `feat(schema): add exercise_category to exercise_catalog and plan_exercises`
+
+### 9B — Tipo e Hook
+
+- [ ] Atualizar `ExerciseCatalogItem` em `src/types/workout.ts`:
+  - [ ] Adicionar `exercise_category?: 'fitness' | 'performance' | 'mobility' | null`
+- [ ] Atualizar query de `plan_exercises` em `StartWorkoutScreen.tsx` para incluir `exercise_category`
+- [ ] `tsc --noEmit` limpo
+- [ ] Commit: `feat(types): add exercise_category to ExerciseCatalogItem`
+
+### 9C — Editor do Treinador
+
+- [ ] No editor de planos (`WorkoutPlanEditor` ou equivalente): ao adicionar exercício do catálogo, herdar `exercise_category` automaticamente
+- [ ] Para exercícios custom: campo opcional de categoria no formulário de criação
+  - [ ] Valores: Fitness / Desempenho / Mobilidade / (sem classificação)
+  - [ ] Sem classificação = exibido ao aluno sem filtro
+- [ ] Commit: `feat(trainer): propagate exercise_category in plan editor`
+
+### 9D — Filtro no StartWorkoutScreen
+
+- [ ] Quando `fitnessOnlyWorkout = true`: filtrar exercícios do plano do treinador com `exercise_category = 'performance'`
+- [ ] Exercícios com `exercise_category = NULL` (custom sem classificação): exibir sem filtro — confiança no profissional
+- [ ] Remover nota informativa genérica (Fase 4) — substituída por comportamento real de filtro
+- [ ] Manter teaser de desempenho para exercícios filtrados: "X exercício(s) de desempenho não incluídos no seu plano"
+- [ ] Commit: `feat(workout): filter performance exercises from trainer plan by client plan`
+
+### 9E — Classificação batch do catálogo existente
+
+- [ ] Gerar script SQL com classificação de cada exercício existente (assistido por IA com conhecimento de domínio)
+- [ ] Revisão manual pelo treinador / equipa antes de aplicar
+- [ ] Aplicar via `apply_migration`
+- [ ] Commit: `data(catalog): classify existing exercises as fitness/performance/mobility`
+
+---
+
 ## Resumo Executivo
 
 | Fase | Área | Esforço | Risco | Estado |
@@ -383,8 +440,11 @@ Tornar visível o valor real de cada plano na tela de comparação, especialment
 | 6 | PlansScreen — valor visível + badges "Em breve" | ~3h | Baixo | Pendente |
 | 7 | i18n — mensagens de upgrade consolidadas | ~2h | Baixo | Pendente |
 | 8 | Validação final + deploy | ~2h | Baixo | Pendente |
-| **Total** | | **~24h** | | |
+| 9 | Categorização fitness/performance na biblioteca | ~6h | Médio | Pendente |
+| **Total** | | **~30h** | | |
 
-> **Nota:** Estimativa revista de 16h → 24h pela inclusão das Fases 0A/0B (correcções urgentes), 0C (welcome window) e 6 (comunicação de valor).
+> **Nota:** Estimativa revista de 24h → 30h pela inclusão da Fase 9 (categorização de exercícios).
 
-**Ordem recomendada:** 0A → 0B → 0C → 1 → 5 → 2 → 3 → 4 → 6 → 7 → 8
+**Decisão de produto — exercícios custom:** exercícios criados pelo treinador sem categoria (`NULL`) são exibidos ao aluno sem filtro. Confiança na expertise do profissional.
+
+**Ordem recomendada:** 0A → 0B → 0C → 1 → 5 → 2 → 3 → 4 → 6 → 7 → 8 → 9
