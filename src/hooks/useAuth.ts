@@ -5,7 +5,7 @@ import type { Profile, PlanKey, Subscription } from '../types';
 import { TRAINER_ROLES } from '../types/auth';
 import { clearFeaturePermissionCache } from './useFeatureAccess';
 
-const TRIAL_DAYS         = 14;
+const TRIAL_DAYS          = 21;
 const WELCOME_WINDOW_DAYS = 21;
 
 function addDays(days: number): string {

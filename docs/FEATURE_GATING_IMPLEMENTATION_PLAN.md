@@ -54,23 +54,44 @@ O valor correcto é **50**, conforme `docs/FEATURE_ACCESS_MATRIX.md`.
 
 ---
 
-### 0B — Expiração do Trial sem Stripe
+### 0B — Trial do Treinador: 21 dias com experiência PRO completa
 
-`useTrialStatus.ts` faz fallback de 14 dias quando `current_period_end` é null, o que significa que sem Stripe o trial nunca expira. Trainers ficam indefinidamente no tier TRIAL sem pressão de conversão.
+**Decisão de produto (2026-06-18):**
+
+- Duração: **21 dias** a partir do signup (alinhado com a welcome window do cliente)
+- Tier exibido: **PRO completo** (clientes ilimitados durante o trial, Coach DNA, Studio Branding, AI scores avançados)
+- Mecânica idêntica à welcome window do cliente: o trainer experimenta o produto real, sente a perda na expiração, converte por loss aversion
+- `plan_key` permanece `'trial'` — a elevação de permissões é derivada pelo hook, não pelo DB
 
 ### Checklist
 
-- [ ] No fluxo de criação de conta trainer (signup/onboarding):
-  - [ ] Ao inserir o registo em `subscriptions` com `plan_key = 'trial'`: definir `current_period_end = now() + interval '14 days'`
-  - [ ] Garantir que este valor é escrito pelo servidor (Edge Function ou `upsertSubscription`), não pelo cliente
-- [ ] Em `useTrialStatus.ts`:
-  - [ ] Remover fallback de 14 dias estático
-  - [ ] Ler `current_period_end` da tabela `subscriptions`
-  - [ ] Se `current_period_end < now()` e `plan_key = 'trial'`: retornar `{ expired: true, daysLeft: 0 }`
-- [ ] Em `App.tsx` (banner de trial):
-  - [ ] Se `expired: true`: bloquear acesso às funcionalidades e apresentar modal de upgrade obrigatório (não apenas banner)
-- [ ] Testar: criar conta trainer → forçar `current_period_end = now() - 1 day` em dev → confirmar bloqueio
-- [ ] Commit: `fix(trial): enforce expiry via current_period_end, remove static fallback`
+- [x] No fluxo de criação de conta trainer (signup/onboarding):
+  - [x] Ao inserir o registo em `subscriptions` com `plan_key = 'trial'`: definir `current_period_end = now() + interval '21 days'`
+  - [x] Escrito pelo servidor (`upsertSubscription`/`fetchProfile`), não pelo cliente
+- [x] Em `useTrialStatus.ts`:
+  - [x] Remover fallback de 14 dias estático — sem `current_period_end` → `expired`
+  - [x] `daysLeft ≤ 4` → `expiring` (countdown banner em amber)
+- [ ] Criar `useTrialWindow.ts` (análogo a `useWelcomeWindow`):
+  - [ ] `plan_key === 'trial' && current_period_end > now()` → retornar permissões de `pro`
+  - [ ] Estados: `active | expiring | expired | not_trial`
+- [ ] Em `useFeatureAccess`: se `inTrialWindow` activo, resolver feature keys com `plan_key = 'pro'`
+- [ ] Banner de countdown (dias 18–21):
+  - [ ] Exibir na home do trainer: "O seu trial PRO termina em X dias — continuar por €49/mês"
+  - [ ] Dispensável; reaparece a cada sessão
+  - [ ] CTA leva ao `PlansScreen` com PRO pré-seleccionado
+- [ ] No dia 22+ (trial expirado):
+  - [ ] Gating reverte para limites TRIAL reais (3 clientes, sem Coach DNA, sem scores avançados)
+  - [ ] Modal obrigatório na primeira acção bloqueada: "O seu trial PRO terminou. Continue por €49/mês."
+  - [ ] Modal não dispensável na primeira ocorrência
+- [ ] Adicionar i18n keys (en/pt/es/de):
+  - [ ] `trial.countdownBanner` — "O seu trial PRO termina em {{days}} dias"
+  - [ ] `trial.countdownCta` — "Continuar por €49/mês"
+  - [ ] `trial.expiredModal` — "O seu trial PRO terminou. Continue por €49/mês."
+  - [ ] `trial.expiredModalCta` — "Ver planos"
+- [ ] Testar: criar conta trainer → confirmar `current_period_end = now() + 21 days` no DB
+- [ ] Testar: forçar `current_period_end = now() - 1 day` em dev → confirmar degradação + modal
+- [ ] Testar: dias 18–21 → confirmar countdown visível
+- [ ] Commit: `feat(trial): 21-day PRO trial window for new trainer accounts`
 
 ---
 
