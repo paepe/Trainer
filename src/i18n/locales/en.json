@@ -1137,7 +1137,9 @@
       "limitWeekly": "You've reached your {{n}} session/week limit on the Free plan.",
       "limitWeeklyCta": "Upgrade to AI Fitness for 7 sessions/week",
       "limitType": "Performance exercises require the AI Performance plan.",
-      "limitTypeCta": "Upgrade to unlock performance training"
+      "limitTypeCta": "Upgrade to unlock performance training",
+      "performanceTeaser": "Performance training — speed, power & endurance metrics (ATL/CTL/TSB) — is available on AI Performance.",
+      "performanceTeaserCta": "Available on AI Performance — View plans"
     },
     "trainerPlan": {
       "dayLocked": "Training day locked",

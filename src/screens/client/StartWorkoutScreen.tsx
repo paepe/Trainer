@@ -5,13 +5,13 @@ import { supabase } from '../../supabase';
 import { Icon, AvatarImage, ScreenTitle, SectionLabel } from '../../components';
 import { Spinner } from '../../ui';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
-import type { NavFn, CheckIn } from '../../types';
+import type { NavFn, CheckIn, Subscription } from '../../types';
 import type { Json } from '../../types/supabase';
 import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGeneration';
 import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext } from '../../ai/buildAIContext';
 import type { TrainerContext, TaskContext } from '../../ai/types';
-import { useFeatureAccessMap } from '../../hooks/useFeatureAccess';
+import { useFeatureAccessMap, useEffectivePlanKey } from '../../hooks/useFeatureAccess';
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
@@ -38,13 +38,14 @@ interface Theme {
 }
 
 interface AppUser {
-  id:         string | null;
-  name:       string;
-  email:      string;
-  role:       string;
-  avatar_url: string | null;
-  gender?:    string;
-  plan_key?:  string;
+  id:           string | null;
+  name:         string;
+  email:        string;
+  role:         string;
+  avatar_url:   string | null;
+  gender?:      string;
+  plan_key?:    string;
+  subscription?: Subscription | null;
 }
 
 interface AppCycleConfig {
@@ -172,9 +173,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const { t: tr } = useTranslation();
 
   // Feature gate: trainers viewing a client always get full AI; clients follow the matrix.
-  const isTrainerView = !!linkedTrainerId && user.role !== 'client';
+  const isTrainerView    = !!linkedTrainerId && user.role !== 'client';
+  const effectivePlanKey = useEffectivePlanKey(user.subscription ?? null);
   const aiAccessMap = useFeatureAccessMap(
-    user.plan_key ?? 'free',
+    effectivePlanKey,
     ['ai.checkin_adjustment', 'ai.advanced_analysis',
      'workout.sessions_per_week', 'workout.exercises_per_session', 'workout.exercise_type',
      'trainer_plan.days_per_week'],
@@ -947,6 +949,33 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             {sore.length > 0 && (
               <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 10, background: `${t.accent}1a`, color: t.accent, fontSize: 11.5, fontWeight: 600 }}>
                 {tr('client.workout.adjustedFor')}{sore.join(', ').toLowerCase()}
+              </div>
+            )}
+
+            {/* Performance teaser — visible on FREE and AI Fitness; not shown to trainers or AI Performance clients */}
+            {fitnessOnlyWorkout && !isTrainerView && (
+              <div style={{
+                marginTop: 12, padding: '12px 14px', borderRadius: 12,
+                background: `${t.primary}0d`, border: `1px solid ${t.primary}33`,
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+              }}>
+                <span style={{ fontSize: 14, flexShrink: 0 }}>🔒</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11.5, color: textSec(dark), lineHeight: 1.5, marginBottom: 6 }}>
+                    {tr('client.workout.performanceTeaser')}
+                  </div>
+                  <button
+                    onClick={() => nav('plans', { source: 'performance_teaser' })}
+                    style={{
+                      fontSize: 11, fontWeight: 700, color: t.primary,
+                      background: 'none', border: `1px solid ${t.primary}`,
+                      borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
+                      letterSpacing: '.04em', fontFamily: 'inherit',
+                    }}
+                  >
+                    {tr('client.workout.performanceTeaserCta')}
+                  </button>
+                </div>
               </div>
             )}
           </div>

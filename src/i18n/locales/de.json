@@ -1137,7 +1137,9 @@
       "limitWeekly": "Du hast das Limit von {{n}} Einheit/Woche im Free-Plan erreicht.",
       "limitWeeklyCta": "Upgrade auf AI Fitness — 7 Einheiten/Woche",
       "limitType": "Performance-Übungen erfordern den AI Performance-Plan.",
-      "limitTypeCta": "Upgrade, um Performance-Training freizuschalten"
+      "limitTypeCta": "Upgrade, um Performance-Training freizuschalten",
+      "performanceTeaser": "Performance-Training — Geschwindigkeit, Kraft & Ausdauer-Metriken (ATL/CTL/TSB) — ist im AI Performance-Plan verfügbar.",
+      "performanceTeaserCta": "Verfügbar im AI Performance — Pläne ansehen"
     },
     "trainerPlan": {
       "dayLocked": "Trainingstag gesperrt",

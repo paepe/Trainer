@@ -1137,7 +1137,9 @@
       "limitWeekly": "Alcanzaste el límite de {{n}} sesión/semana del plan Free.",
       "limitWeeklyCta": "Actualiza a AI Fitness — 7 sesiones/semana",
       "limitType": "Los ejercicios de Rendimiento requieren el plan AI Performance.",
-      "limitTypeCta": "Actualiza para desbloquear el entrenamiento de rendimiento"
+      "limitTypeCta": "Actualiza para desbloquear el entrenamiento de rendimiento",
+      "performanceTeaser": "Entrenamiento de Rendimiento — velocidad, potencia y métricas de resistencia (ATL/CTL/TSB) — disponible en el plan AI Performance.",
+      "performanceTeaserCta": "Disponible en AI Performance — Ver planes"
     },
     "trainerPlan": {
       "dayLocked": "Día de entrenamiento bloqueado",
