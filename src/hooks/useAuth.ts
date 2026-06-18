@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import type { Session, AuthError, PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
 import type { Profile, PlanKey, Subscription } from '../types';
+import { TRAINER_ROLES } from '../types/auth';
 import { clearFeaturePermissionCache } from './useFeatureAccess';
+
+const TRIAL_DAYS         = 14;
+const WELCOME_WINDOW_DAYS = 21;
+
+function addDays(days: number): string {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+}
 
 interface SignInResult  { error: AuthError | null }
 interface SignUpResult  { data: unknown; error: AuthError | null }
@@ -80,19 +88,33 @@ export function useAuth(): UseAuthReturn {
     if (subError) console.error('[useAuth] fetchSubscription error:', subError);
 
     if (!sub) {
-      // No subscription row — silently provision free tier so the user
-      // never gets redirected to plan selection on subsequent logins.
+      // Provision subscription based on role:
+      //   - trainer roles → 'trial' with 14-day expiry (enforces conversion pressure)
+      //   - client        → 'free' with 21-day welcome window at ai_fitness level
+      const profile = data as Profile | null;
+      const isTrainer = profile?.role && TRAINER_ROLES.includes(profile.role);
+      const planKey: PlanKey          = isTrainer ? 'trial' : 'free';
+      const current_period_end: string = isTrainer
+        ? addDays(TRIAL_DAYS)
+        : addDays(WELCOME_WINDOW_DAYS);
+
       await supabase.from('subscriptions').upsert({
         user_id: userId,
-        plan_key: 'free',
+        plan_key: planKey,
         status: 'active',
         billing_cycle: null,
+        current_period_end,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
+
+      setHasSubscription(true);
+      setSubscription({ plan_key: planKey, status: 'active', billing_cycle: null, current_period_end });
+      setLoading(false);
+      return;
     }
 
     setHasSubscription(true);
-    setSubscription((sub as Subscription | null) ?? { plan_key: 'free', status: 'active', billing_cycle: null, current_period_end: null });
+    setSubscription(sub as Subscription);
 
     setLoading(false);
   }
