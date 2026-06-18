@@ -104,23 +104,34 @@ O limite `clients.limit` é validado em dois pontos:
 
 ---
 
-## 4. Feature Keys Existentes na Base de Dados
+## 4. Feature Keys na Base de Dados
 
-| feature_key | Tipo | Usado em |
-|---|---|---|
-| `scores.basic` | boolean | PerformanceDashboardScreen |
-| `scores.advanced` | boolean | PerformanceDashboardScreen |
-| `ai.checkin_adjustment` | boolean | StartWorkoutScreen |
-| `ai.advanced_analysis` | boolean | StartWorkoutScreen |
-| `coach_dna` | boolean | CoachDNAScreen |
-| `clients.limit` | integer cap | TrainerDashboardScreen + api/send-invitation.ts |
-| `studio.branding` | boolean | (reservado — UI pendente) |
-| `marketplace.listing` | boolean | (reservado — UI pendente) |
-| `marketplace.revenue_share` | boolean | (reservado — UI pendente) |
+**Última actualização:** 2026-06-18 — Fases 0–8 concluídas
+
+| feature_key | Tipo | Usado em | Estado |
+| --- | --- | --- | --- |
+| `scores.basic` | boolean | PerformanceDashboardScreen | ✅ |
+| `scores.advanced` | boolean | PerformanceDashboardScreen | ✅ (legacy; substituído pelos gates granulares abaixo) |
+| `ai.checkin_adjustment` | boolean | StartWorkoutScreen | ✅ |
+| `ai.advanced_analysis` | boolean | StartWorkoutScreen | ✅ |
+| `coach_dna` | boolean | CoachDNAScreen | ✅ |
+| `clients.limit` | integer cap | TrainerDashboardScreen + api/send-invitation.ts | ✅ TRIAL=3, PRO=50, ELITE=∞ |
+| `studio.branding` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 |
+| `marketplace.listing` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 |
+| `marketplace.revenue_share` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 |
+| `checkin.full` | boolean | CheckInProntidaoScreen → CheckInHub | ✅ |
+| `workout.sessions_per_week` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=1, AI Fitness=7, AI Performance=∞ |
+| `workout.exercises_per_session` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=2, resto=∞ |
+| `workout.exercise_type` | integer encoded | StartWorkoutScreen (geração IA) | ✅ 0=fitness only, null=all |
+| `trainer_plan.days_per_week` | integer cap | StartWorkoutScreen (plano do treinador) | ✅ FREE=1, AI Fitness=3, AI Performance=∞ |
+| `progress.fitness_advanced` | boolean | PerformanceDashboardScreen | ✅ |
+| `progress.performance` | boolean | PerformanceDashboardScreen | ✅ |
+
+**Nota:** `useEffectivePlanKey` eleva automaticamente `free → ai_fitness` (welcome window 21 dias) e `trial → pro` (trial window 21 dias) — todos os gates acima respeitam esta elevação.
 
 ---
 
-## 5. Feature Keys a Criar (Novas Regras desta Matriz)
+## 5. Feature Keys Implementadas (Fases 0–8)
 
 Para implementar as regras dos planos de cliente definidas nesta sessão, são necessárias as seguintes feature keys novas:
 
