@@ -77,7 +77,6 @@ describe('TelaScores — plano de acesso por tier', () => {
     const nav = vi.fn();
     const { container } = render(
       <TelaScores data={mockData} nav={nav}
-        advancedAllowed={false}
         fitnessAdvancedAllowed={false}
         performanceAllowed={false}
       />
@@ -91,7 +90,6 @@ describe('TelaScores — plano de acesso por tier', () => {
     const nav = vi.fn();
     const { container } = render(
       <TelaScores data={mockData} nav={nav}
-        advancedAllowed={true}
         fitnessAdvancedAllowed={true}
         performanceAllowed={false}
       />
@@ -104,7 +102,6 @@ describe('TelaScores — plano de acesso por tier', () => {
     const nav = vi.fn();
     const { container } = render(
       <TelaScores data={mockData} nav={nav}
-        advancedAllowed={true}
         fitnessAdvancedAllowed={true}
         performanceAllowed={true}
       />
@@ -116,7 +113,6 @@ describe('TelaScores — plano de acesso por tier', () => {
     const nav = vi.fn();
     const { container } = render(
       <TelaScores data={mockData} nav={nav}
-        advancedAllowed={false}
         fitnessAdvancedAllowed={false}
         performanceAllowed={false}
       />
@@ -131,7 +127,6 @@ describe('TelaScores — plano de acesso por tier', () => {
     const nav = vi.fn();
     const { container } = render(
       <TelaScores data={mockData} nav={nav}
-        advancedAllowed={false}
         fitnessAdvancedAllowed={false}
         performanceAllowed={false}
       />

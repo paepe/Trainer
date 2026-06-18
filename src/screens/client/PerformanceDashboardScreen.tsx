@@ -5,8 +5,8 @@ import { Spinner } from '../../ui';
 import { RefreshChip } from '../../components/RefreshChip';
 import i18n from '../../i18n';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
-import type { NavFn, PlanKey } from '../../types';
-import { useFeatureAccessMap } from '../../hooks/useFeatureAccess';
+import type { NavFn, PlanKey, Subscription } from '../../types';
+import { useFeatureAccessMap, useEffectivePlanKey } from '../../hooks/useFeatureAccess';
 import { useM5Data, C, scoreColor, goodScoreColor, band } from './performance/perf-engines';
 import {
   T, FF_DISPLAY, FF_MONO,
@@ -35,7 +35,7 @@ function fmtRegion(
 // ── Prop types ────────────────────────────────────────────────────────────────
 
 interface Theme { primary: string; accent: string }
-interface AppUser { id: string | null; name?: string; gender?: string; plan_key?: PlanKey }
+interface AppUser { id: string | null; name?: string; gender?: string; plan_key?: PlanKey; subscription?: Subscription | null }
 
 interface Props {
   nav:  NavFn;
@@ -70,15 +70,15 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient,
   const targetName   = selectedClient?.name ?? user.name;
   const targetGender = user.gender;
   // Trainer viewing a client's dashboard gets full access regardless of their own plan.
-  const isTrainerOverride = !!selectedClient;
+  const isTrainerOverride  = !!selectedClient;
+  const effectivePlanKey   = useEffectivePlanKey(user.subscription ?? null);
   const accessMap = useFeatureAccessMap(
-    user.plan_key,
-    ['scores.basic', 'scores.advanced', 'progress.fitness_advanced', 'progress.performance'],
+    effectivePlanKey,
+    ['scores.basic', 'progress.fitness_advanced', 'progress.performance'],
     isTrainerOverride,
   );
-  const advancedScoresAllowed    = accessMap['scores.advanced']?.allowed          ?? false;
-  const fitnessAdvancedAllowed   = accessMap['progress.fitness_advanced']?.allowed ?? false;
-  const performanceAllowed       = accessMap['progress.performance']?.allowed      ?? false;
+  const fitnessAdvancedAllowed = accessMap['progress.fitness_advanced']?.allowed ?? false;
+  const performanceAllowed     = accessMap['progress.performance']?.allowed      ?? false;
   const [activeScreen, setActiveScreen] = React.useState<ScreenId>('overview');
   const { data, loading, lastUpdated, reload } = useM5Data(targetUserId, performanceWindowWeeks);
 
@@ -114,7 +114,7 @@ export function PerformanceDashboardScreen({ nav, t, dark, user, selectedClient,
             case 'aderencia':   return <TelaAderencia   data={data}/>;
             case 'performance': return <TelaPerformance data={data}/>;
             case 'dor':         return <TelaDor         data={data} gender={targetGender ?? null}/>;
-            case 'scores':      return <TelaScores      data={data} nav={nav} advancedAllowed={advancedScoresAllowed} fitnessAdvancedAllowed={fitnessAdvancedAllowed} performanceAllowed={performanceAllowed}/>;
+            case 'scores':      return <TelaScores      data={data} nav={nav} fitnessAdvancedAllowed={fitnessAdvancedAllowed} performanceAllowed={performanceAllowed}/>;
             case 'voz':         return <TelaVoz data={data}/>;
             case 'marcos':      return <TelaMarcos      data={data}/>;
           }
@@ -652,10 +652,9 @@ function TelaDor({ data, gender }: { data: M5Data; gender?: string | null }) {
 // ── Tela 05 — Scores Preditivos ───────────────────────────────────────────────
 
 export function TelaScores({
-  data, nav, advancedAllowed, fitnessAdvancedAllowed = false, performanceAllowed = false,
+  data, nav, fitnessAdvancedAllowed = false, performanceAllowed = false,
 }: {
   data: M5Data; nav: NavFn;
-  advancedAllowed: boolean;
   fitnessAdvancedAllowed?: boolean;
   performanceAllowed?: boolean;
 }) {
