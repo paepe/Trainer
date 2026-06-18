@@ -1,6 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
-import type { FeatureKey, FeatureAccess, FeaturePermission } from '../types';
+import type { FeatureKey, FeatureAccess, FeaturePermission, PlanKey, Subscription } from '../types';
+import { useWelcomeWindow } from './useWelcomeWindow';
+import { useTrialWindow } from './useTrialWindow';
+
+/**
+ * Resolves the effective plan key for feature gating, accounting for
+ * welcome window (free clients) and trial window (trainer trial).
+ * During an active window, grants the elevated tier's permissions.
+ */
+export function useEffectivePlanKey(subscription: Subscription | null): PlanKey | undefined {
+  const welcomeWindow = useWelcomeWindow(subscription);
+  const trialWindow   = useTrialWindow(subscription);
+
+  if (!subscription) return undefined;
+
+  if (welcomeWindow.state === 'active' || welcomeWindow.state === 'expiring') return 'ai_fitness';
+  if (trialWindow.state   === 'active' || trialWindow.state   === 'expiring') return 'pro';
+
+  return subscription.plan_key;
+}
 
 // In-memory cache keyed by plan_key. Avoids redundant network calls within
 // the same session — the matrix changes only via server-side migrations.
