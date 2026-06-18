@@ -36,8 +36,21 @@ O valor correcto é **50**, conforme `docs/FEATURE_ACCESS_MATRIX.md`.
 
 ### Checklist
 
-- [x] DB verificado: PRO=50, TRIAL=3, ELITE=NULL — seed additive prevaleceu, nenhuma correcção necessária
-- [x] Confirmado via `execute_sql` em 2026-06-18
+- [ ] Verificar estado actual na DB:
+
+  ```sql
+  SELECT plan_key, limit_value FROM feature_permissions WHERE feature_key = 'clients.limit';
+  ```
+
+- [ ] Se PRO retornar `NULL`: executar correcção:
+
+  ```sql
+  UPDATE feature_permissions SET limit_value = 50 WHERE feature_key = 'clients.limit' AND plan_key = 'pro';
+  ```
+
+- [ ] Arquivar SQL em `supabase/sql-archive/fix-clients-limit-pro-20260618.sql`
+- [ ] Confirmar: TRIAL=3, PRO=50, ELITE=NULL
+- [ ] Commit: `fix(permissions): set clients.limit PRO to 50 (was NULL)`
 
 ---
 
@@ -281,7 +294,7 @@ Tornar visível o valor real de cada plano na tela de comparação, especialment
 
 A IA já distingue fitness de desempenho via instrução no prompt (`fitnessOnly = true`). O treinador, ao construir planos manualmente, não tem essa distinção disponível — `exercise_catalog` e `plan_exercises` não têm coluna de categoria. Isso cria uma assimetria: a IA filtra, o plano do treinador não.
 
-**Decisão de produto (2026-06-18):** exercícios custom criados pelo treinador sem categoria são exibidos ao aluno sem filtro — confiamos na expertise do profissional. O campo `exercise_category` é opcional nesses casos, com fallback para `'fitness'` na ausência de classificação explícita.
+**Decisão de produto (2026-06-18):** exercícios ad-hoc criados directamente no editor de plano existem apenas naquele plano — não entram na biblioteca, não são reutilizados, não têm histórico. Classificá-los não tem retorno. `exercise_category = NULL` nesses casos; exibidos ao aluno sem filtro. Confiança na expertise do profissional.
 
 ### 9A — Schema DB
 
@@ -305,11 +318,9 @@ A IA já distingue fitness de desempenho via instrução no prompt (`fitnessOnly
 
 ### 9C — Editor do Treinador
 
-- [ ] No editor de planos (`WorkoutPlanEditor` ou equivalente): ao adicionar exercício do catálogo, herdar `exercise_category` automaticamente
-- [ ] Para exercícios custom: campo opcional de categoria no formulário de criação
-  - [ ] Valores: Fitness / Desempenho / Mobilidade / (sem classificação)
-  - [ ] Sem classificação = exibido ao aluno sem filtro
-- [ ] Commit: `feat(trainer): propagate exercise_category in plan editor`
+- [ ] No editor de planos (`WorkoutPlanEditorScreen`): ao adicionar exercício do catálogo, propagar `exercise_category` para `plan_exercises`
+- [ ] Exercícios ad-hoc (criados directamente no editor, sem origem no catálogo): `exercise_category = NULL` — exibidos ao aluno sem filtro; não requerem classificação (efémeros, sem reutilização)
+- [ ] Commit: `feat(trainer): propagate exercise_category from catalog to plan_exercises`
 
 ### 9D — Filtro no StartWorkoutScreen
 
@@ -348,6 +359,6 @@ A IA já distingue fitness de desempenho via instrução no prompt (`fitnessOnly
 
 > **Nota:** Estimativa revista de 24h → 30h pela inclusão da Fase 9 (categorização de exercícios).
 
-**Decisão de produto — exercícios custom:** exercícios criados pelo treinador sem categoria (`NULL`) são exibidos ao aluno sem filtro. Confiança na expertise do profissional.
+**Decisão de produto — exercícios ad-hoc:** exercícios criados directamente no editor de plano são efémeros (não entram na biblioteca, não são reutilizados). `exercise_category = NULL`; exibidos ao aluno sem filtro. Não requerem classificação. Confiança na expertise do profissional.
 
 **Ordem recomendada:** 0A → 0B → 0C → 1 → 5 → 2 → 3 → 4 → 6 → 7 → 8 → 9
