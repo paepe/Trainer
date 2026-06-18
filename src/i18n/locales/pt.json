@@ -994,10 +994,20 @@
       "trialExpiringNote": "Faça upgrade agora para manter seus alunos e funcionalidades.",
       "trialExpired": "Trial expirado",
       "trialExpiredNote": "Seu período de trial encerrou. Faça upgrade para continuar usando o TrAIner.",
-      "upgradeNow": "Fazer upgrade"
+      "upgradeNow": "Fazer upgrade",
+      "countdownBanner": "O seu trial Pro termina em {{days}} dia(s)",
+      "countdownCta": "Continuar por €49/mês",
+      "expiredModal": "O seu trial Pro terminou. Continue por €49/mês.",
+      "expiredModalCta": "Ver planos"
     }
   },
   "client": {
+    "welcome": {
+      "countdownBanner": "A sua experiência AI Fitness termina em {{days}} dia(s)",
+      "countdownCta": "Continuar por €9,99/mês",
+      "expiredModal": "A sua experiência AI Fitness terminou. Retome por €9,99/mês.",
+      "expiredModalCta": "Ver planos"
+    },
     "history": {
       "title": "Histórico de Treinos",
       "viewProgress": "Ver Progresso",

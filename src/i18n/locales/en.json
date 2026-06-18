@@ -994,10 +994,20 @@
       "trialExpiringNote": "Upgrade now to keep your clients and features.",
       "trialExpired": "Trial expired",
       "trialExpiredNote": "Your trial has ended. Upgrade to continue using TrAIner.",
-      "upgradeNow": "Upgrade now"
+      "upgradeNow": "Upgrade now",
+      "countdownBanner": "Your Pro trial ends in {{days}} day(s)",
+      "countdownCta": "Continue for €49/mo",
+      "expiredModal": "Your Pro trial has ended. Continue for €49/mo.",
+      "expiredModalCta": "View plans"
     }
   },
   "client": {
+    "welcome": {
+      "countdownBanner": "Your AI Fitness experience ends in {{days}} day(s)",
+      "countdownCta": "Continue for €9.99/mo",
+      "expiredModal": "Your AI Fitness experience has ended. Resume for €9.99/mo.",
+      "expiredModalCta": "View plans"
+    },
     "history": {
       "title": "Workout History",
       "viewProgress": "View Progress",

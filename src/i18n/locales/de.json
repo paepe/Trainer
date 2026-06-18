@@ -994,10 +994,20 @@
       "trialExpiringNote": "Jetzt upgraden, um Kunden und Funktionen zu behalten.",
       "trialExpired": "Testphase abgelaufen",
       "trialExpiredNote": "Deine Testphase ist beendet. Upgrade, um TrAIner weiter zu nutzen.",
-      "upgradeNow": "Jetzt upgraden"
+      "upgradeNow": "Jetzt upgraden",
+      "countdownBanner": "Dein Pro-Trial endet in {{days}} Tag(en)",
+      "countdownCta": "Weiter für €49/Monat",
+      "expiredModal": "Dein Pro-Trial ist abgelaufen. Weiter für €49/Monat.",
+      "expiredModalCta": "Pläne ansehen"
     }
   },
   "client": {
+    "welcome": {
+      "countdownBanner": "Deine AI Fitness-Erfahrung endet in {{days}} Tag(en)",
+      "countdownCta": "Weiter für €9,99/Monat",
+      "expiredModal": "Deine AI Fitness-Erfahrung ist abgelaufen. Weiter für €9,99/Monat.",
+      "expiredModalCta": "Pläne ansehen"
+    },
     "history": {
       "title": "Trainingsverlauf",
       "viewProgress": "Fortschritt ansehen",
