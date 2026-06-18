@@ -1144,7 +1144,8 @@
     "trainerPlan": {
       "dayLocked": "Training day locked",
       "dayLockedNote": "Your {{plan}} plan allows {{n}} trainer-plan day(s) per week. Upgrade to unlock more days.",
-      "dayLockedCta": "View plans"
+      "dayLockedCta": "View plans",
+      "exerciseTypeLocked": "Your plan includes fitness exercises only. Performance exercises in this trainer plan require the AI Performance plan."
     },
     "mode": {
       "finishWorkout": "Finish Workout",

@@ -709,6 +709,21 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {hasTrainerPlans && (
         <div style={{ padding: '0 22px 14px' }}>
           <SectionLabel dark={dark}>{tr('client.workout.yourPlans')}</SectionLabel>
+
+          {/* Fitness-only notice: shown when plan may contain performance exercises the client can't access */}
+          {fitnessOnlyWorkout && (
+            <div style={{
+              marginBottom: 10, padding: '10px 12px', borderRadius: 10,
+              background: `${t.primary}0d`, border: `1px solid ${t.primary}2a`,
+              display: 'flex', alignItems: 'flex-start', gap: 8,
+            }}>
+              <span style={{ fontSize: 13, flexShrink: 0 }}>ℹ️</span>
+              <div style={{ fontSize: 11, color: textSec(dark), lineHeight: 1.5 }}>
+                {tr('trainerPlan.exerciseTypeLocked')}
+              </div>
+            </div>
+          )}
+
           <div style={{ borderRadius: 14, overflow: 'hidden', border: `1px solid ${t.primary}33` }}>
             {trainerPlans.map((p, i) => {
               const isOpen = expandedPlan === p.id;
