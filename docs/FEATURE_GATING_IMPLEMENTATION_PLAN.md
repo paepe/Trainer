@@ -286,29 +286,77 @@ Tornar visível o valor real de cada plano na tela de comparação, especialment
 
 ## Fase 9 — Categorização de Exercícios: Fitness vs. Desempenho
 
-**Esforço:** ~6h
-**Risco:** Médio
+**Esforço:** ~8h
+**Risco:** Baixo
 **Dependências:** Nenhuma (schema independente das fases anteriores)
 
-### Contexto
+### Contexto e Abordagem
 
-A IA já distingue fitness de desempenho via instrução no prompt (`fitnessOnly = true`). O treinador, ao construir planos manualmente, não tem essa distinção disponível — `exercise_catalog` e `plan_exercises` não têm coluna de categoria. Isso cria uma assimetria: a IA filtra, o plano do treinador não.
+A IA já distingue fitness de desempenho via instrução no prompt (`fitnessOnly = true`). O treinador, ao construir planos manualmente, não tem essa distinção disponível — criando uma assimetria: a IA filtra, o plano do treinador não.
 
-**Decisão de produto (2026-06-18):** exercícios ad-hoc criados directamente no editor de plano existem apenas naquele plano — não entram na biblioteca, não são reutilizados, não têm histórico. Classificá-los não tem retorno. `exercise_category = NULL` nesses casos; exibidos ao aluno sem filtro. Confiança na expertise do profissional.
+### Abordagem: Opção A com cache persistente (classificação ad-hoc + memoização)
+
+A classificação não é armazenada antecipadamente — é calculada pela IA no momento de uso e persistida no DB como cache. Na próxima consulta, o campo já existe e a IA não é invocada.
+
+Vantagens desta abordagem:
+
+- Sem invariante para manter — novos exercícios adicionados à biblioteca são classificados automaticamente na primeira consulta
+- Sem batch inicial obrigatório — o catálogo auto-popula com o uso real
+- Sem intervenção humana — a classificação é completamente invisível para o treinador
+- Degradação graciosa — se a IA falhar, `exercise_category` permanece `NULL` e o exercício é exibido sem filtro
+- Corrigível — classificações incorrectas podem ser corrigidas via SQL; na próxima consulta o cache é lido directamente
+
+Decisões de produto (2026-06-18):
+
+- Exercícios ad-hoc criados directamente no editor de plano são efémeros — não entram na biblioteca, não requerem classificação. `exercise_category = NULL`; exibidos ao aluno sem filtro. Confiança na expertise do profissional.
+- A classificação pela IA é uma sugestão persistida, não uma fonte de verdade imutável — pode ser corrigida manualmente.
+
+---
 
 ### 9A — Schema DB
 
 - [ ] Adicionar coluna `exercise_category TEXT CHECK (exercise_category IN ('fitness', 'performance', 'mobility'))` à tabela `exercise_catalog`
-  - [ ] `DEFAULT 'fitness'` — conservador; não quebra exercícios existentes
-  - [ ] `NULLABLE` — exercícios custom sem classificação explícita ficam `NULL` (tratados como sem filtro)
+  - [ ] `NULLABLE DEFAULT NULL` — sem valor por defeito; `NULL` = ainda não classificado
+  - [ ] `NULL` nunca é tratado como erro — significa "exibir sem filtro"
 - [ ] Adicionar coluna `exercise_category TEXT` à tabela `plan_exercises`
-  - [ ] Propagada automaticamente ao adicionar exercício do catálogo ao plano
-  - [ ] `NULL` para exercícios custom — exibidos sem filtro no cliente
-- [ ] Classificar exercícios existentes no catálogo (batch via script SQL assistido por IA)
+  - [ ] Propagada do catálogo ao adicionar exercício de catálogo ao plano
+  - [ ] `NULL` para exercícios ad-hoc — exibidos sem filtro
 - [ ] Arquivar migration em `supabase/sql-archive/`
 - [ ] Commit: `feat(schema): add exercise_category to exercise_catalog and plan_exercises`
 
-### 9B — Tipo e Hook
+---
+
+### 9B — Serviço de Classificação IA (novo)
+
+Endpoint ou Edge Function leve que recebe uma lista de exercícios (`name + muscle_group`) e devolve a categoria de cada um.
+
+- [ ] Criar `api/classify-exercises.ts` (ou Edge Function `classify-exercises`):
+  - [ ] Input: `{ exercises: Array<{ id: string; name: string; muscle_group: string }> }`
+  - [ ] Prompt: instruir a IA a classificar cada exercício como `'fitness'`, `'performance'` ou `'mobility'` com base no nome e grupo muscular
+  - [ ] Output: `{ classifications: Array<{ id: string; category: 'fitness' | 'performance' | 'mobility' }> }`
+  - [ ] Modelo: Haiku (rápido, barato — tarefa de classificação simples)
+  - [ ] Batch máximo: 50 exercícios por chamada
+- [ ] Commit: `feat(api): classify-exercises endpoint using AI`
+
+---
+
+### 9C — Hook de Classificação com Cache (`useExerciseClassification`)
+
+Hook que resolve `exercise_category` para uma lista de exercícios: lê do DB se disponível, chama o endpoint para os que faltam, persiste o resultado.
+
+- [ ] Criar `src/hooks/useExerciseClassification.ts`:
+  - [ ] Input: `ExerciseCatalogItem[]`
+  - [ ] Para cada exercício com `exercise_category !== null`: usar valor do DB directamente
+  - [ ] Para exercícios com `exercise_category === null`: agrupar e enviar ao endpoint `classify-exercises`
+  - [ ] Ao receber resposta: persistir via `supabase.from('exercise_catalog').update({ exercise_category })` para cada item classificado
+  - [ ] Retornar mapa `{ [exerciseId]: 'fitness' | 'performance' | 'mobility' | null }`
+  - [ ] Se endpoint falhar: retornar `null` para os não classificados (degradação graciosa)
+- [ ] `tsc --noEmit` limpo
+- [ ] Commit: `feat(hooks): useExerciseClassification with DB cache`
+
+---
+
+### 9D — Tipos
 
 - [ ] Atualizar `ExerciseCatalogItem` em `src/types/workout.ts`:
   - [ ] Adicionar `exercise_category?: 'fitness' | 'performance' | 'mobility' | null`
@@ -316,26 +364,25 @@ A IA já distingue fitness de desempenho via instrução no prompt (`fitnessOnly
 - [ ] `tsc --noEmit` limpo
 - [ ] Commit: `feat(types): add exercise_category to ExerciseCatalogItem`
 
-### 9C — Editor do Treinador
+---
 
-- [ ] No editor de planos (`WorkoutPlanEditorScreen`): ao adicionar exercício do catálogo, propagar `exercise_category` para `plan_exercises`
-- [ ] Exercícios ad-hoc (criados directamente no editor, sem origem no catálogo): `exercise_category = NULL` — exibidos ao aluno sem filtro; não requerem classificação (efémeros, sem reutilização)
+### 9E — Editor do Treinador
+
+- [ ] Em `WorkoutPlanEditorScreen`: ao adicionar exercício do catálogo ao plano, propagar `exercise_category` para `plan_exercises`
+  - [ ] Se `exercise_category === null` no catálogo: propagar `null` (será classificado na próxima consulta via hook)
+- [ ] Exercícios ad-hoc: `exercise_category = NULL` — sem classificação, sem chamada à IA
 - [ ] Commit: `feat(trainer): propagate exercise_category from catalog to plan_exercises`
 
-### 9D — Filtro no StartWorkoutScreen
+---
 
-- [ ] Quando `fitnessOnlyWorkout = true`: filtrar exercícios do plano do treinador com `exercise_category = 'performance'`
-- [ ] Exercícios com `exercise_category = NULL` (custom sem classificação): exibir sem filtro — confiança no profissional
+### 9F — Filtro no StartWorkoutScreen
+
+- [ ] Ao carregar exercícios do plano do treinador: invocar `useExerciseClassification` para os que têm `exercise_category === null`
+- [ ] Quando `fitnessOnlyWorkout = true`: filtrar exercícios com `exercise_category = 'performance'`
+- [ ] Exercícios com `exercise_category = null` (ad-hoc ou ainda não classificados): exibir sem filtro
 - [ ] Remover nota informativa genérica (Fase 4) — substituída por comportamento real de filtro
-- [ ] Manter teaser de desempenho para exercícios filtrados: "X exercício(s) de desempenho não incluídos no seu plano"
+- [ ] Quando exercícios são filtrados: mostrar nota discreta "X exercício(s) de desempenho não incluídos no seu plano"
 - [ ] Commit: `feat(workout): filter performance exercises from trainer plan by client plan`
-
-### 9E — Classificação batch do catálogo existente
-
-- [ ] Gerar script SQL com classificação de cada exercício existente (assistido por IA com conhecimento de domínio)
-- [ ] Revisão manual pelo treinador / equipa antes de aplicar
-- [ ] Aplicar via `apply_migration`
-- [ ] Commit: `data(catalog): classify existing exercises as fitness/performance/mobility`
 
 ---
 
@@ -354,11 +401,13 @@ A IA já distingue fitness de desempenho via instrução no prompt (`fitnessOnly
 | 6 | PlansScreen — valor visível + badges "Em breve" | ~3h | Baixo | ✅ 2026-06-18 |
 | 7 | i18n — mensagens de upgrade consolidadas | ~2h | Baixo | ✅ 2026-06-18 |
 | 8 | Validação final + docs | ~2h | Baixo | ✅ 2026-06-18 |
-| 9 | Categorização fitness/performance na biblioteca | ~6h | Médio | Pendente |
-| **Total** | | **~30h** | | |
+| 9 | Categorização fitness/performance — IA ad-hoc + cache DB | ~8h | Baixo | Pendente |
+| **Total** | | **~32h** | | |
 
-> **Nota:** Estimativa revista de 24h → 30h pela inclusão da Fase 9 (categorização de exercícios).
+> **Nota:** Estimativa revista de 30h → 32h. Fase 9 redesenhada: classificação ad-hoc pela IA com memoização no DB (6 sub-fases: schema → endpoint IA → hook → types → editor → filtro).
 
-**Decisão de produto — exercícios ad-hoc:** exercícios criados directamente no editor de plano são efémeros (não entram na biblioteca, não são reutilizados). `exercise_category = NULL`; exibidos ao aluno sem filtro. Não requerem classificação. Confiança na expertise do profissional.
+**Decisão de produto — exercícios ad-hoc:** efémeros, nunca entram na biblioteca. `exercise_category = NULL`; exibidos sem filtro. Não requerem classificação. Confiança na expertise do profissional.
+
+**Decisão de produto — classificação IA:** sugestão persistida no DB como cache. Não é fonte de verdade imutável — corrigível manualmente. Modelo: Haiku (rápido, barato). Batch máximo: 50 exercícios por chamada.
 
 **Ordem recomendada:** 0A → 0B → 0C → 1 → 5 → 2 → 3 → 4 → 6 → 7 → 8 → 9
