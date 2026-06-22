@@ -56,13 +56,15 @@ interface WorkoutPlanEditorContext {
 }
 
 interface WorkoutExercise {
-  exercise_name: string;
-  muscle_group:  string;
-  sets:          number;
-  reps:          number;
-  load_kg:       string | number;
-  rest_seconds:  number;
-  notes?:        string;
+  exercise_name:      string;
+  muscle_group:       string;
+  sets:               number;
+  reps:               number;
+  load_kg:            string | number;
+  rest_seconds:       number;
+  notes?:             string;
+  // Propagated from exercise_catalog when selecting from catalog; null for ad-hoc exercises
+  exercise_category?: string | null;
 }
 
 interface TrainerDashboardUser {
@@ -143,13 +145,15 @@ export function WorkoutPlanEditorScreen({
   const applyFromCatalog = (item: ProtocolExerciseItem) => {
     setDraft(prev => ({
       ...prev,
-      exercise_name: item.exercise_name,
-      muscle_group:  item.muscle_group ?? prev.muscle_group,
-      sets:          item.sets         ?? prev.sets,
-      reps:          item.reps         ?? prev.reps,
-      load_kg:       item.load_kg != null ? item.load_kg : prev.load_kg,
-      rest_seconds:  item.rest_seconds ?? prev.rest_seconds,
-      notes:         item.notes        ?? prev.notes ?? '',
+      exercise_name:     item.exercise_name,
+      muscle_group:      item.muscle_group ?? prev.muscle_group,
+      sets:              item.sets         ?? prev.sets,
+      reps:              item.reps         ?? prev.reps,
+      load_kg:           item.load_kg != null ? item.load_kg : prev.load_kg,
+      rest_seconds:      item.rest_seconds ?? prev.rest_seconds,
+      notes:             item.notes        ?? prev.notes ?? '',
+      // Propagate category from catalog — enables client-side fitness/performance filtering
+      exercise_category: (item as any).exercise_category ?? null,
     }));
     setCatalogSuggestions([]);
     setNameError(false);
@@ -311,17 +315,20 @@ export function WorkoutPlanEditorScreen({
       return;
     }
 
-    await supabase.from('plan_exercises').insert(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from('plan_exercises').insert(
       exercises.map((ex, i) => ({
-        plan_id:       plan.id,
-        exercise_name: ex.exercise_name,
-        muscle_group:  ex.muscle_group,
-        sets:          ex.sets,
-        reps:          ex.reps,
-        load_kg:       ex.load_kg !== '' ? Number(ex.load_kg) : null,
-        rest_seconds:  ex.rest_seconds,
-        notes:         ex.notes || null,
-        order_index:   i,
+        plan_id:           plan.id,
+        exercise_name:     ex.exercise_name,
+        muscle_group:      ex.muscle_group,
+        sets:              ex.sets,
+        reps:              ex.reps,
+        load_kg:           ex.load_kg !== '' ? Number(ex.load_kg) : null,
+        rest_seconds:      ex.rest_seconds,
+        notes:             ex.notes || null,
+        order_index:       i,
+        // Propagated from catalog; null for ad-hoc exercises (no classification needed)
+        exercise_category: ex.exercise_category ?? null,
       }))
     );
 

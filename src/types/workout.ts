@@ -214,6 +214,8 @@ export interface ProtocolExerciseItem {
   order_index:         number | null;
 }
 
+export type ExerciseCategory = 'fitness' | 'performance' | 'mobility';
+
 export interface ExerciseCatalogItem {
   id: string;
   name: string;
@@ -232,5 +234,7 @@ export interface ExerciseCatalogItem {
   video_url?: string | null;
   created_at?: string;
   updated_at?: string;
+  // AI-resolved classification — null = not yet classified, shown without filter
+  exercise_category?: ExerciseCategory | null;
 }
 

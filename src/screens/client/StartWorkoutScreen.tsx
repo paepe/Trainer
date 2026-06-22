@@ -12,6 +12,7 @@ import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGe
 import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext } from '../../ai/buildAIContext';
 import type { TrainerContext, TaskContext } from '../../ai/types';
 import { useFeatureAccessMap, useEffectivePlanKey } from '../../hooks/useFeatureAccess';
+import { useExerciseClassification } from '../../hooks/useExerciseClassification';
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
@@ -77,7 +78,7 @@ interface PlanCard {
     id:        string;
     sentAt:    string | null;
     status:    string;
-    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null}>;
+    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null; exercise_category?:string|null}>;
   }
 
 type GenState =
@@ -201,7 +202,44 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
-  const hasTrainerPlans = trainerPlans.length > 0;
+
+  // Flatten all trainer plan exercises for classification
+  const allTrainerExercises = React.useMemo(
+    () => trainerPlans.flatMap(p => p.exercises.map(e => ({
+      id:                e.id,
+      name:              e.exercise_name,
+      muscle_group:      e.muscle_group ?? '',
+      exercise_category: (e.exercise_category as any) ?? null,
+    }))),
+    [trainerPlans],
+  );
+  const { classificationMap } = useExerciseClassification(
+    fitnessOnlyWorkout && !isTrainerView ? allTrainerExercises : [],
+  );
+
+  // When fitnessOnlyWorkout: filter performance exercises from trainer plans
+  const filteredTrainerPlans = React.useMemo(() => {
+    if (!fitnessOnlyWorkout || isTrainerView) return trainerPlans;
+    return trainerPlans.map(p => ({
+      ...p,
+      exercises: p.exercises.filter(e => {
+        const cat = classificationMap[e.id] ?? (e.exercise_category as string | null) ?? null;
+        return cat !== 'performance';
+      }),
+    }));
+  }, [trainerPlans, fitnessOnlyWorkout, isTrainerView, classificationMap]);
+
+  const filteredCount = React.useMemo(() => {
+    if (!fitnessOnlyWorkout || isTrainerView) return 0;
+    return trainerPlans.reduce((acc, p) => {
+      return acc + p.exercises.filter(e => {
+        const cat = classificationMap[e.id] ?? (e.exercise_category as string | null) ?? null;
+        return cat === 'performance';
+      }).length;
+    }, 0);
+  }, [trainerPlans, fitnessOnlyWorkout, isTrainerView, classificationMap]);
+
+  const hasTrainerPlans = filteredTrainerPlans.length > 0;
 
   // Derived accessors — single point of truth from discriminated union
   const loading         = genState.phase === 'loading';
@@ -298,6 +336,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         // Status is NOT mutated here — a plan only becomes 'active' when the workout actually starts.
         const { data: planRows } = await supabase
           .from('workout_plans')
+          // TODO(phase9): add exercise_category after migration 20260621_exercise_category_phase9a.sql is applied and types regenerated
           .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, load_kg, rest_seconds, notes, order_index)')
           .eq('assigned_to', user.id)
           .eq('source', 'manual')
@@ -696,7 +735,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             </div>
             <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.55)' : 'rgba(14,26,43,.5)', marginTop: 2 }}>
               {hasTrainerPlans ? (
-                <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{trainerPlans.length === 1 ? tr('client.workout.planCount_one', { count: trainerPlans.length }) : tr('client.workout.planCount_other', { count: trainerPlans.length })}</>
+                <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{filteredTrainerPlans.length === 1 ? tr('client.workout.planCount_one', { count: filteredTrainerPlans.length }) : tr('client.workout.planCount_other', { count: filteredTrainerPlans.length })}</>
+
               ) : (
                 <>{activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || tr('client.workout.gymFallback')}</>
               )}
@@ -710,8 +750,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         <div style={{ padding: '0 22px 14px' }}>
           <SectionLabel dark={dark}>{tr('client.workout.yourPlans')}</SectionLabel>
 
-          {/* Fitness-only notice: shown when plan may contain performance exercises the client can't access */}
-          {fitnessOnlyWorkout && (
+          {/* Filtered performance exercises notice */}
+          {fitnessOnlyWorkout && filteredCount > 0 && (
             <div style={{
               marginBottom: 10, padding: '10px 12px', borderRadius: 10,
               background: `${t.primary}0d`, border: `1px solid ${t.primary}2a`,
@@ -719,13 +759,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             }}>
               <span style={{ fontSize: 13, flexShrink: 0 }}>ℹ️</span>
               <div style={{ fontSize: 11, color: textSec(dark), lineHeight: 1.5 }}>
-                {tr('trainerPlan.exerciseTypeLocked')}
+                {tr('trainerPlan.exercisesFiltered', { count: filteredCount })}
               </div>
             </div>
           )}
 
           <div style={{ borderRadius: 14, overflow: 'hidden', border: `1px solid ${t.primary}33` }}>
-            {trainerPlans.map((p, i) => {
+            {filteredTrainerPlans.map((p, i) => {
               const isOpen = expandedPlan === p.id;
               const meta = STATUS_META[p.status] ?? STATUS_META.sent!;
               const dateLabel = p.sentAt

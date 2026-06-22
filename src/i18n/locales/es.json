@@ -1156,7 +1156,8 @@
       "dayLocked": "Día de entrenamiento bloqueado",
       "dayLockedNote": "Tu plan {{plan}} permite {{n}} día(s)/semana del plan del entrenador. Actualiza para desbloquear más días.",
       "dayLockedCta": "Ver planes",
-      "exerciseTypeLocked": "Tu plan incluye solo ejercicios de fitness. Los ejercicios de Rendimiento en este plan del entrenador requieren el plan AI Performance."
+      "exerciseTypeLocked": "Tu plan incluye solo ejercicios de fitness. Los ejercicios de Rendimiento en este plan del entrenador requieren el plan AI Performance.",
+      "exercisesFiltered": "{{count}} ejercicio(s) de rendimiento de este plan del entrenador no están incluidos en tu plan."
     },
     "mode": {
       "finishWorkout": "Finalizar Entrenamiento",

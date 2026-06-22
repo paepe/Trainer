@@ -1156,7 +1156,8 @@
       "dayLocked": "Trainingstag gesperrt",
       "dayLockedNote": "Dein {{plan}}-Plan erlaubt {{n}} Trainertag(e)/Woche. Upgrade, um mehr Tage freizuschalten.",
       "dayLockedCta": "Pläne ansehen",
-      "exerciseTypeLocked": "Dein Plan umfasst nur Fitness-Übungen. Performance-Übungen in diesem Trainingsplan erfordern den AI Performance-Plan."
+      "exerciseTypeLocked": "Dein Plan umfasst nur Fitness-Übungen. Performance-Übungen in diesem Trainingsplan erfordern den AI Performance-Plan.",
+      "exercisesFiltered": "{{count}} Performance-Übung(en) aus diesem Trainingsplan sind in deinem Plan nicht enthalten."
     },
     "mode": {
       "finishWorkout": "Training beenden",
