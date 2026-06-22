@@ -1,6 +1,6 @@
 // POST /api/classify-exercises
 // Classifies a batch of exercises as 'fitness', 'performance', or 'mobility'
-// using AI domain knowledge. Results are cached by the caller in exercise_catalog.exercise_category.
+// using AI domain knowledge. Results are cached by the caller in exercises.exercise_category.
 //
 // Design: stateless — no DB writes here. The hook (useExerciseClassification)
 // is responsible for persisting the result. This endpoint is pure classification.
@@ -45,7 +45,7 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: `Maximum ${MAX_BATCH} exercises per call` });
   }
 
-  const apiKey  = process.env.DEEPSEEK_API_KEY || process.env.VITE_DEEPSEEK_API_KEY || '';
+  const apiKey  = process.env.DEEPSEEK_API_KEY || '';
   if (!apiKey) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not set' });
 
   const userPrompt = `Classify these exercises. Return a JSON object with key "classifications" — an array where each item has "id" (string, unchanged from input) and "category" (one of: fitness, performance, mobility).

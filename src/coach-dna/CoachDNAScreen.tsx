@@ -13,11 +13,11 @@ import {
   Step07Focus, Step08Exercises, Step09Design, Step10Structure,
   Step11Audience, Step12Philosophy, StepOutput,
 } from './steps';
-import type { NavFn }       from '../types/auth';
+import type { NavFn, Subscription }       from '../types/auth';
 import type { CoachDNAData, CoachDNAStep } from '../types/coach-dna';
 import { COACH_DNA_DEFAULTS } from '../types/coach-dna';
 import type { PersistedAvatarUser, SaveUserFn } from '../hooks/usePersistedAvatar';
-import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import { useFeatureAccess, useEffectivePlanKey } from '../hooks/useFeatureAccess';
 
 // ─── Step → DB key map (index 0 = step 1) ────────────────────────────────────
 
@@ -33,7 +33,7 @@ const OUTPUT_STEP = TOTAL_STEPS + 1;
 
 interface CoachDNAScreenProps {
   nav:  NavFn;
-  user: { id: string; name?: string; plan_key?: string } & PersistedAvatarUser;
+  user: { id: string; name?: string; plan_key?: string; subscription?: Subscription | null } & PersistedAvatarUser;
   // trainerId override for Studio context; defaults to user.id
   trainerId?: string;
   saveUser?:  SaveUserFn | undefined;
@@ -46,7 +46,8 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp, saveUser }
   const { t: theme } = useTheme();
   const { t: tr } = useTranslation();
   const { fetchCoachDNA, saveCoachDNA } = useCoachDNA(trainerId);
-  const coachDnaAccess = useFeatureAccess(user.plan_key ?? 'trial', 'coach_dna');
+  const effectivePlanKey = useEffectivePlanKey(user.subscription ?? null);
+  const coachDnaAccess   = useFeatureAccess(effectivePlanKey, 'coach_dna');
 
   const [step,      setStep]      = React.useState(0);
   const [data,      setData]      = React.useState<CoachDNAData>(COACH_DNA_DEFAULTS);

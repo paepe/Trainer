@@ -218,15 +218,18 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   );
 
   // When fitnessOnlyWorkout: filter performance exercises from trainer plans
+  // Plans that end up with 0 exercises are removed entirely (avoid empty plan cards)
   const filteredTrainerPlans = React.useMemo(() => {
     if (!fitnessOnlyWorkout || isTrainerView) return trainerPlans;
-    return trainerPlans.map(p => ({
-      ...p,
-      exercises: p.exercises.filter(e => {
-        const cat = classificationMap[e.id] ?? (e.exercise_category as string | null) ?? null;
-        return cat !== 'performance';
-      }),
-    }));
+    return trainerPlans
+      .map(p => ({
+        ...p,
+        exercises: p.exercises.filter(e => {
+          const cat = classificationMap[e.id] ?? (e.exercise_category as string | null) ?? null;
+          return cat !== 'performance';
+        }),
+      }))
+      .filter(p => p.exercises.length > 0);
   }, [trainerPlans, fitnessOnlyWorkout, isTrainerView, classificationMap]);
 
   const filteredCount = React.useMemo(() => {

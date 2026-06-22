@@ -212,6 +212,7 @@ export interface ProtocolExerciseItem {
   notes:               string | null;
   alternative_exercise: string | null;
   order_index:         number | null;
+  exercise_category?:  ExerciseCategory | null;
 }
 
 export type ExerciseCategory = 'fitness' | 'performance' | 'mobility';

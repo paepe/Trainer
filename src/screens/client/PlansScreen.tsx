@@ -1,14 +1,15 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
-import { TRAINER_ROLES, type NavFn, type UserRole, type PlanKey } from '../../types';
+import { TRAINER_ROLES, type NavFn, type UserRole, type PlanKey, type Subscription } from '../../types';
 import { TRAINER_BRAND } from '../../theme/tokens';
 import { C } from './performance/perf-engines';
 import { T, FF_DISPLAY, FF_MONO, ScreenWrap, ScreenTitle } from './performance/perf-atoms';
 import { usePlanPrices } from '../../hooks/usePlanPrices';
+import { useEffectivePlanKey } from '../../hooks/useFeatureAccess';
 
 interface Theme { primary: string; accent: string }
-interface AppUser { id: string | null; role?: UserRole; plan_key?: PlanKey }
+interface AppUser { id: string | null; role?: UserRole; plan_key?: PlanKey; subscription?: Subscription | null }
 
 interface Props {
   nav:    NavFn;
@@ -42,15 +43,19 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
   const { plans, loading } = usePlanPrices(audienceMode);
   const accent = showingTrainer ? TRAINER_PRIMARY : C.cyan;
 
+  // Use effective plan key for display — reflects welcome/trial windows correctly
+  const effectivePlanKey = useEffectivePlanKey(user.subscription ?? null);
+  const displayPlanKey   = effectivePlanKey ?? user.plan_key;
+
   const [billing, setBilling] = React.useState<BillingCycle>('monthly');
   const [selected, setSelected] = React.useState<string | null>(
-    isManage && user.plan_key ? user.plan_key : null
+    isManage && displayPlanKey ? displayPlanKey : null
   );
   const [confirming, setConfirming] = React.useState(false);
 
   React.useEffect(() => { setSelected(null); }, [audienceMode]);
 
-  const canConfirm = !!selected && selected !== user.plan_key && !confirming;
+  const canConfirm = !!selected && selected !== displayPlanKey && !confirming;
 
   const handleConfirm = async () => {
     if (!selected || confirming) return;
@@ -132,10 +137,10 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
             const cents     = billing === 'annual' ? plan.annual_cents  : plan.monthly_cents;
             const free      = cents === 0;
             const isSel     = selected === plan.id;
-            const isCurrent = user.plan_key === plan.id;
+            const isCurrent = displayPlanKey === plan.id;
             const recommended = isManage
               ? isCurrent
-              : user.plan_key ? isCurrent : i === 1;
+              : displayPlanKey ? isCurrent : i === 1;
 
             const name     = tr(`plans.text.${plan.id}.name`);
             const tag      = tr(`plans.text.${plan.id}.tag`);

@@ -670,7 +670,17 @@ export default function App() {
 
   const trialWindow   = useTrialWindow(isTrainer ? subscription : null);
   const welcomeWindow = useWelcomeWindow(!isTrainer ? subscription : null);
-  const [expiredModalDismissed, setExpiredModalDismissed] = React.useState(false);
+
+  // Persist dismissal across sessions — key includes user id so different users on
+  // the same device don't share dismissal state.
+  const expiredModalKey = `expiredModalDismissed_${session?.user?.id ?? 'anon'}`;
+  const [expiredModalDismissed, setExpiredModalDismissed] = React.useState(
+    () => localStorage.getItem(expiredModalKey) === '1',
+  );
+  const dismissExpiredModal = React.useCallback(() => {
+    localStorage.setItem(expiredModalKey, '1');
+    setExpiredModalDismissed(true);
+  }, [expiredModalKey]);
 
   const layoutProps = {
     contentRef,
@@ -728,8 +738,8 @@ export default function App() {
               messageKey="trainer.trial.expiredModal"
               ctaKey="trainer.trial.expiredModalCta"
               accent={t.accent}
-              onUpgrade={() => { setExpiredModalDismissed(true); nav('plans', { source: 'manage' }); }}
-              onDismiss={() => setExpiredModalDismissed(true)}
+              onUpgrade={() => { dismissExpiredModal(); nav('plans', { source: 'manage' }); }}
+              onDismiss={() => dismissExpiredModal()}
               tr={tr}
             />
           )}
@@ -740,8 +750,8 @@ export default function App() {
               messageKey="client.welcome.expiredModal"
               ctaKey="client.welcome.expiredModalCta"
               accent={t.accent}
-              onUpgrade={() => { setExpiredModalDismissed(true); nav('plans', { source: 'manage' }); }}
-              onDismiss={() => setExpiredModalDismissed(true)}
+              onUpgrade={() => { dismissExpiredModal(); nav('plans', { source: 'manage' }); }}
+              onDismiss={() => dismissExpiredModal()}
               tr={tr}
             />
           )}

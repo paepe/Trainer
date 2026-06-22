@@ -153,7 +153,7 @@ export function WorkoutPlanEditorScreen({
       rest_seconds:      item.rest_seconds ?? prev.rest_seconds,
       notes:             item.notes        ?? prev.notes ?? '',
       // Propagate category from catalog — enables client-side fitness/performance filtering
-      exercise_category: (item as any).exercise_category ?? null,
+      exercise_category: item.exercise_category ?? null,
     }));
     setCatalogSuggestions([]);
     setNameError(false);

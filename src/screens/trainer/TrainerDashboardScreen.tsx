@@ -8,9 +8,9 @@ import { Icon } from '../../components/Icon';
 import { AvatarImage } from '../../components/Avatar';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { surfRaised, borderSubtle, textPri, textSec, textMute, ghostBtn } from '../../theme';
-import type { NavFn } from '../../types';
+import type { NavFn, Subscription } from '../../types';
 import type { TrainerAlert, OperationalTask } from '../../types/workout';
-import { useFeatureAccess } from '../../hooks/useFeatureAccess';
+import { useFeatureAccess, useEffectivePlanKey } from '../../hooks/useFeatureAccess';
 import { THEME_VARS as DARK } from '../../theme/tokens';
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
@@ -55,10 +55,11 @@ interface TrainerInvitation {
 }
 
 interface TrainerDashboardUser {
-  id:       string;
-  name?:    string;
-  email?:   string;
-  plan_key?: string;
+  id:           string;
+  name?:        string;
+  email?:       string;
+  plan_key?:    string;
+  subscription?: Subscription | null;
 }
 
 const invitationsTable = () => supabase.from('trainer_invitations');
@@ -80,7 +81,8 @@ export function TrainerDashboardScreen({
   const { t: tr } = useTranslation();
   const { alerts, tasks, acknowledgeAlert, resolveAlert, completeTask } = useAlerts(user?.id);
 
-  const clientLimitAccess = useFeatureAccess(user?.plan_key ?? 'trial', 'clients.limit');
+  const effectivePlanKey  = useEffectivePlanKey(user?.subscription ?? null);
+  const clientLimitAccess = useFeatureAccess(effectivePlanKey, 'clients.limit');
 
   const [clients, setClients]           = React.useState<TrainerClient[]>([]);
   const [loading, setLoading]           = React.useState(true);
