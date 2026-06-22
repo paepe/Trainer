@@ -22,7 +22,9 @@ export type TrialWindowState =
  */
 export function useTrialWindow(subscription: Subscription | null): TrialWindowState {
   if (!subscription || subscription.plan_key !== 'trial') return { state: 'not_applicable' };
-  if (!subscription.current_period_end)                   return { state: 'expired' };
+  // null means account predates the trial window feature — treat as not_applicable,
+  // not expired. Expired requires an actual past date, not absence of a date.
+  if (!subscription.current_period_end)                   return { state: 'not_applicable' };
 
   const msLeft   = new Date(subscription.current_period_end).getTime() - Date.now();
   const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
