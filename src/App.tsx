@@ -381,7 +381,10 @@ export default function App() {
       // No subscription row yet → user hasn't been through plan selection
       // (e.g. signup required e-mail confirmation, so RegisterScreen's
       // post-signup nav('plans') never ran). Send them there first.
-      if (!hasSubscription) { setScreen('plans'); setScreenPayload({ source: 'onboarding' }); return; }
+      // Guard: only redirect if truly no subscription AND not already on a paid plan
+      // (avoids timing race where hasSubscription arrives late but subscription exists).
+      const hasPaidPlan = subscription && subscription.plan_key !== 'free' && subscription.plan_key !== 'trial';
+      if (!hasSubscription && !hasPaidPlan) { setScreen('plans'); setScreenPayload({ source: 'onboarding' }); return; }
       if (isTrainer) { setScreen('trainerDashboard'); return; }
       // For clients: check if profile wizard was already completed
       fetchProfileV2().then(({ data }) => {

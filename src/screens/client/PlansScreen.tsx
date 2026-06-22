@@ -70,11 +70,27 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
     }
   };
 
+  // Onboarding escape: if user already has a plan (arrived here via timing race),
+  // allow them to continue without forcing a selection.
+  const handleOnboardingSkip = () => {
+    nav(isTrainer ? 'trainerDashboard' : 'profile');
+  };
+
   return (
     <ScreenWrap>
       {isManage && (
         <button
           onClick={() => nav(isTrainer ? 'trainerDashboard' : 'checkin')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, color: T.textSec, fontSize: 13 }}
+        >
+          <Icon name="chevL" size={16} color={T.textSec} stroke={2}/> {tr('common.back')}
+        </button>
+      )}
+
+      {/* Onboarding escape hatch — shown when user already has a plan (timing race) */}
+      {source === 'onboarding' && displayPlanKey && displayPlanKey !== 'free' && (
+        <button
+          onClick={handleOnboardingSkip}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, color: T.textSec, fontSize: 13 }}
         >
           <Icon name="chevL" size={16} color={T.textSec} stroke={2}/> {tr('common.back')}
