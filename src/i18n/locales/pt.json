@@ -20,6 +20,7 @@
     "loading": "Carregando…",
     "optional": "(opcional)",
     "noData": "—",
+    "notNow": "Talvez mais tarde",
     "units": {
       "kg": "kg",
       "restSec": "{{seconds}}s descanso",

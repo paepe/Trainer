@@ -7,7 +7,8 @@ import { useCheckinData }  from './hooks/useCheckinData';
 import { useWorkoutData }  from './hooks/useWorkoutData';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useTrainerLink } from './hooks/useTrainerLink';
-import { useTrialStatus } from './hooks/useTrialStatus';
+import { useTrialWindow } from './hooks/useTrialWindow';
+import { useWelcomeWindow } from './hooks/useWelcomeWindow';
 import { WelcomeScreen, LoginScreen, RegisterScreen, ResetPasswordScreen } from './screens/auth';
 import { AppLayout } from './layouts';
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
@@ -667,7 +668,9 @@ export default function App() {
   // Keys match both the bottom-tab key and the screen/route key used in SideMenu.
   const TRAINER_CLIENT_REQUIRED = ['checkin', 'history', 'stats'];
 
-  const trialStatus = useTrialStatus(isTrainer ? subscription : null);
+  const trialWindow   = useTrialWindow(isTrainer ? subscription : null);
+  const welcomeWindow = useWelcomeWindow(!isTrainer ? subscription : null);
+  const [expiredModalDismissed, setExpiredModalDismissed] = React.useState(false);
 
   const layoutProps = {
     contentRef,
@@ -695,12 +698,50 @@ export default function App() {
       <NotificationProvider t={t}>
         <PushListener push={push} />
         <AppLayout role={isTrainer ? "trainer" : "client"} {...layoutProps}>
-          {(trialStatus.state === 'expiring' || trialStatus.state === 'expired') && (
-            <TrialBanner
-              state={trialStatus.state}
-              daysLeft={trialStatus.state === 'expiring' ? trialStatus.daysLeft : 0}
+          {/* Trainer trial window — countdown banner (days 18–21) */}
+          {(trialWindow.state === 'expiring') && (
+            <WindowBanner
+              daysLeft={trialWindow.daysLeft}
+              bannerKey="trainer.trial.countdownBanner"
+              ctaKey="trainer.trial.countdownCta"
               accent={t.accent}
               onUpgrade={() => nav('plans', { source: 'manage' })}
+              tr={tr}
+            />
+          )}
+
+          {/* Client welcome window — countdown banner (days 18–21) */}
+          {(welcomeWindow.state === 'expiring') && (
+            <WindowBanner
+              daysLeft={welcomeWindow.daysLeft}
+              bannerKey="client.welcome.countdownBanner"
+              ctaKey="client.welcome.countdownCta"
+              accent={t.accent}
+              onUpgrade={() => nav('plans', { source: 'manage' })}
+              tr={tr}
+            />
+          )}
+
+          {/* Expiry modal — trainer trial expired */}
+          {trialWindow.state === 'expired' && !expiredModalDismissed && (
+            <ExpiryModal
+              messageKey="trainer.trial.expiredModal"
+              ctaKey="trainer.trial.expiredModalCta"
+              accent={t.accent}
+              onUpgrade={() => { setExpiredModalDismissed(true); nav('plans', { source: 'manage' }); }}
+              onDismiss={() => setExpiredModalDismissed(true)}
+              tr={tr}
+            />
+          )}
+
+          {/* Expiry modal — client welcome window expired */}
+          {welcomeWindow.state === 'expired' && !expiredModalDismissed && (
+            <ExpiryModal
+              messageKey="client.welcome.expiredModal"
+              ctaKey="client.welcome.expiredModalCta"
+              accent={t.accent}
+              onUpgrade={() => { setExpiredModalDismissed(true); nav('plans', { source: 'manage' }); }}
+              onDismiss={() => setExpiredModalDismissed(true)}
               tr={tr}
             />
           )}
@@ -820,49 +861,92 @@ function PlanConfirmScreen({
   );
 }
 
-function TrialBanner({
-  state, daysLeft, accent, onUpgrade, tr,
+// Countdown banner — shown during the last 4 days of trial/welcome window
+function WindowBanner({
+  daysLeft, bannerKey, ctaKey, accent, onUpgrade, tr,
 }: {
-  state:     'expiring' | 'expired';
   daysLeft:  number;
+  bannerKey: string;
+  ctaKey:    string;
   accent:    string;
   onUpgrade: () => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tr:        (key: string, opts?: any) => string;
 }) {
-  const isExpired = state === 'expired';
-  const bg        = isExpired ? '#EF5B3C' : accent;
   return (
     <div style={{
       padding: '10px 18px',
-      background: `${bg}18`,
-      borderBottom: `1.5px solid ${bg}55`,
+      background: `${accent}18`,
+      borderBottom: `1.5px solid ${accent}55`,
       display: 'flex', alignItems: 'center', gap: 10,
       flexShrink: 0,
     }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: bg }}>
-          {isExpired
-            ? tr('trainer.trial.trialExpired')
-            : tr('trainer.trial.trialExpiring', { days: daysLeft })}
-        </div>
-        <div style={{ fontSize: 11.5, color: 'var(--text-sec)', lineHeight: 1.4, marginTop: 1 }}>
-          {isExpired
-            ? tr('trainer.trial.trialExpiredNote')
-            : tr('trainer.trial.trialExpiringNote')}
-        </div>
+      <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: accent }}>
+        {tr(bannerKey, { days: daysLeft })}
       </div>
       <button
         onClick={onUpgrade}
         style={{
           padding: '8px 14px', borderRadius: 10, border: 'none',
-          background: bg, color: '#fff',
+          background: accent, color: '#fff',
           fontFamily: '"Plus Jakarta Sans",sans-serif',
           fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
         }}
       >
-        {tr('trainer.trial.upgradeNow')}
+        {tr(ctaKey)}
       </button>
+    </div>
+  );
+}
+
+// Expiry modal — shown once on first action after trial/welcome window expires
+function ExpiryModal({
+  messageKey, ctaKey, accent, onUpgrade, onDismiss, tr,
+}: {
+  messageKey: string;
+  ctaKey:     string;
+  accent:     string;
+  onUpgrade:  () => void;
+  onDismiss:  () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tr:         (key: string, opts?: any) => string;
+}) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 999,
+      background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+    }}>
+      <div style={{
+        background: 'var(--surface)', borderRadius: 20, padding: '28px 24px',
+        maxWidth: 340, width: '100%', border: '1px solid rgba(255,255,255,.1)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center',
+      }}>
+        <div style={{ fontSize: 32 }}>⏱️</div>
+        <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-pri)', lineHeight: 1.4 }}>
+          {tr(messageKey)}
+        </div>
+        <button
+          onClick={onUpgrade}
+          style={{
+            width: '100%', padding: '13px 0', borderRadius: 12, border: 'none',
+            background: accent, color: '#fff',
+            fontFamily: '"Plus Jakarta Sans",sans-serif',
+            fontSize: 14, fontWeight: 800, cursor: 'pointer',
+          }}
+        >
+          {tr(ctaKey)}
+        </button>
+        <button
+          onClick={onDismiss}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 12, color: 'var(--text-mute)', fontFamily: 'inherit',
+          }}
+        >
+          {tr('common.notNow', { defaultValue: 'Maybe later' })}
+        </button>
+      </div>
     </div>
   );
 }
