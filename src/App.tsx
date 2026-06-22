@@ -558,6 +558,24 @@ export default function App() {
         ['menu',     'menu',    tr('nav.menu')],
       ];
 
+  // These hooks must be declared before any early return to satisfy Rules of Hooks.
+  const trialWindow   = useTrialWindow(isTrainer ? subscription : null);
+  const welcomeWindow = useWelcomeWindow(!isTrainer ? subscription : null);
+
+  const expiredModalKey = `expiredModalDismissed_${session?.user?.id ?? ''}`;
+  const [expiredModalDismissed, setExpiredModalDismissed] = React.useState(
+    () => localStorage.getItem(expiredModalKey) === '1',
+  );
+  const dismissExpiredModal = React.useCallback(() => {
+    localStorage.setItem(expiredModalKey, '1');
+    setExpiredModalDismissed(true);
+  }, [expiredModalKey]);
+
+  React.useEffect(() => {
+    const stored = localStorage.getItem(expiredModalKey) === '1';
+    setExpiredModalDismissed(stored);
+  }, [expiredModalKey, subscription?.plan_key]);
+
   if (loading) return <LoadingScreen primary={t.primary} />;
 
   const screenContent = (() => {
@@ -667,28 +685,6 @@ export default function App() {
   // Trainer tabs/menu items that require a selected client to be usable.
   // Keys match both the bottom-tab key and the screen/route key used in SideMenu.
   const TRAINER_CLIENT_REQUIRED = ['checkin', 'history', 'stats'];
-
-  const trialWindow   = useTrialWindow(isTrainer ? subscription : null);
-  const welcomeWindow = useWelcomeWindow(!isTrainer ? subscription : null);
-
-  // Persist dismissal across sessions — key includes user id so different users on
-  // the same device don't share dismissal state.
-  // Key is empty string when no session — localStorage.getItem('expiredModalDismissed_') is always null
-  // so the modal never triggers for unauthenticated users. Different users on same device are isolated.
-  const expiredModalKey = `expiredModalDismissed_${session?.user?.id ?? ''}`;
-  const [expiredModalDismissed, setExpiredModalDismissed] = React.useState(
-    () => localStorage.getItem(expiredModalKey) === '1',
-  );
-  const dismissExpiredModal = React.useCallback(() => {
-    localStorage.setItem(expiredModalKey, '1');
-    setExpiredModalDismissed(true);
-  }, [expiredModalKey]);
-
-  // Reset dismissal when plan changes — ensures modal reappears if a new window expires
-  React.useEffect(() => {
-    const stored = localStorage.getItem(expiredModalKey) === '1';
-    setExpiredModalDismissed(stored);
-  }, [expiredModalKey, subscription?.plan_key]);
 
   const layoutProps = {
     contentRef,
