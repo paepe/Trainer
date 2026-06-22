@@ -506,6 +506,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           equipment: string[] | null
+          exercise_category: string | null
           id: string
           level: string
           movement_pattern: string | null
@@ -525,6 +526,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           equipment?: string[] | null
+          exercise_category?: string | null
           id?: string
           level: string
           movement_pattern?: string | null
@@ -544,6 +546,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           equipment?: string[] | null
+          exercise_category?: string | null
           id?: string
           level?: string
           movement_pattern?: string | null
@@ -921,6 +924,7 @@ export type Database = {
           alternative_exercise: string | null
           completed: boolean | null
           duration_seconds: number | null
+          exercise_category: string | null
           exercise_name: string
           id: string
           intensity: string | null
@@ -941,6 +945,7 @@ export type Database = {
           alternative_exercise?: string | null
           completed?: boolean | null
           duration_seconds?: number | null
+          exercise_category?: string | null
           exercise_name: string
           id?: string
           intensity?: string | null
@@ -961,6 +966,7 @@ export type Database = {
           alternative_exercise?: string | null
           completed?: boolean | null
           duration_seconds?: number | null
+          exercise_category?: string | null
           exercise_name?: string
           id?: string
           intensity?: string | null
