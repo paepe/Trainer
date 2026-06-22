@@ -281,6 +281,7 @@ Tornar visível o valor real de cada plano na tela de comparação, especialment
 - [x] Commit: `docs(matrix): mark Phases 0-8 complete in FEATURE_ACCESS_MATRIX` ✅ d94a7ea
 - [ ] **Pendente:** Testes E2E manuais (requerem app em execução)
 - [ ] **Pendente:** Push para remote (aguarda aprovação)
+- [x] `fix(app)`: `subscription` adicionado ao `AppUser` — welcome/trial window operacionais ✅ 115c630
 
 ---
 
@@ -315,86 +316,67 @@ Decisões de produto (2026-06-18):
 
 ### 9A — Schema DB
 
-- [ ] Adicionar coluna `exercise_category TEXT CHECK (exercise_category IN ('fitness', 'performance', 'mobility'))` à tabela `exercise_catalog`
-  - [ ] `NULLABLE DEFAULT NULL` — sem valor por defeito; `NULL` = ainda não classificado
-  - [ ] `NULL` nunca é tratado como erro — significa "exibir sem filtro"
-- [ ] Adicionar coluna `exercise_category TEXT` à tabela `plan_exercises`
-  - [ ] Propagada do catálogo ao adicionar exercício de catálogo ao plano
-  - [ ] `NULL` para exercícios ad-hoc — exibidos sem filtro
-- [ ] Arquivar migration em `supabase/sql-archive/`
-- [ ] Commit: `feat(schema): add exercise_category to exercise_catalog and plan_exercises`
+- [x] `exercise_category` adicionada a `exercises` (tabela real — não `exercise_catalog`) com CHECK constraint
+- [x] `exercise_category` adicionada a `plan_exercises` com CHECK constraint + índice
+- [x] Nota: tabela identificada incorrectamente como `exercise_catalog` — nome real é `exercises` ✅ corrigido
+- [x] Migration aplicada no remoto (`sevenseeds.trainer`) via SQL Editor ✅ 2026-06-21
+- [x] Arquivada em `supabase/sql-archive/20260621_exercise_category_phase9a.sql`
+- [x] Commit: `fix(phase9): correct table name exercise_catalog → exercises` ✅ 868b278
 
 ---
 
 ### 9B — Tipos
 
-> **Dependência:** 9A (schema deve existir antes de actualizar tipos e queries)
-
-- [ ] Atualizar `ExerciseCatalogItem` em `src/types/workout.ts`:
-  - [ ] Adicionar `exercise_category?: 'fitness' | 'performance' | 'mobility' | null`
-- [ ] Atualizar query de `plan_exercises` em `StartWorkoutScreen.tsx` para incluir `exercise_category`
-- [ ] `tsc --noEmit` limpo
-- [ ] Commit: `feat(types): add exercise_category to ExerciseCatalogItem`
+- [x] `ExerciseCategory = 'fitness' | 'performance' | 'mobility'` adicionado a `src/types/workout.ts`
+- [x] `ExerciseCatalogItem.exercise_category?: ExerciseCategory | null` adicionado
+- [x] Tipos Supabase regenerados (`src/types/supabase.ts`) — `exercise_category` presente em `exercises` e `plan_exercises`
+- [x] Query de `plan_exercises` activada com `exercise_category` após migration aplicada
+- [x] `tsc --noEmit` limpo
+- [x] Commit: `feat(phase9): activate exercise_category query after migration applied` ✅ f20e6cb
 
 ---
 
-### 9C — Serviço de Classificação IA (novo)
+### 9C — Serviço de Classificação IA
 
-> **Dependência:** 9B (tipos necessários para tipagem do endpoint)
-
-Endpoint leve que recebe uma lista de exercícios (`name + muscle_group`) e devolve a categoria de cada um.
-
-- [ ] Criar `api/classify-exercises.ts`:
-  - [ ] Input: `{ exercises: Array<{ id: string; name: string; muscle_group: string }> }`
-  - [ ] Prompt: instruir a IA a classificar cada exercício como `'fitness'`, `'performance'` ou `'mobility'` com base no nome e grupo muscular
-  - [ ] Output: `{ classifications: Array<{ id: string; category: 'fitness' | 'performance' | 'mobility' }> }`
-  - [ ] Modelo: Haiku (rápido, barato — tarefa de classificação simples)
-  - [ ] Batch máximo: 50 exercícios por chamada
-- [ ] Commit: `feat(api): classify-exercises endpoint using AI`
+- [x] `api/classify-exercises.ts` criado — DeepSeek, temperatura 0.1, batch máximo 50
+- [x] Input/Output tipados; validação de categoria no servidor
+- [x] Timeout 15s; degradação graciosa em erro
+- [x] Commit: `feat(phase9): exercise category classification — AI ad-hoc + DB cache` ✅ f3c48e5
 
 ---
 
 ### 9D — Hook de Classificação com Cache (`useExerciseClassification`)
 
-> **Dependência:** 9B (tipos) + 9C (endpoint)
-
-Hook que resolve `exercise_category` para uma lista de exercícios: lê do DB se disponível, chama o endpoint para os que faltam, persiste o resultado.
-
-- [ ] Criar `src/hooks/useExerciseClassification.ts`:
-  - [ ] Input: `ExerciseCatalogItem[]`
-  - [ ] Para cada exercício com `exercise_category !== null`: usar valor do DB directamente
-  - [ ] Para exercícios com `exercise_category === null`: agrupar e enviar ao endpoint `classify-exercises`
-  - [ ] Ao receber resposta: persistir via `supabase.from('exercise_catalog').update({ exercise_category })` para cada item classificado
-  - [ ] Retornar mapa `{ [exerciseId]: 'fitness' | 'performance' | 'mobility' | null }`
-  - [ ] Se endpoint falhar: retornar `null` para os não classificados (degradação graciosa)
-- [ ] `tsc --noEmit` limpo
-- [ ] Commit: `feat(hooks): useExerciseClassification with DB cache`
+- [x] `src/hooks/useExerciseClassification.ts` criado
+- [x] Lê cache DB → classifica nulls via endpoint → persiste de volta (fire-and-forget)
+- [x] Persiste em tabela `exercises` (não `exercise_catalog`)
+- [x] Degradação graciosa — `null` exibido sem filtro se endpoint falhar
+- [x] `tsc --noEmit` limpo
+- [x] Commit: `fix(phase9): correct table name exercise_catalog → exercises` ✅ 868b278
 
 ---
 
 ### 9E — Editor do Treinador
 
-> **Dependência:** 9B (tipos)
-
-- [ ] Em `WorkoutPlanEditorScreen`: ao adicionar exercício do catálogo ao plano, propagar `exercise_category` para `plan_exercises`
-  - [ ] Se `exercise_category === null` no catálogo: propagar `null` (classificado na próxima consulta via hook)
-- [ ] Exercícios ad-hoc: `exercise_category = NULL` — sem classificação, sem chamada à IA
-- [ ] Commit: `feat(trainer): propagate exercise_category from catalog to plan_exercises`
+- [x] `WorkoutExercise` interface: campo `exercise_category?` adicionado
+- [x] `applyFromCatalog`: propaga `exercise_category` do catálogo para o draft
+- [x] `sendPlan`: inclui `exercise_category` no insert de `plan_exercises`
+- [x] Exercícios ad-hoc: `exercise_category = null` — sem classificação, sem chamada à IA
+- [x] Commit: `feat(phase9): exercise category classification — AI ad-hoc + DB cache` ✅ f3c48e5
 
 ---
 
 ### 9F — Filtro no StartWorkoutScreen
 
-> **Dependência:** 9D (hook) + 9E (editor propaga categoria)
+- [x] `filteredTrainerPlans`: remove exercícios `performance` quando `fitnessOnlyWorkout = true`
+- [x] `filteredCount`: conta exercícios filtrados para nota discreta
+- [x] Nota genérica (Fase 4) substituída por `trainerPlan.exercisesFiltered` com contagem real
+- [x] `useExerciseClassification` invocado apenas quando `fitnessOnlyWorkout && !isTrainerView`
+- [x] i18n: `trainerPlan.exercisesFiltered` adicionado a en/pt/es/de
+- [x] `tsc --noEmit` limpo · 5/5 testes passing · zero regressões
+- [x] Commit: `feat(phase9): exercise category classification — AI ad-hoc + DB cache` ✅ f3c48e5
 
-- [ ] Ao carregar exercícios do plano do treinador: invocar `useExerciseClassification` para os que têm `exercise_category === null`
-- [ ] Quando `fitnessOnlyWorkout = true`: filtrar exercícios com `exercise_category = 'performance'`
-- [ ] Exercícios com `exercise_category = null` (ad-hoc ou ainda não classificados): exibir sem filtro
-- [ ] Remover nota informativa genérica (Fase 4) — substituída por comportamento real de filtro
-- [ ] Quando exercícios são filtrados: mostrar nota discreta "X exercício(s) de desempenho não incluídos no seu plano"
-- [ ] Commit: `feat(workout): filter performance exercises from trainer plan by client plan`
-
-**Ordem correcta de execução:** 9A → 9B → 9C → 9D → 9E → 9F
+**Ordem de execução:** 9A → 9B → 9C → 9D → 9E → 9F ✅
 
 ---
 
@@ -413,10 +395,10 @@ Hook que resolve `exercise_category` para uma lista de exercícios: lê do DB se
 | 6 | PlansScreen — valor visível + badges "Em breve" | ~3h | Baixo | ✅ 2026-06-18 |
 | 7 | i18n — mensagens de upgrade consolidadas | ~2h | Baixo | ✅ 2026-06-18 |
 | 8 | Validação final + docs | ~2h | Baixo | ✅ 2026-06-18 |
-| 9 | Categorização fitness/performance — IA ad-hoc + cache DB | ~8h | Baixo | Pendente |
+| 9 | Categorização fitness/performance — IA ad-hoc + cache DB | ~8h | Baixo | ✅ 2026-06-21 |
 | **Total** | | **~32h** | | |
 
-> **Nota:** Estimativa revista de 30h → 32h. Fase 9 redesenhada: classificação ad-hoc pela IA com memoização no DB (6 sub-fases: schema → endpoint IA → hook → types → editor → filtro).
+> **Nota:** Estimativa revista de 30h → 32h. Fase 9 redesenhada: classificação ad-hoc pela IA com memoização no DB (6 sub-fases: schema → types → endpoint → hook → editor → filtro).
 
 **Decisão de produto — exercícios ad-hoc:** efémeros, nunca entram na biblioteca. `exercise_category = NULL`; exibidos sem filtro. Não requerem classificação. Confiança na expertise do profissional.
 
