@@ -92,14 +92,14 @@ export function useExerciseClassification(exercises: ExerciseInput[]): {
             allClassified[c.id] = c.category;
           }
 
-          // Persist back to exercise_catalog (cache for future calls)
+          // Persist back to exercises table (cache for future calls)
           // Fire-and-forget — does not block UI.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const db = supabase as any;
           if (classifications.length > 0) {
             void Promise.all(
               classifications.map(c =>
-                db.from('exercise_catalog')
+                db.from('exercises')
                   .update({ exercise_category: c.category })
                   .eq('id', c.id),
               ),
