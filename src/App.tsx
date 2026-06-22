@@ -13,7 +13,7 @@ import { AppLayout } from './layouts';
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
 import { Spinner } from './ui';
 import { NotificationProvider, useNotification, ThemeProvider } from './contexts';
-import type { Profile, CheckIn, Exercise, UserRole, ClientProfile, PlanKey } from './types';
+import type { Profile, CheckIn, Exercise, UserRole, ClientProfile, PlanKey, Subscription } from './types';
 import type { AppPreferences } from './types/preferences';
 import { TRAINER_ROLES } from './types/auth';
 import i18n, { detectDeviceLanguage } from './i18n';
@@ -58,6 +58,7 @@ interface AppUser {
   gender: string;
   avatar_url: string | null;
   plan_key: PlanKey;
+  subscription: Subscription | null;
 }
 
 export default function App() {
@@ -468,18 +469,19 @@ export default function App() {
 
   const user: AppUser = profile
     ? {
-        id:         profile.id,
-        name:       profile.name       ?? '',
-        email:      profile.email      ?? '',
-        role:       profile.role       ?? 'client',
-        phone:      profile.phone      ?? '',
-        dob:        profile.dob        ?? '',
-        location:   profile.location   ?? '',
-        gender:     profile.gender     ?? '',
-        avatar_url: profile.avatar_url ?? null,
-        plan_key:   subscription?.plan_key ?? 'free',
+        id:           profile.id,
+        name:         profile.name       ?? '',
+        email:        profile.email      ?? '',
+        role:         profile.role       ?? 'client',
+        phone:        profile.phone      ?? '',
+        dob:          profile.dob        ?? '',
+        location:     profile.location   ?? '',
+        gender:       profile.gender     ?? '',
+        avatar_url:   profile.avatar_url ?? null,
+        plan_key:     subscription?.plan_key ?? 'free',
+        subscription: subscription ?? null,
       }
-    : { id: null, name: '', email: '', role: 'client', phone: '', dob: '', location: '', gender: '', avatar_url: null, plan_key: 'free' };
+    : { id: null, name: '', email: '', role: 'client', phone: '', dob: '', location: '', gender: '', avatar_url: null, plan_key: 'free', subscription: null };
 
   const trainerUser = {
     ...user,

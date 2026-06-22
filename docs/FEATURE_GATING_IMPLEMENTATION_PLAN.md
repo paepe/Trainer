@@ -3,7 +3,7 @@
 **Versão:** 2.0
 **Data:** 2026-06-18
 **Referência:** `docs/FEATURE_ACCESS_MATRIX.md` · `docs/PLAN_PRICING_MODEL.md`
-**Estimativa total:** ~21h
+**Estimativa total:** ~32h
 **Auditoria base:** 2026-06-18 — gaps integrados nas Fases 0, 6B e 8
 
 ---
@@ -326,11 +326,25 @@ Decisões de produto (2026-06-18):
 
 ---
 
-### 9B — Serviço de Classificação IA (novo)
+### 9B — Tipos
 
-Endpoint ou Edge Function leve que recebe uma lista de exercícios (`name + muscle_group`) e devolve a categoria de cada um.
+> **Dependência:** 9A (schema deve existir antes de actualizar tipos e queries)
 
-- [ ] Criar `api/classify-exercises.ts` (ou Edge Function `classify-exercises`):
+- [ ] Atualizar `ExerciseCatalogItem` em `src/types/workout.ts`:
+  - [ ] Adicionar `exercise_category?: 'fitness' | 'performance' | 'mobility' | null`
+- [ ] Atualizar query de `plan_exercises` em `StartWorkoutScreen.tsx` para incluir `exercise_category`
+- [ ] `tsc --noEmit` limpo
+- [ ] Commit: `feat(types): add exercise_category to ExerciseCatalogItem`
+
+---
+
+### 9C — Serviço de Classificação IA (novo)
+
+> **Dependência:** 9B (tipos necessários para tipagem do endpoint)
+
+Endpoint leve que recebe uma lista de exercícios (`name + muscle_group`) e devolve a categoria de cada um.
+
+- [ ] Criar `api/classify-exercises.ts`:
   - [ ] Input: `{ exercises: Array<{ id: string; name: string; muscle_group: string }> }`
   - [ ] Prompt: instruir a IA a classificar cada exercício como `'fitness'`, `'performance'` ou `'mobility'` com base no nome e grupo muscular
   - [ ] Output: `{ classifications: Array<{ id: string; category: 'fitness' | 'performance' | 'mobility' }> }`
@@ -340,7 +354,9 @@ Endpoint ou Edge Function leve que recebe uma lista de exercícios (`name + musc
 
 ---
 
-### 9C — Hook de Classificação com Cache (`useExerciseClassification`)
+### 9D — Hook de Classificação com Cache (`useExerciseClassification`)
+
+> **Dependência:** 9B (tipos) + 9C (endpoint)
 
 Hook que resolve `exercise_category` para uma lista de exercícios: lê do DB se disponível, chama o endpoint para os que faltam, persiste o resultado.
 
@@ -356,20 +372,12 @@ Hook que resolve `exercise_category` para uma lista de exercícios: lê do DB se
 
 ---
 
-### 9D — Tipos
-
-- [ ] Atualizar `ExerciseCatalogItem` em `src/types/workout.ts`:
-  - [ ] Adicionar `exercise_category?: 'fitness' | 'performance' | 'mobility' | null`
-- [ ] Atualizar query de `plan_exercises` em `StartWorkoutScreen.tsx` para incluir `exercise_category`
-- [ ] `tsc --noEmit` limpo
-- [ ] Commit: `feat(types): add exercise_category to ExerciseCatalogItem`
-
----
-
 ### 9E — Editor do Treinador
 
+> **Dependência:** 9B (tipos)
+
 - [ ] Em `WorkoutPlanEditorScreen`: ao adicionar exercício do catálogo ao plano, propagar `exercise_category` para `plan_exercises`
-  - [ ] Se `exercise_category === null` no catálogo: propagar `null` (será classificado na próxima consulta via hook)
+  - [ ] Se `exercise_category === null` no catálogo: propagar `null` (classificado na próxima consulta via hook)
 - [ ] Exercícios ad-hoc: `exercise_category = NULL` — sem classificação, sem chamada à IA
 - [ ] Commit: `feat(trainer): propagate exercise_category from catalog to plan_exercises`
 
@@ -377,12 +385,16 @@ Hook que resolve `exercise_category` para uma lista de exercícios: lê do DB se
 
 ### 9F — Filtro no StartWorkoutScreen
 
+> **Dependência:** 9D (hook) + 9E (editor propaga categoria)
+
 - [ ] Ao carregar exercícios do plano do treinador: invocar `useExerciseClassification` para os que têm `exercise_category === null`
 - [ ] Quando `fitnessOnlyWorkout = true`: filtrar exercícios com `exercise_category = 'performance'`
 - [ ] Exercícios com `exercise_category = null` (ad-hoc ou ainda não classificados): exibir sem filtro
 - [ ] Remover nota informativa genérica (Fase 4) — substituída por comportamento real de filtro
 - [ ] Quando exercícios são filtrados: mostrar nota discreta "X exercício(s) de desempenho não incluídos no seu plano"
 - [ ] Commit: `feat(workout): filter performance exercises from trainer plan by client plan`
+
+**Ordem correcta de execução:** 9A → 9B → 9C → 9D → 9E → 9F
 
 ---
 
