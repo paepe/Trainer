@@ -95,8 +95,6 @@ export function TrainerDashboardScreen({
   const [pendingReviews, setPendingReviews] = React.useState<SafetyGateEvent[]>([]);
   const [reviewingId, setReviewingId]   = React.useState<string | null>(null);
   const [activeSessions, setActiveSessions] = React.useState<ActiveSession[]>([]);
-  const [_activeNowOpen, _setActiveNowOpen]   = React.useState(false);
-  const [_activeNowFilter, _setActiveNowFilter] = React.useState<'all' | 'training'>('all');
   const [invitations, setInvitations]   = React.useState<TrainerInvitation[]>([]);
   const [invitationBusyId, setInvitationBusyId] = React.useState<string | null>(null);
   const [startingFree, setStartingFree] = React.useState(false);

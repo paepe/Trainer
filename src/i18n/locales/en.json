@@ -44,6 +44,8 @@
   },
   "inbox": {
     "title": "Inbox",
+    "pending_count_one": " ({{count}} pending)",
+    "pending_count_other": " ({{count}} pending)",
     "noAlerts": "No alerts yet.",
     "noMessages": "No messages yet.",
     "approved": "Your trainer reviewed your readiness and gave the green light. Start your workout now.",

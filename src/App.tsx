@@ -673,7 +673,9 @@ export default function App() {
 
   // Persist dismissal across sessions — key includes user id so different users on
   // the same device don't share dismissal state.
-  const expiredModalKey = `expiredModalDismissed_${session?.user?.id ?? 'anon'}`;
+  // Key is empty string when no session — localStorage.getItem('expiredModalDismissed_') is always null
+  // so the modal never triggers for unauthenticated users. Different users on same device are isolated.
+  const expiredModalKey = `expiredModalDismissed_${session?.user?.id ?? ''}`;
   const [expiredModalDismissed, setExpiredModalDismissed] = React.useState(
     () => localStorage.getItem(expiredModalKey) === '1',
   );
@@ -681,6 +683,12 @@ export default function App() {
     localStorage.setItem(expiredModalKey, '1');
     setExpiredModalDismissed(true);
   }, [expiredModalKey]);
+
+  // Reset dismissal when plan changes — ensures modal reappears if a new window expires
+  React.useEffect(() => {
+    const stored = localStorage.getItem(expiredModalKey) === '1';
+    setExpiredModalDismissed(stored);
+  }, [expiredModalKey, subscription?.plan_key]);
 
   const layoutProps = {
     contentRef,

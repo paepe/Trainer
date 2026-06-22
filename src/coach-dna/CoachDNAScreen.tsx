@@ -213,7 +213,7 @@ export function CoachDNAScreen({ nav, user, trainerId: trainerIdProp, saveUser }
         </div>
         <div style={{ fontSize: 13, color: DARK.textSec, lineHeight: 1.6, marginBottom: 28, maxWidth: 320 }}>
           {tr('trainer.dashboard.coachDnaLockedNote', {
-            plan: (user.plan_key ?? 'trial').toUpperCase(),
+            plan: (effectivePlanKey ?? user.plan_key ?? 'trial').toUpperCase(),
           })}
         </div>
         <div style={{ display: 'flex', gap: 12 }}>

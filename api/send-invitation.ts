@@ -14,7 +14,7 @@ const INVITE_TTL_DAYS = 7;
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { trainerId, trainerName, invitedEmail, invitedName, planKey } = req.body || {};
+  const { trainerId, trainerName, invitedEmail, invitedName } = req.body || {};
   if (!trainerId || !invitedEmail || !invitedName) {
     return res.status(400).json({ error: 'trainerId, invitedEmail, invitedName required' });
   }
@@ -31,16 +31,43 @@ export default async function handler(req: any, res: any) {
   };
 
   try {
-    // ── 0. Plan limit guard — check feature_permissions for clients.limit ──────
-    const [permRes, countRes] = await Promise.all([
+    // ── 0. Plan limit guard — resolve trainer's real plan_key from DB (never trust client) ──
+    // During trial window the effectivePlanKey is 'pro' (50 clients). After expiry it reverts
+    // to 'trial' (3 clients). We resolve this server-side by checking current_period_end.
+    const [subRes, permCountData] = await Promise.all([
       fetch(
-        `${supabaseUrl}/rest/v1/feature_permissions?select=allowed,limit_value&feature_key=eq.clients.limit&plan_key=eq.${encodeURIComponent(planKey ?? 'trial')}`,
+        `${supabaseUrl}/rest/v1/subscriptions?select=plan_key,current_period_end&user_id=eq.${encodeURIComponent(trainerId)}&limit=1`,
         { headers: restHeaders },
       ),
       fetch(
         `${supabaseUrl}/rest/v1/trainer_clients?select=id&trainer_id=eq.${encodeURIComponent(trainerId)}&status=eq.active`,
         { headers: restHeaders },
       ),
+    ]);
+
+    // Resolve effective plan key server-side (mirrors useEffectivePlanKey logic)
+    let resolvedPlanKey = 'trial';
+    if (subRes.ok) {
+      const subRows = await subRes.json() as { plan_key: string; current_period_end: string | null }[];
+      const sub = subRows[0];
+      if (sub) {
+        const isInWindow = sub.current_period_end && new Date(sub.current_period_end) > new Date();
+        if (sub.plan_key === 'trial' && isInWindow) {
+          resolvedPlanKey = 'pro';   // trial window active → PRO limits
+        } else if (sub.plan_key === 'free' && isInWindow) {
+          resolvedPlanKey = 'ai_fitness'; // welcome window active → ai_fitness limits
+        } else {
+          resolvedPlanKey = sub.plan_key;
+        }
+      }
+    }
+
+    const [permRes, countRes] = await Promise.all([
+      fetch(
+        `${supabaseUrl}/rest/v1/feature_permissions?select=allowed,limit_value&feature_key=eq.clients.limit&plan_key=eq.${encodeURIComponent(resolvedPlanKey)}`,
+        { headers: restHeaders },
+      ),
+      Promise.resolve(permCountData),
     ]);
 
     if (permRes.ok && countRes.ok) {

@@ -6,6 +6,7 @@ import { Icon, AvatarImage, ScreenTitle, SectionLabel } from '../../components';
 import { Spinner } from '../../ui';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn, Subscription } from '../../types';
+import type { ExerciseCategory } from '../../types/workout';
 import type { Json } from '../../types/supabase';
 import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGeneration';
 import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
@@ -209,7 +210,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       id:                e.id,
       name:              e.exercise_name,
       muscle_group:      e.muscle_group ?? '',
-      exercise_category: (e.exercise_category as any) ?? null,
+      exercise_category: (e.exercise_category as ExerciseCategory | null) ?? null,
     }))),
     [trainerPlans],
   );
@@ -761,7 +762,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             }}>
               <span style={{ fontSize: 13, flexShrink: 0 }}>ℹ️</span>
               <div style={{ fontSize: 11, color: textSec(dark), lineHeight: 1.5 }}>
-                {tr('trainerPlan.exercisesFiltered', { count: filteredCount })}
+                {tr('client.trainerPlan.exercisesFiltered', { count: filteredCount })}
               </div>
             </div>
           )}
@@ -1126,10 +1127,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           }}>
             <div style={{ fontSize: 24, textAlign: 'center', marginBottom: 12 }}>🔒</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 8, textAlign: 'center' }}>
-              {tr('trainerPlan.dayLocked')}
+              {tr('client.trainerPlan.dayLocked')}
             </div>
             <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,.6)', lineHeight: 1.55, textAlign: 'center', marginBottom: 20 }}>
-              {tr('trainerPlan.dayLockedNote', { plan: user.plan_key ?? 'free', n: trainerPlanDaysCap ?? 1 })}
+              {tr('client.trainerPlan.dayLockedNote', { plan: effectivePlanKey ?? user.plan_key ?? 'free', n: trainerPlanDaysCap ?? 1 })}
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button
@@ -1150,7 +1151,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                   border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
                 }}
               >
-                {tr('trainerPlan.dayLockedCta')}
+                {tr('client.trainerPlan.dayLockedCta')}
               </button>
             </div>
           </div>

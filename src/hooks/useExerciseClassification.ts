@@ -15,16 +15,20 @@ interface ExerciseInput {
 /**
  * Resolves exercise_category for a list of exercises.
  *
- * Strategy (Opção A + persistent cache):
+ * Strategy (Opção A + optional persistent cache):
  * 1. Exercises with exercise_category already set → use DB value directly
  * 2. Exercises with exercise_category === null → batch to classify-exercises endpoint
- * 3. On response → persist classification back to exercise_catalog (cache for future)
+ * 3. On response → if persistCache=true, write back to exercises table (IDs must be exercises.id)
  * 4. If endpoint fails → return null for unclassified (graceful degradation, show without filter)
  *
- * This hook is intentionally side-effect-free beyond the DB persist — it never blocks
- * the UI and never throws. The caller decides what to do with null values.
+ * IMPORTANT: persistCache must only be true when exercise IDs come from the `exercises` catalog
+ * table. When IDs come from `plan_exercises` (e.g. StartWorkoutScreen), set persistCache=false —
+ * plan_exercises.id ≠ exercises.id, so the update would silently affect zero rows.
  */
-export function useExerciseClassification(exercises: ExerciseInput[]): {
+export function useExerciseClassification(
+  exercises: ExerciseInput[],
+  { persistCache = false }: { persistCache?: boolean } = {},
+): {
   classificationMap: ClassificationMap;
   loading: boolean;
 } {
@@ -60,7 +64,6 @@ export function useExerciseClassification(exercises: ExerciseInput[]): {
 
     (async () => {
       try {
-        // Batch in chunks of 50 (endpoint limit)
         const CHUNK = 50;
         const allClassified: ClassificationMap = { ...resolved };
 
@@ -87,16 +90,16 @@ export function useExerciseClassification(exercises: ExerciseInput[]): {
 
           const classifications = data.classifications ?? [];
 
-          // Apply to local map
           for (const c of classifications) {
             allClassified[c.id] = c.category;
           }
 
-          // Persist back to exercises table (cache for future calls)
-          // Fire-and-forget — does not block UI.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const db = supabase as any;
-          if (classifications.length > 0) {
+          // Only persist when IDs belong to the exercises catalog table.
+          // plan_exercises.id ≠ exercises.id — persisting with plan_exercises IDs
+          // would silently update zero rows in the exercises table.
+          if (persistCache && classifications.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const db = supabase as any;
             void Promise.all(
               classifications.map(c =>
                 db.from('exercises')
@@ -118,7 +121,7 @@ export function useExerciseClassification(exercises: ExerciseInput[]): {
 
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exercises.map(e => e.id).join(',')]);
+  }, [exercises.map(e => e.id).join(','), persistCache]);
 
   return { classificationMap, loading };
 }

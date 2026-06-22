@@ -44,6 +44,8 @@
   },
   "inbox": {
     "title": "Mensagens",
+    "pending_count_one": " ({{count}} pendente)",
+    "pending_count_other": " ({{count}} pendentes)",
     "noAlerts": "Nenhum alerta ainda.",
     "noMessages": "Nenhuma mensagem ainda.",
     "approved": "Seu treinador avaliou sua prontidão e deu sinal verde. Inicie seu treino agora.",

@@ -315,8 +315,7 @@ export function WorkoutPlanEditorScreen({
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from('plan_exercises').insert(
+    await supabase.from('plan_exercises').insert(
       exercises.map((ex, i) => ({
         plan_id:           plan.id,
         exercise_name:     ex.exercise_name,

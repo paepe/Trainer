@@ -44,6 +44,8 @@
   },
   "inbox": {
     "title": "Bandeja de entrada",
+    "pending_count_one": " ({{count}} pendiente)",
+    "pending_count_other": " ({{count}} pendientes)",
     "noAlerts": "Aún no hay alertas.",
     "noMessages": "Aún no hay mensajes.",
     "approved": "Tu entrenador revisó tu preparación y dio el visto bueno. Comienza tu entrenamiento ahora.",
