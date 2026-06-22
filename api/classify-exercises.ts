@@ -96,12 +96,19 @@ Expected output format:
     }
 
     const raw = data.choices?.[0]?.message?.content?.trim() ?? '';
-    const match = raw.match(/\{[\s\S]*\}/);
+    // Non-greedy match — stops at first closing brace that completes the object.
+    // Falls back to greedy if non-greedy produces invalid JSON (e.g. nested objects).
+    const match = raw.match(/\{[\s\S]*?\}(?=\s*$)/) ?? raw.match(/\{[\s\S]*\}/);
     if (!match) {
       return res.status(502).json({ error: 'AI response did not contain valid JSON' });
     }
 
-    const parsed = JSON.parse(match[0]) as { classifications?: Classification[] };
+    let parsed: { classifications?: Classification[] };
+    try {
+      parsed = JSON.parse(match[0]);
+    } catch {
+      return res.status(502).json({ error: 'AI response contained malformed JSON' });
+    }
     const classifications: Classification[] = (parsed.classifications ?? []).filter(
       (c): c is Classification =>
         typeof c.id === 'string' &&

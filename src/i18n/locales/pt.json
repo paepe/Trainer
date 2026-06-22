@@ -44,8 +44,6 @@
   },
   "inbox": {
     "title": "Mensagens",
-    "pending_count_one": " ({{count}} pendente)",
-    "pending_count_other": " ({{count}} pendentes)",
     "noAlerts": "Nenhum alerta ainda.",
     "noMessages": "Nenhuma mensagem ainda.",
     "approved": "Seu treinador avaliou sua prontidão e deu sinal verde. Inicie seu treino agora.",
@@ -1158,7 +1156,6 @@
       "dayLocked": "Dia de treino bloqueado",
       "dayLockedNote": "O seu plano {{plan}} permite {{n}} dia(s)/semana do plano do treinador. Actualize para desbloquear mais dias.",
       "dayLockedCta": "Ver planos",
-      "exerciseTypeLocked": "O seu plano inclui apenas exercícios de fitness. Exercícios de Desempenho neste plano do treinador requerem o plano AI Performance.",
       "exercisesFiltered": "{{count}} exercício(s) de desempenho deste plano do treinador não estão incluídos no seu plano."
     },
     "mode": {

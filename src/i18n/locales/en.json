@@ -44,8 +44,6 @@
   },
   "inbox": {
     "title": "Inbox",
-    "pending_count_one": " ({{count}} pending)",
-    "pending_count_other": " ({{count}} pending)",
     "noAlerts": "No alerts yet.",
     "noMessages": "No messages yet.",
     "approved": "Your trainer reviewed your readiness and gave the green light. Start your workout now.",
@@ -1158,7 +1156,6 @@
       "dayLocked": "Training day locked",
       "dayLockedNote": "Your {{plan}} plan allows {{n}} trainer-plan day(s) per week. Upgrade to unlock more days.",
       "dayLockedCta": "View plans",
-      "exerciseTypeLocked": "Your plan includes fitness exercises only. Performance exercises in this trainer plan require the AI Performance plan.",
       "exercisesFiltered": "{{count}} performance exercise(s) from this trainer plan are not included in your plan."
     },
     "mode": {

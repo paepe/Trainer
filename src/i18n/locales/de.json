@@ -44,8 +44,6 @@
   },
   "inbox": {
     "title": "Posteingang",
-    "pending_count_one": " ({{count}} ausstehend)",
-    "pending_count_other": " ({{count}} ausstehend)",
     "noAlerts": "Noch keine Warnungen.",
     "noMessages": "Noch keine Nachrichten.",
     "approved": "Dein Trainer hat deine Bereitschaft bewertet und grünes Licht gegeben. Starte jetzt dein Training.",
@@ -1158,7 +1156,6 @@
       "dayLocked": "Trainingstag gesperrt",
       "dayLockedNote": "Dein {{plan}}-Plan erlaubt {{n}} Trainertag(e)/Woche. Upgrade, um mehr Tage freizuschalten.",
       "dayLockedCta": "Pläne ansehen",
-      "exerciseTypeLocked": "Dein Plan umfasst nur Fitness-Übungen. Performance-Übungen in diesem Trainingsplan erfordern den AI Performance-Plan.",
       "exercisesFiltered": "{{count}} Performance-Übung(en) aus diesem Trainingsplan sind in deinem Plan nicht enthalten."
     },
     "mode": {

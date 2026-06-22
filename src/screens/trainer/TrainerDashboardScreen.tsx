@@ -231,7 +231,6 @@ export function TrainerDashboardScreen({
         trainerName:  user.name ?? '',
         invitedEmail: email,
         invitedName:  name,
-        planKey:      user.plan_key ?? 'trial',
       }),
     });
     const json = await res.json().catch(() => ({}));
