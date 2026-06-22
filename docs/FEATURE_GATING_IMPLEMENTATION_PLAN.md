@@ -77,9 +77,9 @@ O valor correcto é **50**, conforme `docs/FEATURE_ACCESS_MATRIX.md`.
 - [x] Em `useEffectivePlanKey`: se `inTrialWindow` activo, resolver com `plan_key = 'pro'`
 - [x] Adicionar i18n keys (en/pt/es/de):
   - [x] `trial.countdownBanner`, `trial.countdownCta`, `trial.expiredModal`, `trial.expiredModalCta`
-- [ ] **UI pendente:** Banner de countdown (dias 18–21) na home do trainer
-- [ ] **UI pendente:** Modal obrigatório na primeira acção bloqueada após expiração
-- [ ] Commit: `feat(trial): 21-day PRO trial window for new trainer accounts` ✅ aeeefb4
+- [x] **UI:** `WindowBanner` — countdown nos últimos 4 dias (`expiring`), usa `trainer.trial.countdownBanner` + `countdownCta`
+- [x] **UI:** `ExpiryModal` — modal full-screen na primeira sessão após expiração; dispensável via "Maybe later"
+- [x] Commit: `feat(ui): add countdown banners + expiry modals` ✅ 8fcffd8
 
 ---
 
@@ -104,9 +104,9 @@ O valor correcto é **50**, conforme `docs/FEATURE_ACCESS_MATRIX.md`.
 - [x] Em `useEffectivePlanKey`: se `inWelcomeWindow` activo, resolver com `plan_key = 'ai_fitness'`
 - [x] Adicionar i18n keys (en/pt/es/de):
   - [x] `client.welcome.countdownBanner`, `countdownCta`, `expiredModal`, `expiredModalCta`
-- [ ] **UI pendente:** Banner de countdown (dias 18–21) na home/dashboard do cliente
-- [ ] **UI pendente:** Modal na primeira acção bloqueada após expiração da welcome window
-- [ ] Commit: `feat(welcome-window): 21-day AI Fitness trial for new free accounts` ✅ f067b5a
+- [x] **UI:** `WindowBanner` — countdown nos últimos 4 dias (`expiring`), usa `client.welcome.countdownBanner` + `countdownCta`
+- [x] **UI:** `ExpiryModal` — modal full-screen na primeira sessão após expiração; dispensável via "Maybe later"
+- [x] Commit: `feat(ui): add countdown banners + expiry modals` ✅ 8fcffd8
 
 ---
 
