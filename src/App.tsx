@@ -378,13 +378,13 @@ export default function App() {
         return;
       }
       if (!['welcome', 'login'].includes(screen)) return;
-      // No subscription row yet → user hasn't been through plan selection
-      // (e.g. signup required e-mail confirmation, so RegisterScreen's
-      // post-signup nav('plans') never ran). Send them there first.
-      // Guard: only redirect if truly no subscription AND not already on a paid plan
-      // (avoids timing race where hasSubscription arrives late but subscription exists).
-      const hasPaidPlan = subscription && subscription.plan_key !== 'free' && subscription.plan_key !== 'trial';
-      if (!hasSubscription && !hasPaidPlan) { setScreen('plans'); setScreenPayload({ source: 'onboarding' }); return; }
+      // Only redirect to plan selection when the user genuinely has no plan yet.
+      // Users on any paid plan (ai_fitness, ai_performance, pro, elite) have already
+      // chosen — showing plans would be noise and unwanted pressure.
+      // 'free' and 'trial' with no prior selection → send to plans.
+      // No subscription row at all → send to plans (new account, email-confirmed late).
+      const needsPlanSelection = !subscription || subscription.plan_key === 'free' || subscription.plan_key === 'trial';
+      if (needsPlanSelection && !hasSubscription) { setScreen('plans'); setScreenPayload({ source: 'onboarding' }); return; }
       if (isTrainer) { setScreen('trainerDashboard'); return; }
       // For clients: check if profile wizard was already completed
       fetchProfileV2().then(({ data }) => {
