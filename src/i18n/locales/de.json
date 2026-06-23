@@ -78,7 +78,7 @@
       "approve": "Genehmigen",
       "reject": "Ablehnen",
       "startWorkout": "Training starten",
-      "startWorkoutTimeout": "Training starten — Trainer hat nicht geantwortet",
+      "startWorkoutTimeout": "Mit KI-personalisiertem Plan fortfahren",
       "startWorkoutTimeoutNote": "Dein Training wird von der KI mit deinem Profil und heutigem Check-in erstellt.",
       "viewWorkoutPlan": "Trainingsplan ansehen",
       "viewClientFeedback": "Bewertung ansehen."
