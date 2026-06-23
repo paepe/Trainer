@@ -19,6 +19,7 @@ interface CheckInResultProps {
   freeSession?:            boolean;
   linkedTrainerId?:        string;
   userId?:                 string | null;
+  gender?:                 string | undefined; // from profile — drives gendered translations
   workoutReadyExpiryMin?:  number; // default 30
 }
 
@@ -75,7 +76,7 @@ const STATUS_META: Record<string, { color: string; bg: string }> = {
   blocked: { color: '#EF5B3C', bg: '#EF5B3C12' },
 };
 
-export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, onBack, isTrainerContext, freeSession, linkedTrainerId, userId, workoutReadyExpiryMin = 30 }: CheckInResultProps) {
+export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, onBack, isTrainerContext, freeSession, linkedTrainerId, userId, gender, workoutReadyExpiryMin = 30 }: CheckInResultProps) {
   const { t: tr } = useTranslation();
   const meta         = STATUS_META[result.status] ?? { color: '#4ade80', bg: '#4ade8012' };
   const isBlocked    = result.ai_led_blocked;
@@ -296,7 +297,9 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
             }}
             style={{ ...primaryBtn(isBlocked ? accent : primary) }}
           >
-            {isBlocked ? tr('checkin.result.notifyTrainerCaution') : tr('checkin.result.notifyTrainerReady')}
+            {isBlocked
+              ? tr('checkin.result.notifyTrainerCaution')
+              : tr('checkin.result.notifyTrainerReady', gender === 'female' ? { context: 'female' } : gender === 'male' ? { context: 'male' } : {})}
           </button>
         )
       ) : (

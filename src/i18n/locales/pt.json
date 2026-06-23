@@ -63,6 +63,8 @@
       "plansExpiredTitle": "Planos expirados",
       "plansExpiredBody": "{{count}} plano(s) pendente(s) de um cliente foram cancelados automaticamente após {{expiryDays}} dias.",
       "readyToTrainTitle": "{{name}} está pronto para treinar",
+      "readyToTrainTitle_male": "{{name}} está pronto para treinar",
+      "readyToTrainTitle_female": "{{name}} está pronta para treinar",
       "readyToTrainBody": "Prontidão {{score}}/100 · Aprove ou rejeite a solicitação de treino.",
       "yourClient": "Seu cliente"
     },
@@ -120,7 +122,11 @@
       "invitation_accepted": "{{clientName}} aceitou seu convite!",
       "invitation_accepted_body": "{{clientName}} entrou como seu cliente.",
       "ready_to_train": "{{name}} está pronto para treinar",
+      "ready_to_train_male": "{{name}} está pronto para treinar",
+      "ready_to_train_female": "{{name}} está pronta para treinar",
       "ready_to_train_body": "Prontidão {{score}}/100 — aprove ou rejeite a solicitação de treino.",
+      "ready_to_train_male_body": "Prontidão {{score}}/100 — aprove ou rejeite a solicitação de treino.",
+      "ready_to_train_female_body": "Prontidão {{score}}/100 — aprove ou rejeite a solicitação de treino.",
       "new_plan": "Novo plano de treino de {{trainerName}}",
       "new_plan_body": "{{trainerName}} enviou um plano de treino para você.",
       "plan_cancelled": "{{name}} cancelou o plano de treino de {{planDate}}.",
@@ -1301,6 +1307,8 @@
       "freeBlockedBody": "A prontidão foi bloqueada pelo safety gate. O plano não pode ser liberado — volte.",
       "notifyTrainerCaution": "⚠ Notificar treinador — cautela hoje",
       "notifyTrainerReady": "✦ Notificar treinador — estou pronto",
+      "notifyTrainerReady_male": "✦ Notificar treinador — estou pronto",
+      "notifyTrainerReady_female": "✦ Notificar treinador — estou pronta",
       "trainerNotified": "Treinador já notificado, aguarde.",
       "trainerNotifiedCountdown": "Resposta esperada em {{min}} min",
       "backButton": "← Voltar",
@@ -1315,6 +1323,8 @@
         "at_risk": "Em risco"
       },
       "readyPushTitle": "{{name}} está pronto para treinar",
+      "readyPushTitle_male": "{{name}} está pronto para treinar",
+      "readyPushTitle_female": "{{name}} está pronta para treinar",
       "readyPushBody": "Prontidão {{score}}/100 · Aprove ou rejeite a solicitação de treino."
     }
   },

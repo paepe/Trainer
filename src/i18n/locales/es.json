@@ -120,7 +120,11 @@
       "invitation_accepted": "¡{{clientName}} aceptó tu invitación!",
       "invitation_accepted_body": "{{clientName}} se unió como tu cliente.",
       "ready_to_train": "{{name}} está listo para entrenar",
+      "ready_to_train_male": "{{name}} está listo para entrenar",
+      "ready_to_train_female": "{{name}} está lista para entrenar",
       "ready_to_train_body": "Preparación {{score}}/100 — aprueba o rechaza su solicitud de entrenamiento.",
+      "ready_to_train_male_body": "Preparación {{score}}/100 — aprueba o rechaza su solicitud de entrenamiento.",
+      "ready_to_train_female_body": "Preparación {{score}}/100 — aprueba o rechaza su solicitud de entrenamiento.",
       "new_plan": "Nuevo plan de entrenamiento de {{trainerName}}",
       "new_plan_body": "{{trainerName}} te envió un plan de entrenamiento.",
       "plan_cancelled": "{{name}} canceló el plan de entrenamiento del {{planDate}}.",
@@ -1301,6 +1305,8 @@
       "freeBlockedBody": "La preparación fue bloqueada por el safety gate. El plan no puede liberarse — vuelve atrás.",
       "notifyTrainerCaution": "⚠ Notificar entrenador — precaución hoy",
       "notifyTrainerReady": "✦ Notificar entrenador — estoy listo",
+      "notifyTrainerReady_male": "✦ Notificar entrenador — estoy listo",
+      "notifyTrainerReady_female": "✦ Notificar entrenador — estoy lista",
       "trainerNotified": "Entrenador notificado, por favor espera.",
       "trainerNotifiedCountdown": "Respuesta esperada en {{min}} min",
       "backButton": "← Volver",
@@ -1315,6 +1321,8 @@
         "at_risk": "En riesgo"
       },
       "readyPushTitle": "{{name}} está listo para entrenar",
+      "readyPushTitle_male": "{{name}} está listo para entrenar",
+      "readyPushTitle_female": "{{name}} está lista para entrenar",
       "readyPushBody": "Preparación {{score}}/100 · Apruebe o rechace la solicitud de entrenamiento."
     }
   },

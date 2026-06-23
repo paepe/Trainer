@@ -297,10 +297,23 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     }
     return params;
   };
-  const renderTitle = (item: InboxItem) =>
-    item.template_key ? tr(`inbox.templates.${item.template_key}`, templateParams(item)) : item.title;
-  const renderBody = (item: InboxItem) =>
-    item.template_key ? tr(`inbox.templates.${item.template_key}_body`, templateParams(item)) : item.body;
+  // gender param drives i18next context (_male/_female/_other suffix)
+  const resolveGenderContext = (item: InboxItem) => {
+    const g = item.params?.gender as string | undefined;
+    if (g === 'female') return 'female';
+    if (g === 'male')   return 'male';
+    return undefined; // no context → default (gender-neutral)
+  };
+  const renderTitle = (item: InboxItem) => {
+    const ctx = resolveGenderContext(item);
+    const params = { ...templateParams(item), ...(ctx ? { context: ctx } : {}) };
+    return item.template_key ? tr(`inbox.templates.${item.template_key}`, params) : item.title;
+  };
+  const renderBody = (item: InboxItem) => {
+    const ctx = resolveGenderContext(item);
+    const params = { ...templateParams(item), ...(ctx ? { context: ctx } : {}) };
+    return item.template_key ? tr(`inbox.templates.${item.template_key}_body`, params) : item.body;
+  };
 
   return (
     <>

@@ -171,6 +171,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           freeSession={freeSession}
           linkedTrainerId={linkedTrainerId}
           userId={user?.id}
+          gender={biologicalSex}
           workoutReadyExpiryMin={workoutReadyExpiryMin}
           onDone={() => nav(
             mode === 'trainer-context'      ? 'workoutPlanEditor' :
@@ -183,9 +184,13 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
             } else if (mode === 'client-with-trainer') {
               const score = result?.readiness_score ?? '?';
               const name  = userName || tr('inbox.notification.yourClient');
-              notify(linkedTrainerId, tr('checkin.result.readyPushTitle', { name }), tr('checkin.result.readyPushBody', { score }), undefined, {
+              // Pass gender so the trainer's inbox can resolve the correct
+              // gendered form in PT, ES, DE ("pronto" vs "pronta", etc.)
+              const gender = biologicalSex ?? 'prefer_not_to_say';
+              const genderCtx = gender === 'female' ? 'female' : gender === 'male' ? 'male' : undefined;
+              notify(linkedTrainerId, tr('checkin.result.readyPushTitle', { name, ...(genderCtx ? { context: genderCtx } : {}) }), tr('checkin.result.readyPushBody', { score }), undefined, {
                 type: 'workout_ready', templateKey: 'ready_to_train',
-                params: { name, score }, expiresInMin: workoutReadyExpiryMin,
+                params: { name, score, gender }, expiresInMin: workoutReadyExpiryMin,
                 ...(user?.id ? { fromUserId: user.id } : {}),
               });
               // Stay on result screen — CheckInResult shows countdown and handles state
