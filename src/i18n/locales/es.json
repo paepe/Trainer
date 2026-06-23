@@ -69,7 +69,6 @@
     "pending_count_one": " ({{count}} pendiente)",
     "pending_count_other": " ({{count}} pendientes)",
     "loading": "Cargando mensajes...",
-    "requestExpires": "La solicitud vence a las {{time}}",
     "workout_ready": {
       "countdown": "Tu entrenador tiene {{min}} min para responder",
       "expired_no_response": "El entrenador no respondió a tiempo"

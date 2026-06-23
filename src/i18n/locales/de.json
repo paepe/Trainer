@@ -69,7 +69,6 @@
     "pending_count_one": " ({{count}} ausstehend)",
     "pending_count_other": " ({{count}} ausstehend)",
     "loading": "Posteingang wird geladen...",
-    "requestExpires": "Anfrage läuft ab um {{time}}",
     "workout_ready": {
       "countdown": "Dein Trainer hat {{min}} Min zum Antworten",
       "expired_no_response": "Der Trainer hat nicht rechtzeitig geantwortet"

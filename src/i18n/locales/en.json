@@ -69,7 +69,6 @@
     "pending_count_one": " ({{count}} pending)",
     "pending_count_other": " ({{count}} pending)",
     "loading": "Loading inbox...",
-    "requestExpires": "Request expires at {{time}}",
     "workout_ready": {
       "countdown": "Your trainer has {{min}} min to respond",
       "expired_no_response": "Your trainer did not respond in time"

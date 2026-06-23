@@ -88,7 +88,6 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
   type RequestState = 'idle' | 'pending' | 'expired';
   const [requestState, setRequestState] = React.useState<RequestState>('idle');
   const [minsLeft, setMinsLeft] = React.useState<number>(workoutReadyExpiryMin);
-  const [notified, setNotified] = React.useState(false); // kept for compat, drives requestState
 
   // On mount: check DB for an active workout_ready sent to this trainer
   React.useEffect(() => {
@@ -113,7 +112,6 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         if (expiresAt > now) {
           // Still within window — show pending state with remaining time
           setRequestState('pending');
-          setNotified(true);
           setMinsLeft(Math.ceil((expiresAt - now) / 60000));
         } else {
           // Expired without response — restore button for new request
@@ -132,7 +130,6 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         if (prev <= 1) {
           clearInterval(id);
           setRequestState('expired'); // time's up — restore button
-          setNotified(false);
           return 0;
         }
         return prev - 1;
@@ -294,7 +291,6 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           <button
             onClick={() => {
               setRequestState('pending');
-              setNotified(true);
               setMinsLeft(workoutReadyExpiryMin);
               onAlert();
             }}
