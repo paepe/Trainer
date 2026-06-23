@@ -1302,7 +1302,7 @@
       "freeBlockedTitle": "Nicht trainingsbereit",
       "freeBlockedBody": "Die Bereitschaft wurde vom Safety Gate blockiert. Der Plan kann nicht freigegeben werden — zurück.",
       "notifyTrainerCaution": "⚠ Trainer benachrichtigen — Vorsicht heute",
-      "notifyTrainerReady": "✦ Trainer benachrichtigen — ich bin bereit",
+      "notifyTrainerReady": "✦ Trainer — ich bin bereit",
       "trainerNotified": "Trainer benachrichtigt — bitte warten.",
       "trainerNotifiedCountdown": "Antwort erwartet in {{min}} Min",
       "backButton": "← Zurück",

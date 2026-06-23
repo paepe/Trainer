@@ -1300,7 +1300,7 @@
       "freeBlockedTitle": "Not ready to train",
       "freeBlockedBody": "Readiness was blocked by the safety gate. The plan cannot be released — go back.",
       "notifyTrainerCaution": "⚠ Notify trainer — caution today",
-      "notifyTrainerReady": "✦ Notify trainer — I'm ready",
+      "notifyTrainerReady": "✦ Notify trainer — ready",
       "trainerNotified": "Trainer notified — please wait.",
       "trainerNotifiedCountdown": "Response expected in {{min}} min",
       "backButton": "← Back",
