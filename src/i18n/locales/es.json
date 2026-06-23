@@ -1303,6 +1303,7 @@
       "notifyTrainerCaution": "⚠ Notificar entrenador — precaución hoy",
       "notifyTrainerReady": "✦ Notificar entrenador — estoy listo",
       "trainerNotified": "Entrenador notificado, por favor espera.",
+      "trainerNotifiedCountdown": "Respuesta esperada en {{min}} min",
       "backButton": "← Volver",
       "painAlertLevels": {
         "low": "Bajo",

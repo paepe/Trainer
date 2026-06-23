@@ -170,6 +170,8 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           isTrainerContext={mode === 'trainer-context'}
           freeSession={freeSession}
           linkedTrainerId={linkedTrainerId}
+          userId={user?.id}
+          workoutReadyExpiryMin={workoutReadyExpiryMin}
           onDone={() => nav(
             mode === 'trainer-context'      ? 'workoutPlanEditor' :
             mode === 'client-with-trainer'  ? 'checkin' :
@@ -186,7 +188,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
                 params: { name, score }, expiresInMin: workoutReadyExpiryMin,
                 ...(user?.id ? { fromUserId: user.id } : {}),
               });
-              nav('checkin');
+              // Stay on result screen — CheckInResult shows countdown and handles state
             }
           }}
           onBack={goHub}

@@ -4,19 +4,22 @@ import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outli
 import type { SafetyGateResult } from '../../types/checkin-v2';
 import type { RiskClassification } from '../../types/profile-v2';
 import { RiskCard } from '../../components/RiskCard';
+import { supabase } from '../../supabase';
 
 interface CheckInResultProps {
-  dark:              boolean;
-  primary:           string;
-  accent:            string;
-  result:            SafetyGateResult;
-  risk?:             RiskClassification;
-  onDone:            () => void;
-  onAlert:           () => void;
-  onBack?:           () => void;
-  isTrainerContext?: boolean;
-  freeSession?:      boolean;
-  linkedTrainerId?:  string;
+  dark:                    boolean;
+  primary:                 string;
+  accent:                  string;
+  result:                  SafetyGateResult;
+  risk?:                   RiskClassification;
+  onDone:                  () => void;
+  onAlert:                 () => void;
+  onBack?:                 () => void;
+  isTrainerContext?:        boolean;
+  freeSession?:            boolean;
+  linkedTrainerId?:        string;
+  userId?:                 string | null;
+  workoutReadyExpiryMin?:  number; // default 30
 }
 
 function ReadinessGauge({ score, color, dark }: { score: number; color: string; dark: boolean }) {
@@ -72,12 +75,72 @@ const STATUS_META: Record<string, { color: string; bg: string }> = {
   blocked: { color: '#EF5B3C', bg: '#EF5B3C12' },
 };
 
-export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, onBack, isTrainerContext, freeSession, linkedTrainerId }: CheckInResultProps) {
+export function CheckInResult({ dark, primary, accent, result, risk, onDone, onAlert, onBack, isTrainerContext, freeSession, linkedTrainerId, userId, workoutReadyExpiryMin = 30 }: CheckInResultProps) {
   const { t: tr } = useTranslation();
   const meta         = STATUS_META[result.status] ?? { color: '#4ade80', bg: '#4ade8012' };
   const isBlocked    = result.ai_led_blocked;
   const hasTrainer   = !!linkedTrainerId;
-  const [notified, setNotified] = React.useState(false);
+
+  // ── Pending request state ─────────────────────────────────────────────────
+  // 'idle'    — no active request, button available
+  // 'pending' — request sent, within expiry window, button replaced by countdown
+  // 'expired' — expiry passed with no response, button restored for new request
+  type RequestState = 'idle' | 'pending' | 'expired';
+  const [requestState, setRequestState] = React.useState<RequestState>('idle');
+  const [minsLeft, setMinsLeft] = React.useState<number>(workoutReadyExpiryMin);
+  const [notified, setNotified] = React.useState(false); // kept for compat, drives requestState
+
+  // On mount: check DB for an active workout_ready sent to this trainer
+  React.useEffect(() => {
+    if (!hasTrainer || !userId || !linkedTrainerId) return;
+    let cancelled = false;
+
+    supabase
+      .from('notification_log')
+      .select('id, expires_at, response')
+      .eq('from_user_id', userId)
+      .eq('to_user_id', linkedTrainerId)
+      .eq('type', 'workout_ready')
+      .is('response', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (cancelled || !data || data.length === 0) return;
+        const row = data[0] as { id: string; expires_at: string | null; response: string | null };
+        if (!row.expires_at) return;
+        const expiresAt = new Date(row.expires_at).getTime();
+        const now = Date.now();
+        if (expiresAt > now) {
+          // Still within window — show pending state with remaining time
+          setRequestState('pending');
+          setNotified(true);
+          setMinsLeft(Math.ceil((expiresAt - now) / 60000));
+        } else {
+          // Expired without response — restore button for new request
+          setRequestState('expired');
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [hasTrainer, userId, linkedTrainerId]);
+
+  // Countdown: decrement minsLeft every minute while pending
+  React.useEffect(() => {
+    if (requestState !== 'pending') return;
+    const id = setInterval(() => {
+      setMinsLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(id);
+          setRequestState('expired'); // time's up — restore button
+          setNotified(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 60000);
+    return () => clearInterval(id);
+  }, [requestState]);
+
   // Free Training Session: a "blocked" readiness verdict (computeSafetyGate) means
   // NOT READY — the plan must not be unlocked. Only "go back" is offered.
   const freeBlocked  = freeSession && result.status === 'blocked';
@@ -212,17 +275,29 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           {isBlocked ? tr('checkin.result.reviewSafetyAlert') : tr('checkin.result.buildPlan')}
         </button>
       ) : hasTrainer ? (
-        notified ? (
+        requestState === 'pending' ? (
+          // Active request — show countdown, block new request
           <div style={{
             padding: '14px 20px', borderRadius: 16, textAlign: 'center',
             background: `${primary}18`, border: `1.5px solid ${primary}44`,
-            fontSize: 14, fontWeight: 600, color: primary, lineHeight: 1.5,
+            fontSize: 13, fontWeight: 600, color: primary, lineHeight: 1.6,
           }}>
-            {tr('checkin.result.trainerNotified')}
+            <div>{tr('checkin.result.trainerNotified')}</div>
+            {minsLeft > 0 && (
+              <div style={{ fontSize: 11, fontWeight: 400, marginTop: 4, opacity: 0.8 }}>
+                {tr('checkin.result.trainerNotifiedCountdown', { min: minsLeft })}
+              </div>
+            )}
           </div>
         ) : (
+          // idle or expired — button available for new request
           <button
-            onClick={() => { setNotified(true); onAlert(); }}
+            onClick={() => {
+              setRequestState('pending');
+              setNotified(true);
+              setMinsLeft(workoutReadyExpiryMin);
+              onAlert();
+            }}
             style={{ ...primaryBtn(isBlocked ? accent : primary) }}
           >
             {isBlocked ? tr('checkin.result.notifyTrainerCaution') : tr('checkin.result.notifyTrainerReady')}
