@@ -111,12 +111,12 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         const expiresAt = new Date(row.expires_at).getTime();
         const now = Date.now();
         if (expiresAt > now) {
-          // Still within window — show pending state with remaining time
-          setRequestState('pending');
+          // Within window — only set pending if user hasn't already clicked (guard against race)
+          setRequestState(prev => prev === 'pending' ? 'pending' : 'pending');
           setMinsLeft(Math.ceil((expiresAt - now) / 60000));
         } else {
-          // Expired without response — restore button for new request
-          setRequestState('expired');
+          // Expired — only revert if user hasn't sent a new request (guard against race)
+          setRequestState(prev => prev === 'pending' ? 'pending' : 'expired');
         }
       });
 
@@ -262,7 +262,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           background: `${accent}14`, border: `1.5px solid ${accent}55`, textAlign: 'center',
         }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: accent, marginBottom: 4 }}>
-            {tr('checkin.result.freeBlockedTitle')}
+            {tr('checkin.result.freeBlockedTitle', gender === 'female' ? { context: 'female' } : gender === 'male' ? { context: 'male' } : {})}
           </div>
           <div style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.5 }}>
             {tr('checkin.result.freeBlockedBody')}

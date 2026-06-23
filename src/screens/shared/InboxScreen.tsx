@@ -257,27 +257,29 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     );
     for (const item of expired) {
       if (notifiedTimeoutsRef.current.has(item.id)) continue;
+      // Mark in ref immediately to prevent duplicate calls within the same session.
+      // DB query below provides cross-session deduplication.
       notifiedTimeoutsRef.current.add(item.id);
-      // Check if we already sent a workout_timeout to this client for this request
-      void supabase
-        .from('notification_log')
-        .select('id')
-        .eq('to_user_id', item.from_user_id!)
-        .eq('type', 'workout_timeout')
-        .eq('from_user_id', userId ?? '')
-        .gte('created_at', item.created_at)
-        .limit(1)
-        .then(({ data }) => {
-          if (data && data.length > 0) return; // already sent
-          void notify(
-            item.from_user_id!,
-            tr('inbox.workout_timeout.title'),
-            tr('inbox.workout_timeout.body'),
-            undefined,
-            { type: 'workout_timeout', templateKey: 'workout_timeout',
-              params: {}, ...(userId ? { fromUserId: userId } : {}) },
-          );
-        });
+      void (async () => {
+        // DB check: has a workout_timeout already been sent for this workout_ready?
+        const { data } = await supabase
+          .from('notification_log')
+          .select('id')
+          .eq('to_user_id', item.from_user_id!)
+          .eq('type', 'workout_timeout')
+          .eq('from_user_id', userId ?? '')
+          .gte('created_at', item.created_at)
+          .limit(1);
+        if (data && data.length > 0) return; // already sent — cross-session guard
+        void notify(
+          item.from_user_id!,
+          tr('inbox.workout_timeout.title'),
+          tr('inbox.workout_timeout.body'),
+          undefined,
+          { type: 'workout_timeout', templateKey: 'workout_timeout',
+            params: {}, ...(userId ? { fromUserId: userId } : {}) },
+        );
+      })();
     }
   }, [items, isTrainer, userId, tr]);
 

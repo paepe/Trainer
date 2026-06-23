@@ -108,7 +108,9 @@
     "trainer_timeout_workout": {
       "title": "{{name}} entrenó de forma autónoma",
       "body": "El entrenador no respondió a tiempo. {{name}} inició un entrenamiento generado por IA.",
-      "note": "Este cliente entrenó con un plan generado por IA después de que venció el plazo de respuesta."
+      "note": "Este cliente entrenó con un plan generado por IA después de que venció el plazo de respuesta.",
+      "note_male": "Este cliente entrenó con un plan generado por IA después de que venció el plazo de respuesta.",
+      "note_female": "Esta clienta entrenó con un plan generado por IA después de que venció el plazo de respuesta."
     },
     "yourTrainerFallback": "Tu entrenador",
     "yourClientFallback": "Tu cliente",
@@ -123,8 +125,6 @@
       "ready_to_train_male": "{{name}} está listo para entrenar",
       "ready_to_train_female": "{{name}} está lista para entrenar",
       "ready_to_train_body": "Preparación {{score}}/100 — aprueba o rechaza su solicitud de entrenamiento.",
-      "ready_to_train_male_body": "Preparación {{score}}/100 — aprueba o rechaza su solicitud de entrenamiento.",
-      "ready_to_train_female_body": "Preparación {{score}}/100 — aprueba o rechaza su solicitud de entrenamiento.",
       "new_plan": "Nuevo plan de entrenamiento de {{trainerName}}",
       "new_plan_body": "{{trainerName}} te envió un plan de entrenamiento.",
       "plan_cancelled": "{{name}} canceló el plan de entrenamiento del {{planDate}}.",
@@ -1302,6 +1302,8 @@
       "reviewSafetyAlert": "Revisar alerta de seguridad →",
       "buildPlan": "Crear plan →",
       "freeBlockedTitle": "No está listo para entrenar",
+      "freeBlockedTitle_male": "No está listo para entrenar",
+      "freeBlockedTitle_female": "No está lista para entrenar",
       "freeBlockedBody": "La preparación fue bloqueada por el safety gate. El plan no puede liberarse — vuelve atrás.",
       "notifyTrainerCaution": "⚠ Notificar entrenador — precaución hoy",
       "notifyTrainerReady": "✦ Notificar entrenador — estoy listo",

@@ -110,7 +110,9 @@
     "trainer_timeout_workout": {
       "title": "{{name}} treinou autonomamente",
       "body": "O treinador não respondeu no prazo. {{name}} iniciou um treino gerado pela IA.",
-      "note": "Este aluno treinou com um plano gerado pela IA após o prazo de resposta ter expirado."
+      "note": "Este aluno treinou com um plano gerado pela IA após o prazo de resposta ter expirado.",
+      "note_male": "Este aluno treinou com um plano gerado pela IA após o prazo de resposta ter expirado.",
+      "note_female": "Esta aluna treinou com um plano gerado pela IA após o prazo de resposta ter expirado."
     },
     "yourTrainerFallback": "Seu treinador",
     "yourClientFallback": "Seu cliente",
@@ -125,8 +127,6 @@
       "ready_to_train_male": "{{name}} está pronto para treinar",
       "ready_to_train_female": "{{name}} está pronta para treinar",
       "ready_to_train_body": "Prontidão {{score}}/100 — aprove ou rejeite a solicitação de treino.",
-      "ready_to_train_male_body": "Prontidão {{score}}/100 — aprove ou rejeite a solicitação de treino.",
-      "ready_to_train_female_body": "Prontidão {{score}}/100 — aprove ou rejeite a solicitação de treino.",
       "new_plan": "Novo plano de treino de {{trainerName}}",
       "new_plan_body": "{{trainerName}} enviou um plano de treino para você.",
       "plan_cancelled": "{{name}} cancelou o plano de treino de {{planDate}}.",
@@ -1304,6 +1304,8 @@
       "reviewSafetyAlert": "Revisar alerta de segurança →",
       "buildPlan": "Criar plano →",
       "freeBlockedTitle": "Não está pronto para treinar",
+      "freeBlockedTitle_male": "Não está pronto para treinar",
+      "freeBlockedTitle_female": "Não está pronta para treinar",
       "freeBlockedBody": "A prontidão foi bloqueada pelo safety gate. O plano não pode ser liberado — volte.",
       "notifyTrainerCaution": "⚠ Notificar treinador — cautela hoje",
       "notifyTrainerReady": "✦ Notificar treinador — estou pronto",

@@ -332,7 +332,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           tr('inbox.trainer_timeout_workout.title', { name: user.name || tr('client.workout.notificationYourClient') }),
           tr('inbox.trainer_timeout_workout.body',  { name: user.name || tr('client.workout.notificationYourClient') }),
           { type: 'trainer_timeout_workout', templateKey: 'trainer_timeout_workout',
-            params: { name: user.name || '' },
+            params: { name: user.name || '', gender: user.gender ?? '' },
             entityType: 'workout_plan', entityId: planRow.id },
         );
       }
@@ -781,7 +781,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       </div>
 
       {/* Your Plans — unified trainer-plan list (sent / active / postponed) */}
-      {hasTrainerPlans && (
+      {hasTrainerPlans && source !== 'trainer_timeout' && (
         <div style={{ padding: '0 22px 14px' }}>
           <SectionLabel dark={dark}>{tr('client.workout.yourPlans')}</SectionLabel>
 

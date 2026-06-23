@@ -108,7 +108,9 @@
     "trainer_timeout_workout": {
       "title": "{{name}} hat autonom trainiert",
       "body": "Der Trainer hat nicht rechtzeitig geantwortet. {{name}} startete ein KI-generiertes Training.",
-      "note": "Dieser Kunde hat mit einem KI-generierten Plan trainiert, nachdem das Antwortfenster abgelaufen war."
+      "note": "Dieser Kunde hat mit einem KI-generierten Plan trainiert, nachdem das Antwortfenster abgelaufen war.",
+      "note_male": "Dieser Kunde hat mit einem KI-generierten Plan trainiert, nachdem das Antwortfenster abgelaufen war.",
+      "note_female": "Diese Kundin hat mit einem KI-generierten Plan trainiert, nachdem das Antwortfenster abgelaufen war."
     },
     "yourTrainerFallback": "Dein Trainer",
     "yourClientFallback": "Dein Kunde",
