@@ -99,7 +99,12 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "done": "Done",
-      "trainedAutonomously": "Trained autonomously"
+      "trainedAutonomously": "Trained autonomously",
+      "trainerTimeout": "Trainer timed out"
+    },
+    "workout_timeout": {
+      "title": "Your trainer did not respond in time",
+      "body": "You can now start your workout with an AI-generated plan."
     },
     "trainer_timeout_workout": {
       "title": "{{name}} trained autonomously",

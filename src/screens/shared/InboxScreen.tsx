@@ -245,6 +245,42 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     setBusy(null);
   };
 
+  // ── Trainer: auto-notify client when workout_ready expires without response ──
+  // Runs once after items load. For each expired workout_ready with no response,
+  // sends a workout_timeout notification to the client so they see the fallback
+  // button in their own inbox. Fire-and-forget — never blocks the UI.
+  const notifiedTimeoutsRef = React.useRef<Set<string>>(new Set());
+  React.useEffect(() => {
+    if (!isTrainer || items.length === 0) return;
+    const expired = items.filter(
+      i => i.type === 'workout_ready' && isExpired(i) && !i.response && i.from_user_id,
+    );
+    for (const item of expired) {
+      if (notifiedTimeoutsRef.current.has(item.id)) continue;
+      notifiedTimeoutsRef.current.add(item.id);
+      // Check if we already sent a workout_timeout to this client for this request
+      void supabase
+        .from('notification_log')
+        .select('id')
+        .eq('to_user_id', item.from_user_id!)
+        .eq('type', 'workout_timeout')
+        .eq('from_user_id', userId ?? '')
+        .gte('created_at', item.created_at)
+        .limit(1)
+        .then(({ data }) => {
+          if (data && data.length > 0) return; // already sent
+          void notify(
+            item.from_user_id!,
+            tr('inbox.workout_timeout.title'),
+            tr('inbox.workout_timeout.body'),
+            undefined,
+            { type: 'workout_timeout', templateKey: 'workout_timeout',
+              params: {}, ...(userId ? { fromUserId: userId } : {}) },
+          );
+        });
+    }
+  }, [items, isTrainer, userId, tr]);
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   const pendingCount = items.filter(i => i.type === 'workout_ready' && !i.response && !isExpired(i)).length;
@@ -355,16 +391,9 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                       <CountdownBanner expiresAt={item.expires_at} primary={t.primary} tr={tr} />
                     )}
 
-                    {/* Expired without response — client fallback */}
-                    {!isTrainer && isReady && expired && !item.response && (
+                    {/* CLIENT: fallback after trainer timeout — arrives as workout_timeout notification */}
+                    {!isTrainer && item.type === 'workout_timeout' && !item.response && (
                       <div style={{ marginBottom: 12 }}>
-                        <div style={{
-                          marginBottom: 8, padding: '6px 10px', borderRadius: 8,
-                          background: `${t.amber ?? '#F5A623'}14`, fontSize: 11,
-                          color: t.amber ?? '#F5A623', lineHeight: 1.5,
-                        }}>
-                          {tr('inbox.workout_ready.expired_no_response')}
-                        </div>
                         <div style={{ marginBottom: 8, fontSize: 11, color: textMute(dark), lineHeight: 1.4 }}>
                           {tr('inbox.actions.startWorkoutTimeoutNote')}
                         </div>
@@ -538,6 +567,7 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
   if (item.type === 'access_request' && !isTrainer)                      return badge(tr('inbox.badges.pending'), t.primary);
   if (item.type === 'plan_sent')                                          return badge(tr('inbox.badges.newPlan'), t.primary);
   if (item.type === 'trainer_timeout_workout')                             return badge(tr('inbox.badges.trainedAutonomously'), t.amber ?? '#F5A623');
+  if (item.type === 'workout_timeout')                                     return badge(tr('inbox.badges.trainerTimeout'), t.amber ?? '#F5A623');
   if (item.type === 'plan_cancelled')                                     return badge(tr('inbox.badges.cancelled'), t.accent);
   if (item.type === 'plan_postponed')                                     return badge(tr('inbox.badges.postponed'), '#F5B45A');
   if (item.type === 'plan_expired')                                       return badge(tr('inbox.badges.expired'), textMute(dark), true);
