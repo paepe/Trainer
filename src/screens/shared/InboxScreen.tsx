@@ -208,6 +208,27 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     } else {
       const trainerFirst = userName?.split(' ')[0] || tr('inbox.yourTrainerFallback');
       if (response === 'approved') {
+        // Activate the most recent 'sent' manual plan for this client so it
+        // appears immediately in StartWorkoutScreen when they tap "Start Workout".
+        if (item.from_user_id) {
+          const { data: sentPlans } = await supabase
+            .from('workout_plans')
+            .select('id')
+            .eq('assigned_to', item.from_user_id)
+            .eq('source', 'manual')
+            .eq('status', 'sent')
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (sentPlans && sentPlans.length > 0) {
+            const planId = sentPlans[0]?.id;
+            if (planId) {
+              await supabase
+                .from('workout_plans')
+                .update({ status: 'active' })
+                .eq('id', planId);
+            }
+          }
+        }
         notify(item.from_user_id, 'Workout approved',
           'Your trainer reviewed your readiness and gave the green light.',
           undefined, { type: 'workout_approved', templateKey: 'workout_approved', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
