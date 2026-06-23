@@ -1302,6 +1302,7 @@
       "freeBlockedBody": "Readiness was blocked by the safety gate. The plan cannot be released — go back.",
       "notifyTrainerCaution": "⚠ Notify trainer — caution today",
       "notifyTrainerReady": "✦ Notify trainer — I'm ready",
+      "trainerNotified": "Trainer notified — please wait.",
       "backButton": "← Back",
       "painAlertLevels": {
         "low": "Low",

@@ -77,6 +77,7 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
   const meta         = STATUS_META[result.status] ?? { color: '#4ade80', bg: '#4ade8012' };
   const isBlocked    = result.ai_led_blocked;
   const hasTrainer   = !!linkedTrainerId;
+  const [notified, setNotified] = React.useState(false);
   // Free Training Session: a "blocked" readiness verdict (computeSafetyGate) means
   // NOT READY — the plan must not be unlocked. Only "go back" is offered.
   const freeBlocked  = freeSession && result.status === 'blocked';
@@ -211,9 +212,22 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
           {isBlocked ? tr('checkin.result.reviewSafetyAlert') : tr('checkin.result.buildPlan')}
         </button>
       ) : hasTrainer ? (
-        <button onClick={onAlert} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
-          {isBlocked ? tr('checkin.result.notifyTrainerCaution') : tr('checkin.result.notifyTrainerReady')}
-        </button>
+        notified ? (
+          <div style={{
+            padding: '14px 20px', borderRadius: 16, textAlign: 'center',
+            background: `${primary}18`, border: `1.5px solid ${primary}44`,
+            fontSize: 14, fontWeight: 600, color: primary, lineHeight: 1.5,
+          }}>
+            {tr('checkin.result.trainerNotified')}
+          </div>
+        ) : (
+          <button
+            onClick={() => { setNotified(true); onAlert(); }}
+            style={{ ...primaryBtn(isBlocked ? accent : primary) }}
+          >
+            {isBlocked ? tr('checkin.result.notifyTrainerCaution') : tr('checkin.result.notifyTrainerReady')}
+          </button>
+        )
       ) : (
         <button onClick={onDone} style={{ ...primaryBtn(isBlocked ? accent : primary) }}>
           {isBlocked ? tr('checkin.result.viewCautionOptions') : tr('checkin.result.startWorkout')}

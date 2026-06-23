@@ -1302,6 +1302,7 @@
       "freeBlockedBody": "A prontidão foi bloqueada pelo safety gate. O plano não pode ser liberado — volte.",
       "notifyTrainerCaution": "⚠ Notificar treinador — cautela hoje",
       "notifyTrainerReady": "✦ Notificar treinador — estou pronto",
+      "trainerNotified": "Treinador já notificado, aguarde.",
       "backButton": "← Voltar",
       "painAlertLevels": {
         "low": "Baixa",

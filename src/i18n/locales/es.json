@@ -1302,6 +1302,7 @@
       "freeBlockedBody": "La preparación fue bloqueada por el safety gate. El plan no puede liberarse — vuelve atrás.",
       "notifyTrainerCaution": "⚠ Notificar entrenador — precaución hoy",
       "notifyTrainerReady": "✦ Notificar entrenador — estoy listo",
+      "trainerNotified": "Entrenador notificado, por favor espera.",
       "backButton": "← Volver",
       "painAlertLevels": {
         "low": "Bajo",
