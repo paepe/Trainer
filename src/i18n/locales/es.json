@@ -77,7 +77,7 @@
       "approve": "Aprobar",
       "reject": "Rechazar",
       "startWorkout": "Iniciar Entrenamiento",
-      "startWorkoutTimeout": "Continuar con plan personalizado por IA",
+      "startWorkoutTimeout": "Entrenar con plan de IA",
       "startWorkoutTimeoutNote": "Tu entrenamiento será generado por IA con tu perfil y check-in de hoy.",
       "viewWorkoutPlan": "Ver Plan de Entrenamiento",
       "viewClientFeedback": "Ver la Evaluación."
