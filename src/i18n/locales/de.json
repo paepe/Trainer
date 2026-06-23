@@ -70,10 +70,16 @@
     "pending_count_other": " ({{count}} ausstehend)",
     "loading": "Posteingang wird geladen...",
     "requestExpires": "Anfrage läuft ab um {{time}}",
+    "workout_ready": {
+      "countdown": "Dein Trainer hat {{min}} Min zum Antworten",
+      "expired_no_response": "Der Trainer hat nicht rechtzeitig geantwortet"
+    },
     "actions": {
       "approve": "Genehmigen",
       "reject": "Ablehnen",
       "startWorkout": "Training starten",
+      "startWorkoutTimeout": "Training starten — Trainer hat nicht geantwortet",
+      "startWorkoutTimeoutNote": "Dein Training wird von der KI mit deinem Profil und heutigem Check-in erstellt.",
       "viewWorkoutPlan": "Trainingsplan ansehen",
       "viewClientFeedback": "Bewertung ansehen."
     },
@@ -92,7 +98,13 @@
       "alert": "Warnung",
       "approved": "Genehmigt",
       "rejected": "Abgelehnt",
-      "done": "Erledigt"
+      "done": "Erledigt",
+      "trainedAutonomously": "Autonom trainiert"
+    },
+    "trainer_timeout_workout": {
+      "title": "{{name}} hat autonom trainiert",
+      "body": "Der Trainer hat nicht rechtzeitig geantwortet. {{name}} startete ein KI-generiertes Training.",
+      "note": "Dieser Kunde hat mit einem KI-generierten Plan trainiert, nachdem das Antwortfenster abgelaufen war."
     },
     "yourTrainerFallback": "Dein Trainer",
     "yourClientFallback": "Dein Kunde",
@@ -1113,6 +1125,7 @@
       },
       "newPlanFromTrainer": "Neuer Plan von deinem Trainer — tippen zum Laden",
       "trainerFallback": "Trainer",
+      "trainerTimeoutBanner": "Dein Trainer hat nicht geantwortet — Plan von KI mit deinem Profil und heutigem Check-in erstellt.",
       "by": "von ",
       "planCount_one": "{{count}} Plan wartet",
       "planCount_other": "{{count}} Pläne warten",

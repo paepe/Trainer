@@ -350,18 +350,36 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                       {renderBody(item)}
                     </p>
 
-                    {/* Expiry info */}
+                    {/* Expiry countdown — client sees minutes remaining */}
                     {isReady && !item.response && !expired && item.expires_at && (
-                      <div style={{
-                        marginBottom: 12, padding: '6px 10px', borderRadius: 8,
-                        background: `${t.primary}14`, fontSize: 11, color: t.primary,
-                      }}>
-                        {tr('inbox.requestExpires', {
-                          time: new Date(item.expires_at).toLocaleTimeString(
-                            i18n.language === 'pt' ? 'pt-BR' : i18n.language === 'es' ? 'es-ES' : i18n.language === 'de' ? 'de-DE' : 'en-US',
-                            { hour: '2-digit', minute: '2-digit' }
-                          )
-                        })}
+                      <CountdownBanner expiresAt={item.expires_at} primary={t.primary} tr={tr} />
+                    )}
+
+                    {/* Expired without response — client fallback */}
+                    {!isTrainer && isReady && expired && !item.response && (
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{
+                          marginBottom: 8, padding: '6px 10px', borderRadius: 8,
+                          background: `${t.amber ?? '#F5A623'}14`, fontSize: 11,
+                          color: t.amber ?? '#F5A623', lineHeight: 1.5,
+                        }}>
+                          {tr('inbox.workout_ready.expired_no_response')}
+                        </div>
+                        <div style={{ marginBottom: 8, fontSize: 11, color: textMute(dark), lineHeight: 1.4 }}>
+                          {tr('inbox.actions.startWorkoutTimeoutNote')}
+                        </div>
+                        <button
+                          onClick={() => nav('workout', { source: 'trainer_timeout' })}
+                          style={{
+                            width: '100%', padding: '11px 0', borderRadius: 10, border: 'none',
+                            background: t.amber ?? '#F5A623', color: '#0E1A2B',
+                            fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          }}
+                        >
+                          <Icon name="play" size={13} color="#0E1A2B" stroke={2.5} />
+                          {tr('inbox.actions.startWorkoutTimeout')}
+                        </button>
                       </div>
                     )}
 
@@ -414,6 +432,18 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                     )}
 
                     {/* TRAINER: View client's post-workout feedback */}
+                    {/* TRAINER: Client trained autonomously after timeout */}
+                    {isTrainer && item.type === 'trainer_timeout_workout' && (
+                      <div style={{
+                        padding: '8px 12px', borderRadius: 8,
+                        background: `${t.amber ?? '#F5A623'}14`,
+                        border: `1px solid ${t.amber ?? '#F5A623'}44`,
+                        fontSize: 11.5, color: t.amber ?? '#F5A623', lineHeight: 1.5, marginBottom: 8,
+                      }}>
+                        {tr('inbox.trainer_timeout_workout.note')}
+                      </div>
+                    )}
+
                     {isTrainer && item.type === 'workout_completed' && item.entity_id && (
                       <button
                         onClick={() => nav('workoutSummary', { sessionId: item.entity_id, durationMin: 0, completedCount: 0, total: 0, totalSets: 0, returnTo: 'alerts' })}
@@ -455,6 +485,36 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
   );
 }
 
+// ── Countdown banner — shows minutes remaining for trainer to respond ──────────
+
+function CountdownBanner({ expiresAt, primary, tr }: {
+  expiresAt: string;
+  primary:   string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tr:        (key: string, opts?: any) => string;
+}) {
+  const calcMin = () => Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 60000));
+  const [minsLeft, setMinsLeft] = React.useState(calcMin);
+
+  React.useEffect(() => {
+    if (minsLeft <= 0) return;
+    const id = setInterval(() => setMinsLeft(calcMin()), 30000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expiresAt]);
+
+  return (
+    <div style={{
+      marginBottom: 12, padding: '6px 10px', borderRadius: 8,
+      background: `${primary}14`, fontSize: 11, color: primary, lineHeight: 1.5,
+    }}>
+      {minsLeft > 0
+        ? tr('inbox.workout_ready.countdown', { min: minsLeft })
+        : tr('inbox.workout_ready.expired_no_response')}
+    </div>
+  );
+}
+
 // ── Status badge ───────────────────────────────────────────────────────────────
 
 function StatusBadge({ item, expired, isTrainer, t, dark }: {
@@ -477,6 +537,7 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
   if (item.type === 'workout_ready' && isTrainer)                        return badge(tr('inbox.badges.pending'), t.primary);
   if (item.type === 'access_request' && !isTrainer)                      return badge(tr('inbox.badges.pending'), t.primary);
   if (item.type === 'plan_sent')                                          return badge(tr('inbox.badges.newPlan'), t.primary);
+  if (item.type === 'trainer_timeout_workout')                             return badge(tr('inbox.badges.trainedAutonomously'), t.amber ?? '#F5A623');
   if (item.type === 'plan_cancelled')                                     return badge(tr('inbox.badges.cancelled'), t.accent);
   if (item.type === 'plan_postponed')                                     return badge(tr('inbox.badges.postponed'), '#F5B45A');
   if (item.type === 'plan_expired')                                       return badge(tr('inbox.badges.expired'), textMute(dark), true);

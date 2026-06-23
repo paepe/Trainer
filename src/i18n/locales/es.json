@@ -70,10 +70,16 @@
     "pending_count_other": " ({{count}} pendientes)",
     "loading": "Cargando mensajes...",
     "requestExpires": "La solicitud vence a las {{time}}",
+    "workout_ready": {
+      "countdown": "Tu entrenador tiene {{min}} min para responder",
+      "expired_no_response": "El entrenador no respondió a tiempo"
+    },
     "actions": {
       "approve": "Aprobar",
       "reject": "Rechazar",
       "startWorkout": "Iniciar Entrenamiento",
+      "startWorkoutTimeout": "Iniciar entrenamiento — el entrenador no respondió",
+      "startWorkoutTimeoutNote": "Tu entrenamiento será generado por IA con tu perfil y check-in de hoy.",
       "viewWorkoutPlan": "Ver Plan de Entrenamiento",
       "viewClientFeedback": "Ver la Evaluación."
     },
@@ -92,7 +98,13 @@
       "alert": "Alerta",
       "approved": "Aprobado",
       "rejected": "Rechazado",
-      "done": "Hecho"
+      "done": "Hecho",
+      "trainedAutonomously": "Entrenó de forma autónoma"
+    },
+    "trainer_timeout_workout": {
+      "title": "{{name}} entrenó de forma autónoma",
+      "body": "El entrenador no respondió a tiempo. {{name}} inició un entrenamiento generado por IA.",
+      "note": "Este cliente entrenó con un plan generado por IA después de que venció el plazo de respuesta."
     },
     "yourTrainerFallback": "Tu entrenador",
     "yourClientFallback": "Tu cliente",
@@ -1112,6 +1124,7 @@
       "startBtn": "Iniciar Entrenamiento",
       "newPlanFromTrainer": "Nuevo plan de tu entrenador — toca para cargar",
       "trainerFallback": "Entrenador",
+      "trainerTimeoutBanner": "Tu entrenador no respondió — plan generado por IA con tu perfil y check-in de hoy.",
       "by": "por ",
       "planCount_one": "{{count}} plan esperando",
       "planCount_other": "{{count}} planes esperando",

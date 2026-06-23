@@ -625,7 +625,7 @@ export default function App() {
           <CheckInProntidaoScreen  nav={nav} t={t} dark={dark} user={user} userName={profile?.name ?? undefined} biologicalSex={profile?.gender ?? undefined} clientUserId={(screenPayload?.clientUserId as string) ?? (isTrainer ? selectedClient?.id : undefined)} clientName={(screenPayload?.clientName as string) ?? (isTrainer ? selectedClient?.name : undefined)} linkedTrainerId={linkedTrainerId ?? ''} workoutReadyExpiryMin={prefs.workoutReadyExpiryMin} saveCheckinV2={saveCheckinV2} freeSession={freeSession}/>
         </>
       );
-      case 'workout':            return <StartWorkoutScreen      {...common}/>;
+      case 'workout':            return <StartWorkoutScreen      {...common} source={screenPayload?.source as string | undefined}/>;
       case 'workoutMode':        return <WorkoutModeScreen
           nav={nav} t={t} dark={dark} user={user}
           planId={(screenPayload?.planId as string | null) ?? null}

@@ -66,6 +66,7 @@ interface StartWorkoutScreenProps {
   user:             AppUser;
   cycleConfig:      AppCycleConfig | null;
   linkedTrainerId?: string; // non-empty = client has active trainer
+  source?:          string | undefined; // 'trainer_timeout' = trainer did not respond; AI fallback
   prefs?: {
     preferredIntensity?: TrainerContext['intensity'];
     aiFocusStrength?:    number;
@@ -171,7 +172,7 @@ function generateFallbackPlan(
   }));
 }
 
-export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', prefs }: StartWorkoutScreenProps) {
+export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', source, prefs }: StartWorkoutScreenProps) {
   const { t: tr } = useTranslation();
 
   // Feature gate: trainers viewing a client always get full AI; clients follow the matrix.
@@ -275,6 +276,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     if (!user?.id) return;
 
     try {
+      const aiNotesParts = [];
+      if (cycleContext) aiNotesParts.push(`Phase: ${cycleContext.phase}, Day ${cycleContext.day}/${cycleContext.cycleLength}`);
+      if (source === 'trainer_timeout') aiNotesParts.push('trainer_timeout: true');
+
       const { data: planRow, error: planError } = await supabase
         .from('workout_plans')
         .insert({
@@ -282,7 +287,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           created_by:  user.id,
           source:      'ai_generated',
           status:      'active',
-          ai_notes:    cycleContext ? `Phase: ${cycleContext.phase}, Day ${cycleContext.day}/${cycleContext.cycleLength}` : null,
+          ai_notes:    aiNotesParts.length > 0 ? aiNotesParts.join(' | ') : null,
           scheduled_date: new Date().toISOString().slice(0, 10),
         })
         .select('id')
@@ -319,10 +324,22 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       });
 
       if (suggestionError) throw suggestionError;
+
+      // Notify trainer when client trained autonomously due to timeout
+      if (source === 'trainer_timeout' && linkedTrainerId) {
+        void notifyLinkedTrainer(
+          user.id,
+          tr('inbox.trainer_timeout_workout.title', { name: user.name || tr('client.workout.notificationYourClient') }),
+          tr('inbox.trainer_timeout_workout.body',  { name: user.name || tr('client.workout.notificationYourClient') }),
+          { type: 'trainer_timeout_workout', templateKey: 'trainer_timeout_workout',
+            params: { name: user.name || '' },
+            entityType: 'workout_plan', entityId: planRow.id },
+        );
+      }
     } catch (err) {
       console.error('[start-workout] failed to persist generated plan', err);
     }
-  }, [user?.id]);
+  }, [user?.id, source, linkedTrainerId]);
 
   const mountedRef = React.useRef(true);
 
@@ -502,8 +519,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70 },
         };
 
-        // 5. TrainerContext — Coach DNA if linked, else DEFAULT_AI_TRAINER + client prefs
-        const coachDNA    = trainerRes.status === 'fulfilled' ? (trainerRes.value as any).data : null;
+        // 5. TrainerContext — Coach DNA if linked, else DEFAULT_AI_TRAINER + client prefs.
+        // trainer_timeout: trainer did not respond — use DEFAULT_AI_TRAINER regardless of Coach DNA.
+        const isTrainerTimeout = source === 'trainer_timeout';
+        const coachDNA    = (!isTrainerTimeout && trainerRes.status === 'fulfilled') ? (trainerRes.value as any).data : null;
         const trainerCtx  = resolveTrainerContext(coachDNA, prefs);
 
         // 6. LibraryContext — profile-declared equipment is the baseline
@@ -681,6 +700,19 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   return (
     <>
       <ScreenTitle dark={dark}>{tr('client.workout.title')}</ScreenTitle>
+
+      {/* Trainer timeout banner — AI taking over */}
+      {source === 'trainer_timeout' && (
+        <div style={{
+          margin: '0 22px 12px',
+          padding: '10px 14px', borderRadius: 12,
+          background: `${t.amber ?? '#F5A623'}14`,
+          border: `1px solid ${t.amber ?? '#F5A623'}44`,
+          fontSize: 11.5, color: t.amber ?? '#F5A623', lineHeight: 1.5,
+        }}>
+          {tr('client.workout.trainerTimeoutBanner')}
+        </div>
+      )}
 
       {/* Live: new plan arrived from the trainer while on this screen */}
       {newPlanArrived && (
