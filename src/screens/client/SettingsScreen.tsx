@@ -123,14 +123,12 @@ export function SettingsScreen({ nav: _nav, t, prefs, setPrefs, dark, isTrainer 
           </div>
         )}
 
-        {/* Client Management — trainer only */}
+        {/* Client Management + Coaching window — trainer only */}
         {isTrainer && (
-          <SelectorSection title={tr('settings.sections.clientMgmt')} rows={trainerMgmt} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
-        )}
-
-        {/* Coaching — client with an active trainer */}
-        {hasTrainer && !isTrainer && (
-          <SelectorSection title={tr('settings.sections.coaching')} rows={coachingPrefs} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
+          <>
+            <SelectorSection title={tr('settings.sections.clientMgmt')} rows={trainerMgmt} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
+            <SelectorSection title={tr('settings.sections.coaching')} rows={coachingPrefs} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
+          </>
         )}
 
         {/* AI personalization */}
