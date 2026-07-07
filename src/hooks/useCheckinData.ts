@@ -49,12 +49,8 @@ export function useCheckinData(userId: string | undefined, alertsEnabled = true)
       const blocked = data.safety_gate.ai_led_blocked;
       const score   = data.safety_gate.readiness_score;
       if (alertsEnabled && (blocked || (typeof score === 'number' && score < 55))) {
-        const title = blocked ? 'Safety Gate blocked' : 'Low readiness alert';
-        const body  = blocked
-          ? 'A client check-in requires human review.'
-          : `Client scored ${score}/100. Review recommended.`;
         const template = blocked ? 'safety_gate_blocked' : 'low_readiness';
-        void notifyLinkedTrainer(effectiveUserId, title, body, { type: 'checkin_alert', templateKey: template, params: { score } });
+        void notifyLinkedTrainer(effectiveUserId, '', '', { type: 'checkin_alert', templateKey: template, params: { score } });
       }
     }
 

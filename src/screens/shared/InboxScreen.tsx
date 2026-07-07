@@ -228,12 +228,10 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
             }
           }
         }
-        notify(item.from_user_id, 'Workout approved',
-          'Your trainer reviewed your readiness and gave the green light.',
+        notify(item.from_user_id, '', '',
           undefined, { type: 'workout_approved', templateKey: 'workout_approved', params: { trainerName: trainerFirst } });
       } else {
-        notify(item.from_user_id, 'Workout request returned',
-          'Your trainer reviewed your readiness and recommends skipping today\'s session.',
+        notify(item.from_user_id, '', '',
           undefined, { type: 'workout_rejected', templateKey: 'workout_rejected', params: { trainerName: trainerFirst } });
       }
     }

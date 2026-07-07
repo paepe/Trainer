@@ -86,7 +86,7 @@ export async function handlePainReport(
   });
 
   // Push-notify trainer via the canonical multilingual pipeline
-  notify(tc.trainer_id, `High pain — ${bodyRegion}`, `Intensity ${intensity}/10`, undefined, {
+  notify(tc.trainer_id, '', '', undefined, {
     type:        'high_pain',
     templateKey: 'high_pain_alert',
     params:      alertParams,

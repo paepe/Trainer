@@ -337,7 +337,7 @@ export function WorkoutPlanEditorScreen({
     // Send push notification to client
     if (status === 'sent' && selectedClient?.id) {
       const trainer = user.name?.split(' ')[0] || tr('inbox.yourTrainerFallback');
-      void notify(selectedClient.id, 'New workout plan', `${trainer} sent you a workout plan`,
+      void notify(selectedClient.id, '', '',
         undefined, { type: 'plan_sent', templateKey: 'new_plan', params: { trainerName: trainer } });
     }
 

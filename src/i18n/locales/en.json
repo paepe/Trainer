@@ -63,6 +63,8 @@
       "plansExpiredTitle": "Plans expired",
       "plansExpiredBody": "{{count}} pending plan(s) for a client were auto-cancelled after {{expiryDays}} days.",
       "readyToTrainTitle": "{{name}} is ready to train",
+      "readyToTrainTitle_female": "{{name}} is ready to train",
+      "readyToTrainTitle_male": "{{name}} is ready to train",
       "readyToTrainBody": "Readiness {{score}}/100 · Approve or reject their workout request.",
       "yourClient": "Your client"
     },
@@ -108,7 +110,9 @@
     "trainer_timeout_workout": {
       "title": "{{name}} trained autonomously",
       "body": "Trainer did not respond in time. {{name}} started an AI-generated workout.",
-      "note": "This client trained with an AI-generated plan after your response window expired."
+      "note": "This client trained with an AI-generated plan after your response window expired.",
+      "note_female": "This client trained with an AI-generated plan after your response window expired.",
+      "note_male": "This client trained with an AI-generated plan after your response window expired."
     },
     "yourTrainerFallback": "Your trainer",
     "yourClientFallback": "Your client",
@@ -120,6 +124,8 @@
       "invitation_accepted": "{{clientName}} accepted your invitation!",
       "invitation_accepted_body": "{{clientName}} joined as your client.",
       "ready_to_train": "{{name}} is ready to train",
+      "ready_to_train_female": "{{name}} is ready to train",
+      "ready_to_train_male": "{{name}} is ready to train",
       "ready_to_train_body": "Readiness {{score}}/100 — approve or reject their workout request.",
       "new_plan": "New workout plan from {{trainerName}}",
       "new_plan_body": "{{trainerName}} sent you a workout plan.",
@@ -1299,9 +1305,13 @@
       "reviewSafetyAlert": "Review safety alert →",
       "buildPlan": "Build plan →",
       "freeBlockedTitle": "Not ready to train",
+      "freeBlockedTitle_female": "Not ready to train",
+      "freeBlockedTitle_male": "Not ready to train",
       "freeBlockedBody": "Readiness was blocked by the safety gate. The plan cannot be released — go back.",
       "notifyTrainerCaution": "⚠ Notify trainer — caution today",
       "notifyTrainerReady": "✦ Notify trainer — ready",
+      "notifyTrainerReady_female": "✦ Notify trainer — ready",
+      "notifyTrainerReady_male": "✦ Notify trainer — ready",
       "trainerNotified": "Trainer notified — please wait.",
       "trainerNotifiedCountdown": "Response expected in {{min}} min",
       "backButton": "← Back",
@@ -1316,6 +1326,8 @@
         "at_risk": "At risk"
       },
       "readyPushTitle": "{{name}} is ready to train",
+      "readyPushTitle_female": "{{name}} is ready to train",
+      "readyPushTitle_male": "{{name}} is ready to train",
       "readyPushBody": "Readiness {{score}}/100 · Approve or reject their workout request."
     }
   },

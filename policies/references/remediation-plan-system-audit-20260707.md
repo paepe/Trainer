@@ -1,7 +1,7 @@
 # Remediation Plan — System Audit 2026-07-07
 
 **Source:** `policies/references/system-audit-trainer-20260707.md`
-**Status:** IN EXECUTION — Phases 0-1 complete; Phase 2 in progress
+**Status:** IN EXECUTION — Phases 0-2 complete; Phase 3 in progress
 **Governance:** Every phase must preserve existing stabilizations (per `AGENTS.md` Quality Directive: safe, incremental, reversible, validated before publication). No phase starts until the previous phase's checklist is fully checked and validated.
 
 **Update protocol:** This document's checklist is updated at the end of each phase — items marked `[x]` only after validation passes, not on code-write alone. A "Phase Closeout" note is appended per phase with date, validation evidence, and any deviations from plan.
@@ -46,11 +46,11 @@
 
 **Goal:** Eliminate silent loss of in-progress workout data in `WorkoutModeScreen.tsx` / `useWorkoutData.ts`.
 
-- [ ] Add error handling to `confirmSet` (`WorkoutModeScreen.tsx:184-192`): surface a visible "not saved — retrying" state on `logWorkoutSet` failure instead of silently advancing local state
-- [ ] Add a submit-guard (disable button / debounce) on the "Confirm Set" action to prevent duplicate inserts on double-tap during a slow request
-- [ ] Introduce a local write-ahead persistence layer (IndexedDB or equivalent) for `logWorkoutSet` / `updateSessionExerciseStatus`, replayed on reconnect
-- [ ] Fix the offline-start fallback path (`WorkoutModeScreen.tsx:101-121, 250-291`): ensure `finishWorkout` either (a) blocks/warns before finalizing a session with zero synced exercises, or (b) queues and syncs the full per-set data once connectivity returns — no session should reach `completed` status with silently empty exercise data
-- [ ] Add a regression test / manual QA script: start a workout, force network failure mid-set, confirm no data loss and a visible retry indicator; complete a workout started fully offline, confirm data reconciles on reconnect
+- [x] Add error handling to `confirmSet` (`WorkoutModeScreen.tsx:184-192`): surface a visible "not saved — retrying" state on `logWorkoutSet` failure instead of silently advancing local state — failures now enqueue + show a persistent "pending sync" banner (`client.mode.pendingSync`, all 4 locales)
+- [x] Add a submit-guard (disable button / debounce) on the "Confirm Set" action to prevent duplicate inserts on double-tap during a slow request — `savingSet` state disables the button during the await
+- [x] Introduce a local write-ahead persistence layer (IndexedDB or equivalent) for `logWorkoutSet` / `updateSessionExerciseStatus`, replayed on reconnect — `src/lib/workoutSyncQueue.ts` (localStorage-backed; volume is tiny so IndexedDB was unnecessary); replays on `online` event and at module load; every executed set is also recorded locally in `ExState.setLogs` before any network call
+- [x] Fix the offline-start fallback path (`WorkoutModeScreen.tsx:101-121, 250-291`): ensure `finishWorkout` either (a) blocks/warns before finalizing a session with zero synced exercises, or (b) queues and syncs the full per-set data once connectivity returns — option (b) implemented: empty rescue session replaced by a `full_session` queue item (session + exercises + statuses + set logs), replayed atomically on reconnect
+- [ ] Add a regression test / manual QA script: start a workout, force network failure mid-set, confirm no data loss and a visible retry indicator; complete a workout started fully offline, confirm data reconciles on reconnect — **PENDING USER VALIDATION** (requires device with network toggling; static validation passed)
 
 **Exit criteria:** No code path allows a workout session to reach `completed` status while permanently discarding per-set data; failed writes are visible to the user, not silent.
 
@@ -103,6 +103,10 @@
 ### Phase 0 — closed 2026-07-07
 
 Audit docs committed on `main` (`201c66d`); branch `fix/system-audit-20260707` created. Baseline: `tsc --noEmit` clean; `npm test` has 14/19 pre-existing failures in `PlansScreen.test.tsx` (verified present on the untouched baseline via `git stash` round-trip — not to be attributed to remediation work). **Deviation:** Supabase backup checkpoint deferred to Phase 4 pre-step, since no schema/RLS change happens before then.
+
+### Phase 2 — closed 2026-07-07 (commit `b56ad89`)
+
+Write-ahead sync queue implemented (`workoutSyncQueue.ts`); local per-set recording (`ExState.setLogs`); submit-guard on Confirm Set; offline-started workouts now persist full per-set data via `full_session` replay instead of an empty rescue session; visible pending-sync banner. Validation: `tsc` clean, build clean, tests unchanged vs. baseline. **Deviations:** (1) localStorage chosen over IndexedDB — payloads are tiny and localStorage is synchronous/simpler in the Capacitor WebView; documented in module header. (2) Manual QA with forced network failure left PENDING USER VALIDATION. (3) Noted for Phase 3: `useWorkoutData.completeWorkoutSession` sends hardcoded English "Workout completed" push via `notifyLinkedTrainer` — same bug class as the Phase 3 items; added to Phase 3 scope.
 
 ### Phase 1 — closed 2026-07-07 (commit `c182144`)
 

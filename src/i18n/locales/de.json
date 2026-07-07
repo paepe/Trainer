@@ -63,6 +63,8 @@
       "plansExpiredTitle": "Pläne abgelaufen",
       "plansExpiredBody": "{{count}} ausstehende(r) Plan/Pläne eines Kunden wurden nach {{expiryDays}} Tagen automatisch storniert.",
       "readyToTrainTitle": "{{name}} ist bereit zu trainieren",
+      "readyToTrainTitle_female": "{{name}} ist bereit zu trainieren",
+      "readyToTrainTitle_male": "{{name}} ist bereit zu trainieren",
       "readyToTrainBody": "Bereitschaft {{score}}/100 · Trainingsanfrage genehmigen oder ablehnen.",
       "yourClient": "Dein Kunde"
     },
@@ -122,6 +124,8 @@
       "invitation_accepted": "{{clientName}} hat deine Einladung angenommen!",
       "invitation_accepted_body": "{{clientName}} ist als dein Kunde beigetreten.",
       "ready_to_train": "{{name}} ist bereit zu trainieren",
+      "ready_to_train_female": "{{name}} ist bereit zu trainieren",
+      "ready_to_train_male": "{{name}} ist bereit zu trainieren",
       "ready_to_train_body": "Bereitschaft {{score}}/100 — Trainingsanfrage genehmigen oder ablehnen.",
       "new_plan": "Neuer Trainingsplan von {{trainerName}}",
       "new_plan_body": "{{trainerName}} hat dir einen Trainingsplan gesendet.",
@@ -1301,9 +1305,13 @@
       "reviewSafetyAlert": "Sicherheitswarnung prüfen →",
       "buildPlan": "Plan erstellen →",
       "freeBlockedTitle": "Nicht trainingsbereit",
+      "freeBlockedTitle_female": "Nicht trainingsbereit",
+      "freeBlockedTitle_male": "Nicht trainingsbereit",
       "freeBlockedBody": "Die Bereitschaft wurde vom Safety Gate blockiert. Der Plan kann nicht freigegeben werden — zurück.",
       "notifyTrainerCaution": "⚠ Trainer benachrichtigen — Vorsicht heute",
       "notifyTrainerReady": "✦ Trainer — ich bin bereit",
+      "notifyTrainerReady_female": "✦ Trainer — ich bin bereit",
+      "notifyTrainerReady_male": "✦ Trainer — ich bin bereit",
       "trainerNotified": "Trainer benachrichtigt — bitte warten.",
       "trainerNotifiedCountdown": "Antwort erwartet in {{min}} Min",
       "backButton": "← Zurück",
@@ -1318,6 +1326,8 @@
         "at_risk": "Gefährdet"
       },
       "readyPushTitle": "{{name}} ist bereit zu trainieren",
+      "readyPushTitle_female": "{{name}} ist bereit zu trainieren",
+      "readyPushTitle_male": "{{name}} ist bereit zu trainieren",
       "readyPushBody": "Bereitschaft {{score}}/100 · Anfrage annehmen oder ablehnen."
     }
   },

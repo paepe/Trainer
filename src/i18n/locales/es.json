@@ -63,6 +63,8 @@
       "plansExpiredTitle": "Planes expirados",
       "plansExpiredBody": "{{count}} plan(es) pendiente(s) de un cliente fueron cancelados automáticamente después de {{expiryDays}} días.",
       "readyToTrainTitle": "{{name}} está listo para entrenar",
+      "readyToTrainTitle_female": "{{name}} está lista para entrenar",
+      "readyToTrainTitle_male": "{{name}} está listo para entrenar",
       "readyToTrainBody": "Preparación {{score}}/100 · Aprueba o rechaza su solicitud de entrenamiento.",
       "yourClient": "Tu cliente"
     },
