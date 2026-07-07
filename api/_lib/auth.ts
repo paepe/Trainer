@@ -18,6 +18,14 @@ function serviceKey(): string {
   return process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 }
 
+// JWT verification (/auth/v1/user) only needs a valid publishable/anon apikey —
+// it authenticates the caller's own token, not privileged data access. Using
+// the anon key here (instead of service role) keeps the high-privilege key
+// scoped to the RLS-bypassing REST calls below (least privilege).
+function anonKey(): string {
+  return process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+}
+
 function serviceHeaders(): Record<string, string> {
   const key = serviceKey();
   return { apikey: key, Authorization: `Bearer ${key}` };
@@ -41,9 +49,9 @@ export async function verifyRequestUser(req: { headers?: Record<string, string |
   if (!jwt) return null;
 
   const url = supabaseUrl();
-  const key = serviceKey();
+  const key = anonKey();
   if (!url || !key) {
-    console.error('[auth] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set — cannot verify callers');
+    console.error('[auth] SUPABASE_URL / SUPABASE_ANON_KEY not set — cannot verify callers');
     return null;
   }
 
