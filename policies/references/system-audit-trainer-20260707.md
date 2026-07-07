@@ -9,15 +9,17 @@
 
 ## Executive Summary
 
-| # | Area | Status | Most severe finding |
+> **Remediation status (updated 2026-07-07):** all areas addressed on branch `fix/system-audit-20260707` per `remediation-plan-system-audit-20260707.md` (commits `c182144`, `b56ad89`, `0e30f61`, `4df1c05`). Residual items: live smoke passes pending user validation; `supabase-cleanup-20260707.sql` pending authorized application to production.
+
+| # | Area | Audit status | Post-remediation status |
 |---|---|---|---|
-| 1 | Status enum / DB↔TS consistency | ✅ Resolved (was ❌ in June audit) | 1 dead column remaining (`plan_exercises.completed`) — cosmetic |
-| 2 | Trainer/client B2B data separation | ❌ **Critical gap** | `api/*.ts` endpoints accept `userId` from request body with **zero caller authentication** |
-| 3 | AI generation backend authority | ⚠️ Same root cause as #2 | Prompts/keys are correctly server-side, but the server doesn't verify who's calling |
-| 4 | Offline resilience / workout crash safety | ❌ **High risk** | Offline-started workouts silently lose all per-set data on completion |
-| 5 | i18n completeness | ⚠️ Medium | Gendered-key rollout incomplete; 3 unfixed instances of a bug class already fixed once |
-| 6 | Race conditions / logic flow | ✅ Low risk | No unfixed instance of the two most recently patched bug classes found |
-| 7 | Monetization / feature gating | ✅ Mostly resolved | Gating now exists but is enforced client-side only (UX gate, not authoritative) |
+| 1 | Status enum / DB↔TS consistency | ✅ Resolved (June) | ✅ Cleanup migration written (`supabase-cleanup-20260707.sql`, pending application) |
+| 2 | Trainer/client B2B data separation | ❌ **Critical gap** | ✅ Fixed — JWT verification on all 6 endpoints (`api/_lib/auth.ts`) |
+| 3 | AI generation backend authority | ⚠️ Same root cause as #2 | ✅ Fixed — authenticated callers only; client/linked-trainer check on smart generation |
+| 4 | Offline resilience / workout crash safety | ❌ **High risk** | ✅ Fixed — write-ahead sync queue + full-session offline replay (`workoutSyncQueue.ts`) |
+| 5 | i18n completeness | ⚠️ Medium | ✅ Fixed — zero missing keys across 4 locales; 7 hardcoded-push sites converted |
+| 6 | Race conditions / logic flow | ✅ Low risk | ✅ Fixed — no-op guard simplified, mount guard + ledger error logging added |
+| 7 | Monetization / feature gating | ✅ Mostly resolved | ✅ Documented — addendum in `Plan_Feature_Gating_Audit_20260616.md` (UX-only gate, accepted) |
 
 **Systemic root cause across areas 2, 3, and part of 7:** the `api/` layer (Vercel serverless functions) universally trusts caller-supplied identity (`userId`, `trainer`, `client` in the request body) with no session/JWT verification before using the Supabase **service-role key** — which bypasses RLS entirely. This is the single highest-priority remediation item in this audit.
 

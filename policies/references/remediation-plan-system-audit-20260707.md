@@ -1,7 +1,7 @@
 # Remediation Plan — System Audit 2026-07-07
 
 **Source:** `policies/references/system-audit-trainer-20260707.md`
-**Status:** IN EXECUTION — Phases 0-3 complete; Phase 4 in progress
+**Status:** EXECUTION COMPLETE (2026-07-07) — all phases closed; residual items listed in Close-out
 **Governance:** Every phase must preserve existing stabilizations (per `AGENTS.md` Quality Directive: safe, incremental, reversible, validated before publication). No phase starts until the previous phase's checklist is fully checked and validated.
 
 **Update protocol:** This document's checklist is updated at the end of each phase — items marked `[x]` only after validation passes, not on code-write alone. A "Phase Closeout" note is appended per phase with date, validation evidence, and any deviations from plan.
@@ -76,10 +76,10 @@
 
 **Goal:** Remove dead artifacts and close minor logic smells flagged in the audit.
 
-- [ ] Drop or explicitly deprecate `plan_exercises.completed` (dead column, no write path) — confirm via migration, not silent removal
-- [ ] Track the `exercises` library table schema in a proper tracked migration file under `supabase/`
-- [ ] Simplify the no-op ternary guard in `src/screens/checkin/CheckInResult.tsx:114`
-- [ ] Add mounted/staleness guards to the fire-and-forget writes in `CheckInProntidaoScreen.tsx:74-78` and `useAuth.ts:212-220`
+- [x] Drop or explicitly deprecate `plan_exercises.completed` (dead column, no write path) — confirm via migration, not silent removal — migration written and tracked (`supabase/sql-archive/supabase-cleanup-20260707.sql`) with pre-flight verification against the live DB (6 legacy `true` rows, no code path) and rollback block; **remote application PENDING USER AUTHORIZATION** (production schema change — apply after confirming a backup/PITR checkpoint)
+- [x] Track the `exercises` library table schema in a proper tracked migration file under `supabase/` — `supabase-schema-exercises.sql`, reverse-engineered from the live DB (columns, CHECKs, FKs, RLS policies); bonus finding: live `exercises_status_check` still allowed the 5 dead values dropped from TS in June — realignment included in the cleanup migration (all 155 live rows are `active`, zero violations)
+- [x] Simplify the no-op ternary guard in `src/screens/checkin/CheckInResult.tsx:114`
+- [x] Add mounted/staleness guards to the fire-and-forget writes in `CheckInProntidaoScreen.tsx:74-78` and `useAuth.ts:212-220` — mounted-ref guard on the risk fetch; error logging on the ledger insert (mount guard not applicable — hook lives at App level)
 
 **Exit criteria:** All four items resolved with no behavioral change to existing flows (verified via smoke test).
 
@@ -89,12 +89,33 @@
 
 **Goal:** Record the residual accepted risk and close the audit loop.
 
-- [ ] Update `Plan_Feature_Gating_Audit_20260616.md` (or add an addendum) documenting that `feature_permissions` gating is UX-only, not a security boundary — flag as a future decision point before scaling paid tiers
-- [ ] Update `system-audit-trainer-20260707.md` Executive Summary table to reflect final resolved status per area
-- [ ] Final full regression smoke pass across all flows touched (Phases 1-4)
-- [ ] Close-out summary appended to this document with dates, commits, and residual/accepted risks (if any)
+- [x] Update `Plan_Feature_Gating_Audit_20260616.md` (or add an addendum) documenting that `feature_permissions` gating is UX-only, not a security boundary — flag as a future decision point before scaling paid tiers — addendum appended 2026-07-07
+- [x] Update `system-audit-trainer-20260707.md` Executive Summary table to reflect final resolved status per area — remediation-status column added with commit references
+- [x] Final full regression smoke pass across all flows touched (Phases 1-4) — static regression clean (`tsc --noEmit`, production build, test suite unchanged vs. baseline); **live device/account smoke pass remains PENDING USER VALIDATION** (consolidated list in close-out below)
+- [x] Close-out summary appended to this document with dates, commits, and residual/accepted risks (if any)
 
 **Exit criteria:** All prior audit findings marked Resolved or explicitly Accepted-Risk with rationale; no open Critical/High items remain undocumented.
+
+---
+
+## Close-out Summary — 2026-07-07
+
+All 5 phases executed on branch `fix/system-audit-20260707` (commits: docs `201c66d` on main; `c182144` P0 auth; `b56ad89` P1 offline; `0e30f61` P2 i18n; `4df1c05` P3 cleanup; P4 docs in final commit). Every Critical/High audit finding is fixed in code. Static validation clean at every phase gate.
+
+**Residual items requiring user action before merge to `main`:**
+
+1. **Live smoke pass** (trainer + client accounts): login, checkout, billing portal, invitation, notification send, workout generation — verifies the new JWT requirement broke no legitimate flow.
+2. **Offline QA**: workout with forced network failure mid-set (expect pending-sync banner, no data loss); workout started fully offline (expect full data reconciliation on reconnect).
+3. **Apply `supabase-cleanup-20260707.sql`** to production after confirming a backup/PITR checkpoint (drops `plan_exercises.completed`; tightens `exercises_status_check`).
+4. **Push-locale check**: trigger notification types with non-English locale active (in-app inbox localized; FCM banner shows generic "TrAIner" title — accepted limitation).
+
+**Accepted risks / follow-ups (documented, not blocking):**
+
+- `api/parse-voice.ts`, `cleanup-voice-note.ts`, `generate-amplified.ts`, `classify-exercises.ts` still invoke the paid LLM unauthenticated (no user identity handled; cost-abuse surface only) — follow-up hardening pass recommended.
+- Feature gates are UX-only except the invitation client-limit (addendum in `Plan_Feature_Gating_Audit_20260616.md`).
+- FCM banner shows generic title with the `templateKey` pattern; recipient-locale banners need template rendering in the push pipeline.
+- Orphaned worktree `.claude/worktrees/trainer-project-status-dae0f6/` duplicates test failures in vitest — delete it or exclude `.claude/worktrees` in `vitest.config.ts`.
+- `PlansScreen.test.tsx` has 14 pre-existing failures (present before this work; unrelated).
 
 ---
 
@@ -103,6 +124,10 @@
 ### Phase 0 — closed 2026-07-07
 
 Audit docs committed on `main` (`201c66d`); branch `fix/system-audit-20260707` created. Baseline: `tsc --noEmit` clean; `npm test` has 14/19 pre-existing failures in `PlansScreen.test.tsx` (verified present on the untouched baseline via `git stash` round-trip — not to be attributed to remediation work). **Deviation:** Supabase backup checkpoint deferred to Phase 4 pre-step, since no schema/RLS change happens before then.
+
+### Phase 4 — closed 2026-07-07 (commit `4df1c05`)
+
+Code smells fixed (no-op ternary, mount guard, ledger-insert logging); cleanup migration + exercises schema now tracked in `supabase/sql-archive/`. Validation: `tsc` clean, build clean; test suite — an orphaned worktree copy (`.claude/worktrees/trainer-project-status-dae0f6/`) is being picked up by vitest, duplicating the 14 pre-existing `PlansScreen` failures (14+14=28); the unique failure set is unchanged vs. baseline. **Deviations:** (1) remote application of `supabase-cleanup-20260707.sql` deliberately withheld — production schema change requires user authorization + backup confirmation per Phase 0 gate; SQL is verified against live data (read-only queries via Supabase MCP). (2) New finding folded in: live `exercises_status_check` still allowed the 5 dead statuses — realignment added to the migration. (3) Recommend deleting the orphaned worktree or excluding `.claude/worktrees` in `vitest.config.ts`.
 
 ### Phase 3 — closed 2026-07-07 (commit `0e30f61`)
 

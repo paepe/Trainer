@@ -440,3 +440,13 @@ Camada que monta o contexto estruturado consumido pelas funcionalidades de IA
 
 Esse contexto alimenta a geração de planos de treino personalizados, a
 adaptação de dificuldade/volume e o motor de insights/recomendações.
+
+---
+
+## Addendum — 2026-07-07 (System Audit Follow-up)
+
+Status update from the 2026-07-07 system audit (`policies/references/system-audit-trainer-20260707.md`, Area 7):
+
+- The core findings of this document are **superseded**: feature gating is now implemented via the DB-backed `feature_permissions` table, `src/types/feature-permissions.ts` and `src/hooks/useFeatureAccess.ts`. Verified wired-up gates: `clients.limit` (TrainerDashboardScreen — trial student cap, also enforced server-side in `api/send-invitation.ts`) and `coach_dna` (CoachDNAScreen).
+- **Accepted limitation:** apart from the invitation client-limit (server-enforced), feature gates are enforced client-side only (React hook gating UI rendering). They are a UX convenience, **not a security boundary** — a modified client could bypass them. No monetary-transaction bypass exists (billing flows through Stripe via authenticated `api/` endpoints as of commit `c182144`).
+- **Decision point before scaling paid tiers:** evaluate server-side/RLS enforcement of `feature_permissions` for gates whose bypass has real cost (e.g., AI generation quotas).
