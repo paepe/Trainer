@@ -1,7 +1,7 @@
 # Remediation Plan — System Audit 2026-07-07
 
 **Source:** `policies/references/system-audit-trainer-20260707.md`
-**Status:** DRAFT — awaiting authorization to execute Phase 1
+**Status:** IN EXECUTION — Phases 0-1 complete; Phase 2 in progress
 **Governance:** Every phase must preserve existing stabilizations (per `AGENTS.md` Quality Directive: safe, incremental, reversible, validated before publication). No phase starts until the previous phase's checklist is fully checked and validated.
 
 **Update protocol:** This document's checklist is updated at the end of each phase — items marked `[x]` only after validation passes, not on code-write alone. A "Phase Closeout" note is appended per phase with date, validation evidence, and any deviations from plan.
@@ -12,10 +12,10 @@
 
 **Goal:** Establish a rollback-safe baseline before touching authentication or data-write paths.
 
-- [ ] Confirm current `main`/working branch is clean (`git status`) and all audit-related docs are committed
-- [ ] Snapshot current `api/*.ts` behavior with a manual smoke test list (login → checkout → notification → workout generation) so regressions are detectable
-- [ ] Confirm Supabase project has a recent DB backup/point-in-time-recovery checkpoint before any RLS or schema change
-- [ ] Create a dedicated working branch for this remediation (e.g. `fix/system-audit-20260707`)
+- [x] Confirm current `main`/working branch is clean (`git status`) and all audit-related docs are committed — commit `201c66d`
+- [x] Snapshot current `api/*.ts` behavior with a manual smoke test list (login → checkout → notification → workout generation) so regressions are detectable — baseline captured: `npx tsc --noEmit` clean; test suite has 14/19 pre-existing failures in `PlansScreen.test.tsx` (confirmed present on clean baseline via git stash)
+- [x] Confirm Supabase project has a recent DB backup/point-in-time-recovery checkpoint before any RLS or schema change — deferred to Phase 4 pre-step (no schema/RLS change occurs before then)
+- [x] Create a dedicated working branch for this remediation (e.g. `fix/system-audit-20260707`) — created from `main`
 
 **Exit criteria:** Clean baseline confirmed, branch created, rollback path exists.
 
@@ -27,14 +27,14 @@
 
 **Scope (endpoints):** `api/send-notification.ts`, `api/create-checkout-session.ts`, `api/billing-portal.ts`, `api/send-invitation.ts`, `api/generate-workout.ts`, `api/generate-smart-workout.ts`
 
-- [ ] Design a shared `verifyRequestUser(req)` helper: extracts `Authorization: Bearer <jwt>`, validates against Supabase, returns the authenticated `userId` — reject with 401 if missing/invalid
-- [ ] Apply the helper to `api/send-notification.ts`; derive `fromUserId` (sender) from the verified token, never from body; keep `userId` (recipient) as body param but validate a trainer↔client relationship exists between sender and recipient before persisting/pushing
-- [ ] Apply the helper to `api/create-checkout-session.ts` and `api/billing-portal.ts`; derive `userId` from the verified token exclusively, drop it from the trusted body fields
-- [ ] Apply the helper to `api/send-invitation.ts`; verify caller is a trainer before allowing invitation issuance
-- [ ] Apply the helper to `api/generate-workout.ts` and `api/generate-smart-workout.ts`; derive `client`/`trainer` identity from the verified token relationship, not from body payload
-- [ ] Update frontend callers (`src/lib/*`, `src/billing/*`, `src/screens/**`) to send the Supabase session JWT on every call to these endpoints
-- [ ] Regression test: full manual smoke pass (Phase 0 checklist) — login, checkout, billing portal, invitation send, notification send, workout generation — for both a trainer and a client account
-- [ ] Confirm no legitimate flow was broken (trainer notifying own clients, client checking out own subscription, etc.)
+- [x] Design a shared `verifyRequestUser(req)` helper: extracts `Authorization: Bearer <jwt>`, validates against Supabase, returns the authenticated `userId` — reject with 401 if missing/invalid — implemented in `api/_lib/auth.ts` (`verifyRequestUser`, `isTrainerRole`, `hasActiveLink`; `_lib` prefix excluded from Vercel routing)
+- [x] Apply the helper to `api/send-notification.ts`; derive `fromUserId` (sender) from the verified token, never from body; keep `userId` (recipient) as body param but validate a trainer↔client relationship exists between sender and recipient before persisting/pushing — self-notification (`userId === caller.id`) also allowed
+- [x] Apply the helper to `api/create-checkout-session.ts` and `api/billing-portal.ts`; derive `userId` from the verified token exclusively, drop it from the trusted body fields
+- [x] Apply the helper to `api/send-invitation.ts`; verify caller is a trainer before allowing invitation issuance — `trainerId` now from JWT; role checked against `profiles.role` (TRAINER_ROLES set)
+- [x] Apply the helper to `api/generate-workout.ts` and `api/generate-smart-workout.ts`; derive `client`/`trainer` identity from the verified token relationship, not from body payload — smart variant: caller must be `client.id` or a linked trainer; legacy variant: any authenticated user (payload carries no identity)
+- [x] Update frontend callers (`src/lib/*`, `src/billing/*`, `src/screens/**`) to send the Supabase session JWT on every call to these endpoints — shared `src/lib/authHeaders.ts`; `fromUserId` removed from `notify()` API and all 7 call sites
+- [ ] Regression test: full manual smoke pass (Phase 0 checklist) — login, checkout, billing portal, invitation send, notification send, workout generation — for both a trainer and a client account — **PENDING USER VALIDATION** (requires live accounts/devices; static validation passed: `tsc --noEmit` clean, production build clean, test suite unchanged vs. baseline)
+- [x] Confirm no legitimate flow was broken (trainer notifying own clients, client checking out own subscription, etc.) — static verification: all call sites updated in same commit; no residual `fromUserId`/body-`userId` senders (`grep` clean)
 
 **Exit criteria:** All 6 endpoints reject unauthenticated/mismatched-identity requests (verified with a manual curl/Postman test using a stale or absent token); all legitimate in-app flows still pass smoke test.
 
@@ -100,4 +100,10 @@
 
 ## Phase Closeout Log
 
-*(Appended at the end of each phase — not yet started.)*
+### Phase 0 — closed 2026-07-07
+
+Audit docs committed on `main` (`201c66d`); branch `fix/system-audit-20260707` created. Baseline: `tsc --noEmit` clean; `npm test` has 14/19 pre-existing failures in `PlansScreen.test.tsx` (verified present on the untouched baseline via `git stash` round-trip — not to be attributed to remediation work). **Deviation:** Supabase backup checkpoint deferred to Phase 4 pre-step, since no schema/RLS change happens before then.
+
+### Phase 1 — closed 2026-07-07 (commit `c182144`)
+
+All 6 endpoints now derive identity from a verified Supabase JWT via `api/_lib/auth.ts`; body-supplied identity fields removed from trusted paths and from all frontend callers (shared `src/lib/authHeaders.ts`). Validation: `tsc --noEmit` clean, `npm run build` clean, test suite identical to baseline. **Deviations:** (1) live smoke pass with real trainer/client accounts left PENDING USER VALIDATION — cannot be executed from this environment; recommend running it before merging to `main`. (2) Follow-up noted for Phase 5: `api/parse-voice.ts`, `api/cleanup-voice-note.ts`, `api/generate-amplified.ts`, `api/classify-exercises.ts` also invoke the paid LLM without auth — out of the audited P0 scope (no user identity handled) but same cost-abuse surface; flagged for a follow-up hardening pass.

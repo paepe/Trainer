@@ -1200,6 +1200,7 @@
       "typeReason": "Grund eingeben...",
       "typeComments": "Kommentare eingeben...",
       "offlineSaved": "Sitzung lokal gespeichert — Online-Synchronisation fehlgeschlagen.",
+      "pendingSync": "Einige Daten noch nicht synchronisiert — sie werden automatisch gesendet, sobald du wieder online bist.",
       "trainerBadge": "Training",
       "exercisesDone": "{{done}}/{{total}} Übungen abgeschlossen",
       "setFormTitle": "Satz {{current}} von {{total}} — {{name}}",
