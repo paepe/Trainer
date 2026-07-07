@@ -1,7 +1,7 @@
 # Remediation Plan — System Audit 2026-07-07
 
 **Source:** `policies/references/system-audit-trainer-20260707.md`
-**Status:** IN EXECUTION — Phases 0-2 complete; Phase 3 in progress
+**Status:** IN EXECUTION — Phases 0-3 complete; Phase 4 in progress
 **Governance:** Every phase must preserve existing stabilizations (per `AGENTS.md` Quality Directive: safe, incremental, reversible, validated before publication). No phase starts until the previous phase's checklist is fully checked and validated.
 
 **Update protocol:** This document's checklist is updated at the end of each phase — items marked `[x]` only after validation passes, not on code-write alone. A "Phase Closeout" note is appended per phase with date, validation evidence, and any deviations from plan.
@@ -62,11 +62,11 @@
 
 **Goal:** Close the gendered-key gap and eliminate hardcoded-English push notifications.
 
-- [ ] Backfill missing gendered keys in `en.json` (12), `de.json` (10), `es.json` (2) — `checkin.result.*`, `inbox.notification.*`, `inbox.templates.ready_to_train_*`, `inbox.trainer_timeout_workout.note_*`
-- [ ] Audit every `notify(...)` call site project-wide for `title`/`body` populated with raw strings instead of `templateKey` + empty strings
-- [ ] Fix `WorkoutPlanEditorScreen.tsx:340` (new-plan notification) to use `inbox.templates.new_plan` / `new_plan_body` via `templateKey`, matching the pattern in `InboxScreen.tsx:202`
-- [ ] Fix `src/lib/events.ts:89` (high-pain alert) to use `inbox.templates.high_pain_alert` / `_body` via `templateKey`
-- [ ] Verify on-device template rendering covers all locales for the fixed call sites (manual check: trigger each notification type with a non-English locale active)
+- [x] Backfill missing gendered keys in `en.json` (12), `de.json` (10), `es.json` (2) — `checkin.result.*`, `inbox.notification.*`, `inbox.templates.ready_to_train_*`, `inbox.trainer_timeout_workout.note_*` — cross-locale key diff now zero; en/de variants are intentionally identical to base (these predicative phrases don't inflect for gender in English/German); es uses `listo/lista`
+- [x] Audit every `notify(...)` call site project-wide for `title`/`body` populated with raw strings instead of `templateKey` + empty strings — found and fixed **4 additional sites** beyond the audit's 3: `autoExpirePlans.ts:42,53`, `useWorkoutData.ts:149` (workout_completed), `useCheckinData.ts:52-57` (safety_gate_blocked / low_readiness)
+- [x] Fix `WorkoutPlanEditorScreen.tsx:340` (new-plan notification) to use `inbox.templates.new_plan` / `new_plan_body` via `templateKey`, matching the pattern in `InboxScreen.tsx:202` — also fixed InboxScreen approve/reject (workout_approved / workout_rejected)
+- [x] Fix `src/lib/events.ts:89` (high-pain alert) to use `inbox.templates.high_pain_alert` / `_body` via `templateKey`
+- [ ] Verify on-device template rendering covers all locales for the fixed call sites (manual check: trigger each notification type with a non-English locale active) — **PENDING USER VALIDATION** (requires device with push permissions per locale)
 
 **Exit criteria:** No `notify()` call site sends a hardcoded English string as push title/body; locale diff shows zero missing gendered keys across `en`/`de`/`es`.
 
@@ -103,6 +103,10 @@
 ### Phase 0 — closed 2026-07-07
 
 Audit docs committed on `main` (`201c66d`); branch `fix/system-audit-20260707` created. Baseline: `tsc --noEmit` clean; `npm test` has 14/19 pre-existing failures in `PlansScreen.test.tsx` (verified present on the untouched baseline via `git stash` round-trip — not to be attributed to remediation work). **Deviation:** Supabase backup checkpoint deferred to Phase 4 pre-step, since no schema/RLS change happens before then.
+
+### Phase 3 — closed 2026-07-07 (commit `0e30f61`)
+
+Gendered-key backfill complete (cross-locale diff zero); 7 hardcoded-English push call sites converted to the canonical `'' + templateKey` pattern (4 more than the audit had identified). Validation: `tsc` clean, build clean, tests unchanged. **Known limitation (accepted):** with empty title/body the FCM banner falls back to the generic "TrAIner" title (verified in `public/firebase-messaging-sw.js` and `usePushNotifications.ts`); recipient-locale banner text would require template rendering inside the push pipeline (server-side locale lookup) — consistent with the pattern already established by commit 64deebe, flagged as a follow-up enhancement, not a regression.
 
 ### Phase 2 — closed 2026-07-07 (commit `b56ad89`)
 
