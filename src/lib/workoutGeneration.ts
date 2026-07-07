@@ -1,6 +1,7 @@
 import type { CheckIn } from '../types';
 import type { Json } from '../types/supabase';
 import type { SmartWorkoutRequest, SmartWorkoutResponse, WorkoutExercise } from '../ai/types';
+import { authHeaders } from './authHeaders';
 
 export interface CycleContext {
   phase: string;
@@ -78,7 +79,7 @@ export async function requestWorkoutPlan({
   try {
     response = await fetch(`${resolveWorkoutApiBase()}/api/generate-workout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({
         checkin,
         physicalProfile,
@@ -149,7 +150,7 @@ export async function requestSmartWorkout(
   try {
     const response = await fetch(`${resolveWorkoutApiBase()}/api/generate-smart-workout`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body:    JSON.stringify(request),
       signal:  ctrl.signal,
     });

@@ -223,11 +223,11 @@ export function TrainerDashboardScreen({
     if (!user?.id) return { ok: false };
     const isNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
     const apiBase  = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
+    const { authHeaders } = await import('../../lib/authHeaders');
     const res = await fetch(`${apiBase}/api/send-invitation`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({
-        trainerId:    user.id,
         trainerName:  user.name ?? '',
         invitedEmail: email,
         invitedName:  name,

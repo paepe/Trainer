@@ -1,3 +1,5 @@
+import { verifyRequestUser } from './_lib/auth';
+
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.
 
@@ -64,6 +66,7 @@ interface RequestBody {
 interface VercelRequest {
   method?: string;
   body?: RequestBody;
+  headers?: Record<string, string | string[] | undefined>;
 }
 
 declare const process: {
@@ -98,6 +101,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  // Generation costs money — only authenticated users may invoke the LLM.
+  const caller = await verifyRequestUser(req);
+  if (!caller) {
+    res.status(401).json({ error: 'Unauthorized' });
     return;
   }
 

@@ -90,7 +90,6 @@ export async function handlePainReport(
     type:        'high_pain',
     templateKey: 'high_pain_alert',
     params:      alertParams,
-    fromUserId:  userId,
   });
 
   if (alertId) {

@@ -191,7 +191,6 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
               notify(linkedTrainerId, tr('checkin.result.readyPushTitle', { name, ...(genderCtx ? { context: genderCtx } : {}) }), tr('checkin.result.readyPushBody', { score }), undefined, {
                 type: 'workout_ready', templateKey: 'ready_to_train',
                 params: { name, score, gender }, expiresInMin: workoutReadyExpiryMin,
-                ...(user?.id ? { fromUserId: user.id } : {}),
               });
               // Stay on result screen — CheckInResult shows countdown and handles state
             }

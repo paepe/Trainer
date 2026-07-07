@@ -6,6 +6,8 @@
 // consent.allow_ai_adaptation is true (gated in buildAIContext.ts). When false, both are omitted before the request is sent.
 // NOTE: All types and prompt-building logic are inlined (self-contained) for Vercel bundling.
 
+import { verifyRequestUser, hasActiveLink } from './_lib/auth';
+
 // ─── Inlined types (from src/ai/types.ts + src/types/coach-dna.ts) ────────────
 
 type CoachArchetype = 'performance' | 'technician' | 'motivator' | 'guide' | 'drill' | 'movement';
@@ -528,7 +530,7 @@ function buildPrompt(ctx: AIContext): { system: string; user: string } {
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
-interface VercelRequest  { method?: string; body?: SmartWorkoutRequest }
+interface VercelRequest  { method?: string; body?: SmartWorkoutRequest; headers?: Record<string, string | string[] | undefined> }
 interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
 
 declare const process: { env: Record<string, string | undefined> };
@@ -547,6 +549,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const body = req.body;
   if (!body?.trainer || !body?.client || !body?.today || !body?.task) {
     return res.status(400).json({ error: 'trainer, client, today, and task are required' });
+  }
+
+  // Caller must be the client themself, or a trainer actively linked to them.
+  // ('ai-coach' autonomous sessions are always initiated by the client's device.)
+  const caller = await verifyRequestUser(req);
+  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+  const isClientSelf = caller.id === body.client.id;
+  const isLinkedTrainer = caller.id === body.trainer.id
+    && body.trainer.id !== 'ai-coach'
+    && await hasActiveLink(caller.id, body.client.id);
+  if (!isClientSelf && !isLinkedTrainer) {
+    return res.status(403).json({ error: 'Caller is not the client or their linked trainer' });
   }
 
   const apiKey = process.env.DEEPSEEK_API_KEY;

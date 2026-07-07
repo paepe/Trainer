@@ -4,13 +4,25 @@
 // Requires: FCM_PROJECT_ID, FCM_CLIENT_EMAIL, FCM_PRIVATE_KEY,
 //           VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in env.
 
+import { verifyRequestUser, hasActiveLink } from './_lib/auth';
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { userId, title, body, url, type, entityType, entityId, fromUserId, expiresAt, templateKey, params } = req.body || {};
+  const caller = await verifyRequestUser(req);
+  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { userId, title, body, url, type, entityType, entityId, expiresAt, templateKey, params } = req.body || {};
   // title/body may be empty when templateKey is set — the recipient renders
   // the localized text from templateKey/params on-device (see notify.ts).
   if (!userId || (!templateKey && (!title || !body))) return res.status(400).json({ error: 'userId and (title+body or templateKey) required' });
+
+  // Sender identity comes from the verified JWT, never from the body.
+  // Cross-user sends require an active trainer↔client link with the recipient.
+  const fromUserId = caller.id;
+  if (userId !== caller.id && !(await hasActiveLink(caller.id, userId))) {
+    return res.status(403).json({ error: 'No active trainer/client link with recipient' });
+  }
 
   const supabaseUrl  = process.env.VITE_SUPABASE_URL        || '';
   const serviceKey   = process.env.SUPABASE_SERVICE_ROLE_KEY || '';

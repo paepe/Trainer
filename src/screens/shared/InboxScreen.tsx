@@ -203,7 +203,6 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
         type: response === 'approved' ? 'access_granted' : 'access_denied',
         templateKey: response === 'approved' ? 'access_granted' : 'access_denied',
         params: { clientName: clientFirst, category },
-        ...(userId ? { fromUserId: userId } : {}),
       });
     } else {
       const trainerFirst = userName?.split(' ')[0] || tr('inbox.yourTrainerFallback');
@@ -231,11 +230,11 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
         }
         notify(item.from_user_id, 'Workout approved',
           'Your trainer reviewed your readiness and gave the green light.',
-          undefined, { type: 'workout_approved', templateKey: 'workout_approved', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
+          undefined, { type: 'workout_approved', templateKey: 'workout_approved', params: { trainerName: trainerFirst } });
       } else {
         notify(item.from_user_id, 'Workout request returned',
           'Your trainer reviewed your readiness and recommends skipping today\'s session.',
-          undefined, { type: 'workout_rejected', templateKey: 'workout_rejected', params: { trainerName: trainerFirst }, ...(userId ? { fromUserId: userId } : {}) });
+          undefined, { type: 'workout_rejected', templateKey: 'workout_rejected', params: { trainerName: trainerFirst } });
       }
     }
 
@@ -277,7 +276,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
           tr('inbox.workout_timeout.body'),
           undefined,
           { type: 'workout_timeout', templateKey: 'workout_timeout',
-            params: {}, ...(userId ? { fromUserId: userId } : {}) },
+            params: {} },
         );
       })();
     }

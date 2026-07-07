@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { verifyRequestUser } from './_lib/auth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-12-18.acacia' });
 
@@ -12,8 +13,12 @@ const supabase = createClient(
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { userId, returnUrl } = req.body as { userId: string; returnUrl?: string };
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
+  const caller = await verifyRequestUser(req);
+  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { returnUrl } = req.body as { returnUrl?: string };
+  // Identity comes exclusively from the verified JWT — body userId is ignored.
+  const userId = caller.id;
 
   try {
     const { data: sub } = await supabase

@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { verifyRequestUser } from './_lib/auth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-12-18.acacia' });
 
@@ -12,8 +13,10 @@ const supabase = createClient(
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { userId, priceId, planKey, billingCycle, email, successUrl, cancelUrl } = req.body as {
-    userId:       string;
+  const caller = await verifyRequestUser(req);
+  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { priceId, planKey, billingCycle, email, successUrl, cancelUrl } = req.body as {
     priceId:      string;
     planKey:      string;
     billingCycle: 'monthly' | 'annual';
@@ -22,8 +25,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     cancelUrl?:   string;
   };
 
-  if (!userId || !priceId || !planKey) {
-    return res.status(400).json({ error: 'userId, priceId and planKey are required' });
+  // Identity comes exclusively from the verified JWT — body userId is ignored.
+  const userId = caller.id;
+
+  if (!priceId || !planKey) {
+    return res.status(400).json({ error: 'priceId and planKey are required' });
   }
 
   try {

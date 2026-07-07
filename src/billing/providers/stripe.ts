@@ -3,6 +3,7 @@ import type {
   CheckoutRequest, CheckoutResult,
   PortalRequest, PortalResult,
 } from '../types';
+import { authHeaders } from '../../lib/authHeaders';
 
 function resolveApiBase(): string {
   if (typeof window === 'undefined') return import.meta.env.VITE_API_URL ?? '';
@@ -32,9 +33,8 @@ export function createStripeProvider(config: BillingConfig): BillingProvider {
       try {
         const res = await fetch(`${base}/api/create-checkout-session`, {
           method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: await authHeaders(),
           body: JSON.stringify({
-            userId:       req.userId,
             priceId,
             planKey:      req.planKey,
             billingCycle: req.billingCycle,
@@ -56,9 +56,8 @@ export function createStripeProvider(config: BillingConfig): BillingProvider {
       try {
         const res = await fetch(`${base}/api/billing-portal`, {
           method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: await authHeaders(),
           body: JSON.stringify({
-            userId:    req.userId,
             returnUrl: req.returnUrl ?? window.location.origin,
           }),
         });

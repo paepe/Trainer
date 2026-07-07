@@ -480,7 +480,7 @@ export function TrainerClientDetailScreen({
     setGrants(prev => new Map(prev).set(categoryKey, data as AccessGrant));
     notify(clientId, '', '', undefined, {
       type: 'access_request', entityType: 'profile_access_grant', entityId: data.id as string,
-      fromUserId: user.id, templateKey: 'access_request',
+      templateKey: 'access_request',
       params: { trainerName: user.name?.split(' ')[0] ?? '', category: categoryKey },
     });
   };

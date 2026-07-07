@@ -8,15 +8,25 @@
 // See: policies/references/Trainer 2.0/trainer-invitation-flow-plan-20260607.md
 
 import { randomUUID } from 'crypto';
+import { verifyRequestUser, isTrainerRole } from './_lib/auth';
 
 const INVITE_TTL_DAYS = 7;
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { trainerId, trainerName, invitedEmail, invitedName } = req.body || {};
-  if (!trainerId || !invitedEmail || !invitedName) {
-    return res.status(400).json({ error: 'trainerId, invitedEmail, invitedName required' });
+  const caller = await verifyRequestUser(req);
+  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { trainerName, invitedEmail, invitedName } = req.body || {};
+  if (!invitedEmail || !invitedName) {
+    return res.status(400).json({ error: 'invitedEmail, invitedName required' });
+  }
+
+  // Inviter identity comes from the verified JWT; only trainer roles may invite.
+  const trainerId = caller.id;
+  if (!(await isTrainerRole(trainerId))) {
+    return res.status(403).json({ error: 'Only trainers can send invitations' });
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL         || '';
