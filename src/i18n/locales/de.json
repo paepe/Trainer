@@ -1205,6 +1205,8 @@
       "typeComments": "Kommentare eingeben...",
       "offlineSaved": "Sitzung lokal gespeichert — Online-Synchronisation fehlgeschlagen.",
       "pendingSync": "Einige Daten noch nicht synchronisiert — sie werden automatisch gesendet, sobald du wieder online bist.",
+      "noPlanTitle": "Noch kein Trainingsplan",
+      "noPlanBody": "Wir haben keine Übungen für diese Einheit gefunden. Geh zurück und starte das Training erneut.",
       "trainerBadge": "Training",
       "exercisesDone": "{{done}}/{{total}} Übungen abgeschlossen",
       "setFormTitle": "Satz {{current}} von {{total}} — {{name}}",

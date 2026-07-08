@@ -1210,6 +1210,8 @@
       "typeComments": "Type comments...",
       "offlineSaved": "Session saved locally — online sync failed.",
       "pendingSync": "Some data not synced yet — it will sync automatically when you’re back online.",
+      "noPlanTitle": "No workout plan yet",
+      "noPlanBody": "We couldn’t find any exercises for this session. Go back and try starting your workout again.",
       "trainerBadge": "Training",
       "exercisesDone": "{{done}}/{{total}} exercises done",
       "setFormTitle": "Set {{current}} of {{total}} — {{name}}",

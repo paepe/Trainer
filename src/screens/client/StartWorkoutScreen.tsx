@@ -500,7 +500,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           if (weekCount >= sessionsPerWeekCap) {
             setGenState({
               phase:         'error',
-              error:         tr('workout.limitWeekly', { n: sessionsPerWeekCap }),
+              error:         tr('client.workout.limitWeekly', { n: sessionsPerWeekCap }),
             });
             return;
           }
@@ -567,6 +567,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           },
         };
 
+        // When useSmart is false (free tier, AI personalization disabled, or no
+        // trainer link), the client still gets a real workout — a deterministic
+        // template plan, not an empty one (see generateFallbackPlan above).
         const result = useSmart
           ? await requestSmartWorkout({
               trainer: trainerCtx, client: clientCtx,
@@ -574,7 +577,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               library: libraryCtx, task: taskCtx,
               locale: i18n.language,
             })
-          : { exercises: [], readinessScore: todayCtx.readinessScore || 60, blocked: false, adaptations: [], safetyTitle: null as any, safetyMessage: null as any };
+          : {
+              exercises:      generateFallbackPlan(resolvedCheckin.goal, taskCtx.durationMin ?? 30),
+              readinessScore: todayCtx.readinessScore || 60,
+              blocked:        false,
+              adaptations:    [] as string[],
+              safetyTitle:    null as any,
+              safetyMessage:  null as any,
+            };
 
         const readiness   = result.readinessScore;
         const adaptResult = result.adaptations;
@@ -615,14 +625,30 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     }
   };
 
+  // Wait for the feature-permission matrix to resolve before generating.
+  // useFeatureAccessMap always starts as { allowed: false, loading: true } —
+  // firing fetchPlan() on an empty-deps mount effect would permanently
+  // capture that unresolved `false` for aiCheckinAllowed (stale closure),
+  // forcing useSmart to false and silently persisting a zero-exercise plan
+  // for every client (most visibly trainer-less ones, whose only path is
+  // this AI branch — see system audit follow-up, 2026-07-09).
+  const aiPermsLoading = aiAccessMap['ai.checkin_adjustment']?.loading ?? true;
+  const fetchFiredRef = React.useRef(false);
+
   React.useEffect(() => {
     mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (aiPermsLoading || fetchFiredRef.current) return;
+    fetchFiredRef.current = true;
     const fetch = async () => {
       try { await fetchPlan(); } catch { /* caught internally */ }
     };
     void fetch();
-    return () => { mountedRef.current = false; };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiPermsLoading]);
 
   // Live: a new plan sent by the trainer while this screen is open
   React.useEffect(() => {
@@ -1079,7 +1105,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         <div style={{ padding: '16px 22px 28px' }}>
           <button
             onClick={() => nav('workoutMode', { planId: planId || null, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined })}
-            disabled={!plan || loading || safetyBlocked}
+            disabled={!plan || plan.length === 0 || loading || safetyBlocked}
             data-testid="start-ai-plan-btn"
             style={{
               ...primaryBtn(t.primary),

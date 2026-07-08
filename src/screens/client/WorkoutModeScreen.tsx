@@ -95,8 +95,13 @@ export function WorkoutModeScreen({
   const [skipCustomReason, setSkipCustomReason] = React.useState('');
 
   // ── Init ─────────────────────────────────────────────────────────────────────
+  const [noPlan, setNoPlan] = React.useState(false);
+
   React.useEffect(() => {
-    if (!exercises?.length) { setPhase('active'); return; }
+    // A workout must never silently "start" (timer running) with zero
+    // exercises — that traps the user on a blank screen with no finish CTA.
+    // Surface it explicitly instead (see system audit follow-up, 2026-07-09).
+    if (!exercises?.length) { setNoPlan(true); setPhase('active'); return; }
 
     const sessionInput: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number } = { planId, exercises };
     if (clientUserId)        sessionInput.forUserId            = clientUserId;
@@ -402,7 +407,19 @@ export function WorkoutModeScreen({
           </div>
         )}
 
-        {phase !== 'init' && exStates.map((ex, i) => (
+        {phase === 'active' && noPlan && (
+          <div data-testid="no-plan-error" style={{ padding: '32px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
+            <Icon name="info" size={28} color={t.accent}/>
+            <div style={{ fontSize: 14, fontWeight: 700, color: textPri(dark) }}>{tr('client.mode.noPlanTitle')}</div>
+            <div style={{ fontSize: 12.5, color: textSec(dark), maxWidth: 260 }}>{tr('client.mode.noPlanBody')}</div>
+            <button onClick={() => nav('workout')} style={{
+              marginTop: 4, padding: '10px 20px', borderRadius: 999, border: 'none',
+              background: t.primary, color: '#0E1A2B', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}>{tr('common.back')}</button>
+          </div>
+        )}
+
+        {phase !== 'init' && !noPlan && exStates.map((ex, i) => (
           <ExerciseCard
             key={ex.id}
             ex={ex}

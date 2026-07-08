@@ -1205,6 +1205,8 @@
       "typeComments": "Digite os comentários...",
       "offlineSaved": "Sessão salva localmente — sincronização online falhou.",
       "pendingSync": "Alguns dados ainda não sincronizados — serão enviados automaticamente quando você voltar a ficar online.",
+      "noPlanTitle": "Ainda sem plano de treino",
+      "noPlanBody": "Não encontramos exercícios para esta sessão. Volte e tente iniciar o treino novamente.",
       "trainerBadge": "Treinando",
       "exercisesDone": "{{done}}/{{total}} exercícios concluídos",
       "setFormTitle": "Série {{current}} de {{total}} — {{name}}",
