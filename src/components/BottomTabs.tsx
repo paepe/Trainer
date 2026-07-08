@@ -35,6 +35,7 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({ tabs, active, onTap, pri
         <button
           key={key}
           onClick={() => { if (!disabled) onTap(key); }}
+          data-testid={`tab-${key}`}
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
             background: 'transparent', border: 'none',

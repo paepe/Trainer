@@ -18,5 +18,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    // Exclude orphaned git worktrees under .claude/worktrees — vitest's default
+    // exclude only covers node_modules/dist/etc, so a stray worktree checkout
+    // duplicates every test file it contains (found running the full suite
+    // during the 2026-07-07 system audit remediation).
+    exclude: ['**/node_modules/**', '**/dist/**', '.claude/worktrees/**'],
   },
 });

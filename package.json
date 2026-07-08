@@ -10,6 +10,7 @@
     "build": "vite build",
     "lint": "eslint src",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "preview": "vite preview",
     "cap:sync": "npx cap sync",
     "cap:ios": "npx cap open ios",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@capacitor/cli": "^7.0.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.1",

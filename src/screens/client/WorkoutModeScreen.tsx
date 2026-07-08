@@ -389,7 +389,7 @@ export function WorkoutModeScreen({
       )}
 
       {syncPending && !initErr && (
-        <div style={{ margin: '0 22px 8px', padding: '8px 12px', borderRadius: 10, background: `${t.accent}18`, fontSize: 12, color: t.accent }}>
+        <div data-testid="pending-sync-banner" style={{ margin: '0 22px 8px', padding: '8px 12px', borderRadius: 10, background: `${t.accent}18`, fontSize: 12, color: t.accent }}>
           {tr('client.mode.pendingSync')}
         </div>
       )}
@@ -424,6 +424,7 @@ export function WorkoutModeScreen({
             <button
               onClick={finishWorkout}
               disabled={finishing}
+              data-testid="finish-workout-btn"
               style={{
                 ...primaryBtn(t.primary),
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -462,7 +463,7 @@ export function WorkoutModeScreen({
               flex: 1, padding: '12px 0', borderRadius: 999, border: `1.5px solid ${borderSubtle(dark)}`,
               background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>{tr('client.mode.cancel')}</button>
-            <button onClick={() => void confirmSet()} disabled={savingSet} style={{
+            <button onClick={() => void confirmSet()} disabled={savingSet} data-testid="confirm-set-btn" style={{
               flex: 2, ...primaryBtn(t.primary),
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               opacity: savingSet ? 0.6 : 1,

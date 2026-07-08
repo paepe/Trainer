@@ -896,6 +896,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                         )}
                         <button
                           onClick={() => isPlanLocked ? setTrainerPlanLocked(true) : startPlan(p)}
+                          data-testid="start-plan-btn"
                           style={{
                             flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
                             background: isPlanLocked ? 'rgba(255,255,255,.12)' : t.primary,
@@ -1079,6 +1080,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           <button
             onClick={() => nav('workoutMode', { planId: planId || null, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined })}
             disabled={!plan || loading || safetyBlocked}
+            data-testid="start-ai-plan-btn"
             style={{
               ...primaryBtn(t.primary),
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
