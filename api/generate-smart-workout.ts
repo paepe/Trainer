@@ -6,7 +6,7 @@
 // consent.allow_ai_adaptation is true (gated in buildAIContext.ts). When false, both are omitted before the request is sent.
 // NOTE: All types and prompt-building logic are inlined (self-contained) for Vercel bundling.
 
-import { verifyRequestUser, hasActiveLink } from './_lib/auth';
+import { verifyRequestUser, hasActiveLink } from '../lib/api-auth';
 
 // ─── Inlined types (from src/ai/types.ts + src/types/coach-dna.ts) ────────────
 

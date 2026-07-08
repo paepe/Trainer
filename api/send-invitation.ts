@@ -8,7 +8,7 @@
 // See: policies/references/Trainer 2.0/trainer-invitation-flow-plan-20260607.md
 
 import { randomUUID } from 'crypto';
-import { verifyRequestUser, isTrainerRole } from './_lib/auth';
+import { verifyRequestUser, isTrainerRole } from '../lib/api-auth';
 
 const INVITE_TTL_DAYS = 7;
 

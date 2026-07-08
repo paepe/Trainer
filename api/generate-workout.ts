@@ -1,4 +1,4 @@
-import { verifyRequestUser } from './_lib/auth';
+import { verifyRequestUser } from '../lib/api-auth';
 
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.

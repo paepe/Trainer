@@ -1,5 +1,9 @@
 // Shared request-authentication helpers for api/* handlers.
-// Files under api/_lib are NOT routed as endpoints by Vercel (underscore prefix).
+// Lives outside api/ deliberately: Vercel's Node.js function bundler does not
+// reliably trace/include files under an api/_underscore/ directory into the
+// deployed function bundle (confirmed in production — ERR_MODULE_NOT_FOUND at
+// runtime for api/_lib/auth despite a clean local build). A plain top-level
+// lib/ import is the well-trodden pattern and traces correctly.
 //
 // Identity rule: userId is ALWAYS derived from the verified Supabase JWT in the
 // Authorization header — never trusted from the request body.

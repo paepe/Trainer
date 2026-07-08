@@ -4,7 +4,7 @@
 // Requires: FCM_PROJECT_ID, FCM_CLIENT_EMAIL, FCM_PRIVATE_KEY,
 //           VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in env.
 
-import { verifyRequestUser, hasActiveLink } from './_lib/auth';
+import { verifyRequestUser, hasActiveLink } from '../lib/api-auth';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
