@@ -102,20 +102,44 @@
 
 All 5 phases executed on branch `fix/system-audit-20260707` (commits: docs `201c66d` on main; `c182144` P0 auth; `b56ad89` P1 offline; `0e30f61` P2 i18n; `4df1c05` P3 cleanup; P4 docs in final commit). Every Critical/High audit finding is fixed in code. Static validation clean at every phase gate.
 
-**Residual items requiring user action before merge to `main`:**
+**Residual items requiring user action before merge to `main`:** *(all resolved 2026-07-08 — see follow-up below)*
 
-1. **Live smoke pass** (trainer + client accounts): login, checkout, billing portal, invitation, notification send, workout generation — verifies the new JWT requirement broke no legitimate flow.
-2. **Offline QA**: workout with forced network failure mid-set (expect pending-sync banner, no data loss); workout started fully offline (expect full data reconciliation on reconnect).
-3. **Apply `supabase-cleanup-20260707.sql`** to production after confirming a backup/PITR checkpoint (drops `plan_exercises.completed`; tightens `exercises_status_check`).
-4. **Push-locale check**: trigger notification types with non-English locale active (in-app inbox localized; FCM banner shows generic "TrAIner" title — accepted limitation).
+1. ~~Live smoke pass~~ — done live against production Supabase using `TEST-ACCOUNTS.md` credentials (user-authorized), formalized into `tests/e2e/api-auth-gate.spec.ts`.
+2. Offline QA (forced network failure mid-set / fully-offline workout) — the underlying logic is now covered deterministically by `WorkoutModeScreen.test.tsx`; true device/network-toggle QA remains manual (see below).
+3. ~~Apply `supabase-cleanup-20260707.sql`~~ — **applied to production** 2026-07-07 (user-authorized); verified: `plan_exercises.completed` dropped, `exercises_status_check` tightened to 4 values.
+4. Push-locale check — in-app inbox localization unchanged (already correct); FCM banner remains generic-title by design (see accepted risk below). Not independently re-verified on-device.
 
 **Accepted risks / follow-ups (documented, not blocking):**
 
 - `api/parse-voice.ts`, `cleanup-voice-note.ts`, `generate-amplified.ts`, `classify-exercises.ts` still invoke the paid LLM unauthenticated (no user identity handled; cost-abuse surface only) — follow-up hardening pass recommended.
 - Feature gates are UX-only except the invitation client-limit (addendum in `Plan_Feature_Gating_Audit_20260616.md`).
 - FCM banner shows generic title with the `templateKey` pattern; recipient-locale banners need template rendering in the push pipeline.
-- Orphaned worktree `.claude/worktrees/trainer-project-status-dae0f6/` duplicates test failures in vitest — delete it or exclude `.claude/worktrees` in `vitest.config.ts`.
-- `PlansScreen.test.tsx` has 14 pre-existing failures (present before this work; unrelated).
+- ~~Orphaned worktree duplicates test failures in vitest~~ — fixed: `.claude/worktrees/**` excluded in `vitest.config.ts` (worktree itself left untouched — it's a real, unexplained git worktree on branch `claude/trainer-project-status-dae0f6`, not deleted per data-safety policy).
+- `PlansScreen.test.tsx` has 14 pre-existing failures (present before this work; unrelated; confirmed via `git stash` against the untouched baseline).
+
+---
+
+## Follow-up — Live Validation & QA Automation (2026-07-08)
+
+**Goal:** close the residual items above via live testing against production Supabase (user-authorized), and stand up reusable automated coverage since no QA team/test infra existed for this project.
+
+**Two new bugs found via live testing (both pre-existing, unrelated to the P0-P4 diff, both fixed):**
+
+1. **Missing `stripe` npm dependency** — `api/create-checkout-session.ts` / `billing-portal.ts` import `stripe`, never declared in `package.json`; both endpoints crashed on cold start (`Cannot find package 'stripe'`) in any clean-install environment. Fixed: dependency added (commit `9694f19`).
+2. **Missing RLS INSERT policy on `workout_plans` / `plan_exercises`** — the client-side AI-workout-generation flow (`StartWorkoutScreen.tsx`) self-inserts a plan (`assigned_to = created_by = auth.uid()`, `source = 'ai_generated'`) for history/tracking, but no INSERT policy permitted it (only UPDATE/SELECT existed for the assigned client; the `ALL`-scoped "creator manages plan" policy requires the trainer-only `edit_workout_plan` permission). The insert failed silently (caught and only logged) — AI-generated plan history was never persisted for clients. Fixed with a narrowly-scoped migration (user-authorized) mirroring the existing policy pattern — restricted to self-authored, self-assigned, `ai_generated`-source rows only, so it cannot be used to forge a manually-authored or trainer-authored plan.
+
+**Auth-gate (P0) live validation** — via real Supabase JWTs from `TEST-ACCOUNTS.md` (user-authorized) against the local `api-server.mjs`:
+- Confirmed 401 on all 6 endpoints without a token (2 of 6 — `create-checkout-session`/`billing-portal` — verified via code path only in this environment, since `STRIPE_SECRET_KEY` isn't in local `.env.local`; the Stripe client is instantiated at module load and would need to reach the auth check first in an environment with that secret).
+- Confirmed 403 on cross-user `send-notification` and `generate-smart-workout` impersonation attempts without an active trainer↔client link (fail-closed).
+- Confirmed self-actions pass the gate: `send-notification` self-notify reaches downstream logic (FCM signing failed locally on an unrelated pre-existing local-env issue, not the auth gate); `generate-workout` succeeded fully end-to-end with a real DeepSeek call (5 exercises returned).
+- **Hardening found along the way:** `api/_lib/auth.ts` was using the service-role key to verify JWTs via GoTrue `/auth/v1/user` — that call only needs a valid anon/publishable key. Switched to the anon key for identity verification, keeping the service-role key scoped to the actually-privileged REST calls (`isTrainerRole`, `hasActiveLink`) — stricter least-privilege, and removes a dependency on the service-role key being configured just to authenticate callers (commit `423e66b`).
+
+**QA automation stood up** (commits `d9b2198`, `edc6cff`):
+- **Playwright** (`playwright.config.ts`, `tests/e2e/api-auth-gate.spec.ts`) — 13 tests, real Supabase auth, no mocking of the auth layer; run via `npm run test:e2e`. Formalizes the manual P0 live-validation above into a re-runnable regression check.
+- **`data-testid` hooks** added to the login form, bottom tab bar, both workout-start CTAs, and the core workout-mode interactions (log-set, confirm-set, finish-workout, pending-sync banner) — groundwork for future E2E coverage (checkout, invitation, full workout journey) without relying on locale-dependent text selectors.
+- **Vitest component test** (`WorkoutModeScreen.test.tsx`) — 5 tests, deterministic (mocked callbacks/queue, no production writes), directly validates the P1 offline-resilience logic: failed set logs queue + surface the pending-sync banner; successful writes queue nothing; the confirm-set button is guarded against double-submit; a failed session-complete queues correctly; a session that never synced from the start queues a full `full_session` replay payload with per-exercise set logs and triggers an immediate flush.
+
+**Still genuinely manual (documented, not automated):** true device/browser network-toggle QA (airplane mode mid-workout) and on-device FCM push-banner locale rendering — Playwright's `context.setOffline()` could drive the former in a future pass once a stable path through the real UI (login → active plan → workout) is mapped without hitting the AI-plan-generation dependency on daily check-in state; the latter requires a real mobile push receiver, out of reach from this environment.
 
 ---
 
