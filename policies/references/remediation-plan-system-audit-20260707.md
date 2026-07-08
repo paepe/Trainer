@@ -1,7 +1,7 @@
 # Remediation Plan — System Audit 2026-07-07
 
 **Source:** `policies/references/system-audit-trainer-20260707.md`
-**Status:** EXECUTION COMPLETE (2026-07-07) — all phases closed; residual items listed in Close-out
+**Status:** DEPLOYED TO PRODUCTION (2026-07-08) — PR #1, all phases closed, see Deployment Record below
 **Governance:** Every phase must preserve existing stabilizations (per `AGENTS.md` Quality Directive: safe, incremental, reversible, validated before publication). No phase starts until the previous phase's checklist is fully checked and validated.
 
 **Update protocol:** This document's checklist is updated at the end of each phase — items marked `[x]` only after validation passes, not on code-write alone. A "Phase Closeout" note is appended per phase with date, validation evidence, and any deviations from plan.
@@ -118,6 +118,29 @@ All 5 phases executed on branch `fix/system-audit-20260707` (commits: docs `201c
 - `PlansScreen.test.tsx` has 14 pre-existing failures (present before this work; unrelated; confirmed via `git stash` against the untouched baseline).
 
 ---
+
+## Deployment Record — 2026-07-08
+
+Per `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` §8.1/§8.3 (merge via PR, promotion traceable by commit SHA).
+
+| Field | Value |
+|---|---|
+| **PR** | [paepe/Trainer#1](https://github.com/paepe/Trainer/pull/1) — open, not yet merged to `main` |
+| **Source branch** | `fix/system-audit-20260707` |
+| **Final promoted commit** | `35df430` |
+| **Vercel project** | `paulo-eduardo-peress-projects/trainer` |
+| **Production URL** | https://trainer-lake.vercel.app |
+| **Preview verified first** | `https://trainer-o7lie0k3k-...vercel.app` (READY, clean build) before promoting |
+| **Explicit authorization** | User-confirmed for both the preview→production promotion and the mid-incident hotfix redeploys |
+| **Pre-publication gates** | `tsc --noEmit` clean, `npm run build` clean, `npm run lint` 0 errors, `vitest run` no regressions, `playwright test` 13/13 |
+
+### Incident during promotion (self-detected and resolved within the same session)
+
+The first production promotion (commit `6efd825`) broke all 6 P0-gated endpoints (`500 FUNCTION_INVOCATION_FAILED` instead of `401`/`200`) — Vercel's Node.js function builder for this project does not trace relative imports outside the handler file into the deployed bundle, so `api/_lib/auth.ts` (the shared P0 helper module) was never included in the deployed functions, regardless of its underscore prefix. The codebase already carried a scar from this exact constraint (`generate-smart-workout.ts`'s "inlined for Vercel bundling" comment) that should have been applied to the new module from the start.
+
+**Timeline:** promoted → immediate `curl` verification caught the 500s within ~2 minutes → root-caused via `vercel logs` (`ERR_MODULE_NOT_FOUND`) → first fix attempt (move to a plain `lib/` outside `api/`) also failed the same way, proving the constraint is "no relative imports at all," not "no underscore paths" → second fix (inline the ~80-line auth helper into all 6 handler files, matching the existing project pattern) verified locally + full Playwright suite green → redeployed → verified clean (`curl` 401/400 on all 6, full end-to-end real-JWT `generate-workout` call succeeded with 5 exercises returned).
+
+**Residual, pre-existing, unrelated-to-this-work gap found during verification:** `create-checkout-session` and `billing-portal` still return 500 in production — root cause is `STRIPE_SECRET_KEY` **was never configured in Vercel's environment variables** (`vercel env ls production` confirms it's absent entirely). This predates all work in this branch — these two endpoints could never have worked previously either, since the `stripe` npm package itself was missing until this branch's Phase-1-adjacent fix (commit `9694f19`), so the missing env var was never reachable/visible before now. **Requires the project owner to add `STRIPE_SECRET_KEY` in Vercel (Production + Preview) from the Stripe dashboard** — not something fixable from this environment.
 
 ## Follow-up — Live Validation & QA Automation (2026-07-08)
 
