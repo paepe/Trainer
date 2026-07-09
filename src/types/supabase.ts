@@ -2110,6 +2110,7 @@ export type Database = {
       workout_session_exercises: {
         Row: {
           created_at: string | null
+          duration_seconds_prescribed: number | null
           exercise_id: string | null
           exercise_name: string
           id: string
@@ -2128,6 +2129,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          duration_seconds_prescribed?: number | null
           exercise_id?: string | null
           exercise_name: string
           id?: string
@@ -2146,6 +2148,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          duration_seconds_prescribed?: number | null
           exercise_id?: string | null
           exercise_name?: string
           id?: string

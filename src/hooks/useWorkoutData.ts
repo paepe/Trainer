@@ -45,16 +45,17 @@ export function useWorkoutData(userId: string | undefined) {
 
     const sessionId = session.id as string;
     const exerciseRows = input.exercises.map((ex, i) => ({
-      session_id:         sessionId,
-      exercise_name:      ex.exercise_name,
-      muscle_group:       ex.muscle_group       ?? null,
-      order_index:        i,
-      sets_prescribed:    ex.sets               ?? null,
-      reps_prescribed:    ex.reps               ?? null,
-      load_kg_prescribed: ex.load_kg            ?? null,
-      rest_seconds:       ex.rest_seconds       ?? null,
-      notes:              ex.notes              ?? null,
-      status:             'pending',
+      session_id:                  sessionId,
+      exercise_name:               ex.exercise_name,
+      muscle_group:                ex.muscle_group       ?? null,
+      order_index:                 i,
+      sets_prescribed:             ex.sets               ?? null,
+      reps_prescribed:             ex.reps               ?? null,
+      duration_seconds_prescribed: ex.duration_seconds   ?? null,
+      load_kg_prescribed:          ex.load_kg            ?? null,
+      rest_seconds:                ex.rest_seconds       ?? null,
+      notes:                       ex.notes              ?? null,
+      status:                      'pending',
     }));
 
     if (exerciseRows.length === 0) {
@@ -83,6 +84,7 @@ export function useWorkoutData(userId: string | undefined) {
     reps_done:           number | null;
     load_kg:             number | null;
     rpe:                 number | null;
+    duration_seconds?:   number | null;
   }): Promise<MutateResult> {
     const { error } = await supabase
       .from('workout_set_logs')

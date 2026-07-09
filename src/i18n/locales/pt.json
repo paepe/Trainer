@@ -25,6 +25,7 @@
     "units": {
       "kg": "kg",
       "restSec": "{{seconds}}s descanso",
+      "holdSec": "{{seconds}}s",
       "sets": "séries",
       "minAbbrev": "min",
       "hoursAbbrev": "h",
@@ -1151,6 +1152,7 @@
       "generating": "Gerando seu plano…",
       "phaseDay": "fase {{phase}} · Dia {{day}}/{{length}}",
       "cycleAdapted": "· Adaptado ao ciclo",
+      "timeMayOverrun": "Este treino pode levar mais que os {{available}} min disponíveis — estimativa de ~{{estimated}} min.",
       "adjustedFor": "Ajustado para: ",
       "cancelModalTitle": "Cancelar este plano?",
       "cancelModalFrom": "O plano de ",
@@ -1211,6 +1213,7 @@
       "exercisesDone": "{{done}}/{{total}} exercícios concluídos",
       "setFormTitle": "Série {{current}} de {{total}} — {{name}}",
       "loadKg": "Carga (kg)",
+      "durationSec": "Tempo de execução (segundos)",
       "rpeLabel": "RPE — {{value}}",
       "painIntensityLabel": "Intensidade — {{value}}",
       "skipTitle": "Pular Exercício — {{name}}",

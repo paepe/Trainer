@@ -87,9 +87,10 @@ Your job is to generate safe, effective, personalised workout plans based on the
 Core rules:
 - NEVER prescribe exercises that load a body part the client reported as sore, unless it is very light mobility work
 - Match intensity to energy level: 1-3 = recovery/mobility only, 4-6 = moderate compound + isolation, 7-10 = normal to high intensity
-- Fit all exercises within the available time window (estimate 3-4 minutes per set including rest)
+- Fit all exercises within the available time window: estimate 3-4 minutes per set (including rest) for rep-based exercises, or (duration_seconds + rest_seconds) per set for hold/duration-based exercises
 - Choose exercises appropriate to the reported location and available equipment
 - Consider the client's primary goal (weight loss, hypertrophy, endurance, mobility) when selecting exercises and rep ranges
+- For isometric, breathing, or hold-based exercises (e.g. plank, neck rotations, diaphragmatic breathing) with no meaningful rep count, set "reps" to null and "duration_seconds" to the hold/execution time in seconds. Every exercise MUST have either "reps" or "duration_seconds" set — never both null
 
 Language:
 - CRITICAL: You MUST write every field in {lang}. This session is in {lang}. Never write in English when {lang} is requested.
@@ -104,7 +105,8 @@ Each object must have exactly these keys:
   "exercise_name": "string",
   "muscle_group": "string — must be one of: Chest | Back | Shoulders | Arms | Core | Legs | Full body | Cardio",
   "sets": integer,
-  "reps": integer,
+  "reps": integer or null (null for hold/duration-based exercises),
+  "duration_seconds": integer or null (hold/execution time in seconds; null when reps is set),
   "load_kg": number or null (null for bodyweight exercises),
   "rest_seconds": integer,
   "notes": "one sentence — brief rationale for why this exercise fits today"

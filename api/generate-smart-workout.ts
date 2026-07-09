@@ -282,14 +282,15 @@ interface WorkoutPhase {
 }
 
 interface WorkoutExercise {
-  name:         string;
-  muscleGroup:  string;
-  sets:         number;
-  reps:         string;
-  load:         string;
-  restSeconds:  number;
-  cue:           string;
-  safetyNote?:   string | undefined;
+  name:            string;
+  muscleGroup:     string;
+  sets:            number;
+  reps:            string | null;
+  durationSeconds: number | null;
+  load:            string;
+  restSeconds:     number;
+  cue:              string;
+  safetyNote?:      string | undefined;
 }
 
 interface DailyInsight {
@@ -345,6 +346,8 @@ ${isAutonomous ? '- Since there is no trainer, generate a plan consistent with t
 - Respect equipment and location constraints exactly — never prescribe equipment not listed.
 - Honour the trainer's avoidExercises and client's injury/pain restrictions.
 - Adapt intensity based on readinessScore, fatigueRisk, and intensityCeiling.
+- For rep-based exercises, set "reps" to a plain count (e.g. "10" or "8-12") and leave "durationSeconds" null.
+- For isometric, breathing, or hold-based exercises (e.g. plank, neck rotations, diaphragmatic breathing) that have no meaningful rep count, set "reps" to null and set "durationSeconds" to the hold/execution time in seconds instead. Every exercise MUST have either "reps" or "durationSeconds" set — never both null.
 - Respond in ${lang}. All workout titles, coach notes, exercise cues, descriptions, and adaptation notes MUST be written in ${lang}. Never mix languages.
 - Return ONLY valid JSON matching the required output shape — no markdown fences, no commentary.`;
 
@@ -368,7 +371,8 @@ Output shape:
             "name": "string",
             "muscleGroup": "string",
             "sets": number,
-            "reps": "string — e.g. '3x10' or '30s'",
+            "reps": "string | null — plain rep count, e.g. '10' or '8-12'; null for hold/duration-based exercises",
+            "durationSeconds": "number | null — hold/execution time in seconds for isometric or breathing exercises; null when reps is set",
             "load": "string — e.g. 'bodyweight', '60% 1RM', 'light'",
             "restSeconds": number,
             "cue": "string — 1 coaching cue in trainer's tone",

@@ -34,7 +34,7 @@ interface WorkoutModeScreenProps {
   clientName?:                 string;
   freeSession?:                boolean; // Free Training Session: runs against synthetic subject (persists normally)
   startWorkoutSession:         (input: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number }) => Promise<{ data: { sessionId: string; sessionExercises: WorkoutSessionExercise[] } | null; error: unknown }>;
-  logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null }) => Promise<{ error: unknown }>;
+  logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null; duration_seconds?: number | null }) => Promise<{ error: unknown }>;
   updateSessionExerciseStatus: (sessionExerciseId: string, status: SessionExerciseStatus, skippedReason?: string) => Promise<{ error: unknown }>;
   reportWorkoutPain:           (data: { session_id: string; session_exercise_id: string | null; body_region: string; intensity: number }) => Promise<{ error: unknown }>;
   completeWorkoutSession:      (data: { sessionId: string; completed_at: string; total_duration_min: number; notes?: string | null; planId?: string | null }) => Promise<{ error: unknown }>;
@@ -79,9 +79,10 @@ export function WorkoutModeScreen({
   const [syncPending, setSyncPending] = React.useState(() => pendingCount() > 0);
 
   // Set form
-  const [setReps, setSetReps] = React.useState('');
-  const [setLoad, setSetLoad] = React.useState('');
-  const [setRpe,  setSetRpe]  = React.useState(7);
+  const [setReps,     setSetReps]     = React.useState('');
+  const [setLoad,     setSetLoad]     = React.useState('');
+  const [setRpe,      setSetRpe]      = React.useState(7);
+  const [setDuration, setSetDuration] = React.useState('');
 
   // Rest timer
   const [restSec, setRestSec] = React.useState(0);
@@ -115,13 +116,14 @@ export function WorkoutModeScreen({
         setSessionId(data.sessionId);
         setExStates(data.sessionExercises.map((se, i) =>
           makeExState(se.id, {
-            exercise_name: se.exercise_name,
-            muscle_group:  se.muscle_group,
-            sets:          se.sets_prescribed,
-            reps:          se.reps_prescribed,
-            load_kg:       se.load_kg_prescribed,
-            rest_seconds:  se.rest_seconds,
-            notes:         se.notes,
+            exercise_name:    se.exercise_name,
+            muscle_group:     se.muscle_group,
+            sets:             se.sets_prescribed,
+            reps:             se.reps_prescribed,
+            duration_seconds: se.duration_seconds_prescribed,
+            load_kg:          se.load_kg_prescribed,
+            rest_seconds:     se.rest_seconds,
+            notes:            se.notes,
           }, i)
         ));
       }
@@ -173,6 +175,7 @@ export function WorkoutModeScreen({
     if (!activeEx) return;
     setSetReps(String(activeEx.repsPrescribed ?? ''));
     setSetLoad(String(activeEx.loadPrescribed ?? ''));
+    setSetDuration(String(activeEx.durationSecondsPrescribed ?? ''));
     setSetRpe(7);
     if (activeEx.status === 'pending') {
       updateEx(activeIdx, { status: 'in_progress' });
@@ -197,10 +200,11 @@ export function WorkoutModeScreen({
   const confirmSet = async () => {
     if (!activeEx || savingSet) return;
     setSavingSet(true);
-    const reps    = parseInt(setReps)   || null;
-    const load    = parseFloat(setLoad) || null;
+    const reps       = parseInt(setReps)     || null;
+    const load       = parseFloat(setLoad)   || null;
+    const durationS  = parseInt(setDuration) || null;
     const newSets = activeEx.setsLogged + 1;
-    const localLog = { set_number: newSets, reps_done: reps, load_kg: load, rpe: setRpe, completed_at: new Date().toISOString() };
+    const localLog = { set_number: newSets, reps_done: reps, load_kg: load, rpe: setRpe, duration_seconds: durationS, completed_at: new Date().toISOString() };
 
     // Local record first — the set is never lost, whatever the network does.
     const newSetLogs = [...activeEx.setLogs, localLog];
@@ -213,6 +217,7 @@ export function WorkoutModeScreen({
         reps_done:           reps,
         load_kg:             load,
         rpe:                 setRpe,
+        duration_seconds:    durationS,
       });
       if (error) {
         enqueue({ kind: 'set_log', payload: { ...localLog, session_exercise_id: activeEx.id, session_id: sessionId } });
@@ -300,17 +305,18 @@ export function WorkoutModeScreen({
           completed_at:       completedAt.toISOString(),
           total_duration_min: durationMin,
           exercises: exStates.map((e, i) => ({
-            exercise_name:      e.name,
-            muscle_group:       e.muscleGroup || null,
-            order_index:        i,
-            sets_prescribed:    e.setsPrescribed,
-            reps_prescribed:    e.repsPrescribed,
-            load_kg_prescribed: e.loadPrescribed,
-            rest_seconds:       e.restSeconds,
-            notes:              e.notes,
-            status:             e.status,
-            skipped_reason:     e.skippedReason,
-            set_logs:           e.setLogs,
+            exercise_name:               e.name,
+            muscle_group:                e.muscleGroup || null,
+            order_index:                 i,
+            sets_prescribed:             e.setsPrescribed,
+            reps_prescribed:             e.repsPrescribed,
+            duration_seconds_prescribed: e.durationSecondsPrescribed,
+            load_kg_prescribed:          e.loadPrescribed,
+            rest_seconds:                e.restSeconds,
+            notes:                       e.notes,
+            status:                      e.status,
+            skipped_reason:              e.skippedReason,
+            set_logs:                    e.setLogs,
           })),
         };
         enqueue({ kind: 'full_session', payload: fullSession });
@@ -458,7 +464,11 @@ export function WorkoutModeScreen({
       {/* ── Overlay: Set form ── */}
       {phase === 'set_form' && activeEx && (
         <BottomPanel title={tr('client.mode.setFormTitle', { current: activeEx.setsLogged + 1, total: activeEx.setsPrescribed, name: activeEx.name })} dark={dark}>
-          <LabeledInput label={tr('client.mode.reps')} value={setReps} onChange={setSetReps} type="number" dark={dark}/>
+          {activeEx.durationSecondsPrescribed != null && activeEx.repsPrescribed == null ? (
+            <LabeledInput label={tr('client.mode.durationSec')} value={setDuration} onChange={setSetDuration} type="number" dark={dark}/>
+          ) : (
+            <LabeledInput label={tr('client.mode.reps')} value={setReps} onChange={setSetReps} type="number" dark={dark}/>
+          )}
           <LabeledInput label={tr('client.mode.loadKg')} value={setLoad} onChange={setSetLoad} type="number" dark={dark}/>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
@@ -618,16 +628,17 @@ export function WorkoutModeScreen({
 function makeExState(id: string, ex: Partial<GeneratedWorkoutExercise> & { exercise_name?: string; muscle_group?: string | null }, _i: number): ExState {
   return {
     id,
-    name:           ex.exercise_name ?? '',
-    muscleGroup:    ex.muscle_group  ?? '',
-    setsPrescribed: ex.sets          ?? 3,
-    repsPrescribed: ex.reps          ?? null,
-    loadPrescribed: ex.load_kg       ?? null,
-    restSeconds:    ex.rest_seconds  ?? 60,
-    notes:          ex.notes         ?? null,
-    status:         'pending',
-    setsLogged:     0,
-    setLogs:        [],
-    skippedReason:  null,
+    name:                      ex.exercise_name ?? '',
+    muscleGroup:               ex.muscle_group  ?? '',
+    setsPrescribed:            ex.sets          ?? 3,
+    repsPrescribed:            ex.reps          ?? null,
+    durationSecondsPrescribed: ex.duration_seconds ?? null,
+    loadPrescribed:            ex.load_kg       ?? null,
+    restSeconds:               ex.rest_seconds  ?? 60,
+    notes:                     ex.notes         ?? null,
+    status:                    'pending',
+    setsLogged:                0,
+    setLogs:                   [],
+    skippedReason:             null,
   };
 }

@@ -14,7 +14,8 @@ import { AppLayout } from './layouts';
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
 import { Spinner } from './ui';
 import { NotificationProvider, useNotification, ThemeProvider } from './contexts';
-import type { Profile, CheckIn, Exercise, UserRole, ClientProfile, PlanKey, Subscription } from './types';
+import type { Profile, CheckIn, UserRole, ClientProfile, PlanKey, Subscription } from './types';
+import type { GeneratedWorkoutExercise } from './lib/workoutGeneration';
 import type { AppPreferences } from './types/preferences';
 import { TRAINER_ROLES } from './types/auth';
 import i18n, { detectDeviceLanguage } from './i18n';
@@ -629,7 +630,7 @@ export default function App() {
       case 'workoutMode':        return <WorkoutModeScreen
           nav={nav} t={t} dark={dark} user={user}
           planId={(screenPayload?.planId as string | null) ?? null}
-          exercises={(screenPayload?.exercises as Exercise[] | null) ?? null}
+          exercises={(screenPayload?.exercises as GeneratedWorkoutExercise[] | null) ?? null}
           plannedDurationMin={(screenPayload?.plannedDurationMin as number) ?? undefined}
           clientUserId={(screenPayload?.clientUserId as string) ?? undefined}
           clientName={(screenPayload?.clientName as string) ?? undefined}

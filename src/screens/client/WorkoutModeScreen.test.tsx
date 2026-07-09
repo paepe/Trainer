@@ -17,7 +17,7 @@ vi.mock('../../lib/workoutSyncQueue', () => ({
 
 const theme = { primary: '#2DD4E0', primarySoft: '#2DD4E022', accent: '#EF5B3C' };
 const exercises: GeneratedWorkoutExercise[] = [
-  { exercise_name: 'Squat', muscle_group: 'Legs', sets: 1, reps: 10, load_kg: 40, rest_seconds: 60, notes: null },
+  { exercise_name: 'Squat', muscle_group: 'Legs', sets: 1, reps: 10, duration_seconds: null, load_kg: 40, rest_seconds: 60, notes: null },
 ];
 
 function makeProps(overrides: Partial<Parameters<typeof WorkoutModeScreen>[0]> = {}) {
@@ -33,7 +33,7 @@ function makeProps(overrides: Partial<Parameters<typeof WorkoutModeScreen>[0]> =
         sessionId: 'session-1',
         sessionExercises: [{
           id: 'ex-1', session_id: 'session-1', exercise_name: 'Squat', muscle_group: 'Legs',
-          order_index: 0, sets_prescribed: 1, reps_prescribed: 10, load_kg_prescribed: 40,
+          order_index: 0, sets_prescribed: 1, reps_prescribed: 10, duration_seconds_prescribed: null, load_kg_prescribed: 40,
           rest_seconds: 60, notes: null, status: 'pending', skipped_reason: null,
         }],
       },

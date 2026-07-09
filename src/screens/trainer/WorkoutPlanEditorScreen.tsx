@@ -350,13 +350,18 @@ export function WorkoutPlanEditorScreen({
   const startSessionNow = () => {
     if (!selectedClient?.id || exercises.length === 0) return;
     const converted: GeneratedWorkoutExercise[] = exercises.map(ex => ({
-      exercise_name: ex.exercise_name,
-      muscle_group:  ex.muscle_group,
-      sets:          ex.sets,
-      reps:          ex.reps,
-      load_kg:       ex.load_kg !== '' ? Number(ex.load_kg) : null,
-      rest_seconds:  ex.rest_seconds,
-      notes:         ex.notes || null,
+      exercise_name:    ex.exercise_name,
+      muscle_group:     ex.muscle_group,
+      sets:             ex.sets,
+      reps:             ex.reps,
+      // Trainer-authored plans (this editor) don't yet support duration-based
+      // exercises — reps is mandatory in this UI. Follow-up: add a duration
+      // input alongside reps for hold/breathing exercises (system audit
+      // follow-up, 2026-07-10).
+      duration_seconds: null,
+      load_kg:          ex.load_kg !== '' ? Number(ex.load_kg) : null,
+      rest_seconds:     ex.rest_seconds,
+      notes:            ex.notes || null,
     }));
     // freeSession is driven by App state (not payload) — router injects it into WorkoutModeScreen.
     nav('workoutMode', {

@@ -193,14 +193,15 @@ export interface AIContext {
 // ─── Output shapes ────────────────────────────────────────────────────────────
 
 export interface WorkoutExercise {
-  name:         string;
-  muscleGroup:  string;
-  sets:         number;
-  reps:         string;
-  load:         string;
-  restSeconds:  number;
-  cue:           string;
-  safetyNote?:   string | undefined;
+  name:            string;
+  muscleGroup:     string;
+  sets:            number;
+  reps:            string | null;
+  durationSeconds: number | null;
+  load:            string;
+  restSeconds:     number;
+  cue:              string;
+  safetyNote?:      string | undefined;
 }
 
 export interface WorkoutPhase {

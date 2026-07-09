@@ -25,6 +25,7 @@ export interface QueuedSetLog {
   reps_done:           number | null;
   load_kg:             number | null;
   rpe:                 number | null;
+  duration_seconds:    number | null;
   completed_at:        string;
 }
 
@@ -43,17 +44,18 @@ export interface QueuedSessionComplete {
 }
 
 export interface QueuedFullSessionExercise {
-  exercise_name:      string;
-  muscle_group:       string | null;
-  order_index:        number;
-  sets_prescribed:    number | null;
-  reps_prescribed:    number | null;
-  load_kg_prescribed: number | null;
-  rest_seconds:       number | null;
-  notes:              string | null;
-  status:             SessionExerciseStatus;
-  skipped_reason:     string | null;
-  set_logs:           Array<Pick<QueuedSetLog, 'set_number' | 'reps_done' | 'load_kg' | 'rpe' | 'completed_at'>>;
+  exercise_name:               string;
+  muscle_group:                string | null;
+  order_index:                 number;
+  sets_prescribed:             number | null;
+  reps_prescribed:             number | null;
+  duration_seconds_prescribed: number | null;
+  load_kg_prescribed:          number | null;
+  rest_seconds:                number | null;
+  notes:                       string | null;
+  status:                      SessionExerciseStatus;
+  skipped_reason:              string | null;
+  set_logs:                    Array<Pick<QueuedSetLog, 'set_number' | 'reps_done' | 'load_kg' | 'rpe' | 'duration_seconds' | 'completed_at'>>;
 }
 
 export interface QueuedFullSession {
@@ -182,17 +184,18 @@ async function replayFullSession(
     const { data: inserted, error: exError } = await supabase
       .from('workout_session_exercises')
       .insert(s.exercises.map(ex => ({
-        session_id:         sessionId,
-        exercise_name:      ex.exercise_name,
-        muscle_group:       ex.muscle_group,
-        order_index:        ex.order_index,
-        sets_prescribed:    ex.sets_prescribed,
-        reps_prescribed:    ex.reps_prescribed,
-        load_kg_prescribed: ex.load_kg_prescribed,
-        rest_seconds:       ex.rest_seconds,
-        notes:              ex.notes,
-        status:             ex.status,
-        skipped_reason:     ex.skipped_reason,
+        session_id:                  sessionId,
+        exercise_name:               ex.exercise_name,
+        muscle_group:                ex.muscle_group,
+        order_index:                 ex.order_index,
+        sets_prescribed:             ex.sets_prescribed,
+        reps_prescribed:             ex.reps_prescribed,
+        duration_seconds_prescribed: ex.duration_seconds_prescribed,
+        load_kg_prescribed:          ex.load_kg_prescribed,
+        rest_seconds:                ex.rest_seconds,
+        notes:                       ex.notes,
+        status:                      ex.status,
+        skipped_reason:              ex.skipped_reason,
       })))
       .select('id, order_index');
     if (exError || !inserted) return false;

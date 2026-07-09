@@ -25,6 +25,7 @@
     "units": {
       "kg": "kg",
       "restSec": "{{seconds}}s rest",
+      "holdSec": "{{seconds}}s hold",
       "sets": "sets",
       "minAbbrev": "min",
       "hoursAbbrev": "h",
@@ -1152,6 +1153,7 @@
       "generating": "Generating your plan…",
       "phaseDay": "{{phase}} phase · Day {{day}}/{{length}}",
       "cycleAdapted": "· Cycle-adapted",
+      "timeMayOverrun": "This workout may take longer than your {{available}} min — estimated ~{{estimated}} min.",
       "adjustedFor": "Adjusted for: ",
       "cancelModalTitle": "Cancel this plan?",
       "cancelModalFrom": "The plan from ",
@@ -1216,6 +1218,7 @@
       "exercisesDone": "{{done}}/{{total}} exercises done",
       "setFormTitle": "Set {{current}} of {{total}} — {{name}}",
       "loadKg": "Load (kg)",
+      "durationSec": "Hold time (seconds)",
       "rpeLabel": "RPE — {{value}}",
       "painIntensityLabel": "Intensity — {{value}}",
       "skipTitle": "Skip Exercise — {{name}}",
