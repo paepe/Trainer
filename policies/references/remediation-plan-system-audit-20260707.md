@@ -1,7 +1,11 @@
 # Remediation Plan — System Audit 2026-07-07
 
 **Source:** `policies/references/system-audit-trainer-20260707.md`
-**Status:** DEPLOYED TO PRODUCTION AND STABLE (2026-07-09) — PR #1 open (21 commits, CLEAN/MERGEABLE, awaiting human review/merge), workspace organized for external testers, see Workspace Stabilization Pass below
+**Status:** DEPLOYED TO PRODUCTION, **VALIDATED EXCEPT BILLING** — PR #1 **merged to `main`** (commit `f5c04ba`, merge of `fix/system-audit-20260707`). Code-level implementation for Phases 1–5 is complete, was re-verified against the current codebase and live DB on 2026-07-10 (see "Code Audit Pass" in the Phase Closeout Log), and **human/device validation — login, invitation send, push notification (incl. non-English locale), workout generation, and offline-network resilience — was confirmed by the project owner on 2026-07-10** on real devices/accounts. One item remains genuinely open:
+1. **`create-checkout-session` / `billing-portal` (2 of the 6 P0-hardened endpoints) are non-functional in production and untestable** — `STRIPE_SECRET_KEY` was never configured (billing provider decision — Stripe vs. Polar — intentionally on hold, see "Deployment Record" below; **not to be revisited until the project owner decides**). This is the only thing blocking Phase 1's Exit Criteria from being fully met.
+
+Also: Phase 4a (Supabase advisor hardening, 2026-07-08) is live in production but was applied on a separate, now-deleted worktree and has only just been backfilled into this document. (The `CheckInProntidaoScreen.tsx:195` wrong-locale push bug found during the 2026-07-10 audit has since been fixed — see Phase 3.)
+
 **Governance:** Every phase must preserve existing stabilizations (per `AGENTS.md` Quality Directive: safe, incremental, reversible, validated before publication). No phase starts until the previous phase's checklist is fully checked and validated.
 
 **Update protocol:** This document's checklist is updated at the end of each phase — items marked `[x]` only after validation passes, not on code-write alone. A "Phase Closeout" note is appended per phase with date, validation evidence, and any deviations from plan.
@@ -27,16 +31,16 @@
 
 **Scope (endpoints):** `api/send-notification.ts`, `api/create-checkout-session.ts`, `api/billing-portal.ts`, `api/send-invitation.ts`, `api/generate-workout.ts`, `api/generate-smart-workout.ts`
 
-- [x] Design a shared `verifyRequestUser(req)` helper: extracts `Authorization: Bearer <jwt>`, validates against Supabase, returns the authenticated `userId` — reject with 401 if missing/invalid — implemented in `api/_lib/auth.ts` (`verifyRequestUser`, `isTrainerRole`, `hasActiveLink`; `_lib` prefix excluded from Vercel routing)
+- [x] Design a shared `verifyRequestUser(req)` helper: extracts `Authorization: Bearer <jwt>`, validates against Supabase, returns the authenticated `userId` — reject with 401 if missing/invalid — **implementation changed twice after initial deploy, see "Deployment Record — 2026-07-08" below.** First attempt (`api/_lib/auth.ts`) and second attempt (`lib/api-auth.ts`) both failed in production with `ERR_MODULE_NOT_FOUND` — Vercel's Node.js function builder does not trace any relative import outside the handler file. Final, working form: the ~80-line helper (`verifyRequestUser`, `isTrainerRole`, `hasActiveLink`) is duplicated inline into each of the 6 handler files (commit `35df430`), matching the pre-existing self-contained pattern in `generate-smart-workout.ts`.
 - [x] Apply the helper to `api/send-notification.ts`; derive `fromUserId` (sender) from the verified token, never from body; keep `userId` (recipient) as body param but validate a trainer↔client relationship exists between sender and recipient before persisting/pushing — self-notification (`userId === caller.id`) also allowed
 - [x] Apply the helper to `api/create-checkout-session.ts` and `api/billing-portal.ts`; derive `userId` from the verified token exclusively, drop it from the trusted body fields
 - [x] Apply the helper to `api/send-invitation.ts`; verify caller is a trainer before allowing invitation issuance — `trainerId` now from JWT; role checked against `profiles.role` (TRAINER_ROLES set)
 - [x] Apply the helper to `api/generate-workout.ts` and `api/generate-smart-workout.ts`; derive `client`/`trainer` identity from the verified token relationship, not from body payload — smart variant: caller must be `client.id` or a linked trainer; legacy variant: any authenticated user (payload carries no identity)
 - [x] Update frontend callers (`src/lib/*`, `src/billing/*`, `src/screens/**`) to send the Supabase session JWT on every call to these endpoints — shared `src/lib/authHeaders.ts`; `fromUserId` removed from `notify()` API and all 7 call sites
-- [ ] Regression test: full manual smoke pass (Phase 0 checklist) — login, checkout, billing portal, invitation send, notification send, workout generation — for both a trainer and a client account — **PENDING USER VALIDATION** (requires live accounts/devices; static validation passed: `tsc --noEmit` clean, production build clean, test suite unchanged vs. baseline)
+- [x] Regression test: full manual smoke pass — **VALIDATED by project owner 2026-07-10**: login, invitation send, notification send, workout generation — for both a trainer and a client account. **Checkout and billing portal explicitly excluded** — still structurally untestable, `STRIPE_SECRET_KEY` not configured pending the Stripe/Polar decision (not a validation gap, a known blocked dependency; see Status above).
 - [x] Confirm no legitimate flow was broken (trainer notifying own clients, client checking out own subscription, etc.) — static verification: all call sites updated in same commit; no residual `fromUserId`/body-`userId` senders (`grep` clean)
 
-**Exit criteria:** All 6 endpoints reject unauthenticated/mismatched-identity requests (verified with a manual curl/Postman test using a stale or absent token); all legitimate in-app flows still pass smoke test.
+**Exit criteria:** All 6 endpoints reject unauthenticated/mismatched-identity requests (verified with a manual curl/Postman test using a stale or absent token); all legitimate in-app flows still pass smoke test. **PARTIALLY MET (2026-07-10):** 4 of 6 flows (login, invitation, notification, workout generation) validated live by the project owner. Checkout/billing-portal cannot be validated — non-functional pending the `STRIPE_SECRET_KEY`/Stripe-vs-Polar decision, tracked at document Status above, not a Phase 1 code defect.
 
 **Rollback:** Revert branch commits for this phase; endpoints return to pre-change state (documented as accepted risk until re-attempted) if smoke tests fail.
 
@@ -50,7 +54,7 @@
 - [x] Add a submit-guard (disable button / debounce) on the "Confirm Set" action to prevent duplicate inserts on double-tap during a slow request — `savingSet` state disables the button during the await
 - [x] Introduce a local write-ahead persistence layer (IndexedDB or equivalent) for `logWorkoutSet` / `updateSessionExerciseStatus`, replayed on reconnect — `src/lib/workoutSyncQueue.ts` (localStorage-backed; volume is tiny so IndexedDB was unnecessary); replays on `online` event and at module load; every executed set is also recorded locally in `ExState.setLogs` before any network call
 - [x] Fix the offline-start fallback path (`WorkoutModeScreen.tsx:101-121, 250-291`): ensure `finishWorkout` either (a) blocks/warns before finalizing a session with zero synced exercises, or (b) queues and syncs the full per-set data once connectivity returns — option (b) implemented: empty rescue session replaced by a `full_session` queue item (session + exercises + statuses + set logs), replayed atomically on reconnect
-- [ ] Add a regression test / manual QA script: start a workout, force network failure mid-set, confirm no data loss and a visible retry indicator; complete a workout started fully offline, confirm data reconciles on reconnect — **PENDING USER VALIDATION** (requires device with network toggling; static validation passed)
+- [x] Add a regression test / manual QA script: start a workout, force network failure mid-set, confirm no data loss and a visible retry indicator; complete a workout started fully offline, confirm data reconciles on reconnect — **VALIDATED by project owner 2026-07-10** on a real device (network toggling)
 
 **Exit criteria:** No code path allows a workout session to reach `completed` status while permanently discarding per-set data; failed writes are visible to the user, not silent.
 
@@ -66,7 +70,8 @@
 - [x] Audit every `notify(...)` call site project-wide for `title`/`body` populated with raw strings instead of `templateKey` + empty strings — found and fixed **4 additional sites** beyond the audit's 3: `autoExpirePlans.ts:42,53`, `useWorkoutData.ts:149` (workout_completed), `useCheckinData.ts:52-57` (safety_gate_blocked / low_readiness)
 - [x] Fix `WorkoutPlanEditorScreen.tsx:340` (new-plan notification) to use `inbox.templates.new_plan` / `new_plan_body` via `templateKey`, matching the pattern in `InboxScreen.tsx:202` — also fixed InboxScreen approve/reject (workout_approved / workout_rejected)
 - [x] Fix `src/lib/events.ts:89` (high-pain alert) to use `inbox.templates.high_pain_alert` / `_body` via `templateKey`
-- [ ] Verify on-device template rendering covers all locales for the fixed call sites (manual check: trigger each notification type with a non-English locale active) — **PENDING USER VALIDATION** (requires device with push permissions per locale)
+- [x] **FIXED (2026-07-10):** [`CheckInProntidaoScreen.tsx:195`](../../src/screens/checkin/CheckInProntidaoScreen.tsx) sent the `ready_to_train` push with `title`/`body` pre-rendered via `tr()` on the *sender's* (client's) device locale, instead of empty strings + `templateKey` for recipient-side rendering — same bug class Phase 3 set out to eliminate, but this call site was missed by the "4 additional sites" fixed originally. Fixed to match the established pattern: `title`/`body` now empty, `templateKey: 'ready_to_train'` + `params: { name, score, gender }` carry everything `InboxScreen.tsx`'s `renderTitle`/`renderBody` need to re-render correctly in the trainer's own locale, gender-resolved via `resolveGenderContext`. Verified: `inbox.templates.ready_to_train`/`_body` + `_male`/`_female` variants already existed in all 4 locales (en/de/es/pt) — no i18n backfill needed. `tsc --noEmit` and `eslint` clean on the changed file.
+- [x] Verify on-device template rendering covers all locales for the fixed call sites (manual check: trigger each notification type with a non-English locale active) — **VALIDATED by project owner 2026-07-10** on a real device, non-English locale confirmed rendering correctly
 
 **Exit criteria:** No `notify()` call site sends a hardcoded English string as push title/body; locale diff shows zero missing gendered keys across `en`/`de`/`es`.
 
@@ -76,7 +81,7 @@
 
 **Goal:** Remove dead artifacts and close minor logic smells flagged in the audit.
 
-- [x] Drop or explicitly deprecate `plan_exercises.completed` (dead column, no write path) — confirm via migration, not silent removal — migration written and tracked (`supabase/sql-archive/supabase-cleanup-20260707.sql`) with pre-flight verification against the live DB (6 legacy `true` rows, no code path) and rollback block; **remote application PENDING USER AUTHORIZATION** (production schema change — apply after confirming a backup/PITR checkpoint)
+- [x] Drop or explicitly deprecate `plan_exercises.completed` (dead column, no write path) — confirm via migration, not silent removal — migration written and tracked (`supabase/sql-archive/supabase-cleanup-20260707.sql`) with pre-flight verification against the live DB (6 legacy `true` rows, no code path) and rollback block. **CORRECTED (code-audit pass):** this line previously said "remote application PENDING USER AUTHORIZATION" — that was stale. Confirmed live against the production DB: `plan_exercises.completed` no longer exists, `exercises_status_check` is tightened to 4 values (`draft`, `active`, `restricted`, `blocked`). Matches the Close-out Summary below, which already had this correct — applied to production 2026-07-07.
 - [x] Track the `exercises` library table schema in a proper tracked migration file under `supabase/` — `supabase-schema-exercises.sql`, reverse-engineered from the live DB (columns, CHECKs, FKs, RLS policies); bonus finding: live `exercises_status_check` still allowed the 5 dead values dropped from TS in June — realignment included in the cleanup migration (all 155 live rows are `active`, zero violations)
 - [x] Simplify the no-op ternary guard in `src/screens/checkin/CheckInResult.tsx:114`
 - [x] Add mounted/staleness guards to the fire-and-forget writes in `CheckInProntidaoScreen.tsx:74-78` and `useAuth.ts:212-220` — mounted-ref guard on the risk fetch; error logging on the ledger insert (mount guard not applicable — hook lives at App level)
@@ -91,10 +96,31 @@
 
 - [x] Update `Plan_Feature_Gating_Audit_20260616.md` (or add an addendum) documenting that `feature_permissions` gating is UX-only, not a security boundary — flag as a future decision point before scaling paid tiers — addendum appended 2026-07-07
 - [x] Update `system-audit-trainer-20260707.md` Executive Summary table to reflect final resolved status per area — remediation-status column added with commit references
-- [x] Final full regression smoke pass across all flows touched (Phases 1-4) — static regression clean (`tsc --noEmit`, production build, test suite unchanged vs. baseline); **live device/account smoke pass remains PENDING USER VALIDATION** (consolidated list in close-out below)
+- [x] Final full regression smoke pass across all flows touched (Phases 1-4) — static regression clean (`tsc --noEmit`, production build, test suite unchanged vs. baseline); **live device/account smoke pass VALIDATED by project owner 2026-07-10** for every flow not blocked by the missing `STRIPE_SECRET_KEY` (see Status above)
 - [x] Close-out summary appended to this document with dates, commits, and residual/accepted risks (if any)
 
 **Exit criteria:** All prior audit findings marked Resolved or explicitly Accepted-Risk with rationale; no open Critical/High items remain undocumented.
+
+---
+
+## Phase 4a — Supabase Advisor Findings (Out-of-Band, 2026-07-08)
+
+**Goal:** Track findings surfaced by the Supabase security advisor during ad-hoc DB work on a separate, parallel worktree (`claude/trainer-project-status-dae0f6`, since deleted per the Workspace Stabilization Pass below) — outside the original audit's scope, applied directly to the live database independent of this repo's git history. **Backfilled into this document after the worktree deletion was discovered, once re-verification confirmed all items are still live** (the worktree deletion only removed the paper trail, not the DB changes — migrations persist in Supabase regardless of git state).
+
+**Project:** `sevenseeds.trainer` (`xbfszzdyskwdctlqzztl`). **Migrations applied:** `enable_rls_plan_definitions_plan_prices`, `harden_function_search_path_and_definer_grants`, `fix_public_execute_grant_leak`, `revoke_anon_log_profile_access_view`, `revoke_anon_log_profile_access_view_direct`.
+
+- [x] **RESOLVED** — `plan_definitions` and `plan_prices` had RLS disabled (CRITICAL — any anon/authenticated caller could write to pricing/Stripe price-ID data). Enabled RLS + added public `SELECT`-only policies (writes restricted to `service_role`); confirmed only `SELECT` is used client-side.
+- [x] **RESOLVED** — `function_search_path_mutable` on 8 functions (`set_updated_at`, `check_active_plan_blocked_exercises`, `check_plan_exercise_blocked`, `check_exercise_block_active_plans`, `sync_checkin_denorm`, `get_active_role`, `has_permission`, `auto_close_stale_sessions`) — pinned `SET search_path = public` on all 8.
+- [x] **RESOLVED** — `SECURITY DEFINER` RPCs over-exposed to `anon`/`authenticated`, triaged per actual call site (traced via `grep` for `.rpc(...)` and `pg_cron`/trigger registrations, not assumption):
+  - Kept `anon` (token-gated, pre-login by design): `get_invitation_by_token`, `accept_trainer_invitation`
+  - Revoked `anon`, kept `authenticated`: `get_pending_invitation_for_user`, `create_free_session_subject`, `get_device_tokens`, `get_active_role`, `log_profile_access_view` (the last found via a second pass — had a direct `anon` grant not covered by the first `PUBLIC`-revoke)
+  - Revoked `anon`+`authenticated` entirely: `handle_new_user` (trigger-only, `on_auth_user_created`), `auto_close_stale_sessions` (`pg_cron`-only, job `auto-close-stale-sessions`)
+  - **Accepted Risk, untouched:** `has_permission`, `studio_has_trainer` — used inside `USING` clauses of ~15 RLS policies scoped to role `public`; revoking would break RLS evaluation. Both gate internally on `auth.uid()`, which is `NULL` for `anon`.
+- [x] **RESOLVED** — `public_bucket_allows_listing` on the `avatars` bucket — dropped the redundant `"public read avatars"` SELECT policy (bucket is already `public = true`, so image URLs are unaffected; only removes the ability to list/query all object rows).
+
+**Verification (re-confirmed live, at time of backfill):** `get_advisors(security)` shows zero `rls_disabled`, zero `function_search_path_mutable`, zero `public_bucket_allows_listing` findings; the 11 `SECURITY DEFINER` grant states match the intended matrix exactly (spot-checked via `has_function_privilege` against `pg_proc` during the original pass, and via a fresh advisor pull now).
+
+**Exit criteria:** MET — all items resolved or explicitly Accepted-Risk. No live UI click-through was performed for this DB-only phase (privilege changes verified via direct grant simulation, not the app).
 
 ---
 
@@ -236,6 +262,24 @@ The first production promotion (commit `6efd825`) broke all 6 P0-gated endpoints
 
 ## Phase Closeout Log
 
+### Live Device/Account Validation — confirmed by project owner, 2026-07-10
+
+Following the Code Audit Pass below, the project owner manually validated the three remaining human-only items on real devices/accounts: (1) Phase 1 smoke pass — login, invitation send, notification send, workout generation, for both a trainer and a client account; (2) Phase 2 offline QA — forced network failure mid-workout, confirmed no data loss and correct reconnect sync; (3) Phase 3 on-device push rendering in a non-English locale. All three checklist items updated to `[x]`. **Explicitly excluded and still open:** checkout / billing-portal — not validated because they are not functional (`STRIPE_SECRET_KEY` unset, Stripe-vs-Polar decision pending); this is a known blocked dependency, not a failed test. The `CheckInProntidaoScreen.tsx:195` wrong-locale-push bug found in the Code Audit Pass was **not** in scope of this validation round and remains unfixed.
+
+### Code Audit Pass — claims vs. current code, verified 2026-07-10
+
+Prompted by a direct challenge from the project owner ("if another session already ran the plan, why are checklist items still open?") — every `[x]` claim in Phases 1–5 was re-verified against the actual current code and live production DB (not re-read from this document). Method: `grep`/`Read` on the exact files/lines cited by each checklist item, plus live DB queries for schema claims, plus running the automated test suites cited as evidence.
+
+**Confirmed accurate, no changes needed:** Phase 1 (all 6 endpoints — auth gate, identity derivation, relationship checks), Phase 2 (sync queue, banner, submit-guard, 5/5 `WorkoutModeScreen.test.tsx` tests pass), Phase 3 (cross-locale key diff genuinely zero), Phase 4 (mount guards, ternary), Phase 5 (addendum + status table exist).
+
+**Corrections made as a result:**
+- Phase 4, `plan_exercises.completed` item — was marked "PENDING USER AUTHORIZATION"; confirmed live against the DB that the migration was already applied (column dropped, check constraint tightened to 4 values) — the Close-out Summary below already had this right, only the checklist line was stale.
+- Phase 1 closeout note and the Phase 1 checklist's helper-design item both referenced `api/_lib/auth.ts` as the final implementation; corrected to note it was superseded the same day by the inlined-per-handler version (commit `35df430`) after two production regressions.
+
+**New gap found (not previously documented, not yet fixed):** [`CheckInProntidaoScreen.tsx:195`](../../src/screens/checkin/CheckInProntidaoScreen.tsx) sends the `ready_to_train` push pre-rendered in the sender's own locale instead of the empty-title/body + `templateKey` pattern Phase 3 established elsewhere — added as a new unchecked item under Phase 3.
+
+**Not in scope of this pass (flagged, not touched):** `system-audit-trainer-20260707.md` line 12 has the identical stale "`supabase-cleanup-20260707.sql` pending authorized application" claim — out of scope since the project owner scoped this pass to this document only; `src/lib/authHeaders.ts`'s header comment still references `api/_lib/auth.ts` — a stale code comment, not touched since this pass is documentation-only, no code changes.
+
 ### Phase 0 — closed 2026-07-07
 
 Audit docs committed on `main` (`201c66d`); branch `fix/system-audit-20260707` created. Baseline: `tsc --noEmit` clean; `npm test` has 14/19 pre-existing failures in `PlansScreen.test.tsx` (verified present on the untouched baseline via `git stash` round-trip — not to be attributed to remediation work). **Deviation:** Supabase backup checkpoint deferred to Phase 4 pre-step, since no schema/RLS change happens before then.
@@ -254,4 +298,4 @@ Write-ahead sync queue implemented (`workoutSyncQueue.ts`); local per-set record
 
 ### Phase 1 — closed 2026-07-07 (commit `c182144`)
 
-All 6 endpoints now derive identity from a verified Supabase JWT via `api/_lib/auth.ts`; body-supplied identity fields removed from trusted paths and from all frontend callers (shared `src/lib/authHeaders.ts`). Validation: `tsc --noEmit` clean, `npm run build` clean, test suite identical to baseline. **Deviations:** (1) live smoke pass with real trainer/client accounts left PENDING USER VALIDATION — cannot be executed from this environment; recommend running it before merging to `main`. (2) Follow-up noted for Phase 5: `api/parse-voice.ts`, `api/cleanup-voice-note.ts`, `api/generate-amplified.ts`, `api/classify-exercises.ts` also invoke the paid LLM without auth — out of the audited P0 scope (no user identity handled) but same cost-abuse surface; flagged for a follow-up hardening pass.
+All 6 endpoints now derive identity from a verified Supabase JWT — **originally via a shared `api/_lib/auth.ts` module; superseded the same day by commit `35df430` after two production regressions (see "Deployment Record — 2026-07-08"), which inlines the helper into each of the 6 handler files.** Body-supplied identity fields removed from trusted paths and from all frontend callers (shared `src/lib/authHeaders.ts`). Validation: `tsc --noEmit` clean, `npm run build` clean, test suite identical to baseline. **Deviations:** (1) live smoke pass with real trainer/client accounts left PENDING USER VALIDATION — cannot be executed from this environment; recommend running it before merging to `main`. (2) Follow-up noted for Phase 5: `api/parse-voice.ts`, `api/cleanup-voice-note.ts`, `api/generate-amplified.ts`, `api/classify-exercises.ts` also invoke the paid LLM without auth — out of the audited P0 scope (no user identity handled) but same cost-abuse surface; flagged for a follow-up hardening pass.

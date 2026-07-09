@@ -188,11 +188,11 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
             } else if (mode === 'client-with-trainer') {
               const score = result?.readiness_score ?? '?';
               const name  = userName || tr('inbox.notification.yourClient');
-              // Pass gender so the trainer's inbox can resolve the correct
-              // gendered form in PT, ES, DE ("pronto" vs "pronta", etc.)
+              // title/body are left empty — the recipient (trainer) renders
+              // 'ready_to_train' via templateKey in their own device locale,
+              // gender-resolved from params.gender (see InboxScreen.tsx).
               const gender = biologicalSex ?? 'prefer_not_to_say';
-              const genderCtx = gender === 'female' ? 'female' : gender === 'male' ? 'male' : undefined;
-              notify(linkedTrainerId, tr('checkin.result.readyPushTitle', { name, ...(genderCtx ? { context: genderCtx } : {}) }), tr('checkin.result.readyPushBody', { score }), undefined, {
+              notify(linkedTrainerId, '', '', undefined, {
                 type: 'workout_ready', templateKey: 'ready_to_train',
                 params: { name, score, gender }, expiresInMin: workoutReadyExpiryMin,
               });
