@@ -119,6 +119,29 @@ All 5 phases executed on branch `fix/system-audit-20260707` (commits: docs `201c
 
 ---
 
+## Production Incident — Trainer-less clients receiving empty workouts (2026-07-09)
+
+**Reported by:** users, via project owner — "contas sem TREINADOR, após o checkout não estão recebendo o treino automático que deveria ser disparado pela IA, em todos os planos de cliente disponíveis. Sobe um cronômetro e nenhum plano de treino associado."
+
+**Root cause (`src/screens/client/StartWorkoutScreen.tsx`)** — two independent bugs compounding on the client AI-generation path, which is the *only* path trainer-less clients ever take (`hasTrainerPlans` is always false for them):
+
+1. **Stale-closure race** (deterministic, not intermittent): the mount `useEffect(() => {...}, [])` fired `fetchPlan()` capturing whatever `aiCheckinAllowed` was on the *first* render — and `useFeatureAccessMap` always starts as `{ allowed: false, loading: true }` before its async fetch resolves. So `useSmart` was permanently `false` for every generation call, on every mount, for every client.
+2. **Missing fallback wiring**: even when `useSmart` is correctly `false` (genuine free-tier client), the code hardcoded `exercises: []` instead of calling the already-existing `generateFallbackPlan()` template generator — contradicting its own comment ("free plan always gets the template fallback").
+
+Both had to be fixed for any client tier to reliably receive a real workout.
+
+**Defense in depth added:** the Start button now also checks `plan.length === 0` (an empty array is truthy in JS, so `!plan` alone didn't catch it); `WorkoutModeScreen.tsx` no longer silently enters the active phase with a running timer and zero exercises — it shows an explicit empty-state with a way back instead of trapping the user.
+
+**Bonus fix found during verification:** the weekly-session-limit error used the wrong i18n key (`workout.limitWeekly` instead of the real `client.workout.limitWeekly`), rendering the raw key on screen.
+
+**Verification:** reproduced and confirmed fixed against a real trainer-less free-tier test account (`ana.lima@client.test`, discovered via a DB query for clients with no active `trainer_clients` row) — before the fix, empty plan; after, a real 6-exercise template plan locally, then a real 5-exercise DeepSeek-generated plan end-to-end **in production** post-deploy.
+
+**Commit:** `b85d815`. **Deployed to production:** 2026-07-09, verified clean (P0 endpoints still healthy, no new errors in `vercel logs`, real end-to-end generation call succeeded for the affected user segment).
+
+**Not yet done:** no automated regression test written for this specific bug (StartWorkoutScreen has no test file yet — it's a large, heavily-dependency-laden component; the existing WorkoutModeScreen test suite doesn't cover the upstream generation logic). Recommended follow-up: extract `generateFallbackPlan` and the `useSmart` gating logic into testable units.
+
+---
+
 ## Deployment Record — 2026-07-08
 
 Per `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` §8.1/§8.3 (merge via PR, promotion traceable by commit SHA).
