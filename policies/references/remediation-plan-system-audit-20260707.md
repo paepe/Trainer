@@ -98,6 +98,22 @@
 
 ---
 
+## Production Feature — Exercise Duration Modeling (2026-07-10)
+
+**Reported by:** user QA feedback on the trainer-less workout fix — "exercícios como ROTAÇÕES DE PESCOÇO e RESPIRAÇÃO DIAFRAGMÁTICA não indicam número de repetições nem tempo de execução; isso levanta dúvida se a estimativa de tempo para 11 exercícios está correta, e se deveria mostrar tempo quando não há repetições."
+
+**Root cause:** `reps` was the only quantity field system-wide, even though `plan_exercises.duration_seconds` already existed unused in the DB. The smart-workout LLM contract hinted at duration via a free-text `reps` string (`"30s"`), but `mapExercise()` in `workoutGeneration.ts` explicitly discarded any non-numeric reps value to `null` (old comment: `// "30 sec" → null`) — the AI's duration output was generated and then thrown away. The template fallback had the mirror-image bug: static holds (Plank Hold, Superman Hold, Downward Dog, Child's Pose, Jogging in Place) encoded seconds directly as a rep count, indistinguishable on screen from a real repetition count. Neither generation endpoint validated its stated duration against the requested time window — the total-time question had no server-side answer either.
+
+**Fix:** `reps` and `duration_seconds` are now XOR fields threaded end-to-end — both AI prompts (structured schema, explicit "every exercise sets exactly one of the two" rule), the client parser, the template fallback, the data model (`GeneratedWorkoutExercise`, `WorkoutExercise`, plus a new `workout_session_exercises.duration_seconds_prescribed` column — migration applied to production), and every UI render site (trainer-plan list, AI-plan list, live workout card, set-logging form, trainer client-detail view) — all now show "Xs hold" instead of silently dropping the field. Added a soft, non-blocking client-side time-fit estimate that accounts for duration-based exercises correctly and warns when a plan likely overruns the stated window.
+
+**Verified live in production** with the user's exact reported exercises: `generate-workout` (real DeepSeek call, checkin goal "mobility and relaxation, focus on neck and breathing") returned "Diaphragmatic Breathing" → `duration_seconds: 120`, "Child's Pose" → `duration_seconds: 60`, while countable exercises ("Neck Tilt", "Neck Rotation Turn") correctly got `reps: 8`.
+
+**Commit:** `e3677f8`. **Deployed to production:** 2026-07-10, verified clean (all endpoints healthy, no new errors in `vercel logs`).
+
+**Known follow-up (not done in this pass):** the trainer's manual plan editor (`WorkoutPlanEditorScreen.tsx`) still requires `reps` for every exercise — no duration-input UI was added there, so trainer-authored plans can't yet prescribe hold-based exercises with a duration. A malformed-JSON `SyntaxError` was observed once from the smart-workout endpoint during testing (LLM output robustness, not something this change introduced or could fully rule out) — already degrades gracefully via the existing fallback path (any generation error falls through to `generateFallbackPlan`), not a blocking issue, but worth monitoring.
+
+---
+
 ## Close-out Summary — 2026-07-07
 
 All 5 phases executed on branch `fix/system-audit-20260707` (commits: docs `201c66d` on main; `c182144` P0 auth; `b56ad89` P1 offline; `0e30f61` P2 i18n; `4df1c05` P3 cleanup; P4 docs in final commit). Every Critical/High audit finding is fixed in code. Static validation clean at every phase gate.
