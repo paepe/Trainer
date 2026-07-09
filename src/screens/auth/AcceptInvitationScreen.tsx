@@ -133,7 +133,7 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signIn, sign
             tr('invite.trainerPushTitle', { clientName }),
             tr('invite.trainerPushBody',  { clientName }),
             undefined,
-            { type: 'invitation_accepted', templateKey: 'invitation_accepted', params: { clientName }, fromUserId: userId }
+            { type: 'invitation_accepted', templateKey: 'invitation_accepted', params: { clientName } }
           );
           sendWelcomeMessage(userId, row.trainer_id);
         }

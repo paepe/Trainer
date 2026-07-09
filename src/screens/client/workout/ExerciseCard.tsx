@@ -48,7 +48,9 @@ export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, 
           <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 1 }}>
             {[
               ex.muscleGroup ? translateMuscleGroup(ex.muscleGroup) : null,
-              ex.setsPrescribed && ex.repsPrescribed ? `${ex.setsPrescribed}×${ex.repsPrescribed}` : null,
+              ex.setsPrescribed && ex.repsPrescribed ? `${ex.setsPrescribed}×${ex.repsPrescribed}`
+                : ex.durationSecondsPrescribed ? `${ex.setsPrescribed || 1}× ${tr('common.units.holdSec', { seconds: ex.durationSecondsPrescribed })}`
+                : null,
               ex.loadPrescribed ? `${ex.loadPrescribed} ${tr('common.units.kg')}` : null,
               ex.restSeconds    ? tr('common.units.restSec', { seconds: ex.restSeconds })  : null,
             ].filter(Boolean).join(' · ')}
@@ -81,7 +83,7 @@ export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, 
             </div>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={(e) => { e.stopPropagation(); onLogSet(); }} style={{
+            <button onClick={(e) => { e.stopPropagation(); onLogSet(); }} data-testid="log-set-btn" style={{
               flex: 2, padding: '10px 0', borderRadius: 14, border: 'none',
               background: t.primary, color: '#0E1A2B',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',

@@ -1,12 +1,96 @@
+// ── Inlined auth helpers (Vercel's Node.js function builder does not trace
+// relative imports outside this file into the deployed bundle — confirmed in
+// production; every api/* file must be self-contained, see generate-smart-workout.ts) ──
+const TRAINER_ROLES = [
+  'trainer', 'studio_trainer', 'studio_admin',
+  'internal_trainer', 'technical_coordinator', 'studio_manager',
+] as const;
+
+function authSupabaseUrl(): string {
+  return process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+}
+function authServiceKey(): string {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+}
+function authAnonKey(): string {
+  return process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+}
+function authServiceHeaders(): Record<string, string> {
+  const key = authServiceKey();
+  return { apikey: key, Authorization: `Bearer ${key}` };
+}
+
+interface AuthedUser { id: string; email: string | null }
+
+async function verifyRequestUser(req: { headers?: Record<string, string | string[] | undefined> }): Promise<AuthedUser | null> {
+  const raw = req.headers?.authorization ?? req.headers?.Authorization;
+  const header = Array.isArray(raw) ? raw[0] : raw;
+  if (!header?.startsWith('Bearer ')) return null;
+  const jwt = header.slice('Bearer '.length).trim();
+  if (!jwt) return null;
+
+  const url = authSupabaseUrl();
+  const key = authAnonKey();
+  if (!url || !key) {
+    console.error('[auth] SUPABASE_URL / SUPABASE_ANON_KEY not set — cannot verify callers');
+    return null;
+  }
+
+  try {
+    const res = await fetch(`${url}/auth/v1/user`, {
+      headers: { apikey: key, Authorization: `Bearer ${jwt}` },
+    });
+    if (!res.ok) return null;
+    const user = await res.json() as { id?: string; email?: string };
+    if (!user?.id) return null;
+    return { id: user.id, email: user.email ?? null };
+  } catch (err) {
+    console.error('[auth] JWT verification failed:', (err as Error)?.message);
+    return null;
+  }
+}
+
+async function isTrainerRole(userId: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${authSupabaseUrl()}/rest/v1/profiles?select=role&id=eq.${encodeURIComponent(userId)}&limit=1`,
+      { headers: authServiceHeaders() },
+    );
+    if (!res.ok) return false;
+    const rows = await res.json() as { role?: string }[];
+    const role = rows[0]?.role;
+    return !!role && (TRAINER_ROLES as readonly string[]).includes(role);
+  } catch {
+    return false;
+  }
+}
+
+async function hasActiveLink(userA: string, userB: string): Promise<boolean> {
+  const a = encodeURIComponent(userA);
+  const b = encodeURIComponent(userB);
+  try {
+    const res = await fetch(
+      `${authSupabaseUrl()}/rest/v1/trainer_clients?select=id&status=eq.active&or=(and(trainer_id.eq.${a},client_id.eq.${b}),and(trainer_id.eq.${b},client_id.eq.${a}))&limit=1`,
+      { headers: authServiceHeaders() },
+    );
+    if (!res.ok) return false;
+    const rows = await res.json() as { id: string }[];
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.
 
 Core rules:
 - NEVER prescribe exercises that load a body part the client reported as sore, unless it is very light mobility work
 - Match intensity to energy level: 1-3 = recovery/mobility only, 4-6 = moderate compound + isolation, 7-10 = normal to high intensity
-- Fit all exercises within the available time window (estimate 3-4 minutes per set including rest)
+- Fit all exercises within the available time window: estimate 3-4 minutes per set (including rest) for rep-based exercises, or (duration_seconds + rest_seconds) per set for hold/duration-based exercises
 - Choose exercises appropriate to the reported location and available equipment
 - Consider the client's primary goal (weight loss, hypertrophy, endurance, mobility) when selecting exercises and rep ranges
+- For isometric, breathing, or hold-based exercises (e.g. plank, neck rotations, diaphragmatic breathing) with no meaningful rep count, set "reps" to null and "duration_seconds" to the hold/execution time in seconds. Every exercise MUST have either "reps" or "duration_seconds" set — never both null
 
 Language:
 - CRITICAL: You MUST write every field in {lang}. This session is in {lang}. Never write in English when {lang} is requested.
@@ -21,7 +105,8 @@ Each object must have exactly these keys:
   "exercise_name": "string",
   "muscle_group": "string — must be one of: Chest | Back | Shoulders | Arms | Core | Legs | Full body | Cardio",
   "sets": integer,
-  "reps": integer,
+  "reps": integer or null (null for hold/duration-based exercises),
+  "duration_seconds": integer or null (hold/execution time in seconds; null when reps is set),
   "load_kg": number or null (null for bodyweight exercises),
   "rest_seconds": integer,
   "notes": "one sentence — brief rationale for why this exercise fits today"
@@ -64,6 +149,7 @@ interface RequestBody {
 interface VercelRequest {
   method?: string;
   body?: RequestBody;
+  headers?: Record<string, string | string[] | undefined>;
 }
 
 declare const process: {
@@ -98,6 +184,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  // Generation costs money — only authenticated users may invoke the LLM.
+  const caller = await verifyRequestUser(req);
+  if (!caller) {
+    res.status(401).json({ error: 'Unauthorized' });
     return;
   }
 

@@ -18,3 +18,9 @@ uploads/
 # Stray local archives / extracted copies dropped into policies/
 *.zip
 policies/references/Trainer 2.0/Monetization Policies/TrAIner Project/
+
+# Playwright artifacts
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

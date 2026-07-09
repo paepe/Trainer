@@ -1,6 +1,7 @@
 import type { CheckIn } from '../types';
 import type { Json } from '../types/supabase';
 import type { SmartWorkoutRequest, SmartWorkoutResponse, WorkoutExercise } from '../ai/types';
+import { authHeaders } from './authHeaders';
 
 export interface CycleContext {
   phase: string;
@@ -9,13 +10,14 @@ export interface CycleContext {
 }
 
 export interface GeneratedWorkoutExercise {
-  exercise_name: string;
-  muscle_group:  string;
-  sets:          number | null;
-  reps:          number | null;
-  load_kg:       number | null;
-  rest_seconds:  number | null;
-  notes?:        string | null;
+  exercise_name:    string;
+  muscle_group:     string;
+  sets:             number | null;
+  reps:             number | null;
+  duration_seconds: number | null;
+  load_kg:          number | null;
+  rest_seconds:     number | null;
+  notes?:           string | null;
 }
 
 // Result from smart workout — includes safety context alongside exercises
@@ -78,7 +80,7 @@ export async function requestWorkoutPlan({
   try {
     response = await fetch(`${resolveWorkoutApiBase()}/api/generate-workout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({
         checkin,
         physicalProfile,
@@ -111,14 +113,18 @@ export async function requestWorkoutPlan({
 
 // Map WorkoutExercise (smart format) → GeneratedWorkoutExercise (DB/UI format)
 function mapExercise(ex: WorkoutExercise): GeneratedWorkoutExercise {
-  // Parse reps: "12" → 12 | "8-12" → 10 (mid) | "30 sec" → null
+  // durationSeconds is now a structured numeric field from the LLM contract
+  // (api/generate-smart-workout.ts) — no more parsing time out of the reps
+  // string, which used to silently drop hold/breathing exercises to null.
   let reps: number | null = null;
-  const repsStr = ex.reps?.trim() ?? '';
-  if (/^\d+$/.test(repsStr)) {
-    reps = parseInt(repsStr, 10);
-  } else {
-    const range = repsStr.match(/^(\d+)\s*[-–]\s*(\d+)$/);
-    if (range) reps = Math.round((parseInt(range[1]!, 10) + parseInt(range[2]!, 10)) / 2);
+  if (ex.durationSeconds == null) {
+    const repsStr = ex.reps?.trim() ?? '';
+    if (/^\d+$/.test(repsStr)) {
+      reps = parseInt(repsStr, 10);
+    } else {
+      const range = repsStr.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+      if (range) reps = Math.round((parseInt(range[1]!, 10) + parseInt(range[2]!, 10)) / 2);
+    }
   }
 
   // Parse load: "10 kg" → 10 | "10.5 kg" → 10.5 | "Bodyweight"|"BW"|other → null
@@ -130,12 +136,13 @@ function mapExercise(ex: WorkoutExercise): GeneratedWorkoutExercise {
   const notes = [ex.cue, ex.safetyNote].filter(Boolean).join(' · ') || null;
 
   return {
-    exercise_name: ex.name,
-    muscle_group:  ex.muscleGroup,
-    sets:          ex.sets ?? null,
+    exercise_name:    ex.name,
+    muscle_group:     ex.muscleGroup,
+    sets:             ex.sets ?? null,
     reps,
+    duration_seconds: ex.durationSeconds ?? null,
     load_kg,
-    rest_seconds:  ex.restSeconds ?? null,
+    rest_seconds:     ex.restSeconds ?? null,
     notes,
   };
 }
@@ -149,7 +156,7 @@ export async function requestSmartWorkout(
   try {
     const response = await fetch(`${resolveWorkoutApiBase()}/api/generate-smart-workout`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body:    JSON.stringify(request),
       signal:  ctrl.signal,
     });

@@ -217,6 +217,8 @@ export function useAuth(): UseAuthReturn {
         currency:      'EUR',
         amount_cents:  priceRow?.amount_cents ?? 0,
         price_id:      priceRow?.id ?? null,
+      }).then(({ error: ledgerErr }) => {
+        if (ledgerErr) console.error('[useAuth] subscription_events insert failed:', ledgerErr);
       });
       clearFeaturePermissionCache();
       setSubscription({ plan_key: planKey, status: 'active', billing_cycle, current_period_end: null });

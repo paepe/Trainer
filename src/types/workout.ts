@@ -83,21 +83,22 @@ export interface WorkoutSessionRecord {
 }
 
 export interface WorkoutSessionExercise {
-  id:                  string;
-  session_id:          string;
-  plan_exercise_id:    string | null;
-  exercise_id:         string | null;
-  exercise_name:       string;
-  muscle_group:        string;
-  order_index:         number;
-  sets_prescribed:     number | null;
-  reps_prescribed:     number | null;
-  load_kg_prescribed:  number | null;
-  rest_seconds:        number | null;
-  notes:               string | null;
-  status:              SessionExerciseStatus;
-  substituted_from_id: string | null;
-  skipped_reason?:     string | null;
+  id:                       string;
+  session_id:               string;
+  plan_exercise_id:         string | null;
+  exercise_id:              string | null;
+  exercise_name:            string;
+  muscle_group:             string;
+  order_index:              number;
+  sets_prescribed:          number | null;
+  reps_prescribed:          number | null;
+  duration_seconds_prescribed: number | null;
+  load_kg_prescribed:       number | null;
+  rest_seconds:             number | null;
+  notes:                    string | null;
+  status:                   SessionExerciseStatus;
+  substituted_from_id:      string | null;
+  skipped_reason?:          string | null;
 }
 
 export interface WorkoutSetLog {

@@ -15,7 +15,6 @@ interface NotifyOptions {
   type?:         string;
   entityType?:   string;
   entityId?:     string;
-  fromUserId?:   string;
   expiresInMin?: number;
   /** i18n template key (canonical EN). Rendered on recipient device in their locale. */
   templateKey?:  string;
@@ -39,16 +38,18 @@ export function notify(
   if (opts.type)               payload.type        = opts.type;
   if (opts.entityType)         payload.entityType  = opts.entityType;
   if (opts.entityId)           payload.entityId    = opts.entityId;
-  if (opts.fromUserId)         payload.fromUserId  = opts.fromUserId;
   if (expiresAt)               payload.expiresAt   = expiresAt;
   if (opts.templateKey)        payload.templateKey = opts.templateKey;
   if (opts.params)             payload.params      = opts.params;
 
-  fetch(`${API_BASE}/api/send-notification`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(payload),
-  })
+  // fromUserId is derived server-side from the JWT — no longer sent in the body.
+  import('./authHeaders')
+    .then(({ authHeaders }) => authHeaders())
+    .then(headers => fetch(`${API_BASE}/api/send-notification`, {
+      method:  'POST',
+      headers,
+      body:    JSON.stringify(payload),
+    }))
     .then(r => r.json())
     .catch(err => console.error('[notify] failed:', err));
 }
@@ -59,7 +60,7 @@ export async function notifyLinkedTrainer(
   clientId: string,
   title:    string,
   body:     string,
-  opts:     Omit<NotifyOptions, 'fromUserId'> = {},
+  opts:     NotifyOptions = {},
 ): Promise<void> {
   const { supabase } = await import('../supabase');
   const { data: tc } = await supabase
@@ -69,6 +70,6 @@ export async function notifyLinkedTrainer(
     .eq('status', 'active')
     .maybeSingle();
   if (tc?.trainer_id) {
-    notify(tc.trainer_id, title, body, undefined, { ...opts, fromUserId: clientId });
+    notify(tc.trainer_id, title, body, undefined, opts);
   }
 }

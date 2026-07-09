@@ -63,6 +63,9 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
   const [risk,   setRisk]         = React.useState<RiskClassification | null>(null);
 
+  const mountedRef = React.useRef(true);
+  React.useEffect(() => () => { mountedRef.current = false; }, []);
+
   const goHub = () => { setStage('hub'); setResult(null); };
 
   // Fetch profile risk classification once, just before showing the result screen
@@ -73,6 +76,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
     if (uid && !risk) {
       void supabase.from('profile_v2').select('risk').eq('user_id', uid).maybeSingle()
         .then(({ data }) => {
+          if (!mountedRef.current) return;
           const r = (data as { risk: RiskClassification | null } | null)?.risk;
           if (r) setRisk(r);
         });
@@ -191,7 +195,6 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
               notify(linkedTrainerId, tr('checkin.result.readyPushTitle', { name, ...(genderCtx ? { context: genderCtx } : {}) }), tr('checkin.result.readyPushBody', { score }), undefined, {
                 type: 'workout_ready', templateKey: 'ready_to_train',
                 params: { name, score, gender }, expiresInMin: workoutReadyExpiryMin,
-                ...(user?.id ? { fromUserId: user.id } : {}),
               });
               // Stay on result screen — CheckInResult shows countdown and handles state
             }

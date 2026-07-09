@@ -111,8 +111,8 @@ export function CheckInResult({ dark, primary, accent, result, risk, onDone, onA
         const expiresAt = new Date(row.expires_at).getTime();
         const now = Date.now();
         if (expiresAt > now) {
-          // Within window — only set pending if user hasn't already clicked (guard against race)
-          setRequestState(prev => prev === 'pending' ? 'pending' : 'pending');
+          // Within window — a pending request exists server-side, reflect it
+          setRequestState('pending');
           setMinsLeft(Math.ceil((expiresAt - now) / 60000));
         } else {
           // Expired — only revert if user hasn't sent a new request (guard against race)

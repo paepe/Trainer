@@ -146,8 +146,8 @@ export function LoginScreen({ nav, t, dark, signIn, requestPasswordReset }: Logi
 
       {/* Email + password */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <TextInput icon="mail" placeholder={tr('auth.common.email')}    type="email"    value={email} onChange={setEmail}/>
-        <TextInput icon="lock" placeholder={tr('auth.common.password')} type="password" value={pw}    onChange={setPw}/>
+        <TextInput icon="mail" placeholder={tr('auth.common.email')}    type="email"    value={email} onChange={setEmail} data-testid="login-email"/>
+        <TextInput icon="lock" placeholder={tr('auth.common.password')} type="password" value={pw}    onChange={setPw} data-testid="login-password"/>
       </div>
 
       {/* Feedback */}
@@ -166,7 +166,7 @@ export function LoginScreen({ nav, t, dark, signIn, requestPasswordReset }: Logi
       <div style={{ flex: 1, minHeight: 20 }}/>
 
       {/* CTA */}
-      <button onClick={submit} disabled={loading} style={{ ...primaryBtn(t.primary, loading), padding: '16px 0', fontSize: 15, fontWeight: 700, letterSpacing: '.01em' }}>
+      <button onClick={submit} disabled={loading} data-testid="login-submit" style={{ ...primaryBtn(t.primary, loading), padding: '16px 0', fontSize: 15, fontWeight: 700, letterSpacing: '.01em' }}>
         {loading ? tr('auth.login.loading') : tr('auth.common.login')}
       </button>
       <button onClick={forgotPassword} disabled={resetting} style={{ ...textBtn(dark), alignSelf: 'center', marginTop: 4, fontSize: 13 }}>

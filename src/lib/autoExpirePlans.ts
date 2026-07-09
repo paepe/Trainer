@@ -41,8 +41,7 @@ export async function autoExpirePlans(
     for (const planId of ids) {
       void notify(
         clientId,
-        'Plan auto-cancelled',
-        `A plan older than ${expiryDays} days was automatically cancelled.`,
+        '', '',
         undefined,
         { type: 'plan_expired', templateKey: 'plans_expired', params: { count: 1, expiryDays }, entityType: 'workout_plan', entityId: planId }
       );
@@ -50,7 +49,7 @@ export async function autoExpirePlans(
   } else {
     // Client opened Workout/History → one notification per expired plan to TRAINER
     for (const planId of ids) {
-      void notifyLinkedTrainer(clientId, 'Plan expired', `A pending plan was auto-cancelled after ${expiryDays} days.`,
+      void notifyLinkedTrainer(clientId, '', '',
         { type: 'plan_expired', templateKey: 'plans_expired', params: { count: 1, expiryDays }, entityType: 'workout_plan', entityId: planId }
       );
     }

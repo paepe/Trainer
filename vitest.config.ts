@@ -18,5 +18,14 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    // Exclude orphaned git worktrees under .claude/worktrees — vitest's default
+    // exclude only covers node_modules/dist/etc, so a stray worktree checkout
+    // duplicates every test file it contains (found running the full suite
+    // during the 2026-07-07 system audit remediation).
+    // Also exclude tests/e2e — those are Playwright specs (npx playwright test),
+    // not vitest tests; vitest's default include glob matches *.spec.ts too and
+    // errors trying to run them (Playwright's test.beforeAll isn't valid outside
+    // its own runner).
+    exclude: ['**/node_modules/**', '**/dist/**', '.claude/worktrees/**', 'tests/e2e/**'],
   },
 });

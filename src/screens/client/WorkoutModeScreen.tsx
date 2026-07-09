@@ -12,6 +12,7 @@ import { ExerciseCard } from './workout/ExerciseCard';
 import { BottomPanel } from './workout/BottomPanel';
 import { LabeledInput } from './workout/LabeledInput';
 import type { Phase, ExState } from './workout/types';
+import { enqueue, flush, pendingCount, type QueuedFullSession } from '../../lib/workoutSyncQueue';
 
 interface Theme {
   primary:     string;
@@ -33,7 +34,7 @@ interface WorkoutModeScreenProps {
   clientName?:                 string;
   freeSession?:                boolean; // Free Training Session: runs against synthetic subject (persists normally)
   startWorkoutSession:         (input: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number }) => Promise<{ data: { sessionId: string; sessionExercises: WorkoutSessionExercise[] } | null; error: unknown }>;
-  logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null }) => Promise<{ error: unknown }>;
+  logWorkoutSet:               (data: { session_exercise_id: string; session_id: string; set_number: number; reps_done: number | null; load_kg: number | null; rpe: number | null; duration_seconds?: number | null }) => Promise<{ error: unknown }>;
   updateSessionExerciseStatus: (sessionExerciseId: string, status: SessionExerciseStatus, skippedReason?: string) => Promise<{ error: unknown }>;
   reportWorkoutPain:           (data: { session_id: string; session_exercise_id: string | null; body_region: string; intensity: number }) => Promise<{ error: unknown }>;
   completeWorkoutSession:      (data: { sessionId: string; completed_at: string; total_duration_min: number; notes?: string | null; planId?: string | null }) => Promise<{ error: unknown }>;
@@ -74,11 +75,14 @@ export function WorkoutModeScreen({
   const [startedAt]                 = React.useState<Date>(() => new Date());
   const [initErr,    setInitErr]    = React.useState<string | null>(null);
   const [finishing,  setFinishing]  = React.useState(false);
+  const [savingSet,  setSavingSet]  = React.useState(false);
+  const [syncPending, setSyncPending] = React.useState(() => pendingCount() > 0);
 
   // Set form
-  const [setReps, setSetReps] = React.useState('');
-  const [setLoad, setSetLoad] = React.useState('');
-  const [setRpe,  setSetRpe]  = React.useState(7);
+  const [setReps,     setSetReps]     = React.useState('');
+  const [setLoad,     setSetLoad]     = React.useState('');
+  const [setRpe,      setSetRpe]      = React.useState(7);
+  const [setDuration, setSetDuration] = React.useState('');
 
   // Rest timer
   const [restSec, setRestSec] = React.useState(0);
@@ -92,8 +96,13 @@ export function WorkoutModeScreen({
   const [skipCustomReason, setSkipCustomReason] = React.useState('');
 
   // ── Init ─────────────────────────────────────────────────────────────────────
+  const [noPlan, setNoPlan] = React.useState(false);
+
   React.useEffect(() => {
-    if (!exercises?.length) { setPhase('active'); return; }
+    // A workout must never silently "start" (timer running) with zero
+    // exercises — that traps the user on a blank screen with no finish CTA.
+    // Surface it explicitly instead (see system audit follow-up, 2026-07-09).
+    if (!exercises?.length) { setNoPlan(true); setPhase('active'); return; }
 
     const sessionInput: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number } = { planId, exercises };
     if (clientUserId)        sessionInput.forUserId            = clientUserId;
@@ -107,13 +116,14 @@ export function WorkoutModeScreen({
         setSessionId(data.sessionId);
         setExStates(data.sessionExercises.map((se, i) =>
           makeExState(se.id, {
-            exercise_name: se.exercise_name,
-            muscle_group:  se.muscle_group,
-            sets:          se.sets_prescribed,
-            reps:          se.reps_prescribed,
-            load_kg:       se.load_kg_prescribed,
-            rest_seconds:  se.rest_seconds,
-            notes:         se.notes,
+            exercise_name:    se.exercise_name,
+            muscle_group:     se.muscle_group,
+            sets:             se.sets_prescribed,
+            reps:             se.reps_prescribed,
+            duration_seconds: se.duration_seconds_prescribed,
+            load_kg:          se.load_kg_prescribed,
+            rest_seconds:     se.rest_seconds,
+            notes:            se.notes,
           }, i)
         ));
       }
@@ -165,46 +175,70 @@ export function WorkoutModeScreen({
     if (!activeEx) return;
     setSetReps(String(activeEx.repsPrescribed ?? ''));
     setSetLoad(String(activeEx.loadPrescribed ?? ''));
+    setSetDuration(String(activeEx.durationSecondsPrescribed ?? ''));
     setSetRpe(7);
     if (activeEx.status === 'pending') {
       updateEx(activeIdx, { status: 'in_progress' });
       if (sessionId && !isOffline(activeEx.id))
-        void updateSessionExerciseStatus(activeEx.id, 'in_progress');
+        syncExerciseStatus(activeEx.id, 'in_progress');
     }
     setPhase('set_form');
   };
 
+  // Persists an exercise status; on failure the update is queued for replay
+  // instead of being lost (the local UI state is the source of truth mid-workout).
+  const syncExerciseStatus = (exId: string, status: SessionExerciseStatus, skippedReason?: string) => {
+    updateSessionExerciseStatus(exId, status, skippedReason).then(({ error }) => {
+      if (error) {
+        enqueue({ kind: 'exercise_status', payload: { session_exercise_id: exId, status, skipped_reason: skippedReason ?? null } });
+        setSyncPending(true);
+      }
+    });
+  };
+
   // ── Confirm set ──────────────────────────────────────────────────────────────
   const confirmSet = async () => {
-    if (!activeEx) return;
-    const reps    = parseInt(setReps)   || null;
-    const load    = parseFloat(setLoad) || null;
+    if (!activeEx || savingSet) return;
+    setSavingSet(true);
+    const reps       = parseInt(setReps)     || null;
+    const load       = parseFloat(setLoad)   || null;
+    const durationS  = parseInt(setDuration) || null;
     const newSets = activeEx.setsLogged + 1;
+    const localLog = { set_number: newSets, reps_done: reps, load_kg: load, rpe: setRpe, duration_seconds: durationS, completed_at: new Date().toISOString() };
+
+    // Local record first — the set is never lost, whatever the network does.
+    const newSetLogs = [...activeEx.setLogs, localLog];
 
     if (sessionId && !isOffline(activeEx.id)) {
-      await logWorkoutSet({
+      const { error } = await logWorkoutSet({
         session_exercise_id: activeEx.id,
         session_id:          sessionId,
         set_number:          newSets,
         reps_done:           reps,
         load_kg:             load,
         rpe:                 setRpe,
+        duration_seconds:    durationS,
       });
+      if (error) {
+        enqueue({ kind: 'set_log', payload: { ...localLog, session_exercise_id: activeEx.id, session_id: sessionId } });
+        setSyncPending(true);
+      }
     }
 
     if (soundsRef.current) { soundSetDone(); vibrate('set_done'); }
 
     if (newSets >= activeEx.setsPrescribed) {
-      updateEx(activeIdx, { setsLogged: newSets, status: 'completed' });
+      updateEx(activeIdx, { setsLogged: newSets, setLogs: newSetLogs, status: 'completed' });
       if (sessionId && !isOffline(activeEx.id))
-        void updateSessionExerciseStatus(activeEx.id, 'completed');
+        syncExerciseStatus(activeEx.id, 'completed');
       setPhase('active');
       advanceToNext(activeIdx);
     } else {
-      updateEx(activeIdx, { setsLogged: newSets });
+      updateEx(activeIdx, { setsLogged: newSets, setLogs: newSetLogs });
       setRestSec(activeEx.restSeconds);
       setPhase('rest');
     }
+    setSavingSet(false);
   };
 
   // ── Skip exercise ────────────────────────────────────────────────────────────
@@ -223,9 +257,9 @@ export function WorkoutModeScreen({
           ? `${skipReasonOption}: ${skipCustomReason.trim()}`
           : skipReasonOption);
 
-    updateEx(activeIdx, { status: 'skipped' });
+    updateEx(activeIdx, { status: 'skipped', skippedReason: finalReason || null });
     if (sessionId && !isOffline(activeEx.id)) {
-      void updateSessionExerciseStatus(activeEx.id, 'skipped', finalReason);
+      syncExerciseStatus(activeEx.id, 'skipped', finalReason);
     }
     setPhase('active');
     advanceToNext(activeIdx);
@@ -255,27 +289,56 @@ export function WorkoutModeScreen({
     const totalSets    = exStates.reduce((n, e) => n + e.setsLogged, 0);
     const completedCnt = exStates.filter(e => e.status === 'completed').length;
 
-    let resolvedSessionId = sessionId;
+    const resolvedSessionId = sessionId;
 
     if (!resolvedSessionId) {
-      // Session was never synced (no exercises or creation failed) — create minimal rescue session
-      const rescueInput: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number } = {
-        planId,
-        exercises: [],
-        planned_duration_min: durationMin,
-      };
-      if (clientUserId) rescueInput.forUserId = clientUserId;
-      const { data } = await startWorkoutSession(rescueInput);
-      resolvedSessionId = data?.sessionId ?? null;
-    }
-
-    if (resolvedSessionId) {
-      await completeWorkoutSession({
+      // Session row was never created (offline from the start). Queue the FULL
+      // workout — exercises, final statuses and every locally recorded set —
+      // and try to replay immediately in case connectivity is back. No more
+      // empty "rescue" sessions that silently discard per-set data.
+      const ownerId = clientUserId ?? _user.id;
+      if (ownerId && exStates.length > 0) {
+        const fullSession: QueuedFullSession = {
+          user_id:            ownerId,
+          plan_id:            planId,
+          started_at:         startedAt.toISOString(),
+          completed_at:       completedAt.toISOString(),
+          total_duration_min: durationMin,
+          exercises: exStates.map((e, i) => ({
+            exercise_name:               e.name,
+            muscle_group:                e.muscleGroup || null,
+            order_index:                 i,
+            sets_prescribed:             e.setsPrescribed,
+            reps_prescribed:             e.repsPrescribed,
+            duration_seconds_prescribed: e.durationSecondsPrescribed,
+            load_kg_prescribed:          e.loadPrescribed,
+            rest_seconds:                e.restSeconds,
+            notes:                       e.notes,
+            status:                      e.status,
+            skipped_reason:              e.skippedReason,
+            set_logs:                    e.setLogs,
+          })),
+        };
+        enqueue({ kind: 'full_session', payload: fullSession });
+        setSyncPending(true);
+        await flush();
+      }
+    } else {
+      const { error } = await completeWorkoutSession({
         sessionId:          resolvedSessionId,
         completed_at:       completedAt.toISOString(),
         total_duration_min: durationMin,
         planId,
       });
+      if (error) {
+        enqueue({ kind: 'session_complete', payload: {
+          session_id:         resolvedSessionId,
+          completed_at:       completedAt.toISOString(),
+          total_duration_min: durationMin,
+          plan_id:            planId,
+        } });
+        setSyncPending(true);
+      }
     }
 
     if (soundsRef.current) { soundWorkoutDone(); vibrate('workout_done'); }
@@ -336,6 +399,12 @@ export function WorkoutModeScreen({
         </div>
       )}
 
+      {syncPending && !initErr && (
+        <div data-testid="pending-sync-banner" style={{ margin: '0 22px 8px', padding: '8px 12px', borderRadius: 10, background: `${t.accent}18`, fontSize: 12, color: t.accent }}>
+          {tr('client.mode.pendingSync')}
+        </div>
+      )}
+
       {/* Exercise list */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 16px' }}>
         {phase === 'init' && (
@@ -344,7 +413,19 @@ export function WorkoutModeScreen({
           </div>
         )}
 
-        {phase !== 'init' && exStates.map((ex, i) => (
+        {phase === 'active' && noPlan && (
+          <div data-testid="no-plan-error" style={{ padding: '32px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
+            <Icon name="info" size={28} color={t.accent}/>
+            <div style={{ fontSize: 14, fontWeight: 700, color: textPri(dark) }}>{tr('client.mode.noPlanTitle')}</div>
+            <div style={{ fontSize: 12.5, color: textSec(dark), maxWidth: 260 }}>{tr('client.mode.noPlanBody')}</div>
+            <button onClick={() => nav('workout')} style={{
+              marginTop: 4, padding: '10px 20px', borderRadius: 999, border: 'none',
+              background: t.primary, color: '#0E1A2B', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}>{tr('common.back')}</button>
+          </div>
+        )}
+
+        {phase !== 'init' && !noPlan && exStates.map((ex, i) => (
           <ExerciseCard
             key={ex.id}
             ex={ex}
@@ -366,6 +447,7 @@ export function WorkoutModeScreen({
             <button
               onClick={finishWorkout}
               disabled={finishing}
+              data-testid="finish-workout-btn"
               style={{
                 ...primaryBtn(t.primary),
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -382,7 +464,11 @@ export function WorkoutModeScreen({
       {/* ── Overlay: Set form ── */}
       {phase === 'set_form' && activeEx && (
         <BottomPanel title={tr('client.mode.setFormTitle', { current: activeEx.setsLogged + 1, total: activeEx.setsPrescribed, name: activeEx.name })} dark={dark}>
-          <LabeledInput label={tr('client.mode.reps')} value={setReps} onChange={setSetReps} type="number" dark={dark}/>
+          {activeEx.durationSecondsPrescribed != null && activeEx.repsPrescribed == null ? (
+            <LabeledInput label={tr('client.mode.durationSec')} value={setDuration} onChange={setSetDuration} type="number" dark={dark}/>
+          ) : (
+            <LabeledInput label={tr('client.mode.reps')} value={setReps} onChange={setSetReps} type="number" dark={dark}/>
+          )}
           <LabeledInput label={tr('client.mode.loadKg')} value={setLoad} onChange={setSetLoad} type="number" dark={dark}/>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
@@ -404,10 +490,11 @@ export function WorkoutModeScreen({
               flex: 1, padding: '12px 0', borderRadius: 999, border: `1.5px solid ${borderSubtle(dark)}`,
               background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>{tr('client.mode.cancel')}</button>
-            <button onClick={() => void confirmSet()} style={{
+            <button onClick={() => void confirmSet()} disabled={savingSet} data-testid="confirm-set-btn" style={{
               flex: 2, ...primaryBtn(t.primary),
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            }}>{tr('client.mode.confirmSet')}</button>
+              opacity: savingSet ? 0.6 : 1,
+            }}>{savingSet ? tr('client.mode.saving') : tr('client.mode.confirmSet')}</button>
           </div>
         </BottomPanel>
       )}
@@ -541,14 +628,17 @@ export function WorkoutModeScreen({
 function makeExState(id: string, ex: Partial<GeneratedWorkoutExercise> & { exercise_name?: string; muscle_group?: string | null }, _i: number): ExState {
   return {
     id,
-    name:           ex.exercise_name ?? '',
-    muscleGroup:    ex.muscle_group  ?? '',
-    setsPrescribed: ex.sets          ?? 3,
-    repsPrescribed: ex.reps          ?? null,
-    loadPrescribed: ex.load_kg       ?? null,
-    restSeconds:    ex.rest_seconds  ?? 60,
-    notes:          ex.notes         ?? null,
-    status:         'pending',
-    setsLogged:     0,
+    name:                      ex.exercise_name ?? '',
+    muscleGroup:               ex.muscle_group  ?? '',
+    setsPrescribed:            ex.sets          ?? 3,
+    repsPrescribed:            ex.reps          ?? null,
+    durationSecondsPrescribed: ex.duration_seconds ?? null,
+    loadPrescribed:            ex.load_kg       ?? null,
+    restSeconds:               ex.rest_seconds  ?? 60,
+    notes:                     ex.notes         ?? null,
+    status:                    'pending',
+    setsLogged:                0,
+    setLogs:                   [],
+    skippedReason:             null,
   };
 }

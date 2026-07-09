@@ -80,7 +80,7 @@ interface PlanCard {
     id:        string;
     sentAt:    string | null;
     status:    string;
-    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null; exercise_category?:string|null}>;
+    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; duration_seconds?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null; exercise_category?:string|null}>;
   }
 
 type GenState =
@@ -93,14 +93,19 @@ type GenState =
 // ── Fallback plan generator ──────────────────────────────────────────────────
 // Activated when the AI workout API is unreachable (DeepSeek outage, timeout, etc.)
 // Produces a basic bodyweight circuit based on the user's goal and available time.
-type FallbackTemplate = { name: string; muscle: string; sets: number; reps: number; rest: number };
+// reps XOR durationSeconds — hold/static/continuous exercises (Plank Hold,
+// Jogging in Place, ...) specify durationSeconds instead of a meaningless rep
+// count; countable-motion exercises specify reps as before.
+type FallbackTemplate =
+  | { name: string; muscle: string; sets: number; reps: number; durationSeconds?: undefined; rest: number }
+  | { name: string; muscle: string; sets: number; reps?: undefined; durationSeconds: number; rest: number };
 
 const GOAL_TEMPLATES: Record<string, FallbackTemplate[]> = {
   hypertrophy: [
     { name: 'Push-up',            muscle: 'Chest',      sets: 4, reps: 12, rest: 60 },
     { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 4, reps: 15, rest: 60 },
     { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 15, rest: 45 },
-    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, reps: 30, rest: 45 },
+    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, durationSeconds: 30, rest: 45 },
     { name: 'Lunges',             muscle: 'Quadriceps', sets: 3, reps: 12, rest: 45 },
     { name: 'Tricep Dip',         muscle: 'Triceps',    sets: 3, reps: 12, rest: 45 },
   ],
@@ -113,10 +118,10 @@ const GOAL_TEMPLATES: Record<string, FallbackTemplate[]> = {
     { name: 'Jumping Jacks',      muscle: 'Full Body',  sets: 3, reps: 30, rest: 20 },
   ],
   endurance: [
-    { name: 'Jogging in Place',   muscle: 'Cardio',     sets: 1, reps: 60, rest: 0 },
+    { name: 'Jogging in Place',   muscle: 'Cardio',     sets: 1, durationSeconds: 60, rest: 0 },
     { name: 'Bodyweight Squat',  muscle: 'Quadriceps', sets: 3, reps: 20, rest: 30 },
     { name: 'Push-up',            muscle: 'Chest',      sets: 3, reps: 15, rest: 30 },
-    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, reps: 40, rest: 30 },
+    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, durationSeconds: 40, rest: 30 },
     { name: 'Walking Lunges',     muscle: 'Quadriceps', sets: 3, reps: 16, rest: 30 },
     { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 20, rest: 30 },
   ],
@@ -124,25 +129,25 @@ const GOAL_TEMPLATES: Record<string, FallbackTemplate[]> = {
     { name: 'Cat-Cow Stretch',    muscle: 'Spine',      sets: 2, reps: 10, rest: 20 },
     { name: 'Hip Circles',        muscle: 'Hips',       sets: 2, reps: 10, rest: 20 },
     { name: 'World\'s Greatest Stretch', muscle: 'Full Body', sets: 2, reps: 6, rest: 30 },
-    { name: 'Downward Dog',       muscle: 'Shoulders',  sets: 2, reps: 30, rest: 20 },
-    { name: 'Child\'s Pose',      muscle: 'Back',       sets: 2, reps: 30, rest: 20 },
+    { name: 'Downward Dog',       muscle: 'Shoulders',  sets: 2, durationSeconds: 30, rest: 20 },
+    { name: 'Child\'s Pose',      muscle: 'Back',       sets: 2, durationSeconds: 30, rest: 20 },
     { name: 'Thoracic Rotation',  muscle: 'Spine',      sets: 2, reps: 8, rest: 20 },
   ],
   strength: [
     { name: 'Push-up',            muscle: 'Chest',      sets: 4, reps: 10, rest: 75 },
     { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 4, reps: 20, rest: 60 },
     { name: 'Pull-up or Row',     muscle: 'Back',       sets: 3, reps: 8,  rest: 75 },
-    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, reps: 45, rest: 45 },
+    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, durationSeconds: 45, rest: 45 },
     { name: 'Bulgarian Split Squat', muscle: 'Quadriceps', sets: 3, reps: 10, rest: 60 },
     { name: 'Pike Push-up',       muscle: 'Shoulders',  sets: 3, reps: 10, rest: 60 },
   ],
   general: [
     { name: 'Push-up',            muscle: 'Chest',      sets: 3, reps: 12, rest: 45 },
     { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 3, reps: 15, rest: 45 },
-    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, reps: 30, rest: 45 },
+    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, durationSeconds: 30, rest: 45 },
     { name: 'Lunges',             muscle: 'Quadriceps', sets: 3, reps: 10, rest: 45 },
     { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 15, rest: 45 },
-    { name: 'Superman Hold',      muscle: 'Back',       sets: 3, reps: 15, rest: 45 },
+    { name: 'Superman Hold',      muscle: 'Back',       sets: 3, durationSeconds: 15, rest: 45 },
   ],
 };
 
@@ -162,13 +167,14 @@ function generateFallbackPlan(
   const exerciseCount = Math.min(templates.length, Math.max(3, Math.floor(availableMinutes / 7)));
 
   return templates.slice(0, exerciseCount).map(t => ({
-    exercise_name: t.name,
-    muscle_group:  t.muscle,
-    sets:          t.sets,
-    reps:          t.reps,
-    load_kg:       null,
-    rest_seconds:  t.rest,
-    notes:         null,
+    exercise_name:    t.name,
+    muscle_group:     t.muscle,
+    sets:             t.sets,
+    reps:             t.reps ?? null,
+    duration_seconds: t.durationSeconds ?? null,
+    load_kg:          null,
+    rest_seconds:     t.rest,
+    notes:            null,
   }));
 }
 
@@ -257,6 +263,24 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const readinessScore  = genState.phase === 'success' || genState.phase === 'blocked' ? genState.readinessScore : null;
   const adaptations     = genState.phase === 'success' ? genState.adaptations               : ([] as string[]);
 
+  // Soft, client-side time-fit check: neither generation endpoint validates
+  // its own totalDurationMin against the requested window server-side (see
+  // system audit follow-up, 2026-07-10) — this is informational only, never
+  // blocks starting the workout.
+  const estimatedPlanMinutes = React.useMemo(() => {
+    if (!plan?.length) return 0;
+    const totalSeconds = plan.reduce((sum, ex) => {
+      const sets         = ex.sets ?? 1;
+      const perSetActive = ex.duration_seconds ?? (ex.reps ? 40 : 30);
+      const perSetRest   = ex.rest_seconds ?? 30;
+      return sum + sets * (perSetActive + perSetRest);
+    }, 0);
+    return Math.ceil(totalSeconds / 60);
+  }, [plan]);
+  const availableMinutes = activeCheckin.minutes ?? 0;
+  const planMayOverrun = estimatedPlanMinutes > 0 && availableMinutes > 0
+    && estimatedPlanMinutes > availableMinutes * 1.2;
+
   // Derive current cycle phase — only for female users with cycle tracking data
   const getCycleContext = () => {
     if (user?.gender !== 'female') return null;
@@ -300,15 +324,16 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
       const { error: exercisesError } = await supabase.from('plan_exercises').insert(
         exercises.map((ex, i) => ({
-          plan_id:       planRow.id,
-          exercise_name: ex.exercise_name,
-          muscle_group:  ex.muscle_group,
-          sets:          ex.sets,
-          reps:          ex.reps,
-          load_kg:       ex.load_kg,
-          rest_seconds:  ex.rest_seconds,
-          notes:         ex.notes ?? null,
-          order_index:   i,
+          plan_id:          planRow.id,
+          exercise_name:    ex.exercise_name,
+          muscle_group:     ex.muscle_group,
+          sets:             ex.sets,
+          reps:             ex.reps,
+          duration_seconds: ex.duration_seconds,
+          load_kg:          ex.load_kg,
+          rest_seconds:     ex.rest_seconds,
+          notes:            ex.notes ?? null,
+          order_index:      i,
         }))
       );
 
@@ -357,7 +382,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         // Status is NOT mutated here — a plan only becomes 'active' when the workout actually starts.
         const { data: planRows } = await supabase
           .from('workout_plans')
-          .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, load_kg, rest_seconds, notes, order_index, exercise_category)')
+          .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category)')
           .eq('assigned_to', user.id)
           .eq('source', 'manual')
           .in('status', ['sent', 'active', 'postponed'])
@@ -500,7 +525,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           if (weekCount >= sessionsPerWeekCap) {
             setGenState({
               phase:         'error',
-              error:         tr('workout.limitWeekly', { n: sessionsPerWeekCap }),
+              error:         tr('client.workout.limitWeekly', { n: sessionsPerWeekCap }),
             });
             return;
           }
@@ -567,6 +592,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           },
         };
 
+        // When useSmart is false (free tier, AI personalization disabled, or no
+        // trainer link), the client still gets a real workout — a deterministic
+        // template plan, not an empty one (see generateFallbackPlan above).
         const result = useSmart
           ? await requestSmartWorkout({
               trainer: trainerCtx, client: clientCtx,
@@ -574,7 +602,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               library: libraryCtx, task: taskCtx,
               locale: i18n.language,
             })
-          : { exercises: [], readinessScore: todayCtx.readinessScore || 60, blocked: false, adaptations: [], safetyTitle: null as any, safetyMessage: null as any };
+          : {
+              exercises:      generateFallbackPlan(resolvedCheckin.goal, taskCtx.durationMin ?? 30),
+              readinessScore: todayCtx.readinessScore || 60,
+              blocked:        false,
+              adaptations:    [] as string[],
+              safetyTitle:    null as any,
+              safetyMessage:  null as any,
+            };
 
         const readiness   = result.readinessScore;
         const adaptResult = result.adaptations;
@@ -615,14 +650,30 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     }
   };
 
+  // Wait for the feature-permission matrix to resolve before generating.
+  // useFeatureAccessMap always starts as { allowed: false, loading: true } —
+  // firing fetchPlan() on an empty-deps mount effect would permanently
+  // capture that unresolved `false` for aiCheckinAllowed (stale closure),
+  // forcing useSmart to false and silently persisting a zero-exercise plan
+  // for every client (most visibly trainer-less ones, whose only path is
+  // this AI branch — see system audit follow-up, 2026-07-09).
+  const aiPermsLoading = aiAccessMap['ai.checkin_adjustment']?.loading ?? true;
+  const fetchFiredRef = React.useRef(false);
+
   React.useEffect(() => {
     mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (aiPermsLoading || fetchFiredRef.current) return;
+    fetchFiredRef.current = true;
     const fetch = async () => {
       try { await fetchPlan(); } catch { /* caught internally */ }
     };
     void fetch();
-    return () => { mountedRef.current = false; };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiPermsLoading]);
 
   // Live: a new plan sent by the trainer while this screen is open
   React.useEffect(() => {
@@ -672,13 +723,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     nav('workoutMode', {
       planId:    p.id,
       exercises: p.exercises.map(ex => ({
-        exercise_name: ex.exercise_name,
-        muscle_group:  ex.muscle_group  ?? '',
-        sets:          ex.sets          ?? null,
-        reps:          ex.reps          ?? null,
-        load_kg:       ex.load_kg       ?? null,
-        rest_seconds:  ex.rest_seconds  ?? null,
-        notes:         ex.notes         ?? null,
+        exercise_name:    ex.exercise_name,
+        muscle_group:     ex.muscle_group  ?? '',
+        sets:             ex.sets          ?? null,
+        reps:             ex.reps          ?? null,
+        duration_seconds: ex.duration_seconds ?? null,
+        load_kg:          ex.load_kg       ?? null,
+        rest_seconds:     ex.rest_seconds  ?? null,
+        notes:            ex.notes         ?? null,
       })),
     });
   };
@@ -869,7 +921,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                             <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
                               {[
                                 ex.sets        ? `${ex.sets} sets`         : null,
-                                ex.reps        ? `${ex.reps} reps`         : null,
+                                ex.reps        ? `${ex.reps} reps`
+                                  : ex.duration_seconds ? tr('common.units.holdSec', { seconds: ex.duration_seconds })
+                                  : null,
                                 ex.load_kg     ? `${ex.load_kg} kg`        : null,
                                 ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
                               ].filter(Boolean).join(' · ')}
@@ -896,6 +950,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                         )}
                         <button
                           onClick={() => isPlanLocked ? setTrainerPlanLocked(true) : startPlan(p)}
+                          data-testid="start-plan-btn"
                           style={{
                             flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
                             background: isPlanLocked ? 'rgba(255,255,255,.12)' : t.primary,
@@ -1023,12 +1078,26 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 </span>
               </div>
             )}
+            {planMayOverrun && (
+              <div style={{
+                display: 'flex', alignItems: 'flex-start', gap: 6,
+                marginBottom: 10, padding: '6px 10px', borderRadius: 10,
+                background: `${t.accent}18`, border: `1px solid ${t.accent}44`,
+              }}>
+                <span style={{ fontSize: 11 }}>⏱️</span>
+                <span style={{ fontSize: 11.5, color: t.accent, lineHeight: 1.4 }}>
+                  {tr('client.workout.timeMayOverrun', { estimated: estimatedPlanMinutes, available: availableMinutes })}
+                </span>
+              </div>
+            )}
             {plan.map((ex, i) => (
               <PlanRow
                 key={i}
                 label={ex.exercise_name}
                 detail={[
-                  ex.sets && ex.reps ? `${ex.sets}×${ex.reps}` : null,
+                  ex.sets && ex.reps ? `${ex.sets}×${ex.reps}`
+                    : ex.duration_seconds ? `${ex.sets ?? 1}× ${tr('common.units.holdSec', { seconds: ex.duration_seconds })}`
+                    : null,
                   ex.load_kg ? `${ex.load_kg} kg` : null,
                   ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
                   translateMuscleGroup(ex.muscle_group),
@@ -1078,7 +1147,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         <div style={{ padding: '16px 22px 28px' }}>
           <button
             onClick={() => nav('workoutMode', { planId: planId || null, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined })}
-            disabled={!plan || loading || safetyBlocked}
+            disabled={!plan || plan.length === 0 || loading || safetyBlocked}
+            data-testid="start-ai-plan-btn"
             style={{
               ...primaryBtn(t.primary),
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
