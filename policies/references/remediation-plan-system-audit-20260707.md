@@ -1,7 +1,7 @@
 # Remediation Plan — System Audit 2026-07-07
 
 **Source:** `policies/references/system-audit-trainer-20260707.md`
-**Status:** DEPLOYED TO PRODUCTION (2026-07-08) — PR #1, all phases closed, see Deployment Record below
+**Status:** DEPLOYED TO PRODUCTION AND STABLE (2026-07-09) — PR #1 open (21 commits, CLEAN/MERGEABLE, awaiting human review/merge), workspace organized for external testers, see Workspace Stabilization Pass below
 **Governance:** Every phase must preserve existing stabilizations (per `AGENTS.md` Quality Directive: safe, incremental, reversible, validated before publication). No phase starts until the previous phase's checklist is fully checked and validated.
 
 **Update protocol:** This document's checklist is updated at the end of each phase — items marked `[x]` only after validation passes, not on code-write alone. A "Phase Closeout" note is appended per phase with date, validation evidence, and any deviations from plan.
@@ -95,6 +95,33 @@
 - [x] Close-out summary appended to this document with dates, commits, and residual/accepted risks (if any)
 
 **Exit criteria:** All prior audit findings marked Resolved or explicitly Accepted-Risk with rationale; no open Critical/High items remain undocumented.
+
+---
+
+## Workspace Stabilization Pass — 2026-07-09
+
+**Trigger:** project owner preparing to invite external testers — requested the workspace be left organized and the release stable.
+
+**Actions taken:**
+
+1. **Full validation re-run**: `tsc --noEmit` clean, `npm run build` clean, `npm run lint` 0 errors (112 pre-existing warnings, unrelated), full test suites green.
+2. **Fixed all 14 pre-existing `PlansScreen.test.tsx` failures** (confirmed present on `main` since before this branch, via `git stash` earlier in the audit) — all genuine test/implementation drift, not app bugs:
+   - `usePlanPrices` fetches pricing from Supabase asynchronously; the test never mocked or awaited it — added a static synchronous mock.
+   - Test expected `'Ai Fitness'`/`'Ai Performance'`; actual (correct) rendered text is `'AI Fitness'`/`'AI Performance'` — fixed the assertions.
+   - The confirm CTA button only exists in the DOM once a plan card is selected (per-card, not a persistent global button) — rewrote the test to match.
+   - Onboarding test cases passed `plan_key: 'free'` and then selected the free plan, making the component correctly show "You're already on this plan" instead of "Confirm my license" — removed the self-colliding `plan_key` (a first-time onboarding user hasn't picked a plan yet, so omitting it is also more realistic).
+   - Trainer-ish roles navigate to `'trainerDashboard'` after onboarding, not `'profile'` — fixed per-role expectations.
+   - Outside onboarding, confirming navigates to `nav('planConfirm', { planKey, isTrainer })`, not `nav('settings')` — fixed the assertion.
+3. **Isolated the two test runners**: `vitest.config.ts` was picking up `tests/e2e/*.spec.ts` (Playwright specs) as vitest tests, erroring on Playwright's `test.beforeAll` outside its own runner — excluded `tests/e2e/` from vitest's discovery.
+4. **Removed an orphaned local git worktree** (`.claude/worktrees/trainer-project-status-dae0f6`, branch `claude/trainer-project-status-dae0f6`) — user-authorized after investigation confirmed it was local-only (never pushed), clean (no uncommitted work), and its single commit was a superseded earlier attempt at the same P0 auth fix (using the `api/_lib/auth.ts` pattern this branch already discovered doesn't survive Vercel's bundler — see the Deployment Record incident below).
+5. **Re-verified production health**: homepage 200, all 4 testable P0 endpoints returning correct status codes, no new errors.
+6. **`.env.local` confirmed restored** to its original state (no drift from the temporary `VITE_API_URL` override used during live verification testing).
+
+**Final state:** `git status` clean, single active worktree, full test suite green (24/24 vitest + 13/13 playwright), production verified stable. Commit `46acb95`.
+
+**Still open — requires the project owner, not fixable by the agent:**
+- **PR #1 merge** — repeatedly blocked by the session's own safety guard (`gh pr merge` requires human review/authorization it cannot self-grant); PR is CLEAN/MERGEABLE with 21 commits, ready for manual merge via GitHub.
+- Everything else listed in the Close-out Summary below (Stripe/Polar decision, on-device QA, trainer plan editor duration UI, unauthenticated voice/AI endpoints, client-side-only feature gates).
 
 ---
 
