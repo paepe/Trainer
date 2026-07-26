@@ -2579,6 +2579,7 @@
     "alreadyOnPlan": "You're already on this plan",
     "comingSoon": "Soon",
     "confirming": "Confirming…",
+    "confirmError": "Something went wrong saving your plan. Please try again.",
     "tabClient": "Student",
     "tabTrainer": "Trainer",
     "kickerTrainer": "Trainer plans",

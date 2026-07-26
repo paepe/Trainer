@@ -18,6 +18,7 @@ interface Props {
   user:   AppUser;
   source?: string | undefined;
   upsertSubscription: (planKey: PlanKey, billingCycle: 'monthly' | 'annual') => Promise<{ error: unknown }>;
+  updateProfile: (updates: { role: UserRole }) => Promise<{ error: unknown }>;
 }
 
 type BillingCycle = 'monthly' | 'annual';
@@ -32,10 +33,11 @@ function fmtCents(cents: number, cycle: BillingCycle): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(monthly / 100);
 }
 
-export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
+export function PlansScreen({ nav, user, source, upsertSubscription, updateProfile }: Props) {
   const { t: tr } = useTranslation();
   const isTrainer = !!user.role && (TRAINER_ROLES as readonly string[]).includes(user.role);
-  const isManage  = source === 'manage';
+  const isManage    = source === 'manage';
+  const isOnboarding = source === 'onboarding';
 
   const [audienceMode, setAudienceMode] = React.useState<AudienceMode>(isTrainer ? 'trainer' : 'client');
   const showingTrainer = audienceMode === 'trainer';
@@ -52,21 +54,43 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
     isManage && displayPlanKey ? displayPlanKey : null
   );
   const [confirming, setConfirming] = React.useState(false);
+  const [confirmErr, setConfirmErr] = React.useState('');
 
-  React.useEffect(() => { setSelected(null); }, [audienceMode]);
+  React.useEffect(() => { setSelected(null); setConfirmErr(''); }, [audienceMode]);
 
   const canConfirm = !!selected && selected !== displayPlanKey && !confirming;
 
   const handleConfirm = async () => {
     if (!selected || confirming) return;
     setConfirming(true);
+    setConfirmErr('');
     const { error } = await upsertSubscription(selected as PlanKey, billing);
+    if (error) {
+      setConfirming(false);
+      setConfirmErr(tr('plans.confirmError'));
+      return;
+    }
+
+    // Picking the "trainer" audience during onboarding must promote the
+    // account — the plan/subscription row alone doesn't grant trainer
+    // access anywhere else in the app, which otherwise strands the user
+    // on a client-only screen after they've just confirmed a trainer plan.
+    let becameTrainer = isTrainer;
+    if (isOnboarding && audienceMode === 'trainer' && !isTrainer) {
+      const { error: roleErr } = await updateProfile({ role: 'trainer' });
+      if (roleErr) {
+        setConfirming(false);
+        setConfirmErr(tr('plans.confirmError'));
+        return;
+      }
+      becameTrainer = true;
+    }
+
     setConfirming(false);
-    if (error) return;
-    if (source === 'onboarding') {
-      nav(isTrainer ? 'trainerDashboard' : 'profile');
+    if (isOnboarding) {
+      nav(becameTrainer ? 'trainerDashboard' : 'profile');
     } else {
-      nav('planConfirm', { planKey: selected, isTrainer });
+      nav('planConfirm', { planKey: selected, isTrainer: becameTrainer });
     }
   };
 
@@ -78,6 +102,18 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, color: T.textSec, fontSize: 13 }}
         >
           <Icon name="chevL" size={16} color={T.textSec} stroke={2}/> {tr('common.back')}
+        </button>
+      )}
+
+      {/* Onboarding must never be a dead end — always leave an escape hatch
+          into the app, even before a plan is confirmed (a free plan already
+          exists from signup, so skipping loses nothing). */}
+      {isOnboarding && (
+        <button
+          onClick={() => nav(isTrainer ? 'trainerDashboard' : 'checkin')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px', alignSelf: 'flex-start', color: T.textSec, fontSize: 13, textDecoration: 'underline' }}
+        >
+          {tr('common.notNow')}
         </button>
       )}
 
@@ -299,6 +335,11 @@ export function PlansScreen({ nav, user, source, upsertSubscription }: Props) {
                     >
                       {confirming ? tr('plans.confirming') : ctaLabel}
                     </button>
+                    {confirmErr && (
+                      <div style={{ marginTop: 8, fontSize: 12, color: C.coral, textAlign: 'right' }}>
+                        {confirmErr}
+                      </div>
+                    )}
                   </div>
                 )}
               </button>

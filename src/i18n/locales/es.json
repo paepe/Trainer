@@ -2579,6 +2579,7 @@
     "alreadyOnPlan": "Ya estás en este plan",
     "comingSoon": "Próximamente",
     "confirming": "Confirmando…",
+    "confirmError": "Ocurrió un error al guardar tu plan. Inténtalo de nuevo.",
     "tabClient": "Alumno",
     "tabTrainer": "Entrenador",
     "kickerTrainer": "Planes de entrenador",

@@ -31,7 +31,7 @@ vi.mock('../../hooks/usePlanPrices', () => ({
 describe('PlansScreen', () => {
   it('renders the 3 student plans (free / AI Fitness / AI Performance) for a client', () => {
     const nav = vi.fn();
-    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client', plan_key: 'free' }} upsertSubscription={mockUpsert()}/>);
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client', plan_key: 'free' }} upsertSubscription={mockUpsert()} updateProfile={mockUpsert()}/>);
 
     expect(screen.getAllByText('Free').length).toBeGreaterThan(0);
     expect(screen.getByText('AI Fitness')).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('PlansScreen', () => {
 
   it('renders the 3 trainer plans (trial / pro / elite) for a trainer role', () => {
     const nav = vi.fn();
-    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '2', role: 'trainer', plan_key: 'free' }} upsertSubscription={mockUpsert()}/>);
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '2', role: 'trainer', plan_key: 'free' }} upsertSubscription={mockUpsert()} updateProfile={mockUpsert()}/>);
 
     expect(screen.getByText('Trial')).toBeInTheDocument();
     expect(screen.getByText('Pro')).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('PlansScreen', () => {
 
   it('toggles billing cycle and shows "2 months free" badge on annual', () => {
     const nav = vi.fn();
-    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client', plan_key: 'free' }} upsertSubscription={mockUpsert()}/>);
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client', plan_key: 'free' }} upsertSubscription={mockUpsert()} updateProfile={mockUpsert()}/>);
 
     fireEvent.click(screen.getByText('Annual · save 17%'));
     expect(screen.getAllByText('2 months free').length).toBeGreaterThan(0);
@@ -57,7 +57,7 @@ describe('PlansScreen', () => {
 
   it('shows the confirm CTA only after a plan is selected', () => {
     const nav = vi.fn();
-    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client' }} upsertSubscription={mockUpsert()}/>);
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client' }} upsertSubscription={mockUpsert()} updateProfile={mockUpsert()}/>);
 
     // The CTA is rendered inside each plan card only once that card is selected.
     expect(screen.queryByText('Confirm my license')).not.toBeInTheDocument();
@@ -70,7 +70,7 @@ describe('PlansScreen', () => {
 
   it('marks the AI Performance plan as the current plan when the user is subscribed to it', () => {
     const nav = vi.fn();
-    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client', plan_key: 'ai_performance' }} upsertSubscription={mockUpsert()}/>);
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client', plan_key: 'ai_performance' }} upsertSubscription={mockUpsert()} updateProfile={mockUpsert()}/>);
 
     expect(screen.getByText('Current plan')).toBeInTheDocument();
   });
@@ -78,7 +78,7 @@ describe('PlansScreen', () => {
   it('persists the selected plan via upsertSubscription and navigates to planConfirm outside onboarding', async () => {
     const nav = vi.fn();
     const upsertSubscription = mockUpsert();
-    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client' }} upsertSubscription={upsertSubscription}/>);
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client' }} upsertSubscription={upsertSubscription} updateProfile={upsertSubscription}/>);
 
     fireEvent.click(screen.getByText('Stay in motion'));
     fireEvent.click(screen.getByText('Confirm my license'));
@@ -92,7 +92,7 @@ describe('PlansScreen', () => {
   it('navigates to the profile wizard on confirm when reached from onboarding', async () => {
     const nav = vi.fn();
     const upsertSubscription = mockUpsert();
-    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client' }} source="onboarding" upsertSubscription={upsertSubscription}/>);
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role: 'client' }} source="onboarding" upsertSubscription={upsertSubscription} updateProfile={upsertSubscription}/>);
 
     fireEvent.click(screen.getByText('Stay in motion'));
     fireEvent.click(screen.getByText('Confirm my license'));
@@ -119,7 +119,7 @@ describe('PlansScreen', () => {
     it.each(cases)('role=$role selects the free-tier plan and lands on the expected screen', async ({ role, selectLabel, expectedPlanKey, expectedNavTarget }) => {
       const nav = vi.fn();
       const upsertSubscription = mockUpsert();
-      render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role }} source="onboarding" upsertSubscription={upsertSubscription}/>);
+      render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false} user={{ id: '1', role }} source="onboarding" upsertSubscription={upsertSubscription} updateProfile={upsertSubscription}/>);
 
       fireEvent.click(screen.getByText(selectLabel));
       fireEvent.click(screen.getByText('Confirm my license'));
