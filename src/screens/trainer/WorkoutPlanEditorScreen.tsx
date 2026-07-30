@@ -297,6 +297,7 @@ export function WorkoutPlanEditorScreen({
   async function sendPlan(status: string) {
     if (!selectedClient?.id || exercises.length === 0 || !user?.id) return;
     setSaving(true);
+    setAiError('');
     const { data: plan, error } = await supabase
       .from('workout_plans')
       .insert({
@@ -312,10 +313,11 @@ export function WorkoutPlanEditorScreen({
 
     if (error || !plan) {
       setSaving(false);
+      setAiError(friendlyError(error, tr));
       return;
     }
 
-    await supabase.from('plan_exercises').insert(
+    const { error: exercisesError } = await supabase.from('plan_exercises').insert(
       exercises.map((ex, i) => ({
         plan_id:           plan.id,
         exercise_name:     ex.exercise_name,
@@ -330,6 +332,15 @@ export function WorkoutPlanEditorScreen({
         exercise_category: ex.exercise_category ?? null,
       }))
     );
+
+    if (exercisesError) {
+      // Don't leave an empty plan behind — the client would otherwise get
+      // notified of a "new plan" with zero exercises in it.
+      await supabase.from('workout_plans').delete().eq('id', plan.id);
+      setSaving(false);
+      setAiError(friendlyError(exercisesError, tr));
+      return;
+    }
 
     setSaving(false);
     setSaved(true);
