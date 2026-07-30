@@ -24,3 +24,14 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Installers / disk images dropped into the working directory
+*.dmg
+*.pkg
+
+# Claude Code: shared project config (.claude/settings.json, .claude/launch.json)
+# IS versioned; per-machine state is not. These were previously covered only by
+# .git/info/exclude and a global gitignore — i.e. only on one machine, so a
+# fresh clone could commit an entire worktree checkout.
+.claude/worktrees/
+.claude/settings.local.json

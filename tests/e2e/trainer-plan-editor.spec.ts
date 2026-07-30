@@ -8,12 +8,11 @@ import { test, expect, request as playwrightRequest, type Page } from '@playwrig
 // documented test accounts (TEST-ACCOUNTS.md) against the real GoTrue instance.
 // The session is injected into localStorage so the app boots already signed in.
 //
-// PREREQUISITE — the app must be served with VITE_API_URL cleared:
-//     VITE_API_URL= npm run dev:full
-// .env.local sets VITE_API_URL to the deployed origin, and resolveWorkoutApiBase()
-// gives that precedence, so a plain `npm run dev` sends "Ask AI" to PRODUCTION
+// PREREQUISITE — serve the app with:  npm run dev:local
+// .env.local sets VITE_API_URL to the deployed origin and resolveWorkoutApiBase()
+// gives it precedence, so a plain `npm run dev` sends "Ask AI" to PRODUCTION
 // instead of the local api-server — the AI assertions here would then be testing
-// whatever is deployed, not the working tree.
+// whatever is deployed, not the working tree. `dev:local` clears that variable.
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const ANON_KEY     = process.env.VITE_SUPABASE_ANON_KEY!;
