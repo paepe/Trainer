@@ -37,10 +37,12 @@ interface WorkoutGenerationResponse {
 }
 
 export interface ExistingExerciseSummary {
-  exercise_name: string;
-  muscle_group:  string;
-  sets:          number;
-  reps:          number;
+  exercise_name:     string;
+  muscle_group:      string;
+  sets:              number;
+  reps:              number | null;
+  duration_seconds?: number | null;
+  rest_seconds?:     number;
 }
 
 interface RequestWorkoutPlanInput {

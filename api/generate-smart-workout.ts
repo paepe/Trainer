@@ -293,6 +293,78 @@ interface WorkoutExercise {
   safetyNote?:      string | undefined;
 }
 
+// ── Time budget enforcement ───────────────────────────────────────────────────
+// Same model and band as generate-workout.ts and the client-side estimators
+// (StartWorkoutScreen, WorkoutPlanEditorScreen). Duplicated rather than shared
+// because api/* files must stay self-contained (see header note).
+const FILL_FLOOR      = 0.9;
+const FILL_CEILING    = 1.1;
+const MAX_PADDED_SETS = 5;
+// Warmup and cooldown are prescriptive — never trimmed or inflated to fill time.
+const ADJUSTABLE_PHASES = new Set(['main', 'conditioning', 'technique']);
+
+function exerciseMinutes(e: WorkoutExercise): number {
+  const sets   = e.sets ?? 1;
+  const active = e.durationSeconds ?? 40;
+  const rest   = e.restSeconds ?? 30;
+  return (sets * (active + rest)) / 60;
+}
+
+const workoutMinutes = (phases: WorkoutPhase[]): number =>
+  phases.reduce((acc, p) => acc + (p.exercises ?? []).reduce((a, e) => a + exerciseMinutes(e), 0), 0);
+
+/**
+ * Makes the generated session actually occupy the client's available time.
+ * The prompt states the target, but an LLM cannot be trusted to do the
+ * arithmetic (measured 86-146% on the trainer endpoint), so the band is
+ * enforced here: overflow is trimmed from the working phases, a short session
+ * is padded with sets on those same phases. Warmup/cooldown are left intact.
+ */
+function fitWorkoutToBudget(workout: SmartWorkout, targetMinutes: number) {
+  const phases: WorkoutPhase[] = (workout.phases ?? [])
+    .map(p => ({ ...p, exercises: [...(p.exercises ?? [])] }));
+  const ceiling = targetMinutes * FILL_CEILING;
+  const floor   = targetMinutes * FILL_FLOOR;
+
+  let trimmed = 0;
+  while (workoutMinutes(phases) > ceiling) {
+    const working = phases.filter(p => p.exercises.length > 1 && ADJUSTABLE_PHASES.has(p.phase));
+    const pool    = working.length ? working : phases.filter(p => p.exercises.length > 1);
+    if (!pool.length) break;
+    pool.sort((a, b) => b.exercises.length - a.exercises.length);
+    pool[0]!.exercises.pop();
+    trimmed++;
+  }
+
+  let paddedSets = 0;
+  let progressed = true;
+  while (workoutMinutes(phases) < floor && progressed) {
+    progressed = false;
+    for (const p of phases) {
+      if (!ADJUSTABLE_PHASES.has(p.phase)) continue;
+      for (const ex of p.exercises) {
+        if (workoutMinutes(phases) >= floor) break;
+        if ((ex.sets ?? 1) >= MAX_PADDED_SETS) continue;
+        if (workoutMinutes(phases) + exerciseMinutes({ ...ex, sets: 1 }) > ceiling) continue;
+        ex.sets = (ex.sets ?? 1) + 1;
+        paddedSets++;
+        progressed = true;
+      }
+    }
+  }
+
+  // Keep the session's own declared durations consistent with what it contains.
+  for (const p of phases) {
+    p.durationMin = Math.round(p.exercises.reduce((a, e) => a + exerciseMinutes(e), 0));
+  }
+
+  return {
+    workout: { ...workout, phases, totalDurationMin: Math.round(workoutMinutes(phases)) },
+    trimmed,
+    paddedSets,
+  };
+}
+
 interface DailyInsight {
   title:    string;
   body:     string;
@@ -602,6 +674,21 @@ function buildUserPrompt(ctx: AIContext): string {
   if (task.maxExercises)      lines.push(`PLAN LIMIT — max exercises this session: ${task.maxExercises}. Do not exceed this number.`);
   if (task.fitnessOnly)       lines.push(`PLAN LIMIT — fitness exercises only. Do NOT include performance, sport-specific, or high-intensity power exercises. Keep all exercises in the general fitness / hypertrophy / endurance categories.`);
 
+  // Sessions were coming back at 55-80% of the client's window (measured live),
+  // because the prompt only stated the available time without a fill target or
+  // the arithmetic to reach it. The response is still fitted server-side, but
+  // padding sets cannot rescue a session that is structurally too short.
+  if (task.type === 'generate_workout') {
+    const budget = task.durationMin ?? today.availableMinutes;
+    if (budget > 0) {
+      lines.push('');
+      lines.push('## TIME TARGET');
+      lines.push(`The session must total ~90-110% of ${budget} minutes across ALL phases.`);
+      lines.push('Compute it before answering: every set costs (active_seconds + rest_seconds), where active_seconds is 40 for a rep-based set or durationSeconds for a hold. An exercise costs sets x (active_seconds + rest_seconds). Sum that over every exercise in every phase.');
+      lines.push(`Add exercises or sets until the sum reaches ${budget} minutes — a session that ends early wastes the client's stated time. Long rests (90-120s) mean fewer exercises, not a shorter session.`);
+    }
+  }
+
   return lines.join('\n');
 }
 
@@ -724,6 +811,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!match) throw new Error('AI returned unexpected format');
 
     const parsed = JSON.parse(match[0]) as Partial<SmartWorkoutResponse>;
+
+    // Enforce the time budget on generated sessions (safety-gate responses carry
+    // an insight and no workout, so there is nothing to fit in that case).
+    const budgetMinutes = body.task.durationMin ?? body.today.availableMinutes;
+    if (parsed.workout?.phases?.length && budgetMinutes > 0) {
+      const before = workoutMinutes(parsed.workout.phases);
+      const fitted = fitWorkoutToBudget(parsed.workout, budgetMinutes);
+      if (fitted.trimmed || fitted.paddedSets) {
+        console.warn(
+          `[generate-smart-workout] fitted to budget: model returned ~${Math.round(before)} min ` +
+          `for ${budgetMinutes} min (trimmed ${fitted.trimmed}, padded ${fitted.paddedSets} set(s)) -> ` +
+          `~${fitted.workout.totalDurationMin} min`,
+        );
+      }
+      parsed.workout = fitted.workout;
+    }
 
     const usage = {
       input_tokens:  data.usage?.prompt_tokens     ?? 0,

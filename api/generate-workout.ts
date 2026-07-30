@@ -87,7 +87,11 @@ Your job is to generate safe, effective, personalised workout plans based on the
 Core rules:
 - NEVER prescribe exercises that load a body part the client reported as sore, unless it is very light mobility work
 - Match intensity to energy level: 1-3 = recovery/mobility only, 4-6 = moderate compound + isolation, 7-10 = normal to high intensity
-- Fit all exercises within the available time window: estimate 3-4 minutes per set (including rest) for rep-based exercises, or (duration_seconds + rest_seconds) per set for hold/duration-based exercises
+- TIME MODEL (use exactly this arithmetic — the app scores your plan with the same formula):
+  one set costs (active_seconds + rest_seconds), where active_seconds is 40 for a rep-based set
+  and duration_seconds for a hold/duration-based set. An exercise costs sets x (active_seconds + rest_seconds).
+  The plan total is the sum over all exercises. Use the rest_seconds YOU assign to each exercise
+  in this calculation, and make the total land inside the requested time window
 - Choose exercises appropriate to the reported location and available equipment
 - Consider the client's primary goal (weight loss, hypertrophy, endurance, mobility) when selecting exercises and rep ranges
 - For isometric, breathing, or hold-based exercises (e.g. plank, neck rotations, diaphragmatic breathing) with no meaningful rep count, set "reps" to null and "duration_seconds" to the hold/execution time in seconds. Every exercise MUST have either "reps" or "duration_seconds" set — never both null
@@ -99,7 +103,10 @@ Language:
 - Default to English only if no language is specified.
 
 Output format:
-Return ONLY a valid JSON array of exercises (2-4 when complementing an existing plan, 4-6 otherwise). No markdown fences, no explanation, no preamble.
+Return ONLY a valid JSON array of exercises. No markdown fences, no explanation, no preamble.
+The array length is not fixed — it must be whatever it takes to use close to the client's full
+available time window (see the exact target and suggested count in the user message). Do not
+stop early just to keep the list short, and do not pad it past the time budget either.
 Each object must have exactly these keys:
 {
   "exercise_name": "string",
@@ -131,10 +138,81 @@ interface PhysicalProfileBody {
 }
 
 interface ExistingExercise {
-  exercise_name: string;
-  muscle_group:  string;
-  sets:          number;
-  reps:          number;
+  exercise_name:     string;
+  muscle_group:      string;
+  sets:              number;
+  reps:              number | null;
+  duration_seconds?: number | null;
+  rest_seconds?:     number;
+}
+
+interface TimedExercise {
+  sets?:             number | null;
+  reps?:             number | null;
+  duration_seconds?: number | null;
+  rest_seconds?:     number | null;
+}
+
+// Single time model, shared verbatim with the client (estimateExerciseSeconds
+// in WorkoutPlanEditorScreen) and with the TIME MODEL rule in SYSTEM_PROMPT:
+// active time is the hold duration when set, otherwise 40s per rep-based set;
+// rest defaults to 30s only when the field is absent (0 is a valid rest).
+function estimateExerciseMinutes(e: TimedExercise): number {
+  const sets   = e.sets ?? 1;
+  const active = e.duration_seconds ?? 40;
+  const rest   = e.rest_seconds ?? 30;
+  return (sets * (active + rest)) / 60;
+}
+
+// Budget band and the ceiling on sets a short batch may be padded to.
+// (Duplicated in generate-smart-workout.ts — api/* files must stay
+// self-contained, see the header note.)
+const FILL_FLOOR      = 0.9;
+const FILL_CEILING    = 1.1;
+const MAX_PADDED_SETS = 5;
+
+const totalMinutesOf = (list: TimedExercise[]): number =>
+  list.reduce((acc, e) => acc + estimateExerciseMinutes(e), 0);
+
+/**
+ * Makes the returned batch actually occupy its time budget, rather than hoping
+ * the LLM's arithmetic lands there. Measured live, the model runs 86-146% of
+ * the budget, so neither direction can be left to the prompt:
+ *   - over the ceiling -> drop trailing exercises (never the first one);
+ *   - under the floor  -> add sets round-robin, capped at MAX_PADDED_SETS and
+ *     never crossing the ceiling.
+ * If the batch is still short after that (e.g. a single exercise already at the
+ * set cap), it is returned as-is and the client's time-fit banner surfaces it.
+ */
+function fitToBudget(parsed: TimedExercise[], targetMinutes: number) {
+  const ceiling = targetMinutes * FILL_CEILING;
+  const floor   = targetMinutes * FILL_FLOOR;
+
+  const exercises: TimedExercise[] = [];
+  let accumulated = 0;
+  for (const ex of parsed) {
+    const cost = estimateExerciseMinutes(ex);
+    if (exercises.length > 0 && accumulated + cost > ceiling) continue;
+    exercises.push({ ...ex });
+    accumulated += cost;
+  }
+
+  let paddedSets = 0;
+  let progressed = true;
+  while (totalMinutesOf(exercises) < floor && progressed) {
+    progressed = false;
+    for (const ex of exercises) {
+      if (totalMinutesOf(exercises) >= floor) break;
+      if ((ex.sets ?? 1) >= MAX_PADDED_SETS) continue;
+      const oneMoreSet = estimateExerciseMinutes({ ...ex, sets: 1 });
+      if (totalMinutesOf(exercises) + oneMoreSet > ceiling) continue;
+      ex.sets = (ex.sets ?? 1) + 1;
+      paddedSets++;
+      progressed = true;
+    }
+  }
+
+  return { exercises, trimmed: parsed.length - exercises.length, paddedSets };
 }
 
 interface RequestBody {
@@ -243,16 +321,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     lines.push('EXERCISES ALREADY IN PLAN (DO NOT REPEAT)');
     const musclesUsed = [...new Set(existing_exercises.map(e => e.muscle_group).filter(Boolean))];
     existing_exercises.forEach(e => {
-      lines.push(`- ${e.exercise_name} (${e.muscle_group}) ${e.sets}×${e.reps}`);
+      const qty = e.duration_seconds != null ? `${e.duration_seconds}s hold` : `${e.reps} reps`;
+      lines.push(`- ${e.exercise_name} (${e.muscle_group}) ${e.sets}×${qty}`);
     });
     if (musclesUsed.length) {
       lines.push(`Muscle groups already covered: ${musclesUsed.join(', ')}`);
     }
-    lines.push(`Time already accounted for: ${existing_exercises.reduce((acc, e) => acc + e.sets * 3, 0)} min (estimated)`);
+    const usedMinutes = Math.round(existing_exercises.reduce((acc, e) => acc + estimateExerciseMinutes(e), 0));
+    lines.push(`Time already accounted for: ${usedMinutes} min (estimated)`);
     if (remaining_minutes != null) {
       lines.push(`Remaining time budget: ${remaining_minutes} min`);
-      lines.push(`IMPORTANT: Generate only exercises that fit within the ${remaining_minutes}-minute remaining budget. Prioritise muscle groups NOT yet covered.`);
     }
+    lines.push('Prioritise muscle groups NOT yet covered.');
   }
 
   if (cycleContext?.phase) {
@@ -269,11 +349,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     lines.push(phaseGuidance[cycleContext.phase] || 'Adapt to current energy reported in check-in.');
   }
 
+  // Target minutes for THIS batch: the remaining budget when complementing an
+  // existing plan (`!= null` so a legitimate 0 is respected, not swallowed by
+  // ??), otherwise the client's full stated availability. Floored at 5 min so
+  // the prompt never asks the model to fill a zero-length window — the client
+  // is expected to skip the call entirely in that case.
+  const rawTarget      = remaining_minutes != null ? remaining_minutes : (checkin?.minutes ?? physicalProfile?.available_minutes ?? 45);
+  const targetMinutes  = Math.max(5, rawTarget);
+  // Minutes are the only target. An exercise-count hint was tried and removed:
+  // the model anchored on the number and blew the budget whenever it chose long
+  // rests. Anything over the ceiling is trimmed server-side after parsing.
+  const timeTargetLine = `TIME TARGET\nThis batch must total ~90-110% of a ${targetMinutes}-minute window. Before answering, compute the total with the TIME MODEL above — sum sets x (active_seconds + rest_seconds) across every exercise you return, using the rest_seconds you assigned — and add or drop exercises until that sum lands in range. Long rests (90-120s) mean FEWER exercises, not more. Anything beyond the window will be discarded, so do not overshoot; and do not stop early either.`;
+
   const userContent = lines.length
     ? `LANGUAGE: Generate ALL content in ${locale === 'pt' || locale === 'pt-BR' ? 'Portuguese (Brazil)' : locale === 'es' || locale === 'es-ES' ? 'Spanish' : locale === 'de' || locale === 'de-DE' ? 'German' : 'English'}. No English text at all.
 
-Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 exercises as a JSON array.`
-    : `Generate a balanced 45-minute intermediate full-body workout. Return 5 exercises as a JSON array.`;
+Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetLine}\n\nReturn the exercises as a JSON array.`
+    : `Generate a balanced intermediate full-body workout.\n\n${timeTargetLine}\n\nReturn the exercises as a JSON array.`;
 
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 25_000);
@@ -319,7 +411,17 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\nReturn 4-6 ex
       return;
     }
 
-    const exercises = JSON.parse(match[0]);
+    const parsed = JSON.parse(match[0]) as TimedExercise[];
+    const { exercises, trimmed, paddedSets } = fitToBudget(parsed, targetMinutes);
+
+    if (trimmed || paddedSets) {
+      console.warn(
+        `[generate-workout] fitted to budget: model returned ` +
+        `~${Math.round(totalMinutesOf(parsed))} min for ${targetMinutes} min ` +
+        `(trimmed ${trimmed}, padded ${paddedSets} set(s)) -> ` +
+        `~${Math.round(totalMinutesOf(exercises))} min`,
+      );
+    }
 
     res.status(200).json({
       exercises,

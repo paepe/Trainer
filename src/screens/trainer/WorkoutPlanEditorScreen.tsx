@@ -59,13 +59,40 @@ interface WorkoutExercise {
   exercise_name:      string;
   muscle_group:       string;
   sets:               number;
-  reps:               number;
+  // XOR: exactly one of reps / duration_seconds is set — duration for
+  // isometric/hold/breathing exercises, reps for everything else.
+  reps:               number | null;
+  duration_seconds:   number | null;
   load_kg:            string | number;
   rest_seconds:       number;
   notes?:             string;
   // Propagated from exercise_catalog when selecting from catalog; null for ad-hoc exercises
   exercise_category?: string | null;
 }
+
+// Same per-exercise time model used server-side (api/generate-workout.ts) and
+// in the client's own StartWorkoutScreen — active time is the hold duration
+// when set, otherwise an assumed ~40s per rep-based set; rest defaults to 30s.
+function estimateExerciseSeconds(ex: { sets: number; reps: number | null; duration_seconds: number | null; rest_seconds?: number | null }): number {
+  const active = ex.duration_seconds ?? 40;
+  const rest   = ex.rest_seconds ?? 30;
+  return ex.sets * (active + rest);
+}
+
+// Below this many minutes left there is nothing worth generating — mirrors the
+// 5-minute floor the API applies to its own time target.
+const MIN_AI_BATCH_MINUTES = 5;
+
+const NEW_EXERCISE_DRAFT: WorkoutExercise = {
+  exercise_name:    '',
+  muscle_group:     '',
+  sets:             3,
+  reps:             10,
+  duration_seconds: null,
+  load_kg:          '',
+  rest_seconds:     60,
+  notes:            '',
+};
 
 interface TrainerDashboardUser {
   id:    string;
@@ -93,16 +120,11 @@ export function WorkoutPlanEditorScreen({
   const [personalConsent, setPersonalConsent] = React.useState<ConsentMatrix | null>(null);
   const [exercises, setExercises] = React.useState<WorkoutExercise[]>([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
-  const [nameError,   setNameError]   = React.useState(false);
-  const [draft, setDraft] = React.useState<WorkoutExercise>({
-    exercise_name: '',
-    muscle_group:  '',
-    sets:          3,
-    reps:          10,
-    load_kg:       '',
-    rest_seconds:  60,
-    notes:         '',
-  });
+  const [nameError,   setNameError]     = React.useState(false);
+  const [durationError, setDurationError] = React.useState(false);
+  const [draft, setDraft] = React.useState<WorkoutExercise>({ ...NEW_EXERCISE_DRAFT });
+  // true = hold/duration entry (seconds input), false = reps entry (stepper)
+  const [durationMode, setDurationMode] = React.useState(false);
   const [editingIndex,       setEditingIndex]       = React.useState<number | null>(null);
   const [catalogSuggestions, setCatalogSuggestions] = React.useState<ProtocolExerciseItem[]>([]);
   const [catalogLoading,     setCatalogLoading]     = React.useState(false);
@@ -143,12 +165,15 @@ export function WorkoutPlanEditorScreen({
   };
 
   const applyFromCatalog = (item: ProtocolExerciseItem) => {
+    // Catalog entries (protocol_exercises) are always rep-based — force reps mode.
+    setDurationMode(false);
     setDraft(prev => ({
       ...prev,
       exercise_name:     item.exercise_name,
       muscle_group:      item.muscle_group ?? prev.muscle_group,
       sets:              item.sets         ?? prev.sets,
-      reps:              item.reps         ?? prev.reps,
+      reps:              item.reps         ?? prev.reps ?? 10,
+      duration_seconds:  null,
       load_kg:           item.load_kg != null ? item.load_kg : prev.load_kg,
       rest_seconds:      item.rest_seconds ?? prev.rest_seconds,
       notes:             item.notes        ?? prev.notes ?? '',
@@ -160,28 +185,38 @@ export function WorkoutPlanEditorScreen({
   };
 
   async function askAI() {
+    const pp  = context?.physicalProfile;
+    const ci  = context?.latestCheckin;
+
+    const usedMinutes  = Math.ceil(exercises.reduce((acc, ex) => acc + estimateExerciseSeconds(ex), 0) / 60);
+    const totalMinutes = ci?.minutes ?? pp?.session_min ?? 45;
+    const remaining    = Math.max(0, totalMinutes - usedMinutes);
+
+    // Nothing meaningful left to fill — don't spend an LLM call to be told so.
+    if (exercises.length > 0 && remaining < MIN_AI_BATCH_MINUTES) {
+      setAiError(tr('trainer.planner.timeAlreadyFull'));
+      return;
+    }
+
     setAiLoading(true);
     setAiError('');
     try {
-      const pp  = context?.physicalProfile;
-      const ci  = context?.latestCheckin;
-
-      // Estimate time consumed by existing exercises: sets × ~3 min/set
       const existingSummary: ExistingExerciseSummary[] = exercises.map(ex => ({
-        exercise_name: ex.exercise_name,
-        muscle_group:  ex.muscle_group,
-        sets:          ex.sets,
-        reps:          ex.reps,
+        exercise_name:     ex.exercise_name,
+        muscle_group:      ex.muscle_group,
+        sets:              ex.sets,
+        reps:              ex.reps,
+        duration_seconds:  ex.duration_seconds,
+        rest_seconds:      ex.rest_seconds,
       }));
-      const usedMinutes   = exercises.reduce((acc, ex) => acc + ex.sets * 3, 0);
-      const totalMinutes  = ci?.minutes ?? pp?.session_min ?? 45;
-      const remaining     = Math.max(0, totalMinutes - usedMinutes);
 
       const generatedExercises = await requestWorkoutPlan({
         checkin: ci ? {
           energy:        ci.energy        ?? 7,
           soreness:      ci.pain_present && ci.pain_region ? [ci.pain_region] : [],
-          minutes:       remaining > 0 ? remaining : (ci.minutes ?? 45),
+          // True availability — the per-batch budget travels in remainingMinutes,
+          // so the two never contradict each other in the prompt.
+          minutes:       ci.minutes ?? 45,
           goal:          pp?.primary_goal ?? 'general',
           location:      (ci.training_location ?? 'gym') as never,
           sleep_quality: (ci.sleep_quality     ?? 'good') as never,
@@ -199,13 +234,14 @@ export function WorkoutPlanEditorScreen({
       });
 
       const mapped = generatedExercises.map(ex => ({
-        exercise_name: ex.exercise_name,
-        muscle_group:  ex.muscle_group || '',
-        sets:          ex.sets || 3,
-        reps:          ex.reps || 10,
-        load_kg:       ex.load_kg ?? '',
-        rest_seconds:  ex.rest_seconds || 60,
-        notes:         ex.notes || '',
+        exercise_name:     ex.exercise_name,
+        muscle_group:      ex.muscle_group || '',
+        sets:              ex.sets || 3,
+        reps:              ex.duration_seconds == null ? (ex.reps || 10) : null,
+        duration_seconds:  ex.duration_seconds ?? null,
+        load_kg:           ex.load_kg ?? '',
+        rest_seconds:      ex.rest_seconds || 60,
+        notes:             ex.notes || '',
       }));
 
       // Append to existing — never replace
@@ -267,8 +303,11 @@ export function WorkoutPlanEditorScreen({
   }, [selectedClient?.id]);
 
   function startEdit(index: number) {
+    const target = exercises[index];
+    if (!target) return;
     setEditingIndex(index);
-    setDraft({ ...exercises[index] } as WorkoutExercise);
+    setDraft({ ...target });
+    setDurationMode(target.duration_seconds != null);
     setShowAddForm(true);
     setCatalogSuggestions([]);
   }
@@ -276,21 +315,19 @@ export function WorkoutPlanEditorScreen({
   function addExercise() {
     if (!draft.exercise_name.trim()) { setNameError(true); return; }
     setNameError(false);
+    // XOR invariant: a duration-based exercise must carry a real hold time —
+    // an empty field would otherwise persist duration_seconds: 0 with reps: null,
+    // leaving the client an exercise with no prescribed quantity at all.
+    if (durationMode && !draft.duration_seconds) { setDurationError(true); return; }
+    setDurationError(false);
     if (editingIndex !== null) {
       setExercises(exercises.map((ex, i) => i === editingIndex ? { ...draft } : ex));
       setEditingIndex(null);
     } else {
       setExercises([...exercises, { ...draft }]);
     }
-    setDraft({
-      exercise_name: '',
-      muscle_group:  '',
-      sets:          3,
-      reps:          10,
-      load_kg:       '',
-      rest_seconds:  60,
-      notes:         '',
-    });
+    setDraft({ ...NEW_EXERCISE_DRAFT });
+    setDurationMode(false);
     setShowAddForm(false);
   }
 
@@ -324,6 +361,7 @@ export function WorkoutPlanEditorScreen({
         muscle_group:      ex.muscle_group,
         sets:              ex.sets,
         reps:              ex.reps,
+        duration_seconds:  ex.duration_seconds,
         load_kg:           ex.load_kg !== '' ? Number(ex.load_kg) : null,
         rest_seconds:      ex.rest_seconds,
         notes:             ex.notes || null,
@@ -365,11 +403,7 @@ export function WorkoutPlanEditorScreen({
       muscle_group:     ex.muscle_group,
       sets:             ex.sets,
       reps:             ex.reps,
-      // Trainer-authored plans (this editor) don't yet support duration-based
-      // exercises — reps is mandatory in this UI. Follow-up: add a duration
-      // input alongside reps for hold/breathing exercises (system audit
-      // follow-up, 2026-07-10).
-      duration_seconds: null,
+      duration_seconds: ex.duration_seconds,
       load_kg:          ex.load_kg !== '' ? Number(ex.load_kg) : null,
       rest_seconds:     ex.rest_seconds,
       notes:            ex.notes || null,
@@ -382,6 +416,20 @@ export function WorkoutPlanEditorScreen({
       clientName:   selectedClient.name ?? tr('trainer.planner.clientFallback'),
     });
   };
+
+  // Time-fit signal — informational only, never blocks saving or starting a
+  // session. Symmetric with StartWorkoutScreen's client-side overrun check,
+  // plus the underfill side that screen doesn't have: a trainer-built plan
+  // that leaves a big chunk of the client's paid-for time unused should be
+  // just as visible as one that runs long.
+  const estimatedPlanMinutes = React.useMemo(() => (
+    Math.ceil(exercises.reduce((sum, ex) => sum + estimateExerciseSeconds(ex), 0) / 60)
+  ), [exercises]);
+  const availableMinutes = context?.latestCheckin?.minutes ?? context?.physicalProfile?.session_min ?? 0;
+  const planMayOverrun   = estimatedPlanMinutes > 0 && availableMinutes > 0
+    && estimatedPlanMinutes > availableMinutes * 1.2;
+  const planUnderfills   = estimatedPlanMinutes > 0 && availableMinutes > 0
+    && estimatedPlanMinutes < availableMinutes * 0.8;
 
   if (!selectedClient) {
     return (
@@ -490,6 +538,17 @@ export function WorkoutPlanEditorScreen({
           </button>
         </div>
 
+        {(planUnderfills || planMayOverrun) && (
+          <div style={{
+            margin: '0 0 10px', padding: '10px 14px', borderRadius: 10,
+            background: `${t.accent}18`, color: t.accent, fontSize: 12, lineHeight: 1.4,
+          }}>
+            {planUnderfills
+              ? tr('trainer.planner.timeUnderfill', { estimated: estimatedPlanMinutes, available: availableMinutes })
+              : tr('trainer.planner.timeOverrun',   { estimated: estimatedPlanMinutes, available: availableMinutes })}
+          </div>
+        )}
+
         {exercises.length === 0 && !showAddForm && (
           <div style={{ padding: '18px 0', textAlign: 'center', color: textMute(dark), fontSize: 13 }}>
             {tr('trainer.planner.emptyHint')}
@@ -512,7 +571,9 @@ export function WorkoutPlanEditorScreen({
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{ex.exercise_name}</div>
                 <div style={{ fontSize: 11, color: textSec(dark), marginTop: 3 }}>
-                  {ex.muscle_group && `${ex.muscle_group} · `}{ex.sets}×{ex.reps}
+                  {ex.muscle_group && `${ex.muscle_group} · `}{ex.sets}×{
+                    ex.duration_seconds != null ? tr('common.units.holdSec', { seconds: ex.duration_seconds }) : ex.reps
+                  }
                   {ex.load_kg ? ` · ${ex.load_kg}kg` : ''}{ex.rest_seconds ? ` · ${ex.rest_seconds}s` : ''}
                 </div>
               </div>
@@ -627,35 +688,91 @@ export function WorkoutPlanEditorScreen({
               })}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {(['sets', 'reps'] as const).map(key => {
-                const label = key === 'sets' ? tr('trainer.planner.sets') : tr('trainer.planner.reps');
-                const min = 1;
-                const max = key === 'sets' ? 10 : 50;
-                return (
-                  <div key={key}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: textMute(dark), marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                      {label}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: textMute(dark), marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                  {tr('trainer.planner.sets')}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button
+                    onClick={() => setDraft({ ...draft, sets: Math.max(1, draft.sets - 1) })}
+                    style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 16, cursor: 'pointer' }}
+                  >
+                    −
+                  </button>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: textPri(dark), minWidth: 24, textAlign: 'center' }}>
+                    {draft.sets}
+                  </span>
+                  <button
+                    onClick={() => setDraft({ ...draft, sets: Math.min(10, draft.sets + 1) })}
+                    style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 16, cursor: 'pointer' }}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <div>
+                {/* The column header doubles as the reps/duration mode switch —
+                    a separate chip row would repeat these same two words. */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+                  {([
+                    ['reps',     tr('trainer.planner.reps')],
+                    ['duration', tr('trainer.planner.entryDuration')],
+                  ] as const).map(([mode, label]) => {
+                    const on = (mode === 'duration') === durationMode;
+                    return (
                       <button
-                        onClick={() => setDraft({ ...draft, [key]: Math.max(min, Number(draft[key]) - 1) })}
-                        style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 16, cursor: 'pointer' }}
-                      >
-                        −
-                      </button>
-                      <span style={{ fontSize: 16, fontWeight: 700, color: textPri(dark), minWidth: 24, textAlign: 'center' }}>
-                        {draft[key]}
-                      </span>
-                      <button
-                        onClick={() => setDraft({ ...draft, [key]: Math.min(max, Number(draft[key]) + 1) })}
-                        style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 16, cursor: 'pointer' }}
-                      >
-                        +
-                      </button>
-                    </div>
+                        key={mode}
+                        onClick={() => {
+                          const toDuration = mode === 'duration';
+                          setDurationMode(toDuration);
+                          setDurationError(false);
+                          setDraft(prev => ({
+                            ...prev,
+                            reps:              toDuration ? null : (prev.reps ?? 10),
+                            duration_seconds:  toDuration ? (prev.duration_seconds ?? 30) : null,
+                          }));
+                        }}
+                        style={{
+                          background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+                          fontFamily: 'inherit', fontSize: 10, fontWeight: 700,
+                          letterSpacing: '.06em', textTransform: 'uppercase',
+                          color: on ? t.accent : textMute(dark),
+                          borderBottom: `1.5px solid ${on ? t.accent : 'transparent'}`,
+                        }}
+                      >{label}</button>
+                    );
+                  })}
+                </div>
+                {durationMode ? (
+                  <>
+                    <TextInput icon="clock" placeholder={tr('trainer.planner.durationPlaceholder')} value={String(draft.duration_seconds ?? '')}
+                      onChange={v => { setDraft({ ...draft, duration_seconds: Number(v) || 0 }); setDurationError(false); }}/>
+                    {durationError && (
+                      <div style={{ fontSize: 11.5, color: t.accent, marginTop: -10, paddingLeft: 4, fontWeight: 600 }}>
+                        {tr('trainer.planner.durationRequired')}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <button
+                      onClick={() => setDraft({ ...draft, reps: Math.max(1, (draft.reps ?? 10) - 1) })}
+                      style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 16, cursor: 'pointer' }}
+                    >
+                      −
+                    </button>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: textPri(dark), minWidth: 24, textAlign: 'center' }}>
+                      {draft.reps ?? 10}
+                    </span>
+                    <button
+                      onClick={() => setDraft({ ...draft, reps: Math.min(50, (draft.reps ?? 10) + 1) })}
+                      style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${borderSubtle(dark)}`, background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 16, cursor: 'pointer' }}
+                    >
+                      +
+                    </button>
                   </div>
-                );
-              })}
+                )}
+              </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <TextInput icon="bolt"  placeholder={tr('trainer.planner.loadPlaceholder')} value={String(draft.load_kg || '')}
