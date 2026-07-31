@@ -59,6 +59,16 @@ Derived from `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md`, as applied by the project lead
 | One capability, one contract | §4.5 | Phase 0 exists precisely to remove a duplicated contract for session structure. |
 | AI schema versioning | §6.3 | Prompt and response-schema changes are versioned together; parsing keeps explicit fallback defaults. |
 
+### Post-deploy verification timing
+
+Vercel reporting a deployment as `Ready` does not mean the new frontend bundle is already being served. On the phases 0–1 promotion (2026-07-31) the API assertions passed immediately while the UI check failed on the first run and passed on retry moments later.
+
+Therefore, when verifying after a promotion:
+
+- API-level assertions can run as soon as the deployment reports `Ready`
+- UI assertions need a short settle period, or a retry, before a failure is treated as real
+- a first-run UI failure right after deploy is re-run before it is reported as a defect
+
 ### Promotion Record
 
 | Phase | Branch | Commit SHA | Staging validated | Authorized by | Deployment URL | Date |
