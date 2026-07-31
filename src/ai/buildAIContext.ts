@@ -6,6 +6,7 @@ import type {
   AIContext, TrainerContext, ClientContext, TodayContext,
   StatsContext, LibraryContext, TaskContext,
 } from './types';
+import { DEFAULT_SESSION_ORDER } from '../lib/sessionStructure';
 
 // ─── Trainer ─────────────────────────────────────────────────────────────────
 
@@ -231,7 +232,11 @@ export const DEFAULT_AI_TRAINER: TrainerContext = {
   methods: ['compound_movements', 'periodization'], environments: ['gym', 'home', 'outdoor'],
   intensity: 'moderate', focus: { strength:5, endurance:5, mobility:5, athletic:4, coord:3, balance:3 },
   preferredFormats: ['circuit', 'straight_sets'], intensityCurve: 'pyramid',
-  sessionOrder: ['warmup', 'main', 'cooldown'], communicationTone: ['encouraging', 'clear'],
+  // Must stay inside the canonical vocabulary: this value is now printed into
+  // the SESSION STRUCTURE line of the prompt, and the output contract only
+  // accepts the six block keys. It previously read ['warmup','main','cooldown'],
+  // which the phase-enum change of Phase 0 left behind — `main` is retired.
+  sessionOrder: [...DEFAULT_SESSION_ORDER], communicationTone: ['encouraging', 'clear'],
   clientProfiles: ['general_population'], favoriteExercises: [], avoidExercises: [],
 };
 

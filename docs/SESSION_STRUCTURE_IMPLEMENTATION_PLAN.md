@@ -19,13 +19,33 @@ Audit findings:
 | 1 | Coach DNA already models session structure with 6 blocks, trainer-ordered | `STRUCTURE_BLOCKS` — mobility, warmup, technique, strength, conditioning, cooldown |
 | 2 | Both trainers already configured theirs; Kamil's includes `technique` | `coach_dna.structure.order` — saved 2026-07-30, the day he reported |
 | 3 | No AI endpoint reads `coach_dna` | `grep -c coach_dna api/generate-workout.ts` → 0 |
-| 4 | Client screen fetches Coach DNA and discards the result | `StartWorkoutScreen.tsx:461`; result never referenced |
-| 5 | `TrainerContext.sessionOrder` exists and is printed to the prompt, but nobody populates it | `api/generate-smart-workout.ts:118,526` |
+| 4 | ~~Client screen fetches Coach DNA and discards the result~~ **NOT REPRODUCIBLE — refuted 2026-07-31** | See below |
+| 5 | `TrainerContext.sessionOrder` exists and is printed to the prompt, ~~but nobody populates it~~ — **second clause refuted, see #4** | `api/generate-smart-workout.ts:118,526` |
 | 6 | Session phase is dropped on both paths | trainer editor mapping; `workoutGeneration.ts:193` flattens phases |
 | 7 | No `phase` column on `plan_exercises` / `workout_session_exercises` | `information_schema` query — empty |
 | 8 | Context card shows available time only when it comes from the check-in | `WorkoutPlanEditorScreen.tsx:500` |
 
 **Net effect:** Coach DNA is sold on Pro and Elite and currently influences nothing in generation.
+
+### Finding #4 — refuted 2026-07-31 (kept for the record)
+
+The claim was that `StartWorkoutScreen` fetched the `coach_dna` row and threw it away, and that
+consequently nothing populated `TrainerContext.sessionOrder`. Both are false. Verified in the file:
+
+- `StartWorkoutScreen.tsx:550` assigns the fetched row to `coachDNA`
+- `StartWorkoutScreen.tsx:551` passes it to `resolveTrainerContext(coachDNA, prefs)`
+- `buildAIContext.ts:244` forwards a non-null row to `buildTrainerContext`
+- `buildAIContext.ts:35` maps `sessionOrder: row.structure?.order ?? []` — as do all five other fields
+  the Phase 2 checklist asked for
+
+`git blame` puts this wiring at **2026-05-31** (`dc6e1263`, the field mapping) and **2026-06-09**
+(`5ee669a1`, the `resolveTrainerContext` call) — months before this workstream. It was never missing.
+
+**How the wrong finding was produced:** a case-sensitive grep for `coachDna` / `dna\b`, which never
+matches the real identifier `coachDNA`, published without opening the file.
+
+**Consequence for this plan:** the audit table is evidence to re-verify, not settled fact. Every
+remaining finding should be confirmed against the file before work is scoped on it.
 
 ---
 
@@ -74,6 +94,7 @@ Therefore, when verifying after a promotion:
 | Phase | Branch | Commit SHA | Staging validated | Authorized by | Deployment URL | Date |
 |-------|--------|-----------|-------------------|---------------|----------------|------|
 | 0 + 1 | `feat/session-structure-phase-0` → `main` | `7b74017` (merge) | No — promoted directly per project lead | Project lead | https://trainer-ntrezrarz-paulo-eduardo-peress-projects.vercel.app | 2026-07-31 |
+| 2 | `feat/session-structure-phase-2` → `main` | _pending merge SHA_ | No — validated on `dev:local` against real `coach_dna` data | _pending authorization_ | _pending_ | _pending_ |
 
 ---
 
@@ -126,25 +147,88 @@ The card must display the same value that governs the time banner, including its
 
 ---
 
-## Phase 2 — Activate Coach DNA on the Client Flow
+## Phase 2 — Honour the Declared Session Structure on the Client Path
 
-**Effort:** ~3h · **Risk:** Low (contract already exists) · **Depends on:** Phase 0 taxonomy · **Migration:** no
+**Effort:** ~1.5h (revised down from ~3h) · **Risk:** Low · **Depends on:** Phase 0 taxonomy · **Migration:** no
 
-The autonomous client path already fetches Coach DNA and throws it away, while the endpoint already declares the fields. Highest return for the effort.
+**Scope revised 2026-07-31**, after finding #4 was refuted (above). The wiring the original phase
+proposed to build already existed. What was actually missing is that the declared order reached the
+model as *description* rather than as *instruction*: `generate-smart-workout` printed one line inside
+the Coach DNA dump (`Session order: a → b → c`) with nothing telling the model to follow it, while
+the trainer endpoint received a binding `SESSION STRUCTURE` block in Phase 0
+(`generate-workout.ts:450`) plus `sanitizeSessionOrder` (`:211`). This phase brings the client path
+to parity.
 
 ### Checklist
 
-- [ ] `StartWorkoutScreen`: consume the fetched `coach_dna` row instead of discarding it
-- [ ] Populate `TrainerContext` — `sessionOrder`, `intensityCurve`, `preferredFormats`, `favoriteExercises`, `avoidExercises`, `focus`
-- [ ] Preserve the `ai-coach` autonomous path when the client has no linked trainer
-- [ ] Confirm the prompt renders the values (already wired at `generate-smart-workout.ts:526`)
+- [x] `StartWorkoutScreen`: consume the fetched `coach_dna` row instead of discarding it — **already
+      true since 2026-06-09; predates this workstream, no change required** (`StartWorkoutScreen.tsx:550-551`)
+- [x] Populate `TrainerContext` — `sessionOrder`, `intensityCurve`, `preferredFormats`,
+      `favoriteExercises`, `avoidExercises`, `focus` — **already true since 2026-05-31; predates this
+      workstream, no change required** (`buildAIContext.ts:12-41`)
+- [x] Preserve the `ai-coach` autonomous path when the client has no linked trainer — **already true;
+      `resolveTrainerContext` falls back to `DEFAULT_AI_TRAINER` and `buildUserPrompt` branches on
+      `trainer.id === 'ai-coach'`**
+- [x] Confirm the prompt renders the values — it did, but only descriptively; converted into a
+      binding `## SESSION STRUCTURE` section stating the sequence must be followed
+- [x] Port `sanitizeSessionOrder` into `generate-smart-workout` (duplicated per the self-contained
+      `api/*` rule), with `DEFAULT_SESSION_ORDER` when the trainer declared nothing
+- [x] Teach the block vocabulary in the system prompt, mirroring `generate-workout`
+- [x] Fix `DEFAULT_AI_TRAINER.sessionOrder` — Phase 0 regression, see below
 
 ### Acceptance
 
-- [ ] Client linked to a trainer receives a session following that trainer's declared order
-- [ ] Client with no trainer keeps the current autonomous behaviour
-- [ ] Time band unchanged
-- [ ] `avoidExercises` respected in generated output
+- [x] Client linked to a trainer receives a session following that trainer's declared order — 8/8
+      exact match on live runs against Carlos Silva's real `coach_dna`
+- [x] Client with no trainer keeps the current autonomous behaviour — autonomous control returns the
+      default 4-block sequence
+- [x] Time band unchanged — 91–107% across 8 runs, inside the 90–110% band
+- [x] `avoidExercises` respected in generated output — 0 exact-name violations across 3 runs
+
+### Phase 0 regression, found in Phase 2
+
+`DEFAULT_AI_TRAINER.sessionOrder` (`buildAIContext.ts:234`) still read `['warmup', 'main', 'cooldown']`.
+
+**How it entered:** Phase 0 changed the `phase` enum at `generate-smart-workout.ts:443` to the six
+canonical blocks and retired `main`, without checking which other code supplied `phase` values. This
+constant was one of them and was not updated.
+
+**Why it was latent, not live:** `buildUserPrompt` skips the whole trainer section when
+`trainer.id === 'ai-coach'`, and `DEFAULT_AI_TRAINER.id` *is* `'ai-coach'` — so the stale value was
+never printed into a prompt. Phase 2 makes it load-bearing, because the new `SESSION STRUCTURE`
+section is emitted on the autonomous path too. Left unfixed, sanitisation would have dropped the
+retired `main` and handed the autonomous client `warmup → cooldown` — a session containing no
+working block at all. Confirmed by mutation M3.
+
+Now sourced from `DEFAULT_SESSION_ORDER` in `src/lib/sessionStructure.ts`, so the constant and the
+agreed default cannot drift apart again.
+
+### Phase 2 closing notes (2026-07-31)
+
+- **The plan's premise did not survive contact with the code.** See the finding #4 box above. Three
+  of the four original checklist items required no work; the phase was rescoped to the real gap
+  before any code was written, and the project lead approved the revised scope.
+- **The defect is weaker than "the order is ignored" — measured, not assumed.** A baseline probe on
+  the pre-change code (stashed, server restarted, same trainer and client) followed the declared
+  order in **9 of 11** runs. The two failures were the same `warmup`/`mobility` swap. So the model
+  was already inferring structure from the descriptive line and the phase enum; it simply had no
+  obligation to. Post-change: **8 of 8** exact. At these sample sizes the difference is suggestive,
+  **not statistically conclusive** — the durable argument is that the requirement is now stated
+  rather than inferred, which is what §6.3 asks for.
+- **Coverage:** 8 unit tests on the prompt contract. Mutation-verified individually — removing the
+  binding section fails 6, un-sanitising the descriptive line fails 2, reverting
+  `DEFAULT_AI_TRAINER` fails 2, removing the system-prompt vocabulary fails 1.
+- **`buildPrompt` is now exported** from `generate-smart-workout.ts` as a test seam. The contract is
+  a property of the prompt, so it is asserted directly instead of being inferred from a live
+  generation that can pass by luck.
+- **Observation, out of scope:** the endpoint returns 500 when the model emits truncated JSON (seen
+  once on baseline, once post-change). Pre-existing, unrelated to this phase, and a candidate for the
+  resilient-parsing work §6.3 asks for.
+- **Observation, out of scope:** `avoidExercises` is matched literally by the model. With `Deadlift`
+  avoided it still prescribed `Romanian Deadlift`. Defensible, but a trainer probably means the
+  movement pattern. Pre-existing behaviour, unchanged here.
+- **Validation:** 45 unit green (37 + 8 new), 26 e2e green, `tsc --noEmit` clean, `lint` 0 errors,
+  `build` green.
 
 ---
 
@@ -183,7 +267,7 @@ Section headers in the plan editor. Requires persistence — without it, groupin
 |-------|--------|-----------|--------|-------|
 | 0 — Taxonomy & Coach DNA in prompt | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Defect found and fixed mid-phase: time fitting could delete an entire declared block. |
 | 1 — Context card accuracy | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Real but narrower than first reported — see closing notes. |
-| 2 — Coach DNA on client flow | Not started | — | — | — |
+| 2 — Declared structure on client path | **Merged locally — awaiting push authorization** | 2026-07-31 | `feat/session-structure-phase-2` | Rescoped: the plan's finding #4 was false. Fixed a Phase 0 regression (`DEFAULT_AI_TRAINER`) found here. |
 | 3 — Grouped rendering & persistence | Not started | — | — | — |
 
 **Update rule:** this table and the phase checklists are updated at the close of each phase, before requesting push authorization.
