@@ -63,7 +63,7 @@ Derived from `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md`, as applied by the project lead
 
 | Phase | Branch | Commit SHA | Staging validated | Authorized by | Deployment URL | Date |
 |-------|--------|-----------|-------------------|---------------|----------------|------|
-| — | — | — | — | — | — | — |
+| 0 + 1 | `feat/session-structure-phase-0` → `main` | `7b74017` (merge) | No — promoted directly per project lead | Project lead | https://trainer-ntrezrarz-paulo-eduardo-peress-projects.vercel.app | 2026-07-31 |
 
 ---
 
@@ -171,8 +171,8 @@ Section headers in the plan editor. Requires persistence — without it, groupin
 
 | Phase | Status | Completed | Commit | Notes |
 |-------|--------|-----------|--------|-------|
-| 0 — Taxonomy & Coach DNA in prompt | **Complete, awaiting promotion** | 2026-07-31 | `feat/session-structure-phase-0` | Defect found and fixed mid-phase: time fitting could delete an entire declared block. |
-| 1 — Context card accuracy | **Complete, awaiting promotion** | 2026-07-31 | `feat/session-structure-phase-0` | Real but narrower than first reported — see closing notes. |
+| 0 — Taxonomy & Coach DNA in prompt | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Defect found and fixed mid-phase: time fitting could delete an entire declared block. |
+| 1 — Context card accuracy | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Real but narrower than first reported — see closing notes. |
 | 2 — Coach DNA on client flow | Not started | — | — | — |
 | 3 — Grouped rendering & persistence | Not started | — | — | — |
 
