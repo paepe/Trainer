@@ -95,13 +95,19 @@ Core rules:
 - Choose exercises appropriate to the reported location and available equipment
 - Consider the client's primary goal (weight loss, hypertrophy, endurance, mobility) when selecting exercises and rep ranges
 - For isometric, breathing, or hold-based exercises (e.g. plank, neck rotations, diaphragmatic breathing) with no meaningful rep count, set "reps" to null and "duration_seconds" to the hold/execution time in seconds. Every exercise MUST have either "reps" or "duration_seconds" set — never both null
-- SESSION STRUCTURE: a workout is a complete session, not a list of lifts. Unless the user message
-  says you are complementing an existing plan, deliver it in order — warm-up first, then the main
-  work, then the cool-down — and tag every exercise with its "phase". A warm-up (mobility, activation,
-  light progressive sets) and a cool-down (stretching, breathing, low-intensity return) are mandatory;
-  they belong to the time budget like any other exercise, so account for them in the arithmetic above.
-  Roughly 10-20% of the session for the warm-up and 10-15% for the cool-down is a sound default,
-  adjusted to goal, energy and reported soreness.
+- SESSION STRUCTURE: a workout is a complete session, not a list of lifts. The user message states
+  the exact block sequence for this trainer — follow it, in that order, and tag every exercise with
+  the block it belongs to in "phase". Block meanings:
+    mobility     — joint preparation and range of motion
+    warmup       — raising temperature and heart rate, progressive activation
+    technique    — motor pattern work at low load, before the heavy sets
+    strength     — the main resistance block
+    conditioning — metabolic or endurance work
+    cooldown     — recovery, stretching, breathing, low-intensity return
+  Every declared block must be represented by at least one exercise. Preparation and recovery
+  blocks belong to the time budget like any other exercise, so account for them in the arithmetic
+  above. As a default split, allow roughly 15-25% of the session for the preparation blocks
+  (mobility/warmup/technique) and 10-15% for the cool-down, adjusted to goal, energy and soreness.
 
 Language:
 - CRITICAL: You MUST write every field in {lang}. This session is in {lang}. Never write in English when {lang} is requested.
@@ -118,7 +124,7 @@ Each object must have exactly these keys:
 {
   "exercise_name": "string",
   "muscle_group": "string — must be one of: Chest | Back | Shoulders | Arms | Core | Legs | Full body | Cardio",
-  "phase": "string — must be one of: warmup | main | cooldown (use \\"main\\" for every exercise when complementing an existing plan)",
+  "phase": "string — must be one of the blocks listed in the SESSION STRUCTURE line of the user message, spelled exactly as given there",
   "sets": integer,
   "reps": integer or null (null for hold/duration-based exercises),
   "duration_seconds": integer or null (hold/execution time in seconds; null when reps is set),
@@ -180,12 +186,46 @@ const FILL_FLOOR      = 0.9;
 const FILL_CEILING    = 1.1;
 const MAX_PADDED_SETS = 5;
 
+// ── Session structure ─────────────────────────────────────────────────────────
+// Mirrors src/lib/sessionStructure.ts, which in turn mirrors the Coach DNA
+// wizard blocks the trainer actually configures (coach_dna.structure.order).
+// Duplicated here because api/* handlers must stay self-contained.
+const SESSION_BLOCKS = ['mobility', 'warmup', 'technique', 'strength', 'conditioning', 'cooldown'] as const;
+const DEFAULT_SESSION_ORDER = ['warmup', 'strength', 'conditioning', 'cooldown'];
+// Only the working blocks absorb time fitting; the rest are prescriptive.
+const ADJUSTABLE_BLOCKS = new Set<string>(['strength', 'conditioning']);
+// v1 emitted warmup | main | cooldown. Bumped with the prompt that replaced it
+// (directive §6.3 — response schemas are versioned alongside prompt changes).
+const PHASE_SCHEMA_VERSION = 2;
+
+const KNOWN_BLOCKS = new Set<string>(SESSION_BLOCKS);
+
+/** Maps any phase value onto the canonical vocabulary; v1's `main` degrades to `strength`. */
+function normalizeBlock(phase: string | null | undefined): string {
+  if (!phase) return 'strength';
+  const key = String(phase).toLowerCase().trim();
+  if (key === 'main') return 'strength';
+  return KNOWN_BLOCKS.has(key) ? key : 'strength';
+}
+
+/** Keeps only known blocks, preserving the trainer's declared order. */
+function sanitizeSessionOrder(order: string[] | undefined): string[] {
+  if (!order?.length) return DEFAULT_SESSION_ORDER;
+  const seen = new Set<string>();
+  const cleaned: string[] = [];
+  for (const raw of order) {
+    const key = String(raw ?? '').toLowerCase().trim();
+    if (KNOWN_BLOCKS.has(key) && !seen.has(key)) { seen.add(key); cleaned.push(key); }
+  }
+  return cleaned.length ? cleaned : DEFAULT_SESSION_ORDER;
+}
+
 const totalMinutesOf = (list: TimedExercise[]): number =>
   list.reduce((acc, e) => acc + estimateExerciseMinutes(e), 0);
 
 // Warm-up and cool-down are prescriptive: they are never dropped to make room,
 // nor inflated to fill time. Only the main block absorbs the fitting.
-const isAdjustable = (e: TimedExercise): boolean => (e.phase ?? 'main') === 'main';
+const isAdjustable = (e: TimedExercise): boolean => ADJUSTABLE_BLOCKS.has(normalizeBlock(e.phase));
 
 /**
  * Makes the returned batch actually occupy its time budget, rather than hoping
@@ -204,15 +244,27 @@ function fitToBudget(parsed: TimedExercise[], targetMinutes: number) {
 
   const exercises: TimedExercise[] = parsed.map(e => ({ ...e }));
 
-  // Trim the last adjustable exercise until the session fits. Keep at least one
-  // main exercise — a session that is only warm-up and cool-down is not a workout.
+  // Trim from the working blocks until the session fits, taking the last
+  // eligible exercise each pass. A block is never emptied: fitting may shorten
+  // a block, never delete one the trainer declared — observed live on
+  // 2026-07-31, where trimming 4 exercises removed `conditioning` entirely.
   let trimmed = 0;
   while (totalMinutesOf(exercises) > ceiling) {
-    const adjustableIdx = exercises
-      .map((e, i) => (isAdjustable(e) ? i : -1))
-      .filter(i => i >= 0);
-    if (adjustableIdx.length <= 1) break;
-    exercises.splice(adjustableIdx[adjustableIdx.length - 1]!, 1);
+    const perBlock = new Map<string, number>();
+    for (const e of exercises) {
+      const b = normalizeBlock(e.phase);
+      perBlock.set(b, (perBlock.get(b) ?? 0) + 1);
+    }
+    let victim = -1;
+    for (let i = exercises.length - 1; i >= 0; i--) {
+      const ex = exercises[i]!;
+      if (!isAdjustable(ex)) continue;
+      if ((perBlock.get(normalizeBlock(ex.phase)) ?? 0) <= 1) continue;
+      victim = i;
+      break;
+    }
+    if (victim < 0) break;
+    exercises.splice(victim, 1);
     trimmed++;
   }
 
@@ -238,10 +290,14 @@ function fitToBudget(parsed: TimedExercise[], targetMinutes: number) {
 interface RequestBody {
   checkin?:            CheckInBody;
   physicalProfile?:    PhysicalProfileBody;
+  // NB: cycleContext.phase is the menstrual cycle phase — unrelated to the
+  // session blocks in `session_order`, which describe how a session is composed.
   cycleContext?:       { phase: string; day: number; cycleLength: number };
   locale?:             string;
   existing_exercises?: ExistingExercise[];
   remaining_minutes?:  number;
+  /** The trainer's declared block sequence (coach_dna.structure.order). */
+  session_order?:      string[];
 }
 
 interface VercelRequest {
@@ -298,7 +354,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { checkin, physicalProfile, cycleContext, existing_exercises, remaining_minutes } = req.body || {};
+  const { checkin, physicalProfile, cycleContext, existing_exercises, remaining_minutes, session_order } = req.body || {};
+  const sessionOrder    = sanitizeSessionOrder(session_order);
+  // Complementing appends to a plan the trainer already structured, so the
+  // preparation and recovery blocks are already theirs — this batch only fills
+  // the working blocks, and only with blocks the trainer actually declared.
+  const workingBlocks   = sessionOrder.filter(b => ADJUSTABLE_BLOCKS.has(b));
+  const complementBlocks = workingBlocks.length ? workingBlocks : ['strength'];
   const locale = req.body?.locale ?? 'en';
 
   // Build client context
@@ -355,7 +417,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     lines.push('Prioritise muscle groups NOT yet covered.');
     // Complement mode: the editor appends the result to what the trainer already
     // built, so a warm-up returned here would land in the middle of their plan.
-    lines.push('COMPLEMENTING an existing plan: return main-block work only, no warm-up and no cool-down. Set "phase" to "main" on every exercise.');
+    lines.push(`COMPLEMENTING an existing plan: return working-block exercises only — no preparation and no cool-down, the trainer already owns those. Use "phase" values from: ${complementBlocks.join(' | ')}.`);
   }
 
   if (cycleContext?.phase) {
@@ -384,9 +446,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // rests. Anything over the ceiling is trimmed server-side after parsing.
   const isComplement   = !!existing_exercises?.length;
   const structureLine  = isComplement
-    ? 'The warm-up and cool-down already belong to the trainer\'s plan — this batch is main-block work only.'
-    : 'This is a COMPLETE SESSION: the warm-up and cool-down are part of the same window, so their time counts towards the total below.';
-  const timeTargetLine = `TIME TARGET\n${structureLine}\nThe session must total ~90-110% of a ${targetMinutes}-minute window. Before answering, compute the total with the TIME MODEL above — sum sets x (active_seconds + rest_seconds) across every exercise you return, using the rest_seconds you assigned — and add or drop exercises until that sum lands in range. Long rests (90-120s) mean FEWER exercises, not more. Anything beyond the window will be discarded, so do not overshoot; and do not stop early either.`;
+    ? `SESSION STRUCTURE — working blocks only for this batch: ${complementBlocks.join(' → ')}. The preparation and cool-down blocks already belong to the trainer's plan.`
+    : `SESSION STRUCTURE — this trainer's declared block sequence, to be followed in this order: ${sessionOrder.join(' → ')}. Every one of those blocks must appear, and their time counts towards the total below.`;
+  const timeTargetLine = `${structureLine}\n\nTIME TARGET\nThe session must total ~90-110% of a ${targetMinutes}-minute window. Before answering, compute the total with the TIME MODEL above — sum sets x (active_seconds + rest_seconds) across every exercise you return, using the rest_seconds you assigned — and add or drop exercises until that sum lands in range. Long rests (90-120s) mean FEWER exercises, not more. Anything beyond the window will be discarded, so do not overshoot; and do not stop early either.`;
 
   const userContent = lines.length
     ? `LANGUAGE: Generate ALL content in ${locale === 'pt' || locale === 'pt-BR' ? 'Portuguese (Brazil)' : locale === 'es' || locale === 'es-ES' ? 'Spanish' : locale === 'de' || locale === 'de-DE' ? 'German' : 'English'}. No English text at all.
@@ -451,7 +513,11 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
       return;
     }
 
-    const parsed = JSON.parse(match[0]) as TimedExercise[];
+    // Normalise the phase before anything downstream reads it: the model may
+    // answer with an unlisted block, or omit it entirely. Unknown values land on
+    // the working block rather than failing the request (§6.3).
+    const parsed = (JSON.parse(match[0]) as TimedExercise[])
+      .map(ex => ({ ...ex, phase: normalizeBlock(ex.phase) }));
     const { exercises, trimmed, paddedSets } = fitToBudget(parsed, targetMinutes);
 
     if (trimmed || paddedSets) {
@@ -465,6 +531,9 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
 
     res.status(200).json({
       exercises,
+      // Declared so a client can tell which phase vocabulary it received (§6.3).
+      schema_version: PHASE_SCHEMA_VERSION,
+      session_order:  isComplement ? complementBlocks : sessionOrder,
       usage: {
         input_tokens:  data.usage?.prompt_tokens     ?? 0,
         output_tokens: data.usage?.completion_tokens ?? 0,

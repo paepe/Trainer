@@ -28,6 +28,13 @@ const CONTEXT_FETCH_STUB = {
   }),
 };
 
+// The editor reads the trainer's declared session structure (Coach DNA step 10)
+// to tell the AI how to compose the session. Absent here — the fallback order
+// applies server-side, which these tests do not exercise.
+const COACH_DNA_STUB = {
+  select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }),
+};
+
 // Typing an exercise name fires a debounced catalog search 280ms later. Without
 // a stub it rejects after the test has finished, surfacing as an unhandled
 // rejection that can mask real failures.
@@ -59,6 +66,7 @@ describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       throw new Error(`unexpected table in default stub: ${table}`);
     };
   });
@@ -74,6 +82,7 @@ describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       if (table === 'workout_plans') return { insert: planInsert };
       throw new Error(`unexpected table: ${table}`);
     };
@@ -102,6 +111,7 @@ describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       if (table === 'workout_plans') return { insert: planInsert, delete: planDelete };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -133,6 +143,7 @@ describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       if (table === 'workout_plans') return { insert: planInsert };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -173,11 +184,86 @@ function checkinStub(availableMinutes: number | null) {
   };
 }
 
+// Availability resolves check-in → profile → unknown. The card previously read
+// only the check-in, so a client whose availability lives in the profile saw no
+// time at all while the banner silently measured against it.
+describe('WorkoutPlanEditorScreen — available time provenance', () => {
+  function profileStub(sessionMin: number | null) {
+    return {
+      select: () => ({
+        eq: () => ({
+          maybeSingle: () => Promise.resolve({
+            data: sessionMin == null ? null : { availability: { session_duration_min: sessionMin } },
+            error: null,
+          }),
+        }),
+      }),
+    };
+  }
+
+  it('shows the check-in value when the check-in carries one', async () => {
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return profileStub(60);
+      if (table === 'checkin_prontidao') return checkinStub(30);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      throw new Error(`unexpected table: ${table}`);
+    };
+    renderScreen({ nav: vi.fn() });
+    // Check-in wins over the profile's 60.
+    await waitFor(() => expect(screen.getByText('30min')).toBeInTheDocument());
+    expect(screen.getByText('available')).toBeInTheDocument();
+  });
+
+  it('falls back to the profile value and marks it as such', async () => {
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return profileStub(45);
+      if (table === 'checkin_prontidao') return checkinStub(null);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      throw new Error(`unexpected table: ${table}`);
+    };
+    renderScreen({ nav: vi.fn() });
+    await waitFor(() => expect(screen.getByText('45min')).toBeInTheDocument());
+    expect(screen.getByText('available (usual, from profile)')).toBeInTheDocument();
+  });
+
+  it('shows no time at all when neither source has one', async () => {
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return profileStub(null);
+      if (table === 'checkin_prontidao') return checkinStub(null);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      throw new Error(`unexpected table: ${table}`);
+    };
+    renderScreen({ nav: vi.fn() });
+    await waitFor(() => expect(screen.getByText(/Exercises \(0\)/)).toBeInTheDocument());
+    expect(screen.queryByText(/min$/)).not.toBeInTheDocument();
+  });
+
+  it('displays the same figure the banner measures against', async () => {
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return profileStub(45);
+      if (table === 'checkin_prontidao') return checkinStub(null);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      throw new Error(`unexpected table: ${table}`);
+    };
+    renderScreen({ nav: vi.fn() });
+    await waitFor(() => expect(screen.getByText('45min')).toBeInTheDocument());
+    addOneExercise(); // 5 min against a 45-min window
+    await waitFor(() => expect(
+      screen.getByText('This workout uses ~5 of the 45 min available — consider adding more exercises.')
+    ).toBeInTheDocument());
+  });
+});
+
 describe('WorkoutPlanEditorScreen — time-fit signal', () => {
   it('shows the underfill banner when the plan covers well under the available time', async () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2')         return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       if (table === 'checkin_prontidao')  return checkinStub(60);
       throw new Error(`unexpected table: ${table}`);
     };
@@ -196,6 +282,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2')         return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       if (table === 'checkin_prontidao')  return checkinStub(6); // 5 min estimate is within 80–120% of 6
       throw new Error(`unexpected table: ${table}`);
     };
@@ -218,6 +305,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       if (table === 'workout_plans')  return { insert: planInsert };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -241,6 +329,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       throw new Error(`unexpected table: ${table}`);
     };
 
@@ -256,6 +345,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       throw new Error(`unexpected table: ${table}`);
     };
 
@@ -277,6 +367,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
     fromImpl = (table: string) => {
       if (table === 'profile_v2')        return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
       if (table === 'checkin_prontidao') return checkinStub(5); // one default exercise = 5 min
       throw new Error(`unexpected table: ${table}`);
     };

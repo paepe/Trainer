@@ -18,6 +18,8 @@ export interface GeneratedWorkoutExercise {
   load_kg:          number | null;
   rest_seconds:     number | null;
   notes?:           string | null;
+  /** Session block this exercise belongs to (see src/lib/sessionStructure.ts). */
+  phase?:           string | null;
 }
 
 // Result from smart workout — includes safety context alongside exercises
@@ -52,6 +54,8 @@ interface RequestWorkoutPlanInput {
   locale?:             string;
   existingExercises?:  ExistingExerciseSummary[];
   remainingMinutes?:   number;
+  /** Trainer's declared session block sequence (coach_dna.structure.order). */
+  sessionOrder?:       string[];
 }
 
 export function resolveWorkoutApiBase(): string {
@@ -75,6 +79,7 @@ export async function requestWorkoutPlan({
   locale,
   existingExercises,
   remainingMinutes,
+  sessionOrder,
 }: RequestWorkoutPlanInput): Promise<GeneratedWorkoutExercise[]> {
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 20_000);
@@ -90,6 +95,7 @@ export async function requestWorkoutPlan({
         locale,
         existing_exercises: existingExercises?.length ? existingExercises : undefined,
         remaining_minutes:  remainingMinutes  != null  ? remainingMinutes  : undefined,
+        session_order:      sessionOrder?.length ? sessionOrder : undefined,
       }),
       signal: ctrl.signal,
     });
