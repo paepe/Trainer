@@ -118,6 +118,7 @@ export function WorkoutPlanEditorScreen({
   const { t: tr } = useTranslation();
   const [context, setContext] = React.useState<WorkoutPlanEditorContext | null>(null);
   const [personalConsent, setPersonalConsent] = React.useState<ConsentMatrix | null>(null);
+  const [sessionOrder, setSessionOrder] = React.useState<string[] | null>(null);
   const [exercises, setExercises] = React.useState<WorkoutExercise[]>([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
   const [nameError,   setNameError]     = React.useState(false);
@@ -230,6 +231,7 @@ export function WorkoutPlanEditorScreen({
           restrictions:      pp.restrictions       ?? undefined,
         } as never : null,
         locale: 'en',
+        ...(sessionOrder?.length ? { sessionOrder } : {}),
         ...(existingSummary.length ? { existingExercises: existingSummary, remainingMinutes: remaining } : {}),
       });
 
@@ -252,6 +254,25 @@ export function WorkoutPlanEditorScreen({
       setAiLoading(false);
     }
   }
+
+  // The trainer's declared session structure drives how the AI composes the
+  // session (Coach DNA step 10). Without it the API falls back to a
+  // conventional order — see sanitizeSessionOrder in api/generate-workout.ts.
+  React.useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    void supabase
+      .from('coach_dna')
+      .select('structure')
+      .eq('trainer_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const order = (data as { structure?: { order?: string[] } | null } | null)?.structure?.order;
+        setSessionOrder(Array.isArray(order) ? order : null);
+      });
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   React.useEffect(() => {
     if (!selectedClient?.id) return;

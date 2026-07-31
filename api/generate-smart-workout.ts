@@ -300,8 +300,13 @@ interface WorkoutExercise {
 const FILL_FLOOR      = 0.9;
 const FILL_CEILING    = 1.1;
 const MAX_PADDED_SETS = 5;
-// Warmup and cooldown are prescriptive — never trimmed or inflated to fill time.
-const ADJUSTABLE_PHASES = new Set(['main', 'conditioning', 'technique']);
+// Only the working blocks absorb time fitting; preparation (mobility, warmup,
+// technique) and cooldown are prescriptive and are never trimmed or inflated.
+// Same vocabulary as src/lib/sessionStructure.ts and generate-workout.ts —
+// duplicated because api/* handlers must stay self-contained.
+// 'main' is the pre-2026-07-31 value and is kept so older phase labels still
+// resolve to a working block instead of being treated as prescriptive.
+const ADJUSTABLE_PHASES = new Set(['strength', 'conditioning', 'main']);
 
 function exerciseMinutes(e: WorkoutExercise): number {
   const sets   = e.sets ?? 1;
@@ -435,7 +440,7 @@ Output shape:
     "adaptations": ["string — each adaptation made for today's readiness"],
     "phases": [
       {
-        "phase": "warmup|main|cooldown|technique|conditioning|mobility",
+        "phase": "mobility|warmup|technique|strength|conditioning|cooldown",
         "label": "string",
         "durationMin": number,
         "exercises": [

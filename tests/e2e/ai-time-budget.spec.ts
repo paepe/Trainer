@@ -22,8 +22,13 @@ async function tokenFor(email: string) {
   return { token: body.access_token as string, userId: body.user.id as string };
 }
 
-const flat = (e: any) => (e.sets ?? 1) * ((e.duration_seconds ?? 40) + (e.rest_seconds ?? 30)) / 60;
-const smart = (e: any) => (e.sets ?? 1) * ((e.durationSeconds ?? 40) + (e.restSeconds ?? 30)) / 60;
+// Shapes of the two generation contracts, narrowed to what the time model reads.
+interface FlatExercise  { sets?: number; reps?: number | null; duration_seconds?: number | null; rest_seconds?: number; phase?: string }
+interface SmartExercise { sets?: number; durationSeconds?: number | null; restSeconds?: number }
+interface SmartPhase    { exercises?: SmartExercise[] }
+
+const flat  = (e: FlatExercise)  => (e.sets ?? 1) * ((e.duration_seconds ?? 40) + (e.rest_seconds ?? 30)) / 60;
+const smart = (e: SmartExercise) => (e.sets ?? 1) * ((e.durationSeconds  ?? 40) + (e.restSeconds  ?? 30)) / 60;
 
 function report(label: string, pct: number[]) {
   console.log(`${label} RATIOS: ${pct.join(', ')}`);
@@ -48,7 +53,7 @@ test('generate-workout: complement path fills its budget', async ({ request }) =
     });
     expect(res.ok(), await res.text()).toBeTruthy();
     const { exercises } = await res.json();
-    const total = exercises.reduce((a: number, e: any) => a + flat(e), 0);
+    const total = (exercises as FlatExercise[]).reduce((a, e) => a + flat(e), 0);
     pct.push(Math.round(total / BUDGET * 100));
     console.log(`  run ${i + 1}: ${exercises.length} ex, ${Math.round(total)}/${BUDGET} min => ${pct[i]}%`);
   }
@@ -98,7 +103,9 @@ test('generate-smart-workout: client session fills the available window', async 
     expect(res.ok(), await res.text()).toBeTruthy();
     const body = await res.json();
     if (!body.workout?.phases?.length) { console.log(`  run ${i + 1}: sem workout (gate) — pulando`); continue; }
-    const total = body.workout.phases.flatMap((p: any) => p.exercises ?? []).reduce((a: number, e: any) => a + smart(e), 0);
+    const total = (body.workout.phases as SmartPhase[])
+      .flatMap(p => p.exercises ?? [])
+      .reduce((a, e) => a + smart(e), 0);
     pct.push(Math.round(total / BUDGET * 100));
     console.log(`  run ${i + 1}: ${body.workout.phases.length} fases, ${Math.round(total)}/${BUDGET} min => ${pct[pct.length - 1]}% (declarado: ${body.workout.totalDurationMin})`);
   }
@@ -109,8 +116,12 @@ test('generate-smart-workout: client session fills the available window', async 
 
 // A trainer reported the AI returning "only single exercises, not a complete
 // workout" — it produced a flat list of main lifts with no warm-up or cool-down,
-// while the client-facing endpoint had built phased sessions all along.
-test('generate-workout: from scratch it returns a complete session, not a list of lifts', async ({ request }) => {
+// while the client-facing endpoint had built phased sessions all along. The
+// session vocabulary is the Coach DNA block set (coach_dna.structure.order),
+// so the generated session must follow the sequence that trainer declared.
+const DECLARED_ORDER = ['warmup', 'mobility', 'technique', 'strength', 'conditioning', 'cooldown'];
+
+test('generate-workout: from scratch it follows the declared block sequence', async ({ request }) => {
   test.setTimeout(240_000);
   const { token } = await tokenFor('carlos.silva@trainer.test');
   const BUDGET = 45;
@@ -118,23 +129,48 @@ test('generate-workout: from scratch it returns a complete session, not a list o
   for (let i = 0; i < RUNS; i++) {
     const res = await request.post('/api/generate-workout', {
       headers: { Authorization: `Bearer ${token}` },
-      data: { checkin: { energy: 5, minutes: BUDGET, goal: 'strength' }, locale: 'en' },
+      data: { checkin: { energy: 5, minutes: BUDGET, goal: 'strength' }, locale: 'en', session_order: DECLARED_ORDER },
     });
     expect(res.ok(), await res.text()).toBeTruthy();
-    const { exercises } = await res.json();
-    const phases = exercises.map((e: any) => e.phase);
-    const total  = exercises.reduce((a: number, e: any) => a + flat(e), 0);
-    console.log(`  run ${i + 1}: ${exercises.length} ex — warmup ${phases.filter((p: string) => p === 'warmup').length}, main ${phases.filter((p: string) => p === 'main').length}, cooldown ${phases.filter((p: string) => p === 'cooldown').length} — ${Math.round(total)}/${BUDGET} min`);
+    const body = await res.json();
+    const phases: string[] = (body.exercises as FlatExercise[]).map(e => e.phase ?? '');
+    const distinct = [...new Set(phases)];
+    const total = (body.exercises as FlatExercise[]).reduce((a, e) => a + flat(e), 0);
+    console.log(`  run ${i + 1}: v${body.schema_version} | ${body.exercises.length} ex | ${distinct.join(' → ')} | ${Math.round(total)}/${BUDGET} min`);
 
-    expect(phases.filter((p: string) => p === 'warmup').length, 'session needs a warm-up').toBeGreaterThan(0);
-    expect(phases.filter((p: string) => p === 'cooldown').length, 'session needs a cool-down').toBeGreaterThan(0);
+    expect(body.schema_version, 'response schema is versioned').toBe(2);
+    // `technique` is the block the reporting trainer asked for by name.
+    expect(distinct, 'declared technique block must be produced').toContain('technique');
+    expect(phases.every(p => DECLARED_ORDER.includes(p)), `unknown block in ${distinct}`).toBeTruthy();
     // Order matters: the editor persists it via order_index, so the session must
-    // arrive already sequenced.
-    expect(phases[0]).toBe('warmup');
-    expect(phases[phases.length - 1]).toBe('cooldown');
-    // The warm-up/cool-down must not be padding that pushes the session over.
+    // arrive already sequenced according to the trainer's declaration.
+    const rank = phases.map(p => DECLARED_ORDER.indexOf(p));
+    expect(rank.every((v, k) => k === 0 || v >= rank[k - 1]!), `out of order: ${phases.join(',')}`).toBeTruthy();
+    // Preparation and recovery must not be padding that pushes the session over.
     expect(Math.round(total / BUDGET * 100)).toBeGreaterThanOrEqual(90);
     expect(Math.round(total / BUDGET * 100)).toBeLessThanOrEqual(110);
+  }
+});
+
+// Time fitting may shorten a block, never delete one: trimming 4 exercises once
+// removed `conditioning` from the session entirely (observed 2026-07-31).
+test('generate-workout: fitting never empties a declared block', async ({ request }) => {
+  test.setTimeout(240_000);
+  const { token } = await tokenFor('carlos.silva@trainer.test');
+  for (let i = 0; i < RUNS; i++) {
+    const res = await request.post('/api/generate-workout', {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { checkin: { energy: 6, minutes: 45, goal: 'strength' }, locale: 'en' },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+    const body = await res.json();
+    const distinct = [...new Set((body.exercises as FlatExercise[]).map(e => e.phase ?? ''))];
+    console.log(`  run ${i + 1}: declared ${body.session_order.join(' → ')} | returned ${distinct.join(' → ')}`);
+    expect(body.session_order, 'default order for a trainer without Coach DNA')
+      .toEqual(['warmup', 'strength', 'conditioning', 'cooldown']);
+    for (const block of body.session_order) {
+      expect(distinct, `fitting removed the whole "${block}" block`).toContain(block);
+    }
   }
 });
 
