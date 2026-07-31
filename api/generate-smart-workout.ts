@@ -308,6 +308,25 @@ const MAX_PADDED_SETS = 5;
 // resolve to a working block instead of being treated as prescriptive.
 const ADJUSTABLE_PHASES = new Set(['strength', 'conditioning', 'main']);
 
+// Canonical session vocabulary — mirrors src/lib/sessionStructure.ts and
+// generate-workout.ts. Duplicated because api/* handlers must stay
+// self-contained (Vercel's function builder does not trace relative imports).
+const SESSION_BLOCKS = ['mobility', 'warmup', 'technique', 'strength', 'conditioning', 'cooldown'];
+const KNOWN_BLOCKS   = new Set<string>(SESSION_BLOCKS);
+const DEFAULT_SESSION_ORDER = ['warmup', 'strength', 'conditioning', 'cooldown'];
+
+/** Keeps only known blocks, preserving the trainer's declared order. */
+function sanitizeSessionOrder(order: readonly string[] | undefined): string[] {
+  if (!order?.length) return DEFAULT_SESSION_ORDER;
+  const seen = new Set<string>();
+  const cleaned: string[] = [];
+  for (const raw of order) {
+    const key = String(raw ?? '').toLowerCase().trim();
+    if (KNOWN_BLOCKS.has(key) && !seen.has(key)) { seen.add(key); cleaned.push(key); }
+  }
+  return cleaned.length ? cleaned : DEFAULT_SESSION_ORDER;
+}
+
 function exerciseMinutes(e: WorkoutExercise): number {
   const sets   = e.sets ?? 1;
   const active = e.durationSeconds ?? 40;
@@ -425,6 +444,20 @@ ${isAutonomous ? '- Since there is no trainer, generate a plan consistent with t
 - Adapt intensity based on readinessScore, fatigueRisk, and intensityCeiling.
 - For rep-based exercises, set "reps" to a plain count (e.g. "10" or "8-12") and leave "durationSeconds" null.
 - For isometric, breathing, or hold-based exercises (e.g. plank, neck rotations, diaphragmatic breathing) that have no meaningful rep count, set "reps" to null and set "durationSeconds" to the hold/execution time in seconds instead. Every exercise MUST have either "reps" or "durationSeconds" set — never both null.
+- SESSION STRUCTURE: a workout is a complete session, not a list of lifts. The user message states
+  the exact block sequence for this session — follow it, in that order, and tag every phase with
+  the block it belongs to in "phase". Block meanings:
+    mobility     — joint preparation and range of motion
+    warmup       — raising temperature and heart rate, progressive activation
+    technique    — motor pattern work at low load, before the heavy sets
+    strength     — the main resistance block
+    conditioning — metabolic or endurance work
+    cooldown     — recovery, stretching, breathing, low-intensity return
+  Every declared block must appear as a phase with at least one exercise, and no block outside
+  the declared sequence may be added. Preparation and recovery blocks belong to the time budget
+  like any other exercise, so account for them in the arithmetic. As a default split, allow
+  roughly 15-25% of the session for the preparation blocks (mobility/warmup/technique) and
+  10-15% for the cool-down, adjusted to goal, energy and soreness.
 - Respond in ${lang}. All workout titles, coach notes, exercise cues, descriptions, and adaptation notes MUST be written in ${lang}. Never mix languages.
 - Return ONLY valid JSON matching the required output shape — no markdown fences, no commentary.`;
 
@@ -528,7 +561,9 @@ function buildUserPrompt(ctx: AIContext): string {
     lines.push(`Typical intensity: ${trainer.intensity || 'not specified'}`);
     lines.push(`Focus emphasis (0-10): strength=${trainer.focus.strength}, endurance=${trainer.focus.endurance}, mobility=${trainer.focus.mobility}, athletic=${trainer.focus.athletic}, coord=${trainer.focus.coord}, balance=${trainer.focus.balance}`);
     lines.push(`Preferred session formats: ${trainer.preferredFormats.join(', ') || 'not specified'}`);
-    lines.push(`Session order: ${trainer.sessionOrder.join(' \u2192 ') || 'not specified'}`);
+    // Sanitized so this descriptive line can never disagree with the binding
+    // sequence in the SESSION STRUCTURE section below.
+    lines.push(`Session order: ${sanitizeSessionOrder(trainer.sessionOrder).join(' \u2192 ')}`);
     lines.push(`Intensity curve: ${trainer.intensityCurve || 'not specified'}`);
     lines.push(`Communication tone: ${trainer.communicationTone.join(', ') || 'not specified'}`);
     if (trainer.favoriteExercises.length > 0)
@@ -683,6 +718,23 @@ function buildUserPrompt(ctx: AIContext): string {
   // because the prompt only stated the available time without a fill target or
   // the arithmetic to reach it. The response is still fitted server-side, but
   // padding sets cannot rescue a session that is structurally too short.
+  // The trainer's declared structure is binding, not decorative. Before this
+  // section the order reached the model only as one descriptive line inside the
+  // Coach DNA dump, with nothing instructing the model to follow it — so a
+  // linked client could receive a session ignoring the structure their trainer
+  // configured. Autonomous clients fall back to DEFAULT_SESSION_ORDER.
+  if (task.type === 'generate_workout') {
+    const sessionOrder = sanitizeSessionOrder(trainer.sessionOrder);
+    lines.push('');
+    lines.push('## SESSION STRUCTURE');
+    lines.push(
+      isAutonomous
+        ? `Block sequence for this session, to be followed in this order: ${sessionOrder.join(' → ')}.`
+        : `This trainer's declared block sequence, to be followed in this order: ${sessionOrder.join(' → ')}.`,
+    );
+    lines.push(`Every one of those ${sessionOrder.length} blocks must appear as a phase with at least one exercise, in that order, and no other block may be added. Their time counts towards the target below.`);
+  }
+
   if (task.type === 'generate_workout') {
     const budget = task.durationMin ?? today.availableMinutes;
     if (budget > 0) {
@@ -697,7 +749,10 @@ function buildUserPrompt(ctx: AIContext): string {
   return lines.join('\n');
 }
 
-function buildPrompt(ctx: AIContext): { system: string; user: string } {
+// Exported as a test seam: the session-structure contract is a property of the
+// prompt, so it is asserted directly instead of being inferred from a live
+// generation. The handler remains the default export.
+export function buildPrompt(ctx: AIContext): { system: string; user: string } {
   const isAutonomous = ctx.trainer.id === 'ai-coach';
   return {
     system: buildSystemPrompt(ctx.task.type, ctx.locale, isAutonomous),
