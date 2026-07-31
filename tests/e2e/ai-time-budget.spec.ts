@@ -106,3 +106,51 @@ test('generate-smart-workout: client session fills the available window', async 
   expect(pct.length, 'nenhuma geração completou').toBeGreaterThan(0);
   expect(pct.every(p => p >= 90 && p <= 110), `fora da banda: ${pct.join(', ')}`).toBeTruthy();
 });
+
+// A trainer reported the AI returning "only single exercises, not a complete
+// workout" — it produced a flat list of main lifts with no warm-up or cool-down,
+// while the client-facing endpoint had built phased sessions all along.
+test('generate-workout: from scratch it returns a complete session, not a list of lifts', async ({ request }) => {
+  test.setTimeout(240_000);
+  const { token } = await tokenFor('carlos.silva@trainer.test');
+  const BUDGET = 45;
+
+  for (let i = 0; i < RUNS; i++) {
+    const res = await request.post('/api/generate-workout', {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { checkin: { energy: 5, minutes: BUDGET, goal: 'strength' }, locale: 'en' },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+    const { exercises } = await res.json();
+    const phases = exercises.map((e: any) => e.phase);
+    const total  = exercises.reduce((a: number, e: any) => a + flat(e), 0);
+    console.log(`  run ${i + 1}: ${exercises.length} ex — warmup ${phases.filter((p: string) => p === 'warmup').length}, main ${phases.filter((p: string) => p === 'main').length}, cooldown ${phases.filter((p: string) => p === 'cooldown').length} — ${Math.round(total)}/${BUDGET} min`);
+
+    expect(phases.filter((p: string) => p === 'warmup').length, 'session needs a warm-up').toBeGreaterThan(0);
+    expect(phases.filter((p: string) => p === 'cooldown').length, 'session needs a cool-down').toBeGreaterThan(0);
+    // Order matters: the editor persists it via order_index, so the session must
+    // arrive already sequenced.
+    expect(phases[0]).toBe('warmup');
+    expect(phases[phases.length - 1]).toBe('cooldown');
+    // The warm-up/cool-down must not be padding that pushes the session over.
+    expect(Math.round(total / BUDGET * 100)).toBeGreaterThanOrEqual(90);
+    expect(Math.round(total / BUDGET * 100)).toBeLessThanOrEqual(110);
+  }
+});
+
+// Regression: a complete session runs to ~12 exercises, which overflowed the
+// former 1024-token cap and truncated the JSON mid-array — surfacing to the
+// trainer as "AI returned an unexpected format" on roughly every other request.
+test('generate-workout: a full session is not truncated by the token cap', async ({ request }) => {
+  test.setTimeout(240_000);
+  const { token } = await tokenFor('carlos.silva@trainer.test');
+  for (let i = 0; i < RUNS; i++) {
+    const res = await request.post('/api/generate-workout', {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { checkin: { energy: 8, minutes: 90, goal: 'hypertrophy' }, locale: 'en' },
+    });
+    expect(res.status(), `run ${i + 1}: ${await res.text()}`).toBe(200);
+    const { exercises } = await res.json();
+    expect(exercises.length).toBeGreaterThan(0);
+  }
+});

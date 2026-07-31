@@ -95,6 +95,13 @@ Core rules:
 - Choose exercises appropriate to the reported location and available equipment
 - Consider the client's primary goal (weight loss, hypertrophy, endurance, mobility) when selecting exercises and rep ranges
 - For isometric, breathing, or hold-based exercises (e.g. plank, neck rotations, diaphragmatic breathing) with no meaningful rep count, set "reps" to null and "duration_seconds" to the hold/execution time in seconds. Every exercise MUST have either "reps" or "duration_seconds" set — never both null
+- SESSION STRUCTURE: a workout is a complete session, not a list of lifts. Unless the user message
+  says you are complementing an existing plan, deliver it in order — warm-up first, then the main
+  work, then the cool-down — and tag every exercise with its "phase". A warm-up (mobility, activation,
+  light progressive sets) and a cool-down (stretching, breathing, low-intensity return) are mandatory;
+  they belong to the time budget like any other exercise, so account for them in the arithmetic above.
+  Roughly 10-20% of the session for the warm-up and 10-15% for the cool-down is a sound default,
+  adjusted to goal, energy and reported soreness.
 
 Language:
 - CRITICAL: You MUST write every field in {lang}. This session is in {lang}. Never write in English when {lang} is requested.
@@ -111,6 +118,7 @@ Each object must have exactly these keys:
 {
   "exercise_name": "string",
   "muscle_group": "string — must be one of: Chest | Back | Shoulders | Arms | Core | Legs | Full body | Cardio",
+  "phase": "string — must be one of: warmup | main | cooldown (use \\"main\\" for every exercise when complementing an existing plan)",
   "sets": integer,
   "reps": integer or null (null for hold/duration-based exercises),
   "duration_seconds": integer or null (hold/execution time in seconds; null when reps is set),
@@ -151,6 +159,7 @@ interface TimedExercise {
   reps?:             number | null;
   duration_seconds?: number | null;
   rest_seconds?:     number | null;
+  phase?:            string | null;
 }
 
 // Single time model, shared verbatim with the client (estimateExerciseSeconds
@@ -174,13 +183,18 @@ const MAX_PADDED_SETS = 5;
 const totalMinutesOf = (list: TimedExercise[]): number =>
   list.reduce((acc, e) => acc + estimateExerciseMinutes(e), 0);
 
+// Warm-up and cool-down are prescriptive: they are never dropped to make room,
+// nor inflated to fill time. Only the main block absorbs the fitting.
+const isAdjustable = (e: TimedExercise): boolean => (e.phase ?? 'main') === 'main';
+
 /**
  * Makes the returned batch actually occupy its time budget, rather than hoping
  * the LLM's arithmetic lands there. Measured live, the model runs 86-146% of
  * the budget, so neither direction can be left to the prompt:
- *   - over the ceiling -> drop trailing exercises (never the first one);
- *   - under the floor  -> add sets round-robin, capped at MAX_PADDED_SETS and
- *     never crossing the ceiling.
+ *   - over the ceiling -> drop main-block exercises from the end;
+ *   - under the floor  -> add sets round-robin over the main block, capped at
+ *     MAX_PADDED_SETS and never crossing the ceiling.
+ * Session order is preserved, so a warm-up stays first and a cool-down last.
  * If the batch is still short after that (e.g. a single exercise already at the
  * set cap), it is returned as-is and the client's time-fit banner surfaces it.
  */
@@ -188,13 +202,18 @@ function fitToBudget(parsed: TimedExercise[], targetMinutes: number) {
   const ceiling = targetMinutes * FILL_CEILING;
   const floor   = targetMinutes * FILL_FLOOR;
 
-  const exercises: TimedExercise[] = [];
-  let accumulated = 0;
-  for (const ex of parsed) {
-    const cost = estimateExerciseMinutes(ex);
-    if (exercises.length > 0 && accumulated + cost > ceiling) continue;
-    exercises.push({ ...ex });
-    accumulated += cost;
+  const exercises: TimedExercise[] = parsed.map(e => ({ ...e }));
+
+  // Trim the last adjustable exercise until the session fits. Keep at least one
+  // main exercise — a session that is only warm-up and cool-down is not a workout.
+  let trimmed = 0;
+  while (totalMinutesOf(exercises) > ceiling) {
+    const adjustableIdx = exercises
+      .map((e, i) => (isAdjustable(e) ? i : -1))
+      .filter(i => i >= 0);
+    if (adjustableIdx.length <= 1) break;
+    exercises.splice(adjustableIdx[adjustableIdx.length - 1]!, 1);
+    trimmed++;
   }
 
   let paddedSets = 0;
@@ -202,6 +221,7 @@ function fitToBudget(parsed: TimedExercise[], targetMinutes: number) {
   while (totalMinutesOf(exercises) < floor && progressed) {
     progressed = false;
     for (const ex of exercises) {
+      if (!isAdjustable(ex)) continue;
       if (totalMinutesOf(exercises) >= floor) break;
       if ((ex.sets ?? 1) >= MAX_PADDED_SETS) continue;
       const oneMoreSet = estimateExerciseMinutes({ ...ex, sets: 1 });
@@ -212,7 +232,7 @@ function fitToBudget(parsed: TimedExercise[], targetMinutes: number) {
     }
   }
 
-  return { exercises, trimmed: parsed.length - exercises.length, paddedSets };
+  return { exercises, trimmed, paddedSets };
 }
 
 interface RequestBody {
@@ -333,6 +353,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       lines.push(`Remaining time budget: ${remaining_minutes} min`);
     }
     lines.push('Prioritise muscle groups NOT yet covered.');
+    // Complement mode: the editor appends the result to what the trainer already
+    // built, so a warm-up returned here would land in the middle of their plan.
+    lines.push('COMPLEMENTING an existing plan: return main-block work only, no warm-up and no cool-down. Set "phase" to "main" on every exercise.');
   }
 
   if (cycleContext?.phase) {
@@ -359,7 +382,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Minutes are the only target. An exercise-count hint was tried and removed:
   // the model anchored on the number and blew the budget whenever it chose long
   // rests. Anything over the ceiling is trimmed server-side after parsing.
-  const timeTargetLine = `TIME TARGET\nThis batch must total ~90-110% of a ${targetMinutes}-minute window. Before answering, compute the total with the TIME MODEL above — sum sets x (active_seconds + rest_seconds) across every exercise you return, using the rest_seconds you assigned — and add or drop exercises until that sum lands in range. Long rests (90-120s) mean FEWER exercises, not more. Anything beyond the window will be discarded, so do not overshoot; and do not stop early either.`;
+  const isComplement   = !!existing_exercises?.length;
+  const structureLine  = isComplement
+    ? 'The warm-up and cool-down already belong to the trainer\'s plan — this batch is main-block work only.'
+    : 'This is a COMPLETE SESSION: the warm-up and cool-down are part of the same window, so their time counts towards the total below.';
+  const timeTargetLine = `TIME TARGET\n${structureLine}\nThe session must total ~90-110% of a ${targetMinutes}-minute window. Before answering, compute the total with the TIME MODEL above — sum sets x (active_seconds + rest_seconds) across every exercise you return, using the rest_seconds you assigned — and add or drop exercises until that sum lands in range. Long rests (90-120s) mean FEWER exercises, not more. Anything beyond the window will be discarded, so do not overshoot; and do not stop early either.`;
 
   const userContent = lines.length
     ? `LANGUAGE: Generate ALL content in ${locale === 'pt' || locale === 'pt-BR' ? 'Portuguese (Brazil)' : locale === 'es' || locale === 'es-ES' ? 'Spanish' : locale === 'de' || locale === 'de-DE' ? 'German' : 'English'}. No English text at all.
@@ -381,7 +408,10 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
       },
       body: JSON.stringify({
         model: 'deepseek-chat',
-        max_tokens: 1024,
+        // A complete session (warm-up + main + cool-down) runs to ~12 exercises;
+        // at 1024 the JSON was truncated mid-array and failed to parse, surfacing
+        // as "AI returned an unexpected format" on roughly every other request.
+        max_tokens: 4096,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT.replace(/{lang}/g, langName) },
           { role: 'user',   content: userContent   },
@@ -403,10 +433,20 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
     }
 
     const text = data.choices?.[0]?.message?.content?.trim() ?? '';
+    // A truncated response is indistinguishable from a malformed one once the
+    // JSON fails to parse, and the generic "unexpected format" error sent the
+    // 2026-07-31 investigation looking at the prompt instead of the token cap.
+    const truncated = data.choices?.[0]?.finish_reason === 'length';
 
     // Extract JSON array even if model adds surrounding text
     const match = text.match(/\[[\s\S]*\]/);
-    if (!match) {
+    if (!match || truncated) {
+      if (truncated) {
+        console.error(
+          `[generate-workout] response truncated at max_tokens ` +
+          `(${data.usage?.completion_tokens} completion tokens) — raise the cap`,
+        );
+      }
       res.status(500).json({ error: 'AI returned an unexpected format. Please try again.' });
       return;
     }
