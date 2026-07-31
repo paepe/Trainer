@@ -65,7 +65,7 @@ interface AppUser {
 
 export default function App() {
   const {
-    session, profile, subscription, hasSubscription, loading, passwordRecovery,
+    session, profile, subscription, loading, passwordRecovery,
     signIn, signUp, signOut, updateProfile, upsertSubscription,
     requestPasswordReset, updatePassword, clearPasswordRecovery, resendConfirmation,
   } = useAuth();
@@ -360,9 +360,15 @@ export default function App() {
     if (passwordRecovery && screen !== 'resetPassword') setScreen('resetPassword');
   }, [passwordRecovery, screen]);
 
-  // Role-based navigation after login (only when both session and profile are loaded)
+  // Role-based navigation after login — waits for the subscription, not just the
+  // profile. fetchProfile always ends with a row (provisioning 'trial'/'free' when
+  // none exists), so a null subscription here can only mean "still loading".
+  // Without this the interactive login path — where onAuthStateChange fires while
+  // `loading` is already false, and the profile lands in state before the
+  // subscription query returns — decided navigation against a null subscription
+  // and sent every existing user, on any paid plan, to plan selection.
   React.useEffect(() => {
-    if (!session || !profile || loading || passwordRecovery) return;
+    if (!session || !profile || loading || !subscription || passwordRecovery) return;
     if (!['welcome', 'login', 'register'].includes(screen)) return;
     let cancelled = false;
     // Resolve any pending invitation server-side (by the authenticated user's
@@ -382,10 +388,12 @@ export default function App() {
       // Only redirect to plan selection when the user genuinely has no plan yet.
       // Users on any paid plan (ai_fitness, ai_performance, pro, elite) have already
       // chosen — showing plans would be noise and unwanted pressure.
-      // 'free' and 'trial' with no prior selection → send to plans.
-      // No subscription row at all → send to plans (new account, email-confirmed late).
-      const needsPlanSelection = !subscription || subscription.plan_key === 'free' || subscription.plan_key === 'trial';
-      if (needsPlanSelection && !hasSubscription) { setScreen('plans'); setScreenPayload({ source: 'onboarding' }); return; }
+      // 'free' and 'trial' (the plans provisioned on first sign-up) → send to plans.
+      // The subscription is guaranteed loaded here, so the plan key alone decides;
+      // the previous `&& !hasSubscription` could only ever be true mid-load, which
+      // is precisely how existing paid users ended up on this screen.
+      const needsPlanSelection = subscription.plan_key === 'free' || subscription.plan_key === 'trial';
+      if (needsPlanSelection) { setScreen('plans'); setScreenPayload({ source: 'onboarding' }); return; }
       if (isTrainer) { setScreen('trainerDashboard'); return; }
       // For clients: check if profile wizard was already completed
       fetchProfileV2().then(({ data }) => {
@@ -395,7 +403,7 @@ export default function App() {
       });
     });
     return () => { cancelled = true; };
-  }, [session, profile, isTrainer, screen, fetchProfileV2, hasSubscription, loading]);
+  }, [session, profile, isTrainer, screen, fetchProfileV2, subscription, loading]);
 
   // Deep link: /invite/:token → AcceptInvitationScreen (web path; native opens via universal/app links to the same URL)
   React.useEffect(() => {
