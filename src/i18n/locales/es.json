@@ -895,6 +895,7 @@
       "sent": "Enviado ✓",
       "todaysContext": "Contexto de hoy",
       "available": "disponible",
+      "availableFromProfile": "disponible (habitual, del perfil)",
       "goal": "Objetivo ",
       "level": "Nivel ",
       "exercisesHeader": "Ejercicios ({{count}})",

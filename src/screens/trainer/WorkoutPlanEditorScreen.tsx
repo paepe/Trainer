@@ -446,7 +446,15 @@ export function WorkoutPlanEditorScreen({
   const estimatedPlanMinutes = React.useMemo(() => (
     Math.ceil(exercises.reduce((sum, ex) => sum + estimateExerciseSeconds(ex), 0) / 60)
   ), [exercises]);
-  const availableMinutes = context?.latestCheckin?.minutes ?? context?.physicalProfile?.session_min ?? 0;
+  // Availability resolves check-in → profile → unknown. The card must show the
+  // very number the banner is measuring against, and say where it came from:
+  // reading it only from the check-in left clients whose availability lives in
+  // the profile showing no time at all while the banner silently used it.
+  const checkinMinutes   = context?.latestCheckin?.minutes ?? null;
+  const profileMinutes   = context?.physicalProfile?.session_min ?? null;
+  const availableMinutes = checkinMinutes ?? profileMinutes ?? 0;
+  const availableSource: 'checkin' | 'profile' | null =
+    checkinMinutes != null ? 'checkin' : profileMinutes != null ? 'profile' : null;
   const planMayOverrun   = estimatedPlanMinutes > 0 && availableMinutes > 0
     && estimatedPlanMinutes > availableMinutes * 1.2;
   const planUnderfills   = estimatedPlanMinutes > 0 && availableMinutes > 0
@@ -518,17 +526,22 @@ export function WorkoutPlanEditorScreen({
                     ⚠ {context.latestCheckin.pain_region}
                   </span>
                 )}
-                {context.latestCheckin.minutes != null && (
-                  <span style={{ fontSize: 12, color: textSec(dark) }}>
-                    <span style={{ fontWeight: 700, color: textPri(dark) }}>{context.latestCheckin.minutes}min</span> {tr('trainer.planner.available')}
-                  </span>
-                )}
                 {context.latestCheckin.training_location && (
                   <span style={{ fontSize: 12, color: textSec(dark) }}>{context.latestCheckin.training_location}</span>
                 )}
               </>
             ) : (
               <span style={{ fontSize: 12, color: textMute(dark) }}>{tr('trainer.planner.noCheckin')}</span>
+            )}
+            {/* Availability sits outside the check-in branch: it may come from the
+                profile, and it is the figure the time banner measures against. */}
+            {availableSource && (
+              <span style={{ fontSize: 12, color: textSec(dark) }}>
+                <span style={{ fontWeight: 700, color: textPri(dark) }}>{availableMinutes}min</span>{' '}
+                {availableSource === 'checkin'
+                  ? tr('trainer.planner.available')
+                  : tr('trainer.planner.availableFromProfile')}
+              </span>
             )}
             {showGoal && context.physicalProfile?.primary_goal && (
               <span style={{ fontSize: 12, color: textSec(dark) }}>

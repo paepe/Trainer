@@ -102,17 +102,17 @@ The card must display the same value that governs the time banner, including its
 
 ### Checklist
 
-- [ ] Render the resolved `availableMinutes` (check-in → profile → none), not `latestCheckin.minutes`
-- [ ] Move the time chip out of the `latestCheckin ?` branch so it shows without a check-in
-- [ ] Label the source (today's check-in vs. profile default) — new i18n keys in `en`/`pt`/`de`/`es`
-- [ ] Keep the "no check-in" notice for the remaining context fields
+- [x] Render the resolved `availableMinutes` (check-in → profile → none), not `latestCheckin.minutes`
+- [x] Move the time chip out of the `latestCheckin ?` branch so it shows without a check-in
+- [x] Label the source (today's check-in vs. profile default) — new i18n keys in `en`/`pt`/`de`/`es`
+- [x] Keep the "no check-in" notice for the remaining context fields
 
 ### Acceptance
 
-- [ ] Client with check-in minutes → shows check-in value
-- [ ] Client with null check-in minutes but profile availability → shows profile value, marked as such
-- [ ] Client with neither → no time chip, banner correctly absent
-- [ ] Displayed value always equals the value used by the banner
+- [x] Client with check-in minutes → shows check-in value
+- [x] Client with null check-in minutes but profile availability → shows profile value, marked as such
+- [x] Client with neither → no time chip, banner correctly absent
+- [x] Displayed value always equals the value used by the banner
 
 ---
 
@@ -172,11 +172,19 @@ Section headers in the plan editor. Requires persistence — without it, groupin
 | Phase | Status | Completed | Commit | Notes |
 |-------|--------|-----------|--------|-------|
 | 0 — Taxonomy & Coach DNA in prompt | **Complete, awaiting promotion** | 2026-07-31 | `feat/session-structure-phase-0` | Defect found and fixed mid-phase: time fitting could delete an entire declared block. |
-| 1 — Context card accuracy | Not started | — | — | — |
+| 1 — Context card accuracy | **Complete, awaiting promotion** | 2026-07-31 | `feat/session-structure-phase-0` | Real but narrower than first reported — see closing notes. |
 | 2 — Coach DNA on client flow | Not started | — | — | — |
 | 3 — Grouped rendering & persistence | Not started | — | — | — |
 
 **Update rule:** this table and the phase checklists are updated at the close of each phase, before requesting push authorization.
+
+### Phase 1 closing notes (2026-07-31)
+
+- **Scope of the defect was overstated when first reported.** The probe that produced the original evidence read the context card before the async profile/check-in fetch had mounted it, so it reported "no time displayed" for all five of the trainer's clients. Re-measured with a proper wait: only the client whose latest check-in carries no minutes was affected. The other four always showed their check-in value. The defect was real; its blast radius was one client in five, not five in five.
+- **Fix verified in the real UI:** card and banner now agree for all five clients, and the profile-sourced case is labelled *"45min disponível (habitual, do perfil)"* rather than presented as a check-in figure.
+- **Availability chip moved out of the check-in branch**, so a client with no check-in at all still shows the profile figure the banner is measuring against.
+- **Coverage:** 4 unit tests on provenance (check-in wins / profile fallback and labelled / neither → no chip / card matches banner). Mutation-verified — reverting the card change fails two of them.
+- **Validation:** 37 unit green, 26 e2e green, `tsc --noEmit` clean.
 
 ### Phase 0 closing notes (2026-07-31)
 

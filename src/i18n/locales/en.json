@@ -895,6 +895,7 @@
       "sent": "Sent ✓",
       "todaysContext": "Today's context",
       "available": "available",
+      "availableFromProfile": "available (usual, from profile)",
       "goal": "Goal ",
       "level": "Level ",
       "exercisesHeader": "Exercises ({{count}})",
