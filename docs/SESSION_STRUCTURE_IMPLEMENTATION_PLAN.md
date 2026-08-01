@@ -98,7 +98,7 @@ Therefore, when verifying after a promotion:
 | 2 addendum (CORS fix) | `main` (direct) | `87e4c92` | No — verified live in a real browser session, see addendum | Project lead | https://trainer-bhuo0v98m-paulo-eduardo-peress-projects.vercel.app | 2026-08-01 |
 | 2 addendum (`coach_dna` RLS) | — (DB policy, no branch) | n/a — applied via migration tool, no staging exists for this project | No — see addendum | Project lead | applied directly to `xbfszzdyskwdctlqzztl` | 2026-08-01 |
 | 3 (`phase` columns) | — (DB migration, no branch) | n/a — applied via migration tool, no staging exists for this project | No — see closing notes | Project lead | applied directly to `xbfszzdyskwdctlqzztl` | 2026-08-01 |
-| 3 (code: persistence + grouped rendering) | `main` (direct) | _pending — awaiting authorization_ | No — verified live with real trainer + client accounts, see closing notes | _pending_ | _pending_ | 2026-08-01 |
+| 3 (code: persistence + grouped rendering) | `main` (direct) | `ece7759` | No — verified live with real trainer + client accounts, see closing notes | Project lead | https://trainer-hasv6qxki-paulo-eduardo-peress-projects.vercel.app | 2026-08-01 |
 
 ---
 
@@ -347,8 +347,8 @@ Section headers in the plan editor. Requires persistence — without it, groupin
 | 0 — Taxonomy & Coach DNA in prompt | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Defect found and fixed mid-phase: time fitting could delete an entire declared block. |
 | 1 — Context card accuracy | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Real but narrower than first reported — see closing notes. |
 | 2 — Declared structure on client path | **Promoted** | 2026-08-01 | `d26bece` | Rescoped: the plan's finding #4 was false. Fixed a Phase 0 regression (`DEFAULT_AI_TRAINER`) found here. |
-| 2 addendum — CORS + `coach_dna` RLS | RLS **live in production**; CORS fix **awaiting push authorization** | 2026-08-01 | RLS: DB policy, no commit. CORS: pending | Found only once tested in a real browser as the real client — see addendum. Neither is a Phase 2 regression; both pre-date it. |
-| 3 — Grouped rendering & persistence | **Migration live in production; code awaiting push authorization** | 2026-08-01 | pending | Grouping shipped in the trainer's editor only (client-side deferred, Decision #3). Verified live with real trainer + client accounts and direct DB reads. |
+| 2 addendum — CORS + `coach_dna` RLS | **Promoted** | 2026-08-01 | RLS: DB policy, no commit. CORS: `87e4c92` | Found only once tested in a real browser as the real client — see addendum. Neither is a Phase 2 regression; both pre-date it. |
+| 3 — Grouped rendering & persistence | **Promoted** | 2026-08-01 | `ece7759` | Grouping shipped in the trainer's editor only (client-side deferred, Decision #3). Verified live with real trainer + client accounts and direct DB reads. |
 
 **Update rule:** this table and the phase checklists are updated at the close of each phase, before requesting push authorization.
 
