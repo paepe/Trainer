@@ -1,9 +1,20 @@
 # Multilingual Communication Architecture — TrAIner 2.0
 
-**Status:** Approved | **Version:** 1.0  
+**Status:** Approved | **Version:** 1.1  
 **Author:** Senior System Analyst / Senior Software Architect  
-**Date:** 2026-06-06  
+**Date:** 2026-06-06 (revised 2026-08-01)  
 **Reference:** `PROFILE.md`, `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md`, `project_i18n.md`
+
+### Revision history
+
+| Version | Date | Change | Authorized by |
+|---|---|---|---|
+| 1.0 | 2026-06-06 | Initial approval | — |
+| 1.1 | 2026-08-01 | §1.2.2 relaxed from prohibition to preference — external translation APIs are no longer forbidden for sensitive categories, only discouraged as default; may be used when justified. Scope note added distinguishing this document's subject (canonical *storage* language for system-generated content) from AI-human *interaction* language, which is now Brazilian Portuguese per project lead directive — see `PROFILE.md` §Interaction Protocols | Project lead |
+
+### Scope note (added 2026-08-01)
+
+This document governs the **canonical storage language for system-generated content** (notifications, template keys) — a data-architecture decision, unrelated to what language the AI uses when talking to the project lead. That is governed separately by `PROFILE.md` §Interaction Protocols, updated 2026-08-01 to Brazilian Portuguese. Nothing in this document changes as a result of that — English remains the canonical storage/analytics language described below.
 
 ---
 
@@ -22,7 +33,7 @@ User A (Trainer, DE locale) sends a workout plan / notification / authorization 
 ### 1.2 Constraints
 
 1. **Analytics integrity** — Big Data / ML pipelines must query normalized text for pattern extraction (pain recurrence, adherence trends, injury prediction). Multi-language storage fragments the dataset.
-2. **GDPR / health-data privacy** — External translation APIs (Google, DeepL) process clinical terms on third-party servers. Forbidden for sensitive categories.
+2. **GDPR / health-data privacy** — External translation APIs (Google, DeepL, DeepSeek) process clinical terms on third-party servers. **Preferably avoided** for sensitive categories — not prohibited; may be used pragmatically when justified by the project lead, weighed against delivery speed (2026-08-01 revision — "o ótimo é inimigo do bom"). Already in production use: `api/translate-exercise-content.ts` sends manually-typed exercise names and free-text notes (which may occasionally carry injury/pain context) to DeepSeek for on-demand translation.
 3. **Latency** — On-the-fly translation at display time adds ~200-800ms per item.
 4. **Existing i18n investment** — The system already has 4 fully translated locale files (en/pt/es/de) with 1700+ keys. This asset must be leveraged.
 

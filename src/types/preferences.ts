@@ -27,6 +27,7 @@ export interface AppPreferences {
   aiPersonalization: boolean;
   whiteLabel:        boolean;
   darkMode:          boolean;
+  keepExerciseNamesInEnglish: boolean;
 
   // Tier 1 — typed value preferences
   defaultLocation:        TrainingLocation;

@@ -2324,7 +2324,8 @@
       "appearance": "Aparência",
       "language": "Idioma",
       "clientMgmt": "Gestão de Clientes",
-      "lightPalette": "Paleta Modo Claro"
+      "lightPalette": "Paleta Modo Claro",
+      "exerciseNames": "Nomes de Exercícios"
     },
     "fields": {
       "location": {
@@ -2409,6 +2410,10 @@
       "whiteLabel": {
         "label": "Marca Branca",
         "hint": "Ocultar marca TrAIner."
+      },
+      "exerciseNamesEnglish": {
+        "label": "Mantenha os nomes dos exercícios em inglês.",
+        "hint": "Desligado, os nomes aparecem traduzidos para o idioma do app."
       }
     },
     "opt": {

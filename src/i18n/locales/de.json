@@ -2324,7 +2324,8 @@
       "appearance": "Erscheinungsbild",
       "language": "Sprache",
       "clientMgmt": "Kundenverwaltung",
-      "lightPalette": "Helles Farbprofil"
+      "lightPalette": "Helles Farbprofil",
+      "exerciseNames": "Übungsnamen"
     },
     "fields": {
       "location": {
@@ -2409,6 +2410,10 @@
       "whiteLabel": {
         "label": "White Label",
         "hint": "TrAIner-Branding ausblenden."
+      },
+      "exerciseNamesEnglish": {
+        "label": "Behalte die Übungsnamen auf Englisch bei.",
+        "hint": "Ausgeschaltet werden die Übungsnamen in deine App-Sprache übersetzt."
       }
     },
     "opt": {

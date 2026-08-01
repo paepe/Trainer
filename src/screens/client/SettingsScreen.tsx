@@ -151,6 +151,7 @@ export function SettingsScreen({ nav: _nav, t, prefs, setPrefs, dark, isTrainer 
 
         {/* Language — all roles */}
         <SelectorSection title={tr('settings.sections.language')} rows={localePrefs} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
+        <ToggleSection title={tr('settings.sections.exerciseNames')} rows={[['keepExerciseNamesInEnglish', tr('settings.toggle.exerciseNamesEnglish.label'), tr('settings.toggle.exerciseNamesEnglish.hint')]]} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
 
         {/* Notifications */}
         <ToggleSection title={tr('settings.sections.notifications')} rows={notifGroup} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>

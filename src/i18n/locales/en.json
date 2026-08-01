@@ -2324,7 +2324,8 @@
       "appearance": "Appearance",
       "language": "Language",
       "clientMgmt": "Client Management",
-      "lightPalette": "Light Mode Palette"
+      "lightPalette": "Light Mode Palette",
+      "exerciseNames": "Exercise Names"
     },
     "fields": {
       "location": {
@@ -2409,6 +2410,10 @@
       "whiteLabel": {
         "label": "White Label",
         "hint": "Hide TrAIner branding."
+      },
+      "exerciseNamesEnglish": {
+        "label": "Keep exercise names in English.",
+        "hint": "Off shows exercise names translated to your app language instead."
       }
     },
     "opt": {

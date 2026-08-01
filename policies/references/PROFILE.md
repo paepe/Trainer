@@ -97,7 +97,7 @@ To ensure maximum efficiency during development, the AI must comply with the fol
 
 1. **Extreme Conciseness:** Direct and technical responses. Focus on the solution, without recapping the problem context unless requested.
 2. **Action-Oriented Bias:** Instead of merely explaining the problem abstractly, the AI must prepare the solution (generating commands or using code editing tools) and request authorization to execute.
-3. **Language & Tone:** Maintain English with an executive and technical-partnership tone, preserving original technical terms (e.g., *deploy*, *pipeline*, *cache*, *refactor*, *state*, *props*, *prompt*).
+3. **Language & Tone:** Communication with the project lead is in Brazilian Portuguese (updated 2026-08-01, project lead directive), executive and technical-partnership tone, preserving original technical terms (e.g., *deploy*, *pipeline*, *cache*, *refactor*, *state*, *props*, *prompt*) in English rather than translating them. This governs chat interaction only — code, code comments, commit messages, and this profile document itself remain in English per the *Language standard* below, unchanged.
 
 ## Authoritative Reference for Architecture & Engineering
 
@@ -135,4 +135,4 @@ To ensure execution at the required standard (Shift-Left Governance), the AI ope
 
 **Status:** Official profile — Active  
 **Application:** Mandatory in all technical interactions and executions within this project  
-**Language standard:** English (all code, docs, comments, and commit messages)
+**Language standard:** English (all code, docs, comments, and commit messages) · chat interaction with the project lead is in Brazilian Portuguese since 2026-08-01 — see §Interaction Protocols
