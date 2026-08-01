@@ -31,4 +31,6 @@ export interface ExState {
   // Carried through so the live session's data model is complete — grouped
   // display here is a separate, deferred track (Decision #3, 2026-07-31).
   phase:                     string | null;
+  // Locale the name was written/generated in (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D7).
+  nameSourceLocale:          string | null;
 }

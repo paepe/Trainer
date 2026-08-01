@@ -56,6 +56,7 @@ export interface QueuedFullSessionExercise {
   status:                      SessionExerciseStatus;
   skipped_reason:              string | null;
   set_logs:                    Array<Pick<QueuedSetLog, 'set_number' | 'reps_done' | 'load_kg' | 'rpe' | 'duration_seconds' | 'completed_at'>>;
+  name_source_locale:          string | null;
 }
 
 export interface QueuedFullSession {
@@ -196,6 +197,7 @@ async function replayFullSession(
         notes:                       ex.notes,
         status:                      ex.status,
         skipped_reason:              ex.skipped_reason,
+        name_source_locale:          ex.name_source_locale,
       })))
       .select('id, order_index');
     if (exError || !inserted) return false;

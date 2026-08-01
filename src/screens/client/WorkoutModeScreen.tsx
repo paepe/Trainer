@@ -14,6 +14,7 @@ import { LabeledInput } from './workout/LabeledInput';
 import type { Phase, ExState } from './workout/types';
 import { enqueue, flush, pendingCount, type QueuedFullSession } from '../../lib/workoutSyncQueue';
 import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
+import { useTranslatedExerciseNamesByRow } from '../../hooks/useTranslatedExerciseNamesByRow';
 import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
 import type { AppLanguage } from '../../i18n';
 
@@ -140,6 +141,7 @@ export function WorkoutModeScreen({
             rest_seconds:     se.rest_seconds,
             notes:            se.notes,
             phase:            se.phase ?? null,
+            name_source_locale: se.name_source_locale ?? null,
           }, i)
         ));
       }
@@ -178,13 +180,14 @@ export function WorkoutModeScreen({
   const allDone      = doneCount === exStates.length && exStates.length > 0;
   const isOffline    = (id: string) => id.startsWith('offline-');
 
-  // Translates trainer-typed exercise names/notes to this client's locale —
-  // AI-generated content is already in the right language at generation time.
-  // Only the name respects the keep-English-names toggle (docs/
-  // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D1) — notes always follow the
-  // client's own app language.
-  const translateName = useTranslatedExerciseContent(
-    exStates.map(e => e.name),
+  // Translates exercise names to this client's locale — every row carries
+  // its own name_source_locale (AI-generated, catalog, or hand-typed, D7),
+  // grouped and translated only where it diverges from what this client
+  // should see. Only the name respects the keep-English-names toggle (docs/
+  // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D1) — notes (translateNote
+  // below) always follow the client's own app language.
+  const translateName = useTranslatedExerciseNamesByRow(
+    exStates.map(e => ({ name: e.name, name_source_locale: e.nameSourceLocale })),
     resolveExerciseNameLocale({ keepExerciseNamesInEnglish, language: i18n.language as AppLanguage }),
   );
   const translateNote = useTranslatedExerciseContent(
@@ -346,6 +349,7 @@ export function WorkoutModeScreen({
             status:                      e.status,
             skipped_reason:              e.skippedReason,
             set_logs:                    e.setLogs,
+            name_source_locale:          e.nameSourceLocale,
           })),
         };
         enqueue({ kind: 'full_session', payload: fullSession });
@@ -672,5 +676,6 @@ function makeExState(id: string, ex: Partial<GeneratedWorkoutExercise> & { exerc
     setLogs:                   [],
     skippedReason:             null,
     phase:                     ex.phase ?? null,
+    nameSourceLocale:          ex.name_source_locale ?? null,
   };
 }

@@ -2152,6 +2152,7 @@ export type Database = {
           id: string
           load_kg_prescribed: number | null
           muscle_group: string | null
+          name_source_locale: string | null
           notes: string | null
           order_index: number
           phase: string | null
@@ -2172,6 +2173,7 @@ export type Database = {
           id?: string
           load_kg_prescribed?: number | null
           muscle_group?: string | null
+          name_source_locale?: string | null
           notes?: string | null
           order_index?: number
           phase?: string | null
@@ -2192,6 +2194,7 @@ export type Database = {
           id?: string
           load_kg_prescribed?: number | null
           muscle_group?: string | null
+          name_source_locale?: string | null
           notes?: string | null
           order_index?: number
           phase?: string | null

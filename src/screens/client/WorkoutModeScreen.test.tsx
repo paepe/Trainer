@@ -156,3 +156,68 @@ describe('WorkoutModeScreen — offline resilience', () => {
     expect(startWorkoutSession).toHaveBeenCalledTimes(1);
   });
 });
+
+// Regression for a bug found live 2026-08-01: this screen used to translate
+// every session exercise name assuming a fixed Portuguese source, silently
+// altering already-correct AI-generated text on every read (e.g. "Cinta
+// rodante" → "Cinta para correr"). Each session exercise now carries its own
+// name_source_locale (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D7).
+describe('WorkoutModeScreen — exercise name translation by source locale (Fase 3)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal('fetch', vi.fn());
+  });
+
+  function sessionExercisesWith(nameSourceLocale: string | null) {
+    return [{
+      id: 'ex-1', session_id: 'session-1', exercise_name: 'Cinta rodante', muscle_group: 'Legs',
+      order_index: 0, sets_prescribed: 1, reps_prescribed: 10, duration_seconds_prescribed: null, load_kg_prescribed: 40,
+      rest_seconds: 60, notes: null, status: 'pending', skipped_reason: null,
+      name_source_locale: nameSourceLocale,
+    }];
+  }
+
+  it('does not call the translation endpoint when the exercise name is already in the target locale (default target: en)', async () => {
+    const startWorkoutSession = vi.fn().mockResolvedValue({
+      data: { sessionId: 'session-1', sessionExercises: sessionExercisesWith('en') },
+      error: null,
+    });
+    render(<WorkoutModeScreen {...makeProps({ startWorkoutSession })} />);
+
+    expect(await screen.findByText('Cinta rodante')).toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("translates the exercise name when its recorded source diverges from the target, instead of silently corrupting already-correct text", async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: { 'Cinta rodante': 'Treadmill' } }),
+    });
+    const startWorkoutSession = vi.fn().mockResolvedValue({
+      data: { sessionId: 'session-1', sessionExercises: sessionExercisesWith('es') },
+      error: null,
+    });
+    render(<WorkoutModeScreen {...makeProps({ startWorkoutSession })} />);
+
+    expect(await screen.findByText('Treadmill')).toBeInTheDocument();
+    const body = JSON.parse((fetch as ReturnType<typeof vi.fn>).mock.calls[0]![1].body as string);
+    expect(body.sourceLocale).toBe('es');
+    expect(body.targetLocale).toBe('en');
+  });
+
+  it('falls back to pt source for a session exercise with no recorded name_source_locale (legacy)', async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: { 'Cinta rodante': 'Cinta rodante' } }),
+    });
+    const startWorkoutSession = vi.fn().mockResolvedValue({
+      data: { sessionId: 'session-1', sessionExercises: sessionExercisesWith(null) },
+      error: null,
+    });
+    render(<WorkoutModeScreen {...makeProps({ startWorkoutSession })} />);
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    const body = JSON.parse((fetch as ReturnType<typeof vi.fn>).mock.calls[0]![1].body as string);
+    expect(body.sourceLocale).toBe('pt');
+  });
+});

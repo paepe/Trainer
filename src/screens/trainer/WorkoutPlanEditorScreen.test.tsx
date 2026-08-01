@@ -672,7 +672,7 @@ describe('WorkoutPlanEditorScreen — AI generation locale (Fase 2)', () => {
     expect(inserted[0]).toMatchObject({ exercise_name: 'Sentadilla', name_source_locale: 'es' });
   });
 
-  it('leaves name_source_locale null for a hand-typed exercise (no AI provenance to claim)', async () => {
+  it("records the trainer's own locale for a hand-typed exercise (Fase 3 provenance)", async () => {
     const planInsert = vi.fn().mockReturnValue({
       select: () => ({ single: () => Promise.resolve({ data: { id: 'plan-manual' }, error: null }) }),
     });
@@ -693,10 +693,10 @@ describe('WorkoutPlanEditorScreen — AI generation locale (Fase 2)', () => {
 
     await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
     const [inserted] = exercisesInsert.mock.calls[0]!;
-    expect(inserted[0]).toMatchObject({ exercise_name: 'Squat', name_source_locale: null });
+    expect(inserted[0]).toMatchObject({ exercise_name: 'Squat', name_source_locale: 'en' });
   });
 
-  it("clears a generated exercise's provenance tag once the trainer hand-edits its name", async () => {
+  it("replaces a generated exercise's provenance tag with the trainer's own locale once they hand-edit the name", async () => {
     const { requestWorkoutPlan } = await import('../../lib/workoutGeneration');
     vi.mocked(requestWorkoutPlan).mockResolvedValueOnce([{
       exercise_name: 'Sentadilla', muscle_group: 'Legs', sets: 3, reps: 10,
@@ -731,7 +731,7 @@ describe('WorkoutPlanEditorScreen — AI generation locale (Fase 2)', () => {
 
     await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
     const [inserted] = exercisesInsert.mock.calls[0]!;
-    expect(inserted[0]).toMatchObject({ exercise_name: 'Squat manual', name_source_locale: null });
+    expect(inserted[0]).toMatchObject({ exercise_name: 'Squat manual', name_source_locale: 'en' });
   });
 });
 

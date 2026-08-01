@@ -246,27 +246,29 @@ Aplicada em produção com autorização do líder ("outras informações de alu
 
 Único caso sem forma canônica prévia. Grava verbatim (D6), registra a origem (D7) e traduz na leitura apenas quando o leitor pede idioma diferente. Falha de tradução mantém o nome originalmente enviado (D8).
 
+**Achado durante a implementação — StartWorkoutScreen e WorkoutModeScreen sempre assumiam origem pt fixa (2026-08-01)**: ao ligar o `sourceLocale` de leitura, descobri que as duas telas onde o **aluno** vê o nome do exercício (pré-visualização do plano do treinador e sessão ao vivo) nunca declaravam `sourceLocale` na chamada a `translate-exercise-content` — o endpoint caía no default `'pt'` para toda e qualquer linha, inclusive nomes gerados por IA já corretos no idioma certo (Fase 2). Reproduzido ao vivo com dado real da própria verificação da Fase 2: o nome gerado `"Cinta rodante: caminata rápida"` (espanhol correto, `name_source_locale='es'`) chegou ao aluno como `"Cinta para correr: caminata rápida"` — alterado por uma tradução pt→es desnecessária sobre texto que já estava certo. A aceitação da Fase 2 (“nomes chegam em espanhol, sem tradução em runtime”) foi declarada satisfeita prematuramente; corrigido nesta fase. Criado `useTranslatedExerciseNamesByRow` (`src/hooks/useTranslatedExerciseNamesByRow.ts`) — agrupa uma lista mista de nomes (IA, catálogo, digitado à mão) por `name_source_locale` e nunca chama o endpoint para uma linha cuja origem já bate com o alvo — reutilizado nas 3 telas que exibem nome de exercício (`WorkoutPlanEditorScreen`, `StartWorkoutScreen`, `WorkoutModeScreen`).
+
 ### Checklist
 
-- [ ] Migração: `plan_exercises.name_source_locale text` e `workout_session_exercises.name_source_locale text` (aditivas, nullable)
-- [ ] Gravar o idioma do treinador no momento em que ele digita o nome
-- [ ] `translate-exercise-content`: aceitar `sourceLocale` por item e declará-lo no prompt, substituindo o português fixo (achado 5)
-- [ ] Curto-circuito: origem igual ao alvo → nenhuma chamada, texto intocado
-- [ ] Backfill das linhas legadas: classificar `name_source_locale` (en/pt/es/de) por inspeção direta dos 268 nomes distintos existentes — decidido pelo líder (2026-08-01), sem sistema de detecção automática dedicado
-- [ ] Falha de tradução mantém o nome originalmente enviado (D8) — mesmo fallback já usado no resto do pipeline, sem indicador visual dedicado
-- [ ] Revalidar empiricamente o par pt→es após a mudança de prompt — foi onde o defeito original apareceu
-- [ ] Revisar `MAX_ITEMS = 50` para o volume real desta superfície
-- [ ] Testes mutation-testados, incluindo o caso origem == alvo
+- [x] Migração: `plan_exercises.name_source_locale text` (Fase 2) e `workout_session_exercises.name_source_locale text` (aditivas, nullable) — arquivada em `supabase/sql-archive/supabase-workout-session-exercises-name-source-locale-20260801.sql`
+- [x] Gravar o idioma do treinador no momento em que ele digita o nome — [WorkoutPlanEditorScreen.tsx](../src/screens/trainer/WorkoutPlanEditorScreen.tsx), `trainerLocale` no lugar do `null` que a Fase 2 gravava
+- [x] `translate-exercise-content`: aceitar `sourceLocale` e declará-lo no prompt, substituindo o português fixo (achado 5) — **já estava implementado** desde a Fase 1 (a biblioteca em inglês forçou isso antes mesmo desta fase existir); confirmado por leitura direta do endpoint antes de codificar
+- [x] Curto-circuito: origem igual ao alvo → nenhuma chamada, texto intocado — **já estava implementado** no endpoint (`translateMissing`); a lacuna real era do lado de quem chamava (as telas nunca declaravam a origem real), fechada por `useTranslatedExerciseNamesByRow`
+- [x] Backfill das linhas legadas: 282 nomes distintos classificados por inspeção direta (96 pt, 18 de, 167 en — 1, `Bea260528`, deixado sem classificar por não ser um nome reconhecível) — rascunho revisado e confirmado pelo líder antes de aplicar, `docs/PLAN_EXERCISES_NAME_SOURCE_LOCALE_BACKFILL_DRAFT_20260801.md`, SQL arquivado em `supabase/sql-archive/supabase-plan-exercises-name-source-locale-backfill-20260801.sql`. Divergência da estimativa original (A2: ">80% inglês") registrada no rascunho — na prática ~60%
+- [x] Falha de tradução mantém o nome originalmente enviado (D8) — comportamento herdado de `useTranslatedExerciseContent` (fallback `cache.get(...) ?? text`), sem mudança necessária
+- [ ] Revalidar empiricamente o par pt→es após a mudança de prompt — **pendente, requer push e verificação ao vivo**
+- [x] Revisar `MAX_ITEMS = 50` para o volume real desta superfície — já em 300 desde a Fase 1 (achado 8), mais que suficiente para qualquer plano real; nada a mudar
+- [x] Testes mutation-testados, incluindo o caso origem == alvo — `useTranslatedExerciseNamesByRow.test.ts` (5 testes) + 3 testes novos em `WorkoutModeScreen.test.tsx` reproduzindo o achado do "Cinta rodante"; 2 testes da Fase 2 atualizados para o novo comportamento de gravação
 
 ### Aceitação
 
-- [ ] Treinador PT digita `Remada Curvada`, aluno PT: texto chega **idêntico**, zero chamadas de tradução
-- [ ] Treinador PT digita `Remada Curvada`, aluno ES com toggle desligado: chega em espanhol
-- [ ] Treinador PT digita, aluno com toggle ligado: chega em inglês
-- [ ] O treinador **nunca** vê o próprio texto digitado se alterar sozinho no editor
-- [ ] Falha de tradução tem comportamento observável, não silencioso
-- [ ] 10 execuções do pior caso (pt→es, frase curta) sem nome não traduzido
-- [ ] `tsc`, lint, testes, build verdes
+- [ ] Treinador PT digita `Remada Curvada`, aluno PT: texto chega **idêntico**, zero chamadas de tradução — **pendente verificação ao vivo**
+- [ ] Treinador PT digita `Remada Curvada`, aluno ES com toggle desligado: chega em espanhol — **pendente verificação ao vivo**
+- [ ] Treinador PT digita, aluno com toggle ligado: chega em inglês — **pendente verificação ao vivo**
+- [x] O treinador **nunca** vê o próprio texto digitado se alterar sozinho no editor — o nome digitado é gravado verbatim no estado local (`draft.exercise_name`); a tela nunca lê de volta um valor traduzido para o campo de edição, só a lista de já adicionados usa `translatePlanExerciseName` (view read-only)
+- [x] Falha de tradução tem comportamento observável, não silencioso — `console.error` no servidor + fallback visível ao texto original (nunca tela em branco); sem indicador dedicado, conforme D8
+- [ ] 10 execuções do pior caso (pt→es, frase curta) sem nome não traduzido — **pendente verificação ao vivo**
+- [x] `tsc`, lint, testes (91/91), build verdes
 
 ---
 

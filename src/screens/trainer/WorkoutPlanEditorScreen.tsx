@@ -29,6 +29,7 @@ import { ADJUSTABLE_BLOCKS, normalizeBlock, type SessionBlock } from '../../lib/
 import { VoiceBar } from '../../coach-dna/components/VoiceBar';
 import { cleanupVoiceNote } from '../../lib/cleanupVoiceNote';
 import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
+import { useTranslatedExerciseNamesByRow } from '../../hooks/useTranslatedExerciseNamesByRow';
 import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
 import type { AppLanguage } from '../../i18n';
 
@@ -176,18 +177,13 @@ export function WorkoutPlanEditorScreen({
     trainerLocale,
     'en',
   );
-  // The plan's own already-added list: only AI-generated rows carry a known
-  // source locale (name_source_locale, Fase 2) — catalog and hand-typed
-  // entries leave it unset and are rendered as-is (Fase 3 adds provenance for
-  // those). Skips the network call entirely when the trainer's own locale
-  // already matches the recipient's.
-  const planExerciseNamesToTranslate = trainerLocale !== recipientLocale
-    ? exercises.filter(ex => ex.name_source_locale === recipientLocale).map(ex => ex.exercise_name)
-    : [];
-  const translatePlanExerciseName = useTranslatedExerciseContent(
-    planExerciseNamesToTranslate,
+  // The plan's own already-added list: every row now carries a known source
+  // locale — AI-generated (Fase 2), catalog ('en'), or hand-typed (the
+  // trainer's own locale at the time, Fase 3) — grouped and translated for
+  // the trainer's own view only when it diverges from that row's source.
+  const translatePlanExerciseName = useTranslatedExerciseNamesByRow(
+    exercises.map(ex => ({ name: ex.exercise_name, name_source_locale: ex.name_source_locale })),
     trainerLocale,
-    recipientLocale,
   );
   // Voice dictation for the notes field mirrors Step12Philosophy's pattern:
   // buffer raw chunks for the session, run one cleanup pass on stop (not
@@ -552,6 +548,7 @@ export function WorkoutPlanEditorScreen({
       rest_seconds:     ex.rest_seconds,
       notes:            ex.notes || null,
       phase:            ex.phase ?? null,
+      name_source_locale: ex.name_source_locale ?? null,
     }));
     // freeSession is driven by App state (not payload) — router injects it into WorkoutModeScreen.
     nav('workoutMode', {
@@ -599,9 +596,7 @@ export function WorkoutPlanEditorScreen({
       >
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
-            {ex.name_source_locale === recipientLocale && trainerLocale !== recipientLocale
-              ? translatePlanExerciseName(ex.exercise_name)
-              : ex.exercise_name}
+            {translatePlanExerciseName({ name: ex.exercise_name, name_source_locale: ex.name_source_locale })}
           </div>
           <div style={{ fontSize: 11, color: textSec(dark), marginTop: 3 }}>
             {ex.muscle_group && `${ex.muscle_group} · `}{ex.sets}×{
@@ -798,9 +793,12 @@ export function WorkoutPlanEditorScreen({
                 placeholder={tr('trainer.planner.exerciseName')}
                 value={draft.exercise_name}
                 onChange={v => {
-                  // Hand-editing the name invalidates any AI provenance tag —
-                  // the text may no longer be in that locale (D6).
-                  setDraft({ ...draft, exercise_name: v, name_source_locale: null });
+                  // Hand-editing invalidates any prior AI/catalog provenance
+                  // tag (the text may no longer be in that locale, D6) and
+                  // replaces it with the trainer's own locale — the language
+                  // they're actually typing in right now (D7, Fase 3: hand-
+                  // typed names get real provenance instead of null).
+                  setDraft({ ...draft, exercise_name: v, name_source_locale: trainerLocale });
                   setNameError(false);
                   searchCatalog(v);
                 }}

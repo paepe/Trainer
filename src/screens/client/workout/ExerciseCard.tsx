@@ -4,10 +4,11 @@ import { Icon } from '../../../components/Icon';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../../theme';
 import { translateMuscleGroup } from '../../../lib/translateMuscleGroup';
 import type { ExState } from './types';
+import type { NamedRow } from '../../../hooks/useTranslatedExerciseNamesByRow';
 
 interface ExerciseCardProps {
   ex:            ExState;
-  translateName: (text: string | null | undefined) => string;
+  translateName: (row: NamedRow) => string;
   translateNote: (text: string | null | undefined) => string;
   isActive:      boolean;
   dark:          boolean;
@@ -46,7 +47,7 @@ export function ExerciseCard({ ex, translateName, translateNote, isActive, dark,
           <div style={{
             fontSize: 14, fontWeight: 700, color: textPri(dark),
             textDecoration: ex.status === 'skipped' ? 'line-through' : 'none',
-          }}>{translateName(ex.name)}</div>
+          }}>{translateName({ name: ex.name, name_source_locale: ex.nameSourceLocale })}</div>
           <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 1 }}>
             {[
               ex.muscleGroup ? translateMuscleGroup(ex.muscleGroup) : null,

@@ -100,6 +100,7 @@ export interface WorkoutSessionExercise {
   substituted_from_id:      string | null;
   skipped_reason?:          string | null;
   phase?:                   string | null;
+  name_source_locale?:      string | null;
 }
 
 export interface WorkoutSetLog {

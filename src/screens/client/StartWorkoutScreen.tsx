@@ -18,6 +18,7 @@ import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
 import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
+import { useTranslatedExerciseNamesByRow } from '../../hooks/useTranslatedExerciseNamesByRow';
 import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
 import type { AppLanguage } from '../../i18n';
 import { notifyLinkedTrainer } from '../../lib/notify';
@@ -84,7 +85,7 @@ interface PlanCard {
     id:        string;
     sentAt:    string | null;
     status:    string;
-    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; duration_seconds?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null; exercise_category?:string|null; phase?:string|null}>;
+    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; duration_seconds?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null; exercise_category?:string|null; phase?:string|null; name_source_locale?:string|null}>;
   }
 
 type GenState =
@@ -228,13 +229,15 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const { classificationMap } = useExerciseClassification(
     fitnessOnlyWorkout && !isTrainerView ? allTrainerExercises : [],
   );
-  // Translates trainer-typed exercise names/notes on the plan-card preview —
-  // AI-generated plans are already in the client's language at generation time.
-  // Names and notes use different target locales: only the name respects the
+  // Translates exercise names on the plan-card preview for this client's own
+  // locale — every row now carries its own name_source_locale (AI-generated,
+  // catalog, or hand-typed, D7), grouped and translated only where it
+  // diverges from what this client should see. Only the name respects the
   // keep-English-names toggle (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md,
-  // D1) — notes always follow the client's own app language.
-  const translateName = useTranslatedExerciseContent(
-    trainerPlans.flatMap(p => p.exercises.map(e => e.exercise_name)),
+  // D1) — notes (translateNote below) always follow the client's own app
+  // language, untouched by that toggle.
+  const translateName = useTranslatedExerciseNamesByRow(
+    trainerPlans.flatMap(p => p.exercises.map(e => ({ name: e.exercise_name, name_source_locale: e.name_source_locale }))),
     resolveExerciseNameLocale({
       keepExerciseNamesInEnglish: prefs?.keepExerciseNamesInEnglish ?? true,
       language: i18n.language as AppLanguage,
@@ -402,7 +405,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         // Status is NOT mutated here — a plan only becomes 'active' when the workout actually starts.
         const { data: planRows } = await supabase
           .from('workout_plans')
-          .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category, phase)')
+          .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category, phase, name_source_locale)')
           .eq('assigned_to', user.id)
           .eq('source', 'manual')
           .in('status', ['sent', 'active', 'postponed'])
@@ -752,6 +755,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         rest_seconds:     ex.rest_seconds  ?? null,
         notes:            ex.notes         ?? null,
         phase:            ex.phase         ?? null,
+        name_source_locale: ex.name_source_locale ?? null,
       })),
     });
   };
@@ -938,7 +942,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                             color: t.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}>{ei + 1}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: inkPri(dark) }}>{translateName(ex.exercise_name)}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: inkPri(dark) }}>{translateName({ name: ex.exercise_name, name_source_locale: ex.name_source_locale })}</div>
                             <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
                               {[
                                 ex.sets        ? `${ex.sets} sets`         : null,

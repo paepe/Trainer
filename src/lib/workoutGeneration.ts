@@ -20,6 +20,8 @@ export interface GeneratedWorkoutExercise {
   notes?:           string | null;
   /** Session block this exercise belongs to (see src/lib/sessionStructure.ts). */
   phase?:           string | null;
+  /** Locale the name was written/generated in (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D7). */
+  name_source_locale?: string | null;
 }
 
 // Result from smart workout — includes safety context alongside exercises
