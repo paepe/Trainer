@@ -75,6 +75,35 @@ describe('PlansScreen', () => {
     expect(screen.getByText('Current plan')).toBeInTheDocument();
   });
 
+  // Regression for a bug found 2026-08-01: a free client mid welcome-window
+  // (21-day taste of ai_fitness-level features, see useWelcomeWindow) was
+  // shown "Current plan" on the AI Fitness card instead of Free — and worse,
+  // that flagged AI Fitness as already-selected, disabling the one button
+  // that would actually convert them to a paid subscription.
+  it('keeps "Current plan" on Free during an active welcome window, and still allows confirming AI Fitness', async () => {
+    const nav = vi.fn();
+    const upsertSubscription = mockUpsert();
+    const twentyDaysOut = new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString();
+    render(<PlansScreen nav={nav} t={{ primary: '#000', accent: '#000' }} dark={false}
+      user={{
+        id: '1', role: 'client', plan_key: 'free',
+        subscription: { plan_key: 'free', status: 'active', billing_cycle: null, current_period_end: twentyDaysOut },
+      }}
+      upsertSubscription={upsertSubscription} updateProfile={upsertSubscription}/>
+    );
+
+    const currentBadge = screen.getByText('Current plan');
+    const freeCard = screen.getByText('Stay in motion').closest('button');
+    expect(freeCard).toContainElement(currentBadge);
+
+    fireEvent.click(screen.getByText('Your AI in the loop'));
+    const cta = screen.getByText('Confirm my license').closest('button') as HTMLButtonElement;
+    expect(cta).not.toBeDisabled();
+    fireEvent.click(cta);
+
+    await waitFor(() => expect(upsertSubscription).toHaveBeenCalledWith('ai_fitness', 'monthly'));
+  });
+
   it('persists the selected plan via upsertSubscription and navigates to planConfirm outside onboarding', async () => {
     const nav = vi.fn();
     const upsertSubscription = mockUpsert();

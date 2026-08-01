@@ -45,20 +45,28 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
   const { plans, loading } = usePlanPrices(audienceMode);
   const accent = showingTrainer ? TRAINER_PRIMARY : C.cyan;
 
-  // Use effective plan key for display — reflects welcome/trial windows correctly
+  // The plan actually billed/subscribed — drives "current plan" badge, CTA
+  // label, and the confirm gate. Must never be the welcome/trial-elevated
+  // tier: a free client mid welcome-window sampling ai_fitness features is
+  // not "already on" ai_fitness, and flagging it as current silently
+  // disabled the confirm button for the exact plan this screen exists to
+  // sell them (bug found 2026-08-01 — see docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md
+  // conversation log for the report that led here).
+  const currentPlanKey = user.plan_key;
+  // Effective (welcome/trial-elevated) plan key — used only to recommend the
+  // tier matching what the user is currently tasting, never for "current".
   const effectivePlanKey = useEffectivePlanKey(user.subscription ?? null);
-  const displayPlanKey   = effectivePlanKey ?? user.plan_key;
 
   const [billing, setBilling] = React.useState<BillingCycle>('monthly');
   const [selected, setSelected] = React.useState<string | null>(
-    isManage && displayPlanKey ? displayPlanKey : null
+    isManage && currentPlanKey ? currentPlanKey : null
   );
   const [confirming, setConfirming] = React.useState(false);
   const [confirmErr, setConfirmErr] = React.useState('');
 
   React.useEffect(() => { setSelected(null); setConfirmErr(''); }, [audienceMode]);
 
-  const canConfirm = !!selected && selected !== displayPlanKey && !confirming;
+  const canConfirm = !!selected && selected !== currentPlanKey && !confirming;
 
   const handleConfirm = async () => {
     if (!selected || confirming) return;
@@ -173,10 +181,14 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
             const cents     = billing === 'annual' ? plan.annual_cents  : plan.monthly_cents;
             const free      = cents === 0;
             const isSel     = selected === plan.id;
-            const isCurrent = displayPlanKey === plan.id;
+            const isCurrent = currentPlanKey === plan.id;
+            // Onboarding recommendation may point at the welcome/trial-elevated
+            // tier (nudge toward what they're already tasting) — deliberately
+            // independent of isCurrent so the two badges can land on different
+            // cards (e.g. "Current" on Free, "Best fit" on AI Fitness).
             const recommended = isManage
               ? isCurrent
-              : displayPlanKey ? isCurrent : i === 1;
+              : effectivePlanKey ? effectivePlanKey === plan.id : i === 1;
 
             const name     = tr(`plans.text.${plan.id}.name`);
             const tag      = tr(`plans.text.${plan.id}.tag`);
