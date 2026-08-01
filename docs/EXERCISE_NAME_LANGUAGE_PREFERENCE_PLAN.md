@@ -186,7 +186,8 @@ Categoria de conteúdo diferente de "nome de exercício" (não é gated pelo tog
 
 ### Aceitação
 
-- [ ] Verificação ao vivo pendente: título, descrição e objetivo do protocolo em pt/es/de, comparados item a item contra o rascunho — ainda não executada nesta sessão
+- [x] Verificado ao vivo em produção (`trainer-lake.vercel.app`, `carlos.silva@trainer.test`, conta pt-BR): título, badge de nível e descrição/objetivo conferidos em 3 protocolos (`Full Body Beginner Fat Burn` → `Queima de Gordura Corpo Inteiro para Iniciantes`/INICIANTE/Perda de Peso; `Fat Burn Tabata` → `Tabata Queima Gordura`/AVANÇADO; `Express Lunch Break Burner` → `Queima Rápida na Pausa do Almoço`/INICIANTE) — todos batendo exatamente com o rascunho, nenhum resíduo em inglês
+- [x] `tsc`, lint, testes (75/75), build verdes — confirmado antes do push
 
 ---
 
@@ -252,7 +253,7 @@ Faz a IA gerar o nome **já no idioma correto do destinatário**, eliminando a e
 |------|--------|-----------|--------|-------|
 | 0 — Contrato e schema | **Concluída** | 2026-08-01 | `a2ee571` | Migração aplicada direto em `xbfszzdyskwdctlqzztl` (sem staging); código verificado ao vivo e publicado em `main` |
 | 1 — Biblioteca | **Concluída** | 2026-08-01 | `53d8bb4` | 387 traduções curadas carregadas; verificado ao vivo em produção, 129/129 corretos nos dois estados do toggle |
-| 1b — Metadados de protocolo | Código + dados prontos | 2026-08-01 | *(pendente push)* | 195 traduções curadas carregadas; verificação ao vivo em produção ainda pendente |
+| 1b — Metadados de protocolo | **Concluída** | 2026-08-01 | `e99b2cf` | 195 traduções curadas carregadas; verificado ao vivo em produção, 3 protocolos conferidos item a item |
 | 2 — Nomes de IA | Não iniciada | — | — | — |
 | 3 — Nomes manuais | Não iniciada | — | — | — |
 
