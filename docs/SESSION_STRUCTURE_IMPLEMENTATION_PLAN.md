@@ -411,4 +411,12 @@ Found and confirmed during Phase 3's live verification, unrelated to this plan's
 
 **Pre-existing, not introduced by Phases 0–3.** Not fixed here — fixing it means adding a real translation pipeline for free text (on-demand, cached, versioned per §6.5), which is new feature work, not a bug-fix-sized change.
 
+### Checklist
+
+- [ ] Project lead decides priority and approach (own translation pipeline vs. reusing/adapting a pattern from elsewhere)
+- [ ] Design the pipeline: on-demand, cached, versioned per §6.5 — likely mirrors the shape of `translate-content` from the sevenseeds-web reference architecture, adapted to this project (no `supabase/functions` here; would live under `api/`)
+- [ ] Decide the trigger point: translate at send-time (cached per plan) vs. translate at read-time (cached per client locale) — different cost and staleness tradeoffs
+- [ ] Apply to every raw render site: `WorkoutModeScreen`, `ExerciseCard`, `StartWorkoutScreen`'s plan card
+- [ ] Confirm scope boundary against §7.1: exercise names stay raw only when they carry brand-specific meaning; generic movement names are in scope for translation
+
 **Status: open, unscoped.** No phase in this plan addresses it. Flagged to the project lead for a decision on priority and approach.
