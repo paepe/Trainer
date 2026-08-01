@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '../../i18n';
 import { WorkoutPlanEditorScreen } from './WorkoutPlanEditorScreen';
@@ -18,6 +18,11 @@ vi.mock('../../supabase', () => ({
 
 vi.mock('../../lib/notify', () => ({ notify: vi.fn() }));
 vi.mock('../../lib/workoutGeneration', () => ({ requestWorkoutPlan: vi.fn() }));
+// Identity by default — a test overrides with mockResolvedValueOnce where the
+// cleanup pass's output needs to differ from its input.
+vi.mock('../../lib/cleanupVoiceNote', () => ({
+  cleanupVoiceNote: vi.fn((s: string) => Promise.resolve(s)),
+}));
 
 const CONTEXT_FETCH_STUB = {
   select: () => ({
@@ -59,6 +64,24 @@ function addOneExercise() {
   fireEvent.click(screen.getByText('Add'));
   fireEvent.change(screen.getByPlaceholderText('Exercise name'), { target: { value: 'Squat' } });
   fireEvent.click(screen.getByText('Add exercise'));
+}
+
+// Fakes the Web Speech API constructor that useSpeechRecognition looks up on
+// `window` — the hook's own accumulation/delta logic runs for real against
+// this fake, only the browser engine itself is stubbed. `stop()` fires
+// `onend` synchronously, standing in for the browser's async completion.
+class FakeSpeechRecognition {
+  static current: FakeSpeechRecognition | null = null;
+  lang = ''; continuous = true; interimResults = false; maxAlternatives?: number;
+  onresult: ((e: unknown) => void) | null = null;
+  onerror:  ((e: unknown) => void) | null = null;
+  onend:    (() => void) | null = null;
+  start() { FakeSpeechRecognition.current = this; }
+  stop()  { this.onend?.(); }
+}
+
+function finalSpeechResult(text: string) {
+  return { resultIndex: 0, results: [{ isFinal: true, 0: { transcript: text } }] };
 }
 
 describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
@@ -493,5 +516,87 @@ describe('WorkoutPlanEditorScreen — session blocks (Phase 3)', () => {
     await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
     const [inserted] = exercisesInsert.mock.calls[0]!;
     expect(inserted[0]).toMatchObject({ exercise_name: 'Deadlift', notes: 'Keep the bar close to your shins' });
+  });
+});
+
+describe('WorkoutPlanEditorScreen — voice dictation for exercise notes', () => {
+  const originalSR = (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition;
+
+  beforeEach(() => {
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      throw new Error(`unexpected table in default stub: ${table}`);
+    };
+    FakeSpeechRecognition.current = null;
+    (window as unknown as { SpeechRecognition: unknown }).SpeechRecognition = FakeSpeechRecognition;
+  });
+
+  afterEach(() => {
+    (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition = originalSR;
+  });
+
+  // The cleaned value is deliberately distinct from the raw transcript so the
+  // assertion can only pass once handleNotesDictationStop's async cleanup
+  // path has actually resolved and replaced the notes field — not merely on
+  // the synchronous, pre-cleanup value that handleNotesTranscript already
+  // wrote in as the user was speaking (which waitFor's first, synchronous
+  // check would otherwise let a broken stop handler slip past).
+  it('appends dictated speech to the notes field, replaced by the cleanup pass on stop', async () => {
+    const { cleanupVoiceNote } = await import('../../lib/cleanupVoiceNote');
+    vi.mocked(cleanupVoiceNote).mockResolvedValueOnce('Keep your back straight (cleaned)');
+
+    renderScreen({ nav: vi.fn() });
+    fireEvent.click(screen.getByText('Add'));
+
+    fireEvent.click(screen.getByTitle('Start recording'));
+    FakeSpeechRecognition.current!.onresult!(finalSpeechResult('Keep your back straight'));
+    fireEvent.click(screen.getByTitle('Stop recording'));
+
+    await waitFor(() => expect(
+      screen.getByPlaceholderText('Note visible to the client for this exercise…')
+    ).toHaveValue('Keep your back straight (cleaned)'));
+    expect(cleanupVoiceNote).toHaveBeenCalledWith('Keep your back straight');
+  });
+
+  it('preserves already-typed notes as a base and appends the cleaned dictated text after them', async () => {
+    const { cleanupVoiceNote } = await import('../../lib/cleanupVoiceNote');
+    vi.mocked(cleanupVoiceNote).mockResolvedValueOnce('then increase load gradually (cleaned)');
+
+    renderScreen({ nav: vi.fn() });
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.change(
+      screen.getByPlaceholderText('Note visible to the client for this exercise…'),
+      { target: { value: 'Warm up first.' } },
+    );
+
+    fireEvent.click(screen.getByTitle('Start recording'));
+    FakeSpeechRecognition.current!.onresult!(finalSpeechResult('then increase load gradually'));
+    fireEvent.click(screen.getByTitle('Stop recording'));
+
+    await waitFor(() => expect(
+      screen.getByPlaceholderText('Note visible to the client for this exercise…')
+    ).toHaveValue('Warm up first. then increase load gradually (cleaned)'));
+  });
+
+  it('does not bleed a dictation session left mid-buffer into the next exercise after Cancel', async () => {
+    renderScreen({ nav: vi.fn() });
+
+    // First exercise: start dictating, but abandon it via Cancel instead of stopping the mic.
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.click(screen.getByTitle('Start recording'));
+    FakeSpeechRecognition.current!.onresult!(finalSpeechResult('abandoned mid-sentence'));
+    fireEvent.click(screen.getByText('Cancel'));
+
+    // Second exercise: a fresh dictation session should not inherit the abandoned buffer.
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.click(screen.getByTitle('Start recording'));
+    FakeSpeechRecognition.current!.onresult!(finalSpeechResult('fresh note'));
+    fireEvent.click(screen.getByTitle('Stop recording'));
+
+    await waitFor(() => expect(
+      screen.getByPlaceholderText('Note visible to the client for this exercise…')
+    ).toHaveValue('fresh note'));
   });
 });

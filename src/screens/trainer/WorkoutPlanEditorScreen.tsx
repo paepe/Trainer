@@ -26,6 +26,8 @@ import type { ConsentMatrix } from '../../types/profile-v2';
 import { applyConsentToProfile } from '../../profile/consentVisibility';
 import { STRUCTURE_BLOCKS } from '../../coach-dna/constants';
 import { ADJUSTABLE_BLOCKS, normalizeBlock, type SessionBlock } from '../../lib/sessionStructure';
+import { VoiceBar } from '../../coach-dna/components/VoiceBar';
+import { cleanupVoiceNote } from '../../lib/cleanupVoiceNote';
 
 interface ClientProfile {
   id:         string;
@@ -139,6 +141,12 @@ export function WorkoutPlanEditorScreen({
   const [catalogSuggestions, setCatalogSuggestions] = React.useState<ProtocolExerciseItem[]>([]);
   const [catalogLoading,     setCatalogLoading]     = React.useState(false);
   const catalogSearchRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Voice dictation for the notes field mirrors Step12Philosophy's pattern:
+  // buffer raw chunks for the session, run one cleanup pass on stop (not
+  // per-chunk) so the AI sees full sentences and prior typed content isn't
+  // re-sent for cleanup each time.
+  const notesSessionRawRef  = React.useRef('');
+  const notesSessionBaseRef = React.useRef('');
 
   const [trainerNotes, setTrainerNotes] = React.useState('');
   const [saving, setSaving]             = React.useState(false);
@@ -192,6 +200,24 @@ export function WorkoutPlanEditorScreen({
     }));
     setCatalogSuggestions([]);
     setNameError(false);
+  };
+
+  const handleNotesTranscript = (text: string) => {
+    if (!notesSessionRawRef.current) notesSessionBaseRef.current = draft.notes ?? '';
+    notesSessionRawRef.current = notesSessionRawRef.current ? `${notesSessionRawRef.current} ${text}` : text;
+    const base = notesSessionBaseRef.current;
+    setDraft(prev => ({ ...prev, notes: `${base}${base ? ' ' : ''}${notesSessionRawRef.current}`.trim() }));
+  };
+
+  const handleNotesDictationStop = () => {
+    const raw = notesSessionRawRef.current.trim();
+    if (!raw) return;
+    const base = notesSessionBaseRef.current;
+    notesSessionRawRef.current = '';
+    notesSessionBaseRef.current = '';
+    void cleanupVoiceNote(raw).then(cleaned => {
+      setDraft(prev => ({ ...prev, notes: `${base}${base ? ' ' : ''}${cleaned}`.trim() }));
+    });
   };
 
   async function askAI() {
@@ -333,9 +359,29 @@ export function WorkoutPlanEditorScreen({
     });
   }, [selectedClient?.id]);
 
+  // A dictation session left mid-buffer (form closed/switched without the
+  // mic being stopped first) must not bleed into the next exercise's notes.
+  function resetNotesDictation() {
+    notesSessionRawRef.current = '';
+    notesSessionBaseRef.current = '';
+  }
+
+  // Cancelling (or deleting the exercise being edited) hid the form but left
+  // `draft` untouched — reopening Add then showed whatever was last typed,
+  // including notes. Voice dictation's base-capture (handleNotesTranscript)
+  // made this worse: a fresh dictation would silently prepend that stale
+  // text. Clearing the draft alongside the dictation buffer, the same way
+  // addExercise() already does after a successful save, closes both.
+  function resetDraftForm() {
+    resetNotesDictation();
+    setDraft({ ...NEW_EXERCISE_DRAFT });
+    setDurationMode(false);
+  }
+
   function startEdit(index: number) {
     const target = exercises[index];
     if (!target) return;
+    resetNotesDictation();
     setEditingIndex(index);
     setDraft({ ...target });
     setDurationMode(target.duration_seconds != null);
@@ -357,8 +403,7 @@ export function WorkoutPlanEditorScreen({
     } else {
       setExercises([...exercises, { ...draft }]);
     }
-    setDraft({ ...NEW_EXERCISE_DRAFT });
-    setDurationMode(false);
+    resetDraftForm();
     setShowAddForm(false);
   }
 
@@ -495,7 +540,7 @@ export function WorkoutPlanEditorScreen({
           </div>
         </div>
         <button
-          onClick={e => { e.stopPropagation(); setExercises(exercises.filter((_, idx) => idx !== i)); if (editingIndex === i) { setShowAddForm(false); setEditingIndex(null); } }}
+          onClick={e => { e.stopPropagation(); setExercises(exercises.filter((_, idx) => idx !== i)); if (editingIndex === i) { resetDraftForm(); setShowAddForm(false); setEditingIndex(null); } }}
           style={{
             background: 'transparent', border: 'none', cursor: 'pointer',
             color: textMute(dark), fontSize: 18, lineHeight: 1, padding: '2px 6px', fontFamily: 'inherit',
@@ -888,6 +933,10 @@ export function WorkoutPlanEditorScreen({
               <div style={{ fontSize: 10, fontWeight: 700, color: textMute(dark), marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>
                 {tr('trainer.planner.exerciseNote')}
               </div>
+              <VoiceBar
+                onTranscript={handleNotesTranscript}
+                onStop={handleNotesDictationStop}
+              />
               <textarea
                 value={draft.notes ?? ''}
                 onChange={e => setDraft({ ...draft, notes: e.target.value })}
@@ -902,7 +951,7 @@ export function WorkoutPlanEditorScreen({
               />
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => { setShowAddForm(false); setEditingIndex(null); }} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
+              <button onClick={() => { resetDraftForm(); setShowAddForm(false); setEditingIndex(null); }} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
                 {tr('trainer.planner.cancelBtn')}
               </button>
               <button onClick={addExercise} style={{ flex: 2, padding: '12px 0', borderRadius: 14, background: t.accent, color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
