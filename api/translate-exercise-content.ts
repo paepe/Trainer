@@ -121,42 +121,67 @@ async function translateMissing(texts: string[], targetLocale: SupportedLocale):
   }
 
   const lang = LOCALE_TO_LANG[targetLocale];
-  const system = `You translate short fitness exercise names and coaching notes for a workout app.
-Translate each item in the input JSON array to ${lang}. If an item is already in ${lang}, return it unchanged.
+  // Declaring a source language, rather than leaving the model to infer one,
+  // is what actually fixes the failure below — an unqualified "translate to
+  // {lang}, or return unchanged if already {lang}" leaves the model to guess
+  // the source, and for a short Portuguese phrase against a Spanish target it
+  // guesses wrong often enough to matter (Portuguese and Spanish share a lot
+  // of vocabulary). Defaulting the assumed source to Brazilian Portuguese
+  // matches this product's actual authoring language; tested live against
+  // genuinely non-Portuguese input (German) and the model still translates it
+  // correctly rather than following the assumption blindly — see docs/
+  // SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md, Open Finding.
+  const system = `A Brazilian Portuguese-speaking personal trainer wrote the following short fitness exercise
+name or coaching note in an app. Translate it from Portuguese into ${lang}, using the natural, idiomatic
+term a ${lang}-speaking trainer would actually use — not a literal word-for-word rendering.
 Preserve the exact meaning — do not add explanation, commentary, or extra words.
-Respond with ONLY a JSON array of strings, same length and order as the input. No markdown fences, no commentary.`;
+Respond with ONLY the result, nothing else — no quotes, no markdown.`;
 
-  try {
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: JSON.stringify(texts) },
-        ],
-        temperature: 0.2,
-        max_tokens: 1024,
-      }),
-    });
+  // One call per item, not one batched call for the whole list — batching was
+  // measured live to make the model misjudge a short, lexically-similar item
+  // (e.g. Portuguese "Remada Curvada" against a Spanish target) as already
+  // translated when other items in the same batch genuinely were, even with
+  // explicit "judge each item independently" instructions. Isolated calls
+  // never showed this failure in the same testing (docs/
+  // SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md, Open Finding). The shared cache
+  // means this only costs N calls the first time each phrase is seen, ever.
+  await Promise.all(texts.map(async original => {
+    try {
+      const response = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: original },
+          ],
+          // 0, not a small positive value — measured live to matter for this
+          // failure mode: identical requests at temperature 0.2 sometimes
+          // returned the source text completely untranslated for a short
+          // Portuguese/Spanish-ambiguous phrase, inconsistently across
+          // otherwise-identical calls. 0 minimises that residual variance;
+          // it does not fully eliminate it (10 live runs of the worst case
+          // found: 0/10 fully untranslated, but translation quality still
+          // varies run to run) — see docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md,
+          // Open Finding.
+          temperature: 0,
+          max_tokens: 120,
+        }),
+      });
 
-    if (!response.ok) throw new Error(`DeepSeek ${response.status}`);
-    const data = await response.json() as { choices?: { message?: { content?: string } }[] };
-    const text = data.choices?.[0]?.message?.content?.trim() ?? '';
-    const match = text.match(/\[[\s\S]*\]/);
-    const parsed = match ? JSON.parse(match[0]) as unknown[] : [];
-
-    texts.forEach((original, i) => {
-      const translated = typeof parsed[i] === 'string' ? parsed[i] as string : original;
-      result.set(original, translated);
-    });
-  } catch (err) {
-    // Resilient fallback (§6.3) — a translation failure must never block the
-    // client from seeing their workout; fall back to the raw source text.
-    console.error('[translate-exercise-content] DeepSeek call failed:', (err as Error)?.message);
-    for (const t of texts) result.set(t, t);
-  }
+      if (!response.ok) throw new Error(`DeepSeek ${response.status}`);
+      const data = await response.json() as { choices?: { message?: { content?: string } }[] };
+      const translated = data.choices?.[0]?.message?.content?.trim();
+      result.set(original, translated || original);
+    } catch (err) {
+      // Resilient fallback (§6.3) — a translation failure must never block
+      // the client from seeing their workout; fall back to the raw source
+      // text for this item only, not the whole request.
+      console.error('[translate-exercise-content] DeepSeek call failed:', (err as Error)?.message);
+      result.set(original, original);
+    }
+  }));
 
   return result;
 }

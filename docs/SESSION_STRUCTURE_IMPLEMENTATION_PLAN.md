@@ -447,4 +447,29 @@ Both render sites translate correctly, matching the design.
 
 **Conclusion: not a live defect.** The branch is defensive code for a trainer-generates-on-behalf-of-client scenario that doesn't exist in the UI yet — unreachable today, and the mechanism it would rely on is already proven sound. No change made. If a future feature adds a trainer-initiated smart-workout generation, re-verify this path specifically before shipping it.
 
-**Status: implemented and fully verified.** Translation confirmed live for both `exercise_name` and `notes`, at both render sites, with a client profile genuinely set to a different language. Cache read, write, and hit-skip confirmed live in production. Per-exercise notes input added and verified live. Promoted: `24ffbea` (translation), pending push (notes field).
+### Correctness gap found and fixed after promotion — same-family languages (2026-08-01)
+
+The project lead asked for confirmation that a client genuinely receives guidance in their own configured language — not assumed from the earlier en/pt test. Testing pt→es specifically (Carlos writes in Portuguese, Diogo's profile set to Spanish) surfaced a real defect the pt→en test could not have: `Remada Curvada` reached Diogo's screen completely untranslated, while the note on the same exercise translated correctly.
+
+**Root cause, found by direct experimentation against DeepSeek, not by reasoning about the prompt:**
+
+1. The original prompt only said "translate to {lang}, or return unchanged if already {lang}" — it never declared a source language, leaving the model to infer one. For a short Portuguese phrase against a Spanish target, sharing a lot of vocabulary between the two languages, the model sometimes inferred "already Spanish" incorrectly. Confirmed with a single-item isolated call using the same wording: reproduces standalone, not just in a batch.
+2. Batching made it worse, but was not the root cause: items that were already genuinely Spanish, placed in the same request as `Remada Curvada`, made the model misjudge the Portuguese item too — even with an explicit "judge each item independently" instruction. Splitting into one DeepSeek call per item (instead of one call for the whole list) removed this contribution but did not eliminate the underlying defect on its own.
+3. The residual defect was **non-deterministic even for the identical single-item prompt** — running the exact same request repeatedly returned `Remada Curvada` unchanged on some runs and the correct `Remo inclinado` / `Remo Curvado` on others, at `temperature: 0.2`.
+
+**Fix, each step confirmed by live experimentation before being written into the endpoint:**
+- Declared an explicit assumed source language ("a Brazilian Portuguese-speaking personal trainer wrote this") instead of leaving the model to infer one. Tested against genuinely non-Portuguese input (German) to confirm the assumption doesn't override real evidence to the contrary — the model still translated correctly rather than trusting the false premise.
+- Removed the "already {lang}, return unchanged" clause entirely — the base instruction ("give the natural idiomatic term") already preserves genuinely-correct text on its own, confirmed against the same-language case (`Push-up` → `Flexão`, `Remada Curvada` → unchanged, batched, target `pt`).
+- One isolated DeepSeek call per item, not one batched call for the list (see above).
+- `temperature: 0`, down from `0.2` — reduces but does not eliminate the residual run-to-run variance.
+
+**Honest residual limitation, not eliminated:** 10 live repeats of the worst case found (`Remada Curvada` → Spanish) after the fix: 0/10 returned fully untranslated (the defect that reached Diogo's screen), but translation *quality* still varies run to run (`Remo Curvado` vs. `Remo inclinado` — both correct, genuinely different phrasing). This is inherent LLM non-determinism for a lexically-ambiguous case between closely related languages, not a bug with a further deterministic fix available at the prompt-engineering level. Worst case now is stylistic variation, not a name reaching the client in the wrong language.
+
+**Verified again, live, both directions, through the real endpoint (not just standalone scripts) after the fix:**
+- pt→es, 5 unique variants of `Remada Curvada`: 5/5 translated, 0 unchanged.
+- pt→pt (same-language, the majority real-world case): confirmed unaffected — `Elevação Lateral`/`Remada Curvada` stay in Portuguese, `Push-up` still translates to `Flexão de braço`.
+- Browser, live: Diogo Barros (profile set to Spanish) now sees `Remo inclinado` / `Mantén la espalda recta durante todo el movimiento.` for the exact plan that previously showed `Remada Curvada` untranslated.
+
+**Coverage:** endpoint tests rewritten for the one-call-per-item shape; added a test asserting two items are each their own isolated DeepSeek call (not one shared call), and a test confirming one item's translation failure doesn't block another's. Mutation-verified: reverting to one batched call fails 2 tests; removing the per-item try/catch fails 2 tests.
+
+**Status: implemented and verified, with a disclosed residual limitation.** Translation confirmed live for both `exercise_name` and `notes`, at both render sites, across three language pairs (pt→en, pt→pt, pt→es), with client profiles genuinely set to each target language. Cache read, write, and hit-skip confirmed live in production. Per-exercise notes input added and verified live. The pt↔es correctness gap is fixed to the extent a prompt-engineering fix can guarantee — a small residual stylistic-variance risk remains and is disclosed above, not hidden. Promoted: `24ffbea` (translation, original prompt), `15faf99` (notes field) — **the pt/es fix itself is a new commit, pending push.**

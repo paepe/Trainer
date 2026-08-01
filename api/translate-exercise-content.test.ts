@@ -1,9 +1,12 @@
 // Cache-hit items must never reach DeepSeek — that's the whole point of the
 // shared cache (docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md, Open Finding).
-// These tests exercise the real handler against a mocked fetch, distinguishing
-// calls by URL: Supabase auth, the translation cache table (read + write), and
-// DeepSeek — so cache-skip behaviour is asserted against the real code path,
-// not reasoned about.
+// Each item is translated with its own isolated DeepSeek call, not batched —
+// batching was measured live to make the model misjudge a short,
+// lexically-similar item (Portuguese vs. Spanish) as already translated when
+// other items in the same request genuinely were. These tests exercise the
+// real handler against a mocked fetch, distinguishing calls by URL, so both
+// the cache-skip and the one-call-per-item behaviour are asserted against the
+// real code path, not reasoned about.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import handler from './translate-exercise-content';
@@ -29,6 +32,15 @@ function mockReq(body: unknown) {
   return { method: 'POST', headers: { authorization: 'Bearer test-jwt' }, body } as never;
 }
 
+// Mock DeepSeek: echoes a per-text translation keyed off the outgoing user
+// message, so a test can tell exactly which item each call was for.
+function deepSeekEcho(translations: Record<string, string>) {
+  return async (url: string, init?: RequestInit) => {
+    const text = JSON.parse((init!.body as string)).messages[1].content as string;
+    return { ok: true, json: async () => ({ choices: [{ message: { content: translations[text] ?? text } }] }) } as Response;
+  };
+}
+
 describe('POST /api/translate-exercise-content', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
@@ -48,12 +60,7 @@ describe('POST /api/translate-exercise-content', () => {
         return { ok: true, json: async () => ([]) } as Response;
       }
       if (url.includes('api.deepseek.com')) {
-        return {
-          ok: true,
-          json: async () => ({
-            choices: [{ message: { content: JSON.stringify(['Light Run']) } }],
-          }),
-        } as Response;
+        return deepSeekEcho({ 'Corrida Leve': 'Light Run' })(url, init);
       }
       throw new Error(`unexpected fetch: ${url}`);
     }));
@@ -74,9 +81,10 @@ describe('POST /api/translate-exercise-content', () => {
     const deepseekCalls = (fetch as ReturnType<typeof vi.fn>).mock.calls
       .filter(([url]) => String(url).includes('api.deepseek.com'));
     expect(deepseekCalls).toHaveLength(1);
-    // Only the cache miss went to the model — not the already-cached phrase.
+    // Only the cache miss went to the model — not the already-cached phrase —
+    // and as its own plain-text message, not a batched array.
     const requestBody = JSON.parse((deepseekCalls[0]![1] as RequestInit).body as string);
-    expect(JSON.parse(requestBody.messages[1].content)).toEqual(['Corrida Leve']);
+    expect(requestBody.messages[1].content).toBe('Corrida Leve');
   });
 
   it('deduplicates repeated text within one request', async () => {
@@ -89,8 +97,35 @@ describe('POST /api/translate-exercise-content', () => {
     const deepseekCalls = (fetch as ReturnType<typeof vi.fn>).mock.calls
       .filter(([url]) => String(url).includes('api.deepseek.com'));
     expect(deepseekCalls).toHaveLength(1);
-    const requestBody = JSON.parse((deepseekCalls[0]![1] as RequestInit).body as string);
-    expect(JSON.parse(requestBody.messages[1].content)).toEqual(['Corrida Leve']);
+  });
+
+  it('calls DeepSeek once per distinct miss, each in its own isolated request', async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'user-1' }) } as Response;
+      if (url.includes('exercise_content_translations')) return { ok: true, json: async () => ([]) } as Response;
+      if (url.includes('api.deepseek.com')) {
+        // Distinct per-item translations — proves each call is independent,
+        // not one batched call the model could answer inconsistently for.
+        return deepSeekEcho({
+          'Remada Curvada': 'Remo Curvado',
+          'Agachamento Livre': 'Sentadilla Libre',
+        })(url, init);
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const res = mockRes();
+    await handler(
+      mockReq({ items: [{ text: 'Remada Curvada' }, { text: 'Agachamento Livre' }], targetLocale: 'es' }),
+      res as never,
+    );
+
+    expect(res._body).toEqual({
+      translations: { 'Remada Curvada': 'Remo Curvado', 'Agachamento Livre': 'Sentadilla Libre' },
+    });
+    const deepseekCalls = (fetch as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([url]) => String(url).includes('api.deepseek.com'));
+    expect(deepseekCalls).toHaveLength(2);
   });
 
   it('rejects an unsupported target locale', async () => {
@@ -121,5 +156,28 @@ describe('POST /api/translate-exercise-content', () => {
 
     expect(res._status).toBe(200);
     expect(res._body).toEqual({ translations: { 'Corrida Leve': 'Corrida Leve' } });
+  });
+
+  it('a failure translating one item does not block the others', async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'user-1' }) } as Response;
+      if (url.includes('exercise_content_translations')) return { ok: true, json: async () => ([]) } as Response;
+      if (url.includes('api.deepseek.com')) {
+        const text = JSON.parse((init!.body as string)).messages[1].content as string;
+        if (text === 'Corrida Leve') return { ok: false, status: 500, json: async () => ({}) } as Response;
+        return deepSeekEcho({ 'Agachamento Livre': 'Sentadilla Libre' })(url, init);
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const res = mockRes();
+    await handler(
+      mockReq({ items: [{ text: 'Corrida Leve' }, { text: 'Agachamento Livre' }], targetLocale: 'es' }),
+      res as never,
+    );
+
+    expect(res._body).toEqual({
+      translations: { 'Corrida Leve': 'Corrida Leve', 'Agachamento Livre': 'Sentadilla Libre' },
+    });
   });
 });
