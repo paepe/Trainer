@@ -763,7 +763,12 @@ export function buildPrompt(ctx: AIContext): { system: string; user: string } {
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 interface VercelRequest  { method?: string; body?: SmartWorkoutRequest; headers?: Record<string, string | string[] | undefined> }
-interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
+interface VercelResponse {
+  status(c: number): VercelResponse;
+  json(b: unknown): VercelResponse;
+  end(): void;
+  setHeader(name: string, value: string): void;
+}
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -774,6 +779,21 @@ const MAX_TOKENS: Record<string, number> = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS — required for Capacitor WebView and for local dev, where the client
+  // (Vite, one origin) and this function (api-server.mjs, another port) are
+  // cross-origin. Absent until 2026-08-01: every response this handler ever
+  // sent lacked it, so any real browser call silently failed as a network
+  // error (masked by StartWorkoutScreen's fallback-plan catch) — this endpoint
+  // had, as far as can be determined, never been exercised from a real
+  // browser. Same pattern as generate-workout.ts.
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

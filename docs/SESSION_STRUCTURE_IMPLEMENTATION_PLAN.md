@@ -94,7 +94,9 @@ Therefore, when verifying after a promotion:
 | Phase | Branch | Commit SHA | Staging validated | Authorized by | Deployment URL | Date |
 |-------|--------|-----------|-------------------|---------------|----------------|------|
 | 0 + 1 | `feat/session-structure-phase-0` → `main` | `7b74017` (merge) | No — promoted directly per project lead | Project lead | https://trainer-ntrezrarz-paulo-eduardo-peress-projects.vercel.app | 2026-07-31 |
-| 2 | `feat/session-structure-phase-2` → `main` | _pending merge SHA_ | No — validated on `dev:local` against real `coach_dna` data | _pending authorization_ | _pending_ | _pending_ |
+| 2 | `feat/session-structure-phase-2` → `main` | `d26bece` (merge) | No — validated on `dev:local` against real `coach_dna` data, script-based | Project lead | https://trainer-ia3rb6zb3-paulo-eduardo-peress-projects.vercel.app | 2026-08-01 |
+| 2 addendum (CORS fix) | `main` (direct) | _pending — this push_ | No — verified live in a real browser session, see addendum | Project lead | _pending_ | 2026-08-01 |
+| 2 addendum (`coach_dna` RLS) | — (DB policy, no branch) | n/a — applied via migration tool, no staging exists for this project | No — see addendum | Project lead | applied directly to `xbfszzdyskwdctlqzztl` | 2026-08-01 |
 
 ---
 
@@ -230,6 +232,69 @@ agreed default cannot drift apart again.
 - **Validation:** 45 unit green (37 + 8 new), 26 e2e green, `tsc --noEmit` clean, `lint` 0 errors,
   `build` green.
 
+### Phase 2 addendum (2026-08-01) — two defects found only by a real browser session
+
+Everything above was validated by script: Playwright's API `request` fixture, and Node `fetch()`
+probes using each account's own real JWT to fetch and forward Coach DNA manually. All green. None of
+it is a real client, in a real browser, going through the app's own data-fetching code. The project
+lead asked for exactly that test before this phase could be called done. It surfaced two defects that
+every prior check — automated and manual — had missed, both pre-dating this phase.
+
+**1. `generate-smart-workout` never sent CORS headers.** Confirmed via the browser console:
+`TypeError: Failed to fetch` at `workoutGeneration.ts:83`, silently caught by
+`StartWorkoutScreen`'s fallback path (`console.warn('[start-workout] AI generation failed —
+using fallback plan', err)`), so the client saw a plausible, generic workout with no visible
+error. `generate-workout.ts:331-333` already sets `Access-Control-Allow-Origin` — this endpoint
+never did. In the two-process local setup (`vite` on 5173, `api-server.mjs` on 3000) that's cross-origin;
+the same gap was already flagged for Capacitor in the sibling file's own comment ("CORS — required
+for Capacitor WebView"), so it plausibly also blocks the native mobile client, not just local dev.
+Production web is same-origin and unaffected. Fixed: same 3-line pattern ported into
+`generate-smart-workout.ts`, plus explicit `OPTIONS` handling and the `VercelResponse` interface
+extended with `setHeader`/`end` to match.
+
+**2. `coach_dna` RLS had no read policy for a linked client.** With CORS fixed, the live session still
+came back with the 4-block default order, not Carlos Silva's declared 6. Traced by querying as Tiago
+Moreira (his own JWT, not a script-constructed payload): `GET coach_dna?trainer_id=eq.<Carlos>` → `[]`,
+despite an `active` row in `trainer_clients` confirmed straight from the database. The only policy on
+`coach_dna` was `trainer manages own coach dna` (`trainer_id = auth.uid()`) — nothing granted a client
+read access to their own trainer's row. This is not a Phase 2 regression: it means Coach DNA has never
+reached a real client through `StartWorkoutScreen`, for any field (`archetype`, `favoriteExercises`,
+`avoidExercises`, `focus` — not just `sessionOrder`), since the table was created. Every earlier probe
+in this phase (and the finding #4 refutation) fetched `coach_dna` with the *trainer's own* token and
+forwarded it manually — none exercised the client-side RLS-gated read.
+
+Fixed with an additive policy, applied directly to production (no staging environment exists for this
+project — §9.2 non-conformity already on record):
+
+```sql
+create policy "linked client reads trainer coach dna"
+on public.coach_dna for select to public
+using (exists (
+  select 1 from public.trainer_clients tc
+  where tc.trainer_id = coach_dna.trainer_id
+    and tc.client_id = auth.uid()
+    and tc.status = 'active'
+));
+```
+
+Archived at `supabase/sql-archive/supabase-coach-dna-linked-client-select-20260801.sql`. Rollback:
+`drop policy "linked client reads trainer coach dna" on public.coach_dna;` — one statement, no data
+migration.
+
+**Verified end-to-end, in the browser, as the real client:**
+
+| Step | Result |
+|---|---|
+| `coach_dna` read as Tiago, pre-fix | `[]` |
+| `coach_dna` read as Tiago, post-fix | full row, `structure.order` intact |
+| Live session, real browser, pre-fix | `warmup → strength → conditioning → cooldown` (default — Coach DNA never arrived) |
+| Live session, real browser, post-fix | `warmup → mobility → technique → strength → conditioning → cooldown` — exact match to Carlos Silva's declared order |
+
+**Process note, for the record:** the project lead's instruction was direct — this could have been
+caught before Phase 2 was ever reported as verified, by testing with the client's own session instead
+of a trainer's token or a synthetic payload. Recorded here so the next phase's validation plan starts
+from a real logged-in session, not a script standing in for one.
+
 ---
 
 ## Phase 3 — Grouped Rendering & Phase Persistence
@@ -267,7 +332,8 @@ Section headers in the plan editor. Requires persistence — without it, groupin
 |-------|--------|-----------|--------|-------|
 | 0 — Taxonomy & Coach DNA in prompt | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Defect found and fixed mid-phase: time fitting could delete an entire declared block. |
 | 1 — Context card accuracy | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Real but narrower than first reported — see closing notes. |
-| 2 — Declared structure on client path | **Merged locally — awaiting push authorization** | 2026-07-31 | `feat/session-structure-phase-2` | Rescoped: the plan's finding #4 was false. Fixed a Phase 0 regression (`DEFAULT_AI_TRAINER`) found here. |
+| 2 — Declared structure on client path | **Promoted** | 2026-08-01 | `d26bece` | Rescoped: the plan's finding #4 was false. Fixed a Phase 0 regression (`DEFAULT_AI_TRAINER`) found here. |
+| 2 addendum — CORS + `coach_dna` RLS | RLS **live in production**; CORS fix **awaiting push authorization** | 2026-08-01 | RLS: DB policy, no commit. CORS: pending | Found only once tested in a real browser as the real client — see addendum. Neither is a Phase 2 regression; both pre-date it. |
 | 3 — Grouped rendering & persistence | Not started | — | — | — |
 
 **Update rule:** this table and the phase checklists are updated at the close of each phase, before requesting push authorization.
