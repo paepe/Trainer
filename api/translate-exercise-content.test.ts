@@ -158,6 +158,103 @@ describe('POST /api/translate-exercise-content', () => {
     expect(res._body).toEqual({ translations: { 'Corrida Leve': 'Corrida Leve' } });
   });
 
+  it('short-circuits with no DeepSeek call when sourceLocale equals targetLocale', async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string) => {
+      if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'user-1' }) } as Response;
+      if (url.includes('exercise_content_translations')) return { ok: true, json: async () => ([]) } as Response;
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const res = mockRes();
+    await handler(
+      mockReq({ items: [{ text: 'Bird-Dog' }], sourceLocale: 'en', targetLocale: 'en' }),
+      res as never,
+    );
+
+    expect(res._body).toEqual({ translations: { 'Bird-Dog': 'Bird-Dog' } });
+    const deepseekCalls = (fetch as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([url]) => String(url).includes('api.deepseek.com'));
+    expect(deepseekCalls).toHaveLength(0);
+  });
+
+  it('declares the caller-supplied sourceLocale in the DeepSeek prompt, not a hardcoded Portuguese assumption', async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'user-1' }) } as Response;
+      if (url.includes('exercise_content_translations') && (!init || !init.method || init.method === 'GET')) {
+        return { ok: true, json: async () => ([]) } as Response;
+      }
+      if (url.includes('exercise_content_translations') && init?.method === 'POST') {
+        return { ok: true, json: async () => ([]) } as Response;
+      }
+      if (url.includes('api.deepseek.com')) {
+        return deepSeekEcho({ 'Bird-Dog': 'Pássaro-Cachorro' })(url, init);
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const res = mockRes();
+    await handler(
+      mockReq({ items: [{ text: 'Bird-Dog' }], sourceLocale: 'en', targetLocale: 'pt' }),
+      res as never,
+    );
+
+    const deepseekCalls = (fetch as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([url]) => String(url).includes('api.deepseek.com'));
+    const systemPrompt = JSON.parse((deepseekCalls[0]![1] as RequestInit).body as string).messages[0].content as string;
+    expect(systemPrompt).toContain('in English');
+    expect(systemPrompt).toContain('from English into Portuguese (Brazil)');
+  });
+
+  it('writes the cache row on the corrected 3-column conflict target, including source_locale', async () => {
+    let capturedOnConflictParam: string | null = null;
+    let capturedBody: unknown = null;
+    (fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'user-1' }) } as Response;
+      if (url.includes('exercise_content_translations') && (!init || !init.method || init.method === 'GET')) {
+        return { ok: true, json: async () => ([]) } as Response;
+      }
+      if (url.includes('exercise_content_translations') && init?.method === 'POST') {
+        capturedOnConflictParam = new URL(url).searchParams.get('on_conflict');
+        capturedBody = JSON.parse(init.body as string);
+        return { ok: true, json: async () => ([]) } as Response;
+      }
+      if (url.includes('api.deepseek.com')) return deepSeekEcho({ 'Bird-Dog': 'Cão-Pássaro' })(url, init);
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const res = mockRes();
+    await handler(
+      mockReq({ items: [{ text: 'Bird-Dog' }], sourceLocale: 'en', targetLocale: 'pt' }),
+      res as never,
+    );
+
+    expect(capturedOnConflictParam).toBe('source_text,source_locale,target_locale');
+    expect(capturedBody).toEqual([
+      { source_text: 'Bird-Dog', source_locale: 'en', target_locale: 'pt', translated_text: 'Cão-Pássaro' },
+    ]);
+  });
+
+  it('defaults sourceLocale to pt when the caller omits it, preserving trainer-typed-content behaviour', async () => {
+    let capturedQuery = '';
+    (fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'user-1' }) } as Response;
+      if (url.includes('exercise_content_translations') && (!init || !init.method || init.method === 'GET')) {
+        capturedQuery = url;
+        return { ok: true, json: async () => ([]) } as Response;
+      }
+      if (url.includes('exercise_content_translations') && init?.method === 'POST') {
+        return { ok: true, json: async () => ([]) } as Response;
+      }
+      if (url.includes('api.deepseek.com')) return deepSeekEcho({ 'Corrida Leve': 'Light Run' })(url, init);
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const res = mockRes();
+    await handler(mockReq({ items: [{ text: 'Corrida Leve' }], targetLocale: 'en' }), res as never);
+
+    expect(capturedQuery).toContain('source_locale=eq.pt');
+  });
+
   it('a failure translating one item does not block the others', async () => {
     (fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init?: RequestInit) => {
       if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'user-1' }) } as Response;

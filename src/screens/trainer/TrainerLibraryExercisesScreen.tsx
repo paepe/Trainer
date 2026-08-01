@@ -10,6 +10,9 @@ import { TRAINER_ROLES } from '../../types/auth';
 
 import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
+import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
+import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
+import type { AppLanguage } from '../../i18n';
 
 interface TrainerLibraryExercisesScreenProps {
   nav: NavFn;
@@ -18,6 +21,7 @@ interface TrainerLibraryExercisesScreenProps {
     role: string;
     name: string;
   };
+  keepExerciseNamesInEnglish?: boolean;
 }
 
 // Brand "ink" — text/icon colour over a brand-coloured surface (active tabs,
@@ -42,10 +46,10 @@ const STATUS_TONES: Record<StatusTone, { text: string; bg: (alpha: number) => st
 const statusTone = (status: string): StatusTone =>
   status === 'active' || status === 'blocked' || status === 'restricted' || status === 'draft' ? status : 'neutral';
 
-export function TrainerLibraryExercisesScreen({ nav: _nav, user }: TrainerLibraryExercisesScreenProps) {
+export function TrainerLibraryExercisesScreen({ nav: _nav, user, keepExerciseNamesInEnglish = true }: TrainerLibraryExercisesScreenProps) {
   const { fetchExercises, saveExercise, fetchProtocolsList, simulateVoiceAssistant } = useExerciseData();
   const { t, dark } = useTrainerTheme();
-  const { t: tr } = useTranslation();
+  const { t: tr, i18n } = useTranslation();
 
   const trMuscle = (v: string) => {
     const arr = tr('trainer.planner.muscleGroups', { returnObjects: true }) as string[];
@@ -87,6 +91,23 @@ export function TrainerLibraryExercisesScreen({ nav: _nav, user }: TrainerLibrar
   const [showVoicePanel, setShowVoicePanel] = useState(true);
 
   const isTrainerOrAdmin = (TRAINER_ROLES as readonly string[]).includes(user.role);
+
+  // Exercise-name display respects the trainer's own keep-English-names
+  // preference (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D2) —
+  // independent of whatever the client viewing a shared plan later sees.
+  const translateName = useTranslatedExerciseContent(
+    [
+      ...exercises.map(e => e.name),
+      ...protocols.flatMap(p => (p.protocol_exercises ?? []).map((pe: { exercise_name: string }) => pe.exercise_name)),
+      ...(voiceResponse?.exercises ?? []).map((e: { name: string }) => e.name),
+    ],
+    resolveExerciseNameLocale({ keepExerciseNamesInEnglish, language: i18n.language as AppLanguage }),
+    // Every name on this screen comes from the exercise/protocol catalogs,
+    // which are canonically English (docs/
+    // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, Fase 1) — not the trainer's
+    // typing habit, so the source is declared, not left to the pt default.
+    'en',
+  );
 
   // Fetch Data
   const loadData = async () => {
@@ -226,6 +247,7 @@ export function TrainerLibraryExercisesScreen({ nav: _nav, user }: TrainerLibrar
           onSimulate={handleVoiceSimulate}
           onGovernance={handleConfirmGovernance}
           onSelectExercise={(ex) => { setSelectedExercise(ex); setIsEditing(false); }}
+          translateName={translateName}
         />
       )}
 
@@ -401,7 +423,7 @@ export function TrainerLibraryExercisesScreen({ nav: _nav, user }: TrainerLibrar
                     }}
                   >
                     <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: textPri(dark) }}>{ex.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: textPri(dark) }}>{translateName(ex.name)}</div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 11, color: textMute(dark) }}>
                     <span>💪 {trMuscle(ex.muscle_group)}</span>
                     {ex.equipment && <span>🔧 {ex.equipment.map((eq: string) => trEq(eq)).join(', ')}</span>}
@@ -487,7 +509,7 @@ export function TrainerLibraryExercisesScreen({ nav: _nav, user }: TrainerLibrar
                           }}
                         >
                           <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>{pe.exercise_name}</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: textPri(dark) }}>{translateName(pe.exercise_name)}</div>
                           <div style={{ fontSize: 11, color: textMute(dark), marginTop: 2 }}>
                             {tr('trainer.library.setsInfo', { sets: pe.sets, reps: pe.reps, load: pe.load_kg || 0, rest: pe.rest_seconds || 0 })}
                           </div>
@@ -544,11 +566,12 @@ interface VoiceAssistantPanelProps {
   onSimulate:       (q: string) => void;
   onGovernance:     (action: string) => void;
   onSelectExercise: (ex: any) => void;
+  translateName:    (text: string | null | undefined) => string;
 }
 
 function VoiceAssistantPanel({
   voiceQuery, voiceResponse, voiceLoading, auditLogs, dark,
-  onClose, onQueryChange, onSimulate, onGovernance, onSelectExercise,
+  onClose, onQueryChange, onSimulate, onGovernance, onSelectExercise, translateName,
 }: VoiceAssistantPanelProps) {
   const { t: tr } = useTranslation();
   return (
@@ -619,7 +642,7 @@ function VoiceAssistantPanel({
                       padding: '4px 10px', borderRadius: 6, background: 'rgba(110, 68, 255, 0.1)',
                       border: '1px solid rgba(110, 68, 255, 0.3)', color: '#9b51e0',
                       fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    }}>{e.name}</div>
+                    }}>{translateName(e.name)}</div>
                   ))}
                 </div>
               </div>

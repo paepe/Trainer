@@ -56,4 +56,49 @@ describe('useTranslatedExerciseContent', () => {
     expect(result.current(undefined)).toBe('');
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  // The mocked i18n.language is 'en' throughout this file — this test only
+  // passes if the explicit targetLocale argument actually overrides it
+  // rather than being ignored in favour of the UI language.
+  it('uses the explicit targetLocale override instead of the UI language', async () => {
+    const mockFetch = fetch as ReturnType<typeof vi.fn>;
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: { 'Agachamento Livre': 'Free Squat' } }),
+    });
+
+    renderHook(() => useTranslatedExerciseContent(['Agachamento Livre'], 'es'));
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+    const body = JSON.parse((mockFetch.mock.calls[0]![1] as RequestInit).body as string);
+    expect(body.targetLocale).toBe('es');
+  });
+
+  it('sends the explicit sourceLocale for library/catalog content', async () => {
+    const mockFetch = fetch as ReturnType<typeof vi.fn>;
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: { 'Bird-Dog': 'Pássaro-Cachorro' } }),
+    });
+
+    renderHook(() => useTranslatedExerciseContent(['Bird-Dog'], 'pt', 'en'));
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+    const body = JSON.parse((mockFetch.mock.calls[0]![1] as RequestInit).body as string);
+    expect(body.sourceLocale).toBe('en');
+  });
+
+  it('omits sourceLocale entirely when not supplied, letting the server default apply', async () => {
+    const mockFetch = fetch as ReturnType<typeof vi.fn>;
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ translations: { 'Corrida Leve': 'Light Run' } }),
+    });
+
+    renderHook(() => useTranslatedExerciseContent(['Corrida Leve']));
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+    const body = JSON.parse((mockFetch.mock.calls[0]![1] as RequestInit).body as string);
+    expect(body).not.toHaveProperty('sourceLocale');
+  });
 });

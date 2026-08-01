@@ -1,19 +1,24 @@
 // POST /api/translate-exercise-content
-// Input:  { items: { text: string }[], targetLocale: 'en' | 'pt' | 'es' | 'de' }
+// Input:  { items: { text: string }[], sourceLocale?: 'en'|'pt'|'es'|'de' (default 'pt'), targetLocale: 'en' | 'pt' | 'es' | 'de' }
 // Output: { translations: Record<string, string> }  — keyed by the original text
 //
-// Translates trainer-authored free text (exercise names, per-exercise notes)
-// on demand, for a client whose profile locale differs from whatever
-// language the trainer typed in. AI-generated plans don't need this — the
-// generation prompt already asks for the client's locale — this covers only
-// manually-entered content (docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md,
-// "Open Finding — Manually-Entered Exercise Names Are Never Translated").
+// Translates exercise names/notes on demand, for a viewer whose locale (or
+// keep-English-names preference — docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md)
+// differs from the content's own language. Originally scoped to trainer-typed
+// content only (source assumed pt-BR) — Fase 1 of that plan also routes
+// English-sourced library/catalog names through this same endpoint on a
+// cache miss, so the source language is now an explicit request parameter
+// (D7: registered, never inferred) rather than a hardcoded assumption.
+// AI-generated plans still don't need this — the generation prompt already
+// asks for the client's locale.
 //
-// Shared cache in exercise_content_translations (source_text, target_locale)
-// -> translated_text: the same phrase — "Agachamento Livre" to en — is
-// translated once and reused across every trainer and plan. Only this
-// handler touches that table, via the service role; it has no RLS policies
-// and no client ever queries it directly.
+// Shared cache in exercise_content_translations (source_text, source_locale,
+// target_locale) -> translated_text: the same phrase is translated once and
+// reused across every trainer and plan. Only this handler touches that
+// table, via the service role; it has no RLS policies and no client ever
+// queries it directly. `curated` rows (pre-reviewed library terminology) are
+// never overwritten by a runtime write — this handler only inserts fresh
+// (non-curated) rows and ON CONFLICT DO NOTHING covers the rest.
 //
 // Uses DeepSeek deepseek-chat, same provider as generate-workout.ts /
 // generate-smart-workout.ts (one capability, one contract — §4.5).
@@ -29,9 +34,12 @@ const LOCALE_TO_LANG: Record<SupportedLocale, string> = {
 };
 
 // Defensive caps — an authenticated caller could otherwise spam translation
-// calls; these bound cost per request without limiting legitimate use (no
-// real workout has anywhere near 50 distinct exercise/note strings).
-const MAX_ITEMS      = 50;
+// calls; these bound cost per request without limiting legitimate use. A
+// single plan has nowhere near 50 distinct strings, but the exercise
+// library screen (Fase 1) legitimately requests the full catalog in one
+// batch — 129-155 items today, so 50 silently truncated it and pushed
+// the remainder through cache-miss translation on every load.
+const MAX_ITEMS      = 300;
 const MAX_TEXT_CHARS = 300;
 
 // ── Inlined auth helpers — see generate-smart-workout.ts for why these are
@@ -75,20 +83,36 @@ async function verifyRequestUser(req: { headers?: Record<string, string | string
   }
 }
 
-interface CacheRow { source_text: string; target_locale: string; translated_text: string }
+interface CacheRow {
+  source_text:     string;
+  source_locale:   string;
+  target_locale:   string;
+  translated_text: string;
+}
 
-async function fetchCached(texts: string[], targetLocale: string): Promise<Map<string, string>> {
+async function fetchCached(
+  texts: string[], sourceLocale: string, targetLocale: string,
+): Promise<Map<string, string>> {
   const result = new Map<string, string>();
   if (texts.length === 0) return result;
   const orList = texts.map(t => `"${t.replace(/"/g, '\\"')}"`).join(',');
   const res = await fetch(
     `${authSupabaseUrl()}/rest/v1/exercise_content_translations` +
-    `?select=source_text,target_locale,translated_text` +
+    `?select=source_text,translated_text` +
+    `&source_locale=eq.${encodeURIComponent(sourceLocale)}` +
     `&target_locale=eq.${encodeURIComponent(targetLocale)}` +
     `&source_text=in.(${encodeURIComponent(orList)})`,
     { headers: authServiceHeaders() },
   );
-  if (!res.ok) return result;
+  if (!res.ok) {
+    // Was silent before — a misconfigured/missing SUPABASE_SERVICE_ROLE_KEY
+    // (e.g. a local .env.local without it) makes every lookup fail exactly
+    // like a genuine cache miss, with no visible signal that the cache was
+    // never actually consulted. Logged, not thrown — §6.3, a lookup failure
+    // must fall through to live translation, not block the response.
+    console.error('[translate-exercise-content] cache read failed:', res.status, await res.text().catch(() => ''));
+    return result;
+  }
   const rows = await res.json() as CacheRow[];
   for (const row of rows) result.set(row.source_text, row.translated_text);
   return result;
@@ -97,7 +121,8 @@ async function fetchCached(texts: string[], targetLocale: string): Promise<Map<s
 async function storeTranslations(rows: CacheRow[]): Promise<void> {
   if (rows.length === 0) return;
   const res = await fetch(
-    `${authSupabaseUrl()}/rest/v1/exercise_content_translations?on_conflict=source_text,target_locale`,
+    `${authSupabaseUrl()}/rest/v1/exercise_content_translations` +
+    `?on_conflict=source_text,source_locale,target_locale`,
     {
       method: 'POST',
       headers: { ...authServiceHeaders(), Prefer: 'resolution=ignore-duplicates' },
@@ -109,9 +134,18 @@ async function storeTranslations(rows: CacheRow[]): Promise<void> {
   }
 }
 
-async function translateMissing(texts: string[], targetLocale: SupportedLocale): Promise<Map<string, string>> {
+async function translateMissing(
+  texts: string[], sourceLocale: SupportedLocale, targetLocale: SupportedLocale,
+): Promise<Map<string, string>> {
   const result = new Map<string, string>();
   if (texts.length === 0) return result;
+
+  // Same locale on both sides — identity, no model call needed (docs/
+  // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, Fase 3 checklist).
+  if (sourceLocale === targetLocale) {
+    for (const t of texts) result.set(t, t);
+    return result;
+  }
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
@@ -120,20 +154,22 @@ async function translateMissing(texts: string[], targetLocale: SupportedLocale):
     return result;
   }
 
-  const lang = LOCALE_TO_LANG[targetLocale];
-  // Declaring a source language, rather than leaving the model to infer one,
-  // is what actually fixes the failure below — an unqualified "translate to
-  // {lang}, or return unchanged if already {lang}" leaves the model to guess
-  // the source, and for a short Portuguese phrase against a Spanish target it
-  // guesses wrong often enough to matter (Portuguese and Spanish share a lot
-  // of vocabulary). Defaulting the assumed source to Brazilian Portuguese
-  // matches this product's actual authoring language; tested live against
-  // genuinely non-Portuguese input (German) and the model still translates it
-  // correctly rather than following the assumption blindly — see docs/
+  const sourceLang = LOCALE_TO_LANG[sourceLocale];
+  const targetLang = LOCALE_TO_LANG[targetLocale];
+  // Declaring the source language explicitly, rather than leaving the model
+  // to infer one, is what actually fixes the failure below — an unqualified
+  // "translate to {lang}, or return unchanged if already {lang}" leaves the
+  // model to guess the source, and it guesses wrong often enough to matter
+  // for lexically-similar language pairs. The source is a caller-declared
+  // parameter (not hardcoded to Portuguese) because this endpoint now serves
+  // two genuinely different sources: trainer-typed content (source_locale
+  // reflects whatever the trainer typed in) and the canonical English
+  // exercise library (source_locale = 'en') — see docs/
+  // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md and docs/
   // SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md, Open Finding.
-  const system = `A Brazilian Portuguese-speaking personal trainer wrote the following short fitness exercise
-name or coaching note in an app. Translate it from Portuguese into ${lang}, using the natural, idiomatic
-term a ${lang}-speaking trainer would actually use — not a literal word-for-word rendering.
+  const system = `A personal trainer wrote the following short fitness exercise
+name or coaching note in an app, in ${sourceLang}. Translate it from ${sourceLang} into ${targetLang}, using the natural,
+idiomatic term a ${targetLang}-speaking trainer would actually use — not a literal word-for-word rendering.
 Preserve the exact meaning — do not add explanation, commentary, or extra words.
 Respond with ONLY the result, nothing else — no quotes, no markdown.`;
 
@@ -186,7 +222,7 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
   return result;
 }
 
-interface VercelRequest  { method?: string; body?: { items?: { text?: string }[]; targetLocale?: string }; headers?: Record<string, string | string[] | undefined> }
+interface VercelRequest  { method?: string; body?: { items?: { text?: string }[]; sourceLocale?: string; targetLocale?: string }; headers?: Record<string, string | string[] | undefined> }
 interface VercelResponse {
   status(c: number): VercelResponse;
   json(b: unknown): VercelResponse;
@@ -214,27 +250,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!targetLocale || !(SUPPORTED_LOCALES as readonly string[]).includes(targetLocale)) {
     return res.status(400).json({ error: `targetLocale must be one of ${SUPPORTED_LOCALES.join(', ')}` });
   }
+  // Default 'pt' preserves the original assumption for callers that predate
+  // this parameter (trainer-typed content) — see docs/
+  // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D7.
+  const rawSourceLocale = req.body?.sourceLocale;
+  const sourceLocale = (rawSourceLocale && (SUPPORTED_LOCALES as readonly string[]).includes(rawSourceLocale))
+    ? rawSourceLocale as SupportedLocale
+    : 'pt';
 
   const rawItems = req.body?.items ?? [];
   const texts = Array.from(new Set(
     rawItems
       .map(i => i?.text?.trim())
-      .filter((t): t is string => !!t && t.length <= MAX_TEXT_CHARS)
-      .slice(0, MAX_ITEMS),
-  ));
+      .filter((t): t is string => !!t && t.length <= MAX_TEXT_CHARS),
+  )).slice(0, MAX_ITEMS);
 
   if (texts.length === 0) return res.status(200).json({ translations: {} });
 
-  const cached = await fetchCached(texts, targetLocale);
+  const cached = await fetchCached(texts, sourceLocale, targetLocale);
   const missing = texts.filter(t => !cached.has(t));
-  const fresh = await translateMissing(missing, targetLocale as SupportedLocale);
+  const fresh = await translateMissing(missing, sourceLocale, targetLocale as SupportedLocale);
 
   // Awaited, not fire-and-forget: a serverless function's process can be
   // frozen right after the response is sent, so a detached write here would
   // not reliably complete.
   await storeTranslations(
     Array.from(fresh.entries()).map(([source_text, translated_text]) => ({
-      source_text, target_locale: targetLocale, translated_text,
+      source_text, source_locale: sourceLocale, target_locale: targetLocale, translated_text,
     })),
   );
 

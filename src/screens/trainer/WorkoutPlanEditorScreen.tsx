@@ -28,6 +28,9 @@ import { STRUCTURE_BLOCKS } from '../../coach-dna/constants';
 import { ADJUSTABLE_BLOCKS, normalizeBlock, type SessionBlock } from '../../lib/sessionStructure';
 import { VoiceBar } from '../../coach-dna/components/VoiceBar';
 import { cleanupVoiceNote } from '../../lib/cleanupVoiceNote';
+import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
+import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
+import type { AppLanguage } from '../../i18n';
 
 interface ClientProfile {
   id:         string;
@@ -117,6 +120,7 @@ interface WorkoutPlanEditorScreenProps {
   user:            TrainerDashboardUser | null;
   selectedClient?: ClientProfile | null;
   freeSession?:    boolean; // Free Training Session: hide "send to client", relabel live CTA
+  keepExerciseNamesInEnglish?: boolean;
 }
 
 export function WorkoutPlanEditorScreen({
@@ -124,9 +128,10 @@ export function WorkoutPlanEditorScreen({
   user,
   selectedClient,
   freeSession = false,
+  keepExerciseNamesInEnglish = true,
 }: WorkoutPlanEditorScreenProps) {
   const { t, dark } = useTrainerTheme();
-  const { t: tr } = useTranslation();
+  const { t: tr, i18n } = useTranslation();
   const [context, setContext] = React.useState<WorkoutPlanEditorContext | null>(null);
   const [personalConsent, setPersonalConsent] = React.useState<ConsentMatrix | null>(null);
   const [sessionOrder, setSessionOrder] = React.useState<string[] | null>(null);
@@ -141,6 +146,20 @@ export function WorkoutPlanEditorScreen({
   const [catalogSuggestions, setCatalogSuggestions] = React.useState<ProtocolExerciseItem[]>([]);
   const [catalogLoading,     setCatalogLoading]     = React.useState(false);
   const catalogSearchRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Catalog suggestions (the search dropdown, not yet added to the plan)
+  // always come from protocol_exercises, canonically English — same
+  // certainty as the library screen, so the source is declared explicitly.
+  // The plan's own already-added list is deliberately NOT translated here:
+  // an entry can come from the catalog (English) OR be typed by hand in
+  // whatever language the trainer used, and today nothing records which —
+  // declaring either source as certain risks corrupting the trainer's own
+  // typed text. Fase 3 (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md)
+  // adds per-row provenance and resolves this properly.
+  const translateName = useTranslatedExerciseContent(
+    catalogSuggestions.map(i => i.exercise_name),
+    resolveExerciseNameLocale({ keepExerciseNamesInEnglish, language: i18n.language as AppLanguage }),
+    'en',
+  );
   // Voice dictation for the notes field mirrors Step12Philosophy's pattern:
   // buffer raw chunks for the session, run one cleanup pass on stop (not
   // per-chunk) so the AI sees full sentences and prior typed content isn't
@@ -770,7 +789,7 @@ export function WorkoutPlanEditorScreen({
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{item.exercise_name}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{translateName(item.exercise_name)}</div>
                           {prescription && (
                             <div style={{ fontSize: 11, color: textMute(dark), marginTop: 1 }}>
                               {prescription}

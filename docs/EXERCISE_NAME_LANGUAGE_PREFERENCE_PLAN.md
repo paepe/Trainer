@@ -99,7 +99,7 @@ Herdada de `docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md`, mesma aplicação pe
 | Fase | Branch | Commit SHA | Validado | Autorizado por | URL de deploy | Data |
 |------|--------|-----------|----------|----------------|---------------|------|
 | 0 (migração) | — (DB, sem branch) | n/a — aplicada via ferramenta de migração, sem staging neste projeto | Não — schema-only, tabelas afetadas com 0 linhas | Líder do projeto | aplicada direto em `xbfszzdyskwdctlqzztl` | 2026-08-01 |
-| 0 (código) | `main` (direto) | pendente | Sim — verificado ao vivo com conta real (`carlos.silva@trainer.test`), ver Fase 0 | Líder do projeto | pendente | 2026-08-01 |
+| 0 (código) | `main` (direto) | `a2ee571` | Sim — verificado ao vivo com conta real (`carlos.silva@trainer.test`), ver Fase 0 | Líder do projeto | deploy automático via push em `main` (Vercel) | 2026-08-01 |
 
 ---
 
@@ -139,23 +139,25 @@ Traduz os 129 nomes da biblioteca **uma única vez, offline, com revisão humana
 
 ### Checklist
 
-- [ ] Script offline: gera as 129 × 3 traduções (`pt`, `es`, `de`) a partir do inglês, com `source_locale = 'en'`
-- [ ] Saída em arquivo revisável (Markdown/CSV) — **não escreve no banco direto**
-- [ ] Revisão humana da terminologia pelo líder do projeto antes da carga
-- [ ] Carga no banco com `curated = true`
-- [ ] `TrainerLibraryExercisesScreen` renderiza o nome conforme a preferência do treinador
-- [ ] Autocomplete do editor de plano idem (o treinador busca e vê no idioma que escolheu)
-- [ ] Leitura em lote a partir do banco, sem chamada ao modelo em runtime para nomes de biblioteca
-- [ ] Cobertura: preferência ligada → inglês; desligada → idioma do app; termo sem tradução curada → comportamento definido e testado
-- [ ] Testes mutation-testados
+- [x] Traduções dos 129 × 3 (`pt`, `es`, `de`) a partir do inglês, com `source_locale = 'en'` — rascunho inicial + auditoria por segundo modelo com orientação de contexto, revisada linha a linha (51/129 correções aceitas)
+- [x] Saída em arquivo revisável (`docs/EXERCISE_LIBRARY_TRANSLATIONS_DRAFT_20260801.md`) — não escreveu no banco direto
+- [x] Revisão humana da terminologia pelo líder do projeto antes da carga
+- [x] Carga no banco com `curated = true` — 387 linhas confirmadas (129 × 3)
+- [x] `TrainerLibraryExercisesScreen` renderiza o nome conforme a preferência do treinador — os 3 pontos de exibição (aba Exercícios, aba Protocolos, assistente de voz) conectados, `sourceLocale: 'en'` explícito
+- [x] Autocomplete do editor de plano idem — sugestões do catálogo conectadas, `sourceLocale: 'en'` explícito. A lista de exercícios já adicionados ao plano **não** foi conectada — origem mista (catálogo ou digitado à mão) sem rastreamento ainda; ver nota abaixo
+- [x] Leitura passa pelo cache do próprio endpoint existente (`api/translate-exercise-content.ts`, cache-first) — sem chamada ao modelo quando há linha curada; não é uma leitura direta e separada do banco como o texto original sugeria, mas atinge o mesmo efeito (achados 6/7/8)
+- [~] Cobertura: preferência ligada → inglês (coberto, testes do endpoint); desligada → idioma do app (coberto); termo sem tradução curada → mantém o original (D8, coberto) — sem teste end-to-end específico da tela ainda
+- [x] Testes mutation-testados (endpoint: 4 novos testes; hook: 4 novos testes)
+
+**Achado durante a implementação, fora do escopo original**: dois bugs reais foram encontrados e corrigidos no endpoint compartilhado (`api/translate-exercise-content.ts`), preexistentes desde a Fase 0 mas nunca exercitados até a Fase 1 gerar tráfego real: (1) o `on_conflict` da escrita de cache ainda referenciava a constraint de 2 colunas, quebrado desde que a Fase 0 ampliou para 3; (2) o prompt de tradução assumia origem fixa em português — quebrado para o conteúdo em inglês que a Fase 1 introduziu. Ver commit para detalhes. `MAX_ITEMS` também foi ampliado de 50 para 300 (a biblioteca inteira excede o limite antigo).
 
 ### Aceitação
 
-- [ ] Conta espanhola com toggle desligado: biblioteca **129/129** em espanhol — zero nomes em inglês na tela
-- [ ] Conta com toggle ligado: 129/129 em inglês, e **nenhuma** chamada de tradução disparada (verificado na aba de rede)
+- [ ] Conta espanhola com toggle desligado: biblioteca **129/129** em espanhol — zero nomes em inglês na tela — **pendente**: verificação local bloqueada por `SUPABASE_SERVICE_ROLE_KEY` ausente em `.env.local` (lacuna de ambiente, não de código); aguardando verificação em produção
+- [ ] Conta com toggle ligado: 129/129 em inglês, e **nenhuma** chamada de tradução disparada — mesma pendência acima
 - [ ] Autocomplete respeita a preferência e ainda encontra o exercício
 - [ ] Nenhum nome pisca em inglês antes de virar espanhol (verificado ao vivo)
-- [ ] `tsc`, lint, testes, build verdes
+- [x] `tsc`, lint, testes, build verdes
 
 ---
 
@@ -219,7 +221,7 @@ Faz a IA gerar o nome **já no idioma correto do destinatário**, eliminando a e
 
 | Fase | Status | Concluída | Commit | Notas |
 |------|--------|-----------|--------|-------|
-| 0 — Contrato e schema | Concluída, aguardando commit/push | 2026-08-01 | pendente | Migração aplicada direto em `xbfszzdyskwdctlqzztl` (sem staging); código verificado ao vivo, aguardando autorização de push |
+| 0 — Contrato e schema | **Concluída** | 2026-08-01 | `a2ee571` | Migração aplicada direto em `xbfszzdyskwdctlqzztl` (sem staging); código verificado ao vivo e publicado em `main` |
 | 1 — Biblioteca | Não iniciada | — | — | — |
 | 2 — Nomes de IA | Não iniciada | — | — | — |
 | 3 — Nomes manuais | Não iniciada | — | — | — |

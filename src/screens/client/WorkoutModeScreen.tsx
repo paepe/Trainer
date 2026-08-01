@@ -14,6 +14,8 @@ import { LabeledInput } from './workout/LabeledInput';
 import type { Phase, ExState } from './workout/types';
 import { enqueue, flush, pendingCount, type QueuedFullSession } from '../../lib/workoutSyncQueue';
 import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
+import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
+import type { AppLanguage } from '../../i18n';
 
 interface Theme {
   primary:     string;
@@ -41,15 +43,16 @@ interface WorkoutModeScreenProps {
   completeWorkoutSession:      (data: { sessionId: string; completed_at: string; total_duration_min: number; notes?: string | null; planId?: string | null }) => Promise<{ error: unknown }>;
   updatePainRecurrence:        (region: string) => Promise<{ error: unknown }>;
   sounds?:                     boolean;
+  keepExerciseNamesInEnglish?: boolean;
 }
 
 export function WorkoutModeScreen({
   nav, t, dark, user: _user, planId, exercises, plannedDurationMin, clientUserId, clientName,
   startWorkoutSession, logWorkoutSet, updateSessionExerciseStatus,
   reportWorkoutPain, completeWorkoutSession, updatePainRecurrence,
-  sounds = false,
+  sounds = false, keepExerciseNamesInEnglish = true,
 }: WorkoutModeScreenProps) {
-  const { t: tr } = useTranslation();
+  const { t: tr, i18n } = useTranslation();
   const skipOptions = React.useMemo(
     () => tr('client.mode.skipReasons', { returnObjects: true }) as string[],
     [tr],
@@ -166,8 +169,15 @@ export function WorkoutModeScreen({
 
   // Translates trainer-typed exercise names/notes to this client's locale —
   // AI-generated content is already in the right language at generation time.
-  const translate = useTranslatedExerciseContent(
-    exStates.flatMap(e => [e.name, e.notes]),
+  // Only the name respects the keep-English-names toggle (docs/
+  // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D1) — notes always follow the
+  // client's own app language.
+  const translateName = useTranslatedExerciseContent(
+    exStates.map(e => e.name),
+    resolveExerciseNameLocale({ keepExerciseNamesInEnglish, language: i18n.language as AppLanguage }),
+  );
+  const translateNote = useTranslatedExerciseContent(
+    exStates.map(e => e.notes),
   );
 
   const updateEx = (idx: number, patch: Partial<ExState>) =>
@@ -437,7 +447,8 @@ export function WorkoutModeScreen({
           <ExerciseCard
             key={ex.id}
             ex={ex}
-            translate={translate}
+            translateName={translateName}
+            translateNote={translateNote}
             isActive={i === activeIdx && !allDone}
             dark={dark}
             t={t}

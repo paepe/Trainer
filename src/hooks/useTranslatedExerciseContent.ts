@@ -13,14 +13,27 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { authHeaders } from '../lib/authHeaders';
 import { resolveWorkoutApiBase } from '../lib/workoutGeneration';
+import type { AppLanguage } from '../i18n';
 
-const cache = new Map<string, string>(); // key: `${locale}::${text}`
+const cache = new Map<string, string>(); // key: `${sourceLocale ?? ''}::${locale}::${text}`
 
 export function useTranslatedExerciseContent(
   texts: Array<string | null | undefined>,
+  // Defaults to the viewer's own UI language (existing behaviour, for
+  // manually-typed names/notes). Exercise-name display sites pass
+  // resolveExerciseNameLocale(prefs) instead, which can diverge from the UI
+  // language when the keep-English-names toggle is on (docs/
+  // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D2/D3).
+  targetLocale?: AppLanguage,
+  // Declares what language `texts` is actually written in — omit for
+  // trainer-typed content (server defaults to 'pt', the original
+  // assumption); pass 'en' for canonical library/catalog names, whose
+  // source language is known and fixed, not the trainer's typing habit.
+  sourceLocale?: AppLanguage,
 ): (text: string | null | undefined) => string {
   const { i18n } = useTranslation();
-  const locale = i18n.language;
+  const locale = targetLocale ?? (i18n.language as AppLanguage);
+  const cacheKeyPrefix = `${sourceLocale ?? ''}::${locale}::`;
 
   // Stable string derived from `texts` so the memo below only recomputes when
   // the actual set of strings changes, not on every render (callers typically
@@ -34,7 +47,7 @@ export function useTranslatedExerciseContent(
   const [, forceRerender] = React.useReducer((n: number) => n + 1, 0);
 
   React.useEffect(() => {
-    const missing = uniqueTexts.filter(t => !cache.has(`${locale}::${t}`));
+    const missing = uniqueTexts.filter(t => !cache.has(`${cacheKeyPrefix}${t}`));
     if (missing.length === 0) return;
 
     let cancelled = false;
@@ -44,12 +57,16 @@ export function useTranslatedExerciseContent(
         const res = await fetch(`${resolveWorkoutApiBase()}/api/translate-exercise-content`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ items: missing.map(text => ({ text })), targetLocale: locale }),
+          body: JSON.stringify({
+            items: missing.map(text => ({ text })),
+            ...(sourceLocale ? { sourceLocale } : {}),
+            targetLocale: locale,
+          }),
         });
         if (!res.ok) return;
         const { translations } = await res.json() as { translations: Record<string, string> };
         for (const [original, translated] of Object.entries(translations)) {
-          cache.set(`${locale}::${original}`, translated);
+          cache.set(`${cacheKeyPrefix}${original}`, translated);
         }
         if (!cancelled) forceRerender();
       } catch {
@@ -59,10 +76,10 @@ export function useTranslatedExerciseContent(
     })();
 
     return () => { cancelled = true; };
-  }, [uniqueTexts, locale]);
+  }, [uniqueTexts, cacheKeyPrefix, sourceLocale]);
 
   return React.useCallback((text: string | null | undefined) => {
     if (!text?.trim()) return text ?? '';
-    return cache.get(`${locale}::${text}`) ?? text;
-  }, [locale]);
+    return cache.get(`${cacheKeyPrefix}${text}`) ?? text;
+  }, [cacheKeyPrefix]);
 }
