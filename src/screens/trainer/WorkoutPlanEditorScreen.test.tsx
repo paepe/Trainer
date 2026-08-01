@@ -40,6 +40,13 @@ const COACH_DNA_STUB = {
   select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }),
 };
 
+// The client's own exercise-name preference (Fase 2, D2) — absent here, so
+// resolveExerciseNameLocale falls back to English, matching the pre-Fase-2
+// behaviour these tests were written against.
+const PREFERENCES_STUB = {
+  select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }),
+};
+
 // Typing an exercise name fires a debounced catalog search 280ms later. Without
 // a stub it rejects after the test has finished, surfacing as an unhandled
 // rejection that can mask real failures.
@@ -90,6 +97,7 @@ describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table in default stub: ${table}`);
     };
   });
@@ -106,6 +114,7 @@ describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'workout_plans') return { insert: planInsert };
       throw new Error(`unexpected table: ${table}`);
     };
@@ -135,6 +144,7 @@ describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'workout_plans') return { insert: planInsert, delete: planDelete };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -167,6 +177,7 @@ describe('WorkoutPlanEditorScreen — sendPlan error handling', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'workout_plans') return { insert: planInsert };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -230,6 +241,7 @@ describe('WorkoutPlanEditorScreen — available time provenance', () => {
       if (table === 'checkin_prontidao') return checkinStub(30);
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table: ${table}`);
     };
     renderScreen({ nav: vi.fn() });
@@ -244,6 +256,7 @@ describe('WorkoutPlanEditorScreen — available time provenance', () => {
       if (table === 'checkin_prontidao') return checkinStub(null);
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table: ${table}`);
     };
     renderScreen({ nav: vi.fn() });
@@ -257,6 +270,7 @@ describe('WorkoutPlanEditorScreen — available time provenance', () => {
       if (table === 'checkin_prontidao') return checkinStub(null);
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table: ${table}`);
     };
     renderScreen({ nav: vi.fn() });
@@ -270,6 +284,7 @@ describe('WorkoutPlanEditorScreen — available time provenance', () => {
       if (table === 'checkin_prontidao') return checkinStub(null);
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table: ${table}`);
     };
     renderScreen({ nav: vi.fn() });
@@ -287,6 +302,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
       if (table === 'profile_v2')         return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'checkin_prontidao')  return checkinStub(60);
       throw new Error(`unexpected table: ${table}`);
     };
@@ -306,6 +322,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
       if (table === 'profile_v2')         return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'checkin_prontidao')  return checkinStub(6); // 5 min estimate is within 80–120% of 6
       throw new Error(`unexpected table: ${table}`);
     };
@@ -329,6 +346,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'workout_plans')  return { insert: planInsert };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -353,6 +371,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table: ${table}`);
     };
 
@@ -369,6 +388,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table: ${table}`);
     };
 
@@ -391,6 +411,7 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
       if (table === 'profile_v2')        return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'checkin_prontidao') return checkinStub(5); // one default exercise = 5 min
       throw new Error(`unexpected table: ${table}`);
     };
@@ -415,6 +436,7 @@ describe('WorkoutPlanEditorScreen — session blocks (Phase 3)', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table in default stub: ${table}`);
     };
   });
@@ -429,6 +451,7 @@ describe('WorkoutPlanEditorScreen — session blocks (Phase 3)', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'workout_plans')  return { insert: planInsert };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -453,6 +476,7 @@ describe('WorkoutPlanEditorScreen — session blocks (Phase 3)', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'workout_plans')  return { insert: planInsert };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -498,6 +522,7 @@ describe('WorkoutPlanEditorScreen — session blocks (Phase 3)', () => {
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       if (table === 'workout_plans')  return { insert: planInsert };
       if (table === 'plan_exercises') return { insert: exercisesInsert };
       throw new Error(`unexpected table: ${table}`);
@@ -519,6 +544,197 @@ describe('WorkoutPlanEditorScreen — session blocks (Phase 3)', () => {
   });
 });
 
+// Fase 2 (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md) — the AI must
+// generate exercise names directly in the recipient's own locale (D2/D5),
+// not the fixed 'en' this screen used to send, and must tag generated rows
+// with the locale they were produced in (D7) so later readers know when a
+// translation is actually needed.
+describe('WorkoutPlanEditorScreen — AI generation locale (Fase 2)', () => {
+  function preferencesStub(language: string | null, keepEnglish: boolean | null) {
+    return {
+      select: () => ({
+        eq: () => ({
+          maybeSingle: () => Promise.resolve({
+            data: language == null ? null : { language, keep_exercise_names_in_english: keepEnglish },
+            error: null,
+          }),
+        }),
+      }),
+    };
+  }
+
+  beforeEach(async () => {
+    // requestWorkoutPlan's call history is shared file-wide (vi.mock at
+    // module scope, no global resetMocks) — clear it so each test's
+    // toHaveBeenCalledTimes(1) reflects only its own click.
+    const { requestWorkoutPlan } = await import('../../lib/workoutGeneration');
+    vi.mocked(requestWorkoutPlan).mockClear();
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      throw new Error(`unexpected table in default stub: ${table}`);
+    };
+  });
+
+  it("sends the recipient's own language to the AI when their toggle is off, not a fixed 'en'", async () => {
+    const { requestWorkoutPlan } = await import('../../lib/workoutGeneration');
+    vi.mocked(requestWorkoutPlan).mockResolvedValueOnce([]);
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return CONTEXT_FETCH_STUB;
+      if (table === 'checkin_prontidao') return checkinStub(45);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return preferencesStub('es', false);
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav: vi.fn() });
+    // Same Promise.all batch sets clientPrefs and the check-in-derived text
+    // together — waiting on the latter guarantees the former has settled too.
+    await waitFor(() => expect(screen.getByText('45min')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('✦ Ask AI'));
+
+    await waitFor(() => expect(requestWorkoutPlan).toHaveBeenCalledTimes(1));
+    expect(requestWorkoutPlan).toHaveBeenCalledWith(expect.objectContaining({ locale: 'es' }));
+  });
+
+  it("sends 'en' when the recipient's own toggle is on, even if their app language differs", async () => {
+    const { requestWorkoutPlan } = await import('../../lib/workoutGeneration');
+    vi.mocked(requestWorkoutPlan).mockResolvedValueOnce([]);
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return CONTEXT_FETCH_STUB;
+      if (table === 'checkin_prontidao') return checkinStub(45);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return preferencesStub('es', true);
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav: vi.fn() });
+    await waitFor(() => expect(screen.getByText('45min')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('✦ Ask AI'));
+
+    await waitFor(() => expect(requestWorkoutPlan).toHaveBeenCalledTimes(1));
+    expect(requestWorkoutPlan).toHaveBeenCalledWith(expect.objectContaining({ locale: 'en' }));
+  });
+
+  it('falls back to English while the recipient preference row has not loaded yet', async () => {
+    const { requestWorkoutPlan } = await import('../../lib/workoutGeneration');
+    vi.mocked(requestWorkoutPlan).mockResolvedValueOnce([]);
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return CONTEXT_FETCH_STUB;
+      if (table === 'checkin_prontidao') return checkinStub(45);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return preferencesStub(null, null); // no row for this client
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav: vi.fn() });
+    await waitFor(() => expect(screen.getByText('45min')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('✦ Ask AI'));
+
+    await waitFor(() => expect(requestWorkoutPlan).toHaveBeenCalledTimes(1));
+    expect(requestWorkoutPlan).toHaveBeenCalledWith(expect.objectContaining({ locale: 'en' }));
+  });
+
+  it('tags AI-generated exercises with the locale they were produced in, and persists it on save', async () => {
+    const { requestWorkoutPlan } = await import('../../lib/workoutGeneration');
+    vi.mocked(requestWorkoutPlan).mockResolvedValueOnce([{
+      exercise_name: 'Sentadilla', muscle_group: 'Legs', sets: 3, reps: 10,
+      duration_seconds: null, load_kg: null, rest_seconds: 60, notes: null, phase: 'strength',
+    }]);
+    const planInsert = vi.fn().mockReturnValue({
+      select: () => ({ single: () => Promise.resolve({ data: { id: 'plan-loc' }, error: null }) }),
+    });
+    const exercisesInsert = vi.fn().mockResolvedValue({ error: null });
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return CONTEXT_FETCH_STUB;
+      if (table === 'checkin_prontidao') return checkinStub(45);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return preferencesStub('es', false);
+      if (table === 'workout_plans')  return { insert: planInsert };
+      if (table === 'plan_exercises') return { insert: exercisesInsert };
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav: vi.fn() });
+    await waitFor(() => expect(screen.getByText('45min')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('✦ Ask AI'));
+    await waitFor(() => expect(screen.getByText('Sentadilla')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('Send to client →'));
+
+    await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
+    const [inserted] = exercisesInsert.mock.calls[0]!;
+    expect(inserted[0]).toMatchObject({ exercise_name: 'Sentadilla', name_source_locale: 'es' });
+  });
+
+  it('leaves name_source_locale null for a hand-typed exercise (no AI provenance to claim)', async () => {
+    const planInsert = vi.fn().mockReturnValue({
+      select: () => ({ single: () => Promise.resolve({ data: { id: 'plan-manual' }, error: null }) }),
+    });
+    const exercisesInsert = vi.fn().mockResolvedValue({ error: null });
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return preferencesStub('es', false);
+      if (table === 'workout_plans')  return { insert: planInsert };
+      if (table === 'plan_exercises') return { insert: exercisesInsert };
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav: vi.fn() });
+    addOneExercise();
+    fireEvent.click(screen.getByText('Send to client →'));
+
+    await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
+    const [inserted] = exercisesInsert.mock.calls[0]!;
+    expect(inserted[0]).toMatchObject({ exercise_name: 'Squat', name_source_locale: null });
+  });
+
+  it("clears a generated exercise's provenance tag once the trainer hand-edits its name", async () => {
+    const { requestWorkoutPlan } = await import('../../lib/workoutGeneration');
+    vi.mocked(requestWorkoutPlan).mockResolvedValueOnce([{
+      exercise_name: 'Sentadilla', muscle_group: 'Legs', sets: 3, reps: 10,
+      duration_seconds: null, load_kg: null, rest_seconds: 60, notes: null, phase: 'strength',
+    }]);
+    const planInsert = vi.fn().mockReturnValue({
+      select: () => ({ single: () => Promise.resolve({ data: { id: 'plan-edit' }, error: null }) }),
+    });
+    const exercisesInsert = vi.fn().mockResolvedValue({ error: null });
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2')        return CONTEXT_FETCH_STUB;
+      if (table === 'checkin_prontidao') return checkinStub(45);
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return preferencesStub('es', false);
+      if (table === 'workout_plans')  return { insert: planInsert };
+      if (table === 'plan_exercises') return { insert: exercisesInsert };
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav: vi.fn() });
+    await waitFor(() => expect(screen.getByText('45min')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('✦ Ask AI'));
+    await waitFor(() => expect(screen.getByText('Sentadilla')).toBeInTheDocument());
+
+    // Open the generated exercise for editing and retype its name by hand.
+    fireEvent.click(screen.getByText('Sentadilla'));
+    fireEvent.change(screen.getByPlaceholderText('Exercise name'), { target: { value: 'Squat manual' } });
+    fireEvent.click(screen.getByText('Update exercise'));
+
+    fireEvent.click(screen.getByText('Send to client →'));
+
+    await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
+    const [inserted] = exercisesInsert.mock.calls[0]!;
+    expect(inserted[0]).toMatchObject({ exercise_name: 'Squat manual', name_source_locale: null });
+  });
+});
+
 describe('WorkoutPlanEditorScreen — voice dictation for exercise notes', () => {
   const originalSR = (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition;
 
@@ -527,6 +743,7 @@ describe('WorkoutPlanEditorScreen — voice dictation for exercise notes', () =>
       if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
       if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
       if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return PREFERENCES_STUB;
       throw new Error(`unexpected table in default stub: ${table}`);
     };
     FakeSpeechRecognition.current = null;

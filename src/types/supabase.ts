@@ -501,21 +501,27 @@ export type Database = {
       exercise_content_translations: {
         Row: {
           created_at: string
+          curated: boolean
           id: string
+          source_locale: string | null
           source_text: string
           target_locale: string
           translated_text: string
         }
         Insert: {
           created_at?: string
+          curated?: boolean
           id?: string
+          source_locale?: string | null
           source_text: string
           target_locale: string
           translated_text: string
         }
         Update: {
           created_at?: string
+          curated?: boolean
           id?: string
+          source_locale?: string | null
           source_text?: string
           target_locale?: string
           translated_text?: string
@@ -953,6 +959,7 @@ export type Database = {
           intensity: string | null
           load_kg: number | null
           muscle_group: string | null
+          name_source_locale: string | null
           notes: string | null
           order_index: number
           phase: string | null
@@ -974,6 +981,7 @@ export type Database = {
           intensity?: string | null
           load_kg?: number | null
           muscle_group?: string | null
+          name_source_locale?: string | null
           notes?: string | null
           order_index?: number
           phase?: string | null
@@ -995,6 +1003,7 @@ export type Database = {
           intensity?: string | null
           load_kg?: number | null
           muscle_group?: string | null
+          name_source_locale?: string | null
           notes?: string | null
           order_index?: number
           phase?: string | null
@@ -1127,6 +1136,7 @@ export type Database = {
           default_location: string | null
           goals: boolean | null
           id: string
+          keep_exercise_names_in_english: boolean
           language: string | null
           light_palette: string | null
           notifications: boolean | null
@@ -1155,6 +1165,7 @@ export type Database = {
           default_location?: string | null
           goals?: boolean | null
           id?: string
+          keep_exercise_names_in_english?: boolean
           language?: string | null
           light_palette?: string | null
           notifications?: boolean | null
@@ -1183,6 +1194,7 @@ export type Database = {
           default_location?: string | null
           goals?: boolean | null
           id?: string
+          keep_exercise_names_in_english?: boolean
           language?: string | null
           light_palette?: string | null
           notifications?: boolean | null

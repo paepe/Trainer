@@ -102,6 +102,8 @@ Herdada de `docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md`, mesma aplicação pe
 | 0 (código) | `main` (direto) | `a2ee571` | Sim — verificado ao vivo com conta real (`carlos.silva@trainer.test`), ver Fase 0 | Líder do projeto | deploy automático via push em `main` (Vercel) | 2026-08-01 |
 | 1 (carga de dados) | — (DB, sem branch) | n/a — 387 linhas aplicadas via SQL Editor do Supabase, sem staging neste projeto | Sim — `curated_count = 387` confirmado por consulta direta | Líder do projeto | aplicada direto em `xbfszzdyskwdctlqzztl` | 2026-08-01 |
 | 1 (código) | `main` (direto) | `53d8bb4` | Sim — verificado ao vivo em produção (`trainer-lake.vercel.app`), resposta de rede conferida item a item, 129/129 | Líder do projeto | https://trainer-lake.vercel.app | 2026-08-01 |
+| 2 (migração) | — (DB, sem branch) | n/a — aplicada via ferramenta de migração, sem staging neste projeto | Não ainda — coluna aditiva, sem consumidor até o código ser publicado | Líder do projeto | aplicada direto em `xbfszzdyskwdctlqzztl` | 2026-08-01 |
+| 2 (código) | `main` (direto) | *pendente* | *pendente — aguardando push e verificação ao vivo* | Líder do projeto | *pendente* | 2026-08-01 |
 
 ---
 
@@ -193,27 +195,31 @@ Categoria de conteúdo diferente de "nome de exercício" (não é gated pelo tog
 
 ## Fase 2 — Nomes gerados por IA
 
-**Esforço:** ~3h · **Risco:** Médio (toca geração ao vivo) · **Depende de:** Fase 0 · **Migração:** não
+**Esforço:** ~3h · **Risco:** Médio (toca geração ao vivo) · **Depende de:** Fase 0 · **Migração:** sim (aditiva, ver nota)
 
 Faz a IA gerar o nome **já no idioma correto do destinatário**, eliminando a etapa de tradução para esse caminho (D5). Corrige, no mesmo movimento, o `locale: 'en'` fixo (achado 9), que hoje entrega nomes em inglês a alunos configurados em outro idioma independentemente de qualquer preferência.
 
+**Nota sobre a migração (2026-08-01)**: o checklist original pedia gravar `name_source_locale` "preparando a Fase 3, mesma coluna" com o cabeçalho da fase declarando `Migração: não` — contraditório, já que nem `plan_exercises` nem `workout_session_exercises` tinham essa coluna. Confirmado via consulta direta ao schema de produção antes de codificar. Corrigido antecipando só a metade da migração da Fase 3 que esta fase precisa: `plan_exercises.name_source_locale text` (nullable, aditiva), aplicada diretamente em `xbfszzdyskwdctlqzztl` com autorização do líder. `workout_session_exercises.name_source_locale` permanece para a Fase 3, que não é tocada por este fluxo.
+
 ### Checklist
 
-- [ ] `WorkoutPlanEditorScreen`: substituir `locale: 'en'` pelo idioma efetivo do **aluno destinatário** (D2 — a preferência dele rege o que chega até ele)
-- [ ] Carregar a preferência do aluno junto do contexto do cliente já buscado na tela
-- [ ] Registrar `name_source_locale` nas linhas geradas (prepara a Fase 3; mesma coluna)
-- [ ] Editor do treinador: renderiza conforme a preferência **do treinador**, traduzindo só quando divergir da do aluno
-- [ ] Verificar empiricamente contra o modelo real que o nome sai no idioma pedido — 3 execuções por par de idiomas, não uma
-- [ ] Confirmar que cue/observação/título continuam no idioma do app (fora de escopo, não podem regredir)
-- [ ] Testes mutation-testados
+- [x] `WorkoutPlanEditorScreen`: substituir `locale: 'en'` pelo idioma efetivo do **aluno destinatário** (D2 — a preferência dele rege o que chega até ele) — [WorkoutPlanEditorScreen.tsx:322](../src/screens/trainer/WorkoutPlanEditorScreen.tsx)
+- [x] Carregar a preferência do aluno junto do contexto do cliente já buscado na tela — nova consulta a `preferences` no mesmo `Promise.all` que já busca `profile_v2`/`checkin_prontidao`
+- [x] Registrar `name_source_locale` nas linhas geradas (prepara a Fase 3; mesma coluna) — gravado no mapeamento da resposta da IA e persistido em `sendPlan()`; limpo automaticamente se o treinador reescrever o nome à mão; itens vindos do catálogo são marcados `'en'` (fonte certa, achado #1)
+- [x] Editor do treinador: renderiza conforme a preferência **do treinador**, traduzindo só quando divergir da do aluno — reaproveita `useTranslatedExerciseContent`, mesmo padrão do autocomplete do catálogo; sem teste unitário dedicado ainda (ver nota de cobertura abaixo)
+- [ ] Verificar empiricamente contra o modelo real que o nome sai no idioma pedido — 3 execuções por par de idiomas, não uma — **pendente, requer verificação ao vivo em produção após o push**
+- [x] Confirmar que cue/observação/título continuam no idioma do app (fora de escopo, não podem regredir) — não tocados; verificado por grep, nenhum caminho de `notes`/cue alterado
+- [x] Testes mutation-testados — 6 testes novos (`WorkoutPlanEditorScreen.test.tsx`), cada mutação de linha alterada confirmada como capturada
+
+**Nota de cobertura**: a tradução condicional da lista já adicionada (item 4) não tem teste unitário dedicado — os 6 testes novos cobrem o caminho de escrita (locale enviado à IA, gravação e limpeza de `name_source_locale`), que é o que a Fase 3 e a aceitação desta fase dependem. A exibição para o próprio treinador é um refinamento de UX, não coberto pelos critérios de aceitação abaixo.
 
 ### Aceitação
 
-- [ ] Treinador PT gera para aluno ES com toggle desligado: nomes chegam em espanhol, sem tradução em runtime
-- [ ] Treinador PT gera para aluno ES com toggle ligado: nomes chegam em inglês
-- [ ] Cue e observação seguem o idioma do app em todos os casos acima (não regrediram)
-- [ ] Fluxo autônomo do aluno permanece correto (regressão — já funcionava)
-- [ ] `tsc`, lint, testes, build verdes
+- [ ] Treinador PT gera para aluno ES com toggle desligado: nomes chegam em espanhol, sem tradução em runtime — **pendente verificação ao vivo**
+- [ ] Treinador PT gera para aluno ES com toggle ligado: nomes chegam em inglês — **pendente verificação ao vivo**
+- [x] Cue e observação seguem o idioma do app em todos os casos acima (não regrediram) — não tocados nesta fase
+- [ ] Fluxo autônomo do aluno permanece correto (regressão — já funcionava) — **pendente verificação ao vivo**
+- [x] `tsc`, lint, testes (82/82), build verdes
 
 ---
 
@@ -254,7 +260,7 @@ Faz a IA gerar o nome **já no idioma correto do destinatário**, eliminando a e
 | 0 — Contrato e schema | **Concluída** | 2026-08-01 | `a2ee571` | Migração aplicada direto em `xbfszzdyskwdctlqzztl` (sem staging); código verificado ao vivo e publicado em `main` |
 | 1 — Biblioteca | **Concluída** | 2026-08-01 | `53d8bb4` | 387 traduções curadas carregadas; verificado ao vivo em produção, 129/129 corretos nos dois estados do toggle |
 | 1b — Metadados de protocolo | **Concluída** | 2026-08-01 | `e99b2cf` | 195 traduções curadas carregadas; verificado ao vivo em produção, 3 protocolos conferidos item a item |
-| 2 — Nomes de IA | Não iniciada | — | — | — |
+| 2 — Nomes de IA | Código concluído, verificação ao vivo pendente | — | — | Migração (`plan_exercises.name_source_locale`) aplicada em produção; código aguardando push e teste ao vivo |
 | 3 — Nomes manuais | Não iniciada | — | — | — |
 
 ---

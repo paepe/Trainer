@@ -79,6 +79,13 @@ interface WorkoutExercise {
   // carried over from a plan built before this field existed (Decision #4,
   // 2026-07-31) — every exercise added or generated from here on gets one.
   phase?:             SessionBlock | null;
+  // Language the name was generated in by the AI (Fase 2,
+  // docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D5/D7). Only set for
+  // AI-generated exercises — catalog and hand-typed names leave this unset
+  // until Fase 3 adds provenance tracking for those sources too. Cleared
+  // whenever the trainer edits the name by hand (the text may no longer be
+  // in this locale).
+  name_source_locale?: AppLanguage | null;
 }
 
 // Same per-exercise time model used server-side (api/generate-workout.ts) and
@@ -133,6 +140,14 @@ export function WorkoutPlanEditorScreen({
   const { t, dark } = useTrainerTheme();
   const { t: tr, i18n } = useTranslation();
   const [context, setContext] = React.useState<WorkoutPlanEditorContext | null>(null);
+  // Recipient's own preference (D2 — the client's toggle governs what reaches
+  // them, independent of the trainer's own). Falls back to the column
+  // defaults (language 'en', toggle on) while unloaded or absent, mirroring
+  // resolveExerciseNameLocale's own 'en' default.
+  const [clientPrefs, setClientPrefs] = React.useState<{ language: AppLanguage; keepExerciseNamesInEnglish: boolean }>({
+    language: 'en',
+    keepExerciseNamesInEnglish: true,
+  });
   const [personalConsent, setPersonalConsent] = React.useState<ConsentMatrix | null>(null);
   const [sessionOrder, setSessionOrder] = React.useState<string[] | null>(null);
   const [exercises, setExercises] = React.useState<WorkoutExercise[]>([]);
@@ -146,19 +161,33 @@ export function WorkoutPlanEditorScreen({
   const [catalogSuggestions, setCatalogSuggestions] = React.useState<ProtocolExerciseItem[]>([]);
   const [catalogLoading,     setCatalogLoading]     = React.useState(false);
   const catalogSearchRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The trainer's own resolved display locale — reused for every exercise-name
+  // translation target in this screen (catalog suggestions and, below, the
+  // plan's own AI-generated rows).
+  const trainerLocale = resolveExerciseNameLocale({ keepExerciseNamesInEnglish, language: i18n.language as AppLanguage });
+  // Recipient locale for AI generation (D2 — the client's own preference
+  // governs what reaches them) and for tagging generated rows' provenance.
+  const recipientLocale = resolveExerciseNameLocale(clientPrefs);
   // Catalog suggestions (the search dropdown, not yet added to the plan)
   // always come from protocol_exercises, canonically English — same
   // certainty as the library screen, so the source is declared explicitly.
-  // The plan's own already-added list is deliberately NOT translated here:
-  // an entry can come from the catalog (English) OR be typed by hand in
-  // whatever language the trainer used, and today nothing records which —
-  // declaring either source as certain risks corrupting the trainer's own
-  // typed text. Fase 3 (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md)
-  // adds per-row provenance and resolves this properly.
   const translateName = useTranslatedExerciseContent(
     catalogSuggestions.map(i => i.exercise_name),
-    resolveExerciseNameLocale({ keepExerciseNamesInEnglish, language: i18n.language as AppLanguage }),
+    trainerLocale,
     'en',
+  );
+  // The plan's own already-added list: only AI-generated rows carry a known
+  // source locale (name_source_locale, Fase 2) — catalog and hand-typed
+  // entries leave it unset and are rendered as-is (Fase 3 adds provenance for
+  // those). Skips the network call entirely when the trainer's own locale
+  // already matches the recipient's.
+  const planExerciseNamesToTranslate = trainerLocale !== recipientLocale
+    ? exercises.filter(ex => ex.name_source_locale === recipientLocale).map(ex => ex.exercise_name)
+    : [];
+  const translatePlanExerciseName = useTranslatedExerciseContent(
+    planExerciseNamesToTranslate,
+    trainerLocale,
+    recipientLocale,
   );
   // Voice dictation for the notes field mirrors Step12Philosophy's pattern:
   // buffer raw chunks for the session, run one cleanup pass on stop (not
@@ -207,6 +236,9 @@ export function WorkoutPlanEditorScreen({
     setDraft(prev => ({
       ...prev,
       exercise_name:     item.exercise_name,
+      // Catalog names are canonically English (achado #1) — overrides any
+      // stale AI provenance tag from whatever the draft held before.
+      name_source_locale: 'en',
       muscle_group:      item.muscle_group ?? prev.muscle_group,
       sets:              item.sets         ?? prev.sets,
       reps:              item.reps         ?? prev.reps ?? 10,
@@ -284,7 +316,10 @@ export function WorkoutPlanEditorScreen({
           equipment:         pp.equipment          ?? undefined,
           restrictions:      pp.restrictions       ?? undefined,
         } as never : null,
-        locale: 'en',
+        // D2/D5 — generated directly in the recipient's own locale, not the
+        // trainer's. Falls back to 'en' (resolveExerciseNameLocale's own
+        // default) while the client's preference hasn't loaded yet.
+        locale: recipientLocale,
         ...(sessionOrder?.length ? { sessionOrder } : {}),
         ...(existingSummary.length ? { existingExercises: existingSummary, remainingMinutes: remaining } : {}),
       });
@@ -299,6 +334,7 @@ export function WorkoutPlanEditorScreen({
         rest_seconds:      ex.rest_seconds || 60,
         notes:             ex.notes || '',
         phase:             normalizeBlock(ex.phase),
+        name_source_locale: recipientLocale,
       }));
 
       // Append to existing — never replace
@@ -344,7 +380,12 @@ export function WorkoutPlanEditorScreen({
         .order('occurred_at', { ascending: false })
         .limit(1)
         .maybeSingle(),
-    ]).then(([profileRes, checkinRes]) => {
+      supabase
+        .from('preferences')
+        .select('language, keep_exercise_names_in_english')
+        .eq('user_id', selectedClient.id)
+        .maybeSingle(),
+    ]).then(([profileRes, checkinRes, prefsRes]) => {
       const pv2 = profileRes.data as {
         objectives?:       { primary_goal?: string } | null;
         movement_history?: { fitness_level?: string } | null;
@@ -355,6 +396,12 @@ export function WorkoutPlanEditorScreen({
 
       const ci = checkinRes.data;
       const qd = ci?.quick_data as { pain?: { region?: string } } | null | undefined;
+
+      const pr = prefsRes.data as { language?: string; keep_exercise_names_in_english?: boolean } | null;
+      setClientPrefs({
+        language:                   (pr?.language as AppLanguage | undefined) ?? 'en',
+        keepExerciseNamesInEnglish: pr?.keep_exercise_names_in_english ?? true,
+      });
 
       setPersonalConsent(pv2?.consent ?? null);
       setContext({
@@ -464,6 +511,7 @@ export function WorkoutPlanEditorScreen({
         // Propagated from catalog; null for ad-hoc exercises (no classification needed)
         exercise_category: ex.exercise_category ?? null,
         phase:             ex.phase ?? null,
+        name_source_locale: ex.name_source_locale ?? null,
       }))
     );
 
@@ -550,7 +598,11 @@ export function WorkoutPlanEditorScreen({
         }}
       >
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{ex.exercise_name}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>
+            {ex.name_source_locale === recipientLocale && trainerLocale !== recipientLocale
+              ? translatePlanExerciseName(ex.exercise_name)
+              : ex.exercise_name}
+          </div>
           <div style={{ fontSize: 11, color: textSec(dark), marginTop: 3 }}>
             {ex.muscle_group && `${ex.muscle_group} · `}{ex.sets}×{
               ex.duration_seconds != null ? tr('common.units.holdSec', { seconds: ex.duration_seconds }) : ex.reps
@@ -746,7 +798,9 @@ export function WorkoutPlanEditorScreen({
                 placeholder={tr('trainer.planner.exerciseName')}
                 value={draft.exercise_name}
                 onChange={v => {
-                  setDraft({ ...draft, exercise_name: v });
+                  // Hand-editing the name invalidates any AI provenance tag —
+                  // the text may no longer be in that locale (D6).
+                  setDraft({ ...draft, exercise_name: v, name_source_locale: null });
                   setNameError(false);
                   searchCatalog(v);
                 }}
