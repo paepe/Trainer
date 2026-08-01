@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '../../i18n';
+import i18n from '../../i18n';
 import { WorkoutPlanEditorScreen } from './WorkoutPlanEditorScreen';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 import { BRAND } from '../../theme/tokens';
@@ -694,6 +694,49 @@ describe('WorkoutPlanEditorScreen — AI generation locale (Fase 2)', () => {
     await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
     const [inserted] = exercisesInsert.mock.calls[0]!;
     expect(inserted[0]).toMatchObject({ exercise_name: 'Squat', name_source_locale: 'en' });
+  });
+
+  // Regression for a bug found live 2026-08-01: a trainer whose app language
+  // is Portuguese but whose *own* "keep exercise names in English" display
+  // toggle is on (Carlos Silva's real account — a very common combination,
+  // that toggle defaults to on) typed "Remada Curvada" and it was tagged
+  // 'en' instead of 'pt'. The bug was reusing trainerLocale (a *display*
+  // target, deliberately toggle-adjusted) as if it were the language the
+  // trainer is physically typing in right now — those are different things.
+  it("tags a hand-typed name with the trainer's app language, not their exercise-name display toggle", async () => {
+    await i18n.changeLanguage('pt');
+    const planInsert = vi.fn().mockReturnValue({
+      select: () => ({ single: () => Promise.resolve({ data: { id: 'plan-pt-trainer' }, error: null }) }),
+    });
+    const exercisesInsert = vi.fn().mockResolvedValue({ error: null });
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'preferences') return preferencesStub('es', false);
+      if (table === 'workout_plans')  return { insert: planInsert };
+      if (table === 'plan_exercises') return { insert: exercisesInsert };
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    try {
+      // keepExerciseNamesInEnglish defaults to true (not overridden here) —
+      // matching Carlos's real account: language 'pt', toggle on. UI text is
+      // now in Portuguese, so this can't reuse addOneExercise() (hardcoded
+      // English strings) or the English button labels used elsewhere in
+      // this file.
+      renderScreen({ nav: vi.fn() });
+      fireEvent.click(screen.getByText('Adicionar'));
+      fireEvent.change(screen.getByPlaceholderText('Nome do exercício'), { target: { value: 'Remada Curvada' } });
+      fireEvent.click(screen.getByText('Adicionar exercício'));
+      fireEvent.click(screen.getByText('Enviar ao cliente →'));
+
+      await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
+      const [inserted] = exercisesInsert.mock.calls[0]!;
+      expect(inserted[0]).toMatchObject({ name_source_locale: 'pt' });
+    } finally {
+      await i18n.changeLanguage('en');
+    }
   });
 
   it("replaces a generated exercise's provenance tag with the trainer's own locale once they hand-edit the name", async () => {

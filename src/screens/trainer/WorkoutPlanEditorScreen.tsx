@@ -164,8 +164,20 @@ export function WorkoutPlanEditorScreen({
   const catalogSearchRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   // The trainer's own resolved display locale — reused for every exercise-name
   // translation target in this screen (catalog suggestions and, below, the
-  // plan's own AI-generated rows).
+  // plan's own AI-generated rows). NOT the same thing as what language the
+  // trainer physically types in — keepExerciseNamesInEnglish only governs
+  // what they prefer to SEE, and a trainer can (and commonly does, per
+  // achado #2) leave it on while still typing exercise names in their own
+  // language. Provenance for hand-typed text (below) must use
+  // trainerTypingLocale instead — using this one there was a real bug, found
+  // live 2026-08-01: Carlos (language 'pt', toggle on) typed "Remada
+  // Curvada" and it was tagged 'en' instead of 'pt'.
   const trainerLocale = resolveExerciseNameLocale({ keepExerciseNamesInEnglish, language: i18n.language as AppLanguage });
+  // What language the trainer is actually typing in right now — their raw
+  // app language, deliberately not adjusted by the exercise-name display
+  // toggle (D7: record the language of the text itself, not a display
+  // preference for other people's exercise names).
+  const trainerTypingLocale = i18n.language as AppLanguage;
   // Recipient locale for AI generation (D2 — the client's own preference
   // governs what reaches them) and for tagging generated rows' provenance.
   const recipientLocale = resolveExerciseNameLocale(clientPrefs);
@@ -798,7 +810,7 @@ export function WorkoutPlanEditorScreen({
                   // replaces it with the trainer's own locale — the language
                   // they're actually typing in right now (D7, Fase 3: hand-
                   // typed names get real provenance instead of null).
-                  setDraft({ ...draft, exercise_name: v, name_source_locale: trainerLocale });
+                  setDraft({ ...draft, exercise_name: v, name_source_locale: trainerTypingLocale });
                   setNameError(false);
                   searchCatalog(v);
                 }}
