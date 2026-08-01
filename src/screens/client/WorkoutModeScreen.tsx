@@ -101,12 +101,23 @@ export function WorkoutModeScreen({
 
   // ── Init ─────────────────────────────────────────────────────────────────────
   const [noPlan, setNoPlan] = React.useState(false);
+  // React.StrictMode double-invokes mount effects in dev (mount → cleanup →
+  // mount again) to surface non-idempotent side effects. This effect has none
+  // — startWorkoutSession() is a real INSERT — so without this guard, dev
+  // testing was silently writing two workout_sessions rows per run: one
+  // tracked by the app (the second, whose sessionId wins the last setState),
+  // one orphaned at status='active' forever (until auto_close_stale_sessions
+  // catches it hours later). Confirmed root cause of the session stuck in
+  // "Treinando" during Fase 3 testing, 2026-08-01.
+  const sessionStartedRef = React.useRef(false);
 
   React.useEffect(() => {
     // A workout must never silently "start" (timer running) with zero
     // exercises — that traps the user on a blank screen with no finish CTA.
     // Surface it explicitly instead (see system audit follow-up, 2026-07-09).
     if (!exercises?.length) { setNoPlan(true); setPhase('active'); return; }
+    if (sessionStartedRef.current) return;
+    sessionStartedRef.current = true;
 
     const sessionInput: { planId: string | null; exercises: GeneratedWorkoutExercise[]; forUserId?: string; planned_duration_min?: number } = { planId, exercises };
     if (clientUserId)        sessionInput.forUserId            = clientUserId;

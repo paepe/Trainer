@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '../../i18n';
@@ -133,5 +134,25 @@ describe('WorkoutModeScreen — offline resilience', () => {
       }),
     })));
     expect(syncQueue.flush).toHaveBeenCalled();
+  });
+
+  // Regression for the orphaned-session bug (docs/WORK_SUMMARY_20260801.md,
+  // "sessão travada em Treinando"): React.StrictMode double-invokes mount
+  // effects in dev (mount → cleanup → mount again). The session-start effect
+  // has no cleanup, so without a guard it fired startWorkoutSession() twice
+  // per real workout start — a real INSERT each time, orphaning one row.
+  it('starts the workout session exactly once, even when StrictMode double-invokes the mount effect', async () => {
+    const startWorkoutSession = vi.fn().mockResolvedValue({
+      data: { sessionId: 'session-1', sessionExercises: [] },
+      error: null,
+    });
+    render(
+      <React.StrictMode>
+        <WorkoutModeScreen {...makeProps({ startWorkoutSession })} />
+      </React.StrictMode>,
+    );
+
+    await waitFor(() => expect(startWorkoutSession).toHaveBeenCalled());
+    expect(startWorkoutSession).toHaveBeenCalledTimes(1);
   });
 });
