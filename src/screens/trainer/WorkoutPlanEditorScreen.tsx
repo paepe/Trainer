@@ -934,6 +934,7 @@ export function WorkoutPlanEditorScreen({
                 {tr('trainer.planner.exerciseNote')}
               </div>
               <VoiceBar
+                hint={tr('trainer.planner.exerciseNoteDictateHint')}
                 onTranscript={handleNotesTranscript}
                 onStop={handleNotesDictationStop}
               />

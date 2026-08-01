@@ -925,7 +925,8 @@
       "startLiveSessionHint": "{{name}} jetzt trainieren — öffnet den Trainingsmodus direkt",
       "sessionBlock": "Sitzungsblock",
       "exerciseNote": "Übungshinweis",
-      "exerciseNotePlaceholder": "Für den Kunden sichtbarer Hinweis zu dieser Übung…"
+      "exerciseNotePlaceholder": "Für den Kunden sichtbarer Hinweis zu dieser Übung…",
+      "exerciseNoteDictateHint": "Deinen Hinweis diktieren"
     },
     "library": {
       "title": "Übungsbibliothek",
@@ -2252,6 +2253,7 @@
       "promptLabel": "Freier Prompt — deine Coach-Stimme für die KI",
       "promptHint": "optional",
       "promptPlaceholder": "Beschreibe in eigenen Worten, wie du trainierst, was dir wichtig ist und wie die KI deinen Stil bei der Workout-Erstellung repräsentieren soll...",
+      "promptDictateHint": "Deine Trainingsphilosophie diktieren",
       "privacyNote": "Dieser Prompt ist der wirkungsvollste Kontext in deiner DNA — die KI verwendet diese Wörter wörtlich, um deine Stimme einzufangen."
     },
     "output": {

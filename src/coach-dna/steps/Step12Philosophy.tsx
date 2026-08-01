@@ -79,7 +79,7 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
 
     <FieldLabel hint={tr('coachDna.step12.promptHint')}>{tr('coachDna.step12.promptLabel')}</FieldLabel>
     <VoiceBar
-      hint={tr('coachDna.components.voiceBar.dictateHint')}
+      hint={tr('coachDna.step12.promptDictateHint')}
       onTranscript={handleTranscript}
       onStop={handleStop}
     />

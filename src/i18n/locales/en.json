@@ -925,7 +925,8 @@
       "startLiveSessionHint": "Train {{name}} now — opens workout mode directly",
       "sessionBlock": "Session block",
       "exerciseNote": "Exercise note",
-      "exerciseNotePlaceholder": "Note visible to the client for this exercise…"
+      "exerciseNotePlaceholder": "Note visible to the client for this exercise…",
+      "exerciseNoteDictateHint": "Dictate your notes"
     },
     "library": {
       "title": "Exercise Library",
@@ -2252,6 +2253,7 @@
       "promptLabel": "Free prompt — your coach voice for the AI",
       "promptHint": "optional",
       "promptPlaceholder": "Describe in your own words how you train, what you value, and how you want the AI to represent your style when generating workouts...",
+      "promptDictateHint": "Dictate your training philosophy",
       "privacyNote": "This prompt is the most powerful context in your DNA — the AI uses these words literally to capture your voice."
     },
     "output": {

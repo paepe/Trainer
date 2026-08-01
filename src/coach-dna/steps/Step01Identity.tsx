@@ -71,7 +71,7 @@ export const Step01Identity: React.FC<Step01Props> = ({ data, onChange, trainerI
     <VoiceBar
       onTranscript={handleNameTranscript}
       onStop={handleNameStop}
-      hint={tr('coachDna.components.voiceBar.dictateHint')}
+      hint={tr('coachDna.step01.fullName')}
     />
 
     <div style={{ marginBottom: 16 }}>

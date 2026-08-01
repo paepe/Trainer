@@ -925,7 +925,8 @@
       "startLiveSessionHint": "Treinar {{name}} agora — abre o modo de treino diretamente",
       "sessionBlock": "Bloco da sessão",
       "exerciseNote": "Observação do exercício",
-      "exerciseNotePlaceholder": "Observação visível para o cliente sobre este exercício…"
+      "exerciseNotePlaceholder": "Observação visível para o cliente sobre este exercício…",
+      "exerciseNoteDictateHint": "Ditar suas observações"
     },
     "library": {
       "title": "Biblioteca de Exercícios",
@@ -2252,6 +2253,7 @@
       "promptLabel": "Prompt livre — sua voz de coach para a IA",
       "promptHint": "opcional",
       "promptPlaceholder": "Descreva com suas próprias palavras como você treina, o que valoriza e como quer que a IA represente seu estilo ao gerar treinos...",
+      "promptDictateHint": "Ditar sua filosofia de treino",
       "privacyNote": "Este prompt é o contexto mais poderoso do seu DNA — a IA usa essas palavras literalmente para capturar sua voz."
     },
     "output": {
