@@ -923,7 +923,9 @@
       "startLiveSession": "Live-Einheit starten",
       "startFreeSession": "Freie Trainingseinheit starten",
       "startLiveSessionHint": "{{name}} jetzt trainieren — öffnet den Trainingsmodus direkt",
-      "sessionBlock": "Sitzungsblock"
+      "sessionBlock": "Sitzungsblock",
+      "exerciseNote": "Übungshinweis",
+      "exerciseNotePlaceholder": "Für den Kunden sichtbarer Hinweis zu dieser Übung…"
     },
     "library": {
       "title": "Übungsbibliothek",

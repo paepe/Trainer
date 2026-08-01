@@ -923,7 +923,9 @@
       "startLiveSession": "Iniciar Sessão ao Vivo",
       "startFreeSession": "Iniciar Sessão de Treino Livre",
       "startLiveSessionHint": "Treinar {{name}} agora — abre o modo de treino diretamente",
-      "sessionBlock": "Bloco da sessão"
+      "sessionBlock": "Bloco da sessão",
+      "exerciseNote": "Observação do exercício",
+      "exerciseNotePlaceholder": "Observação visível para o cliente sobre este exercício…"
     },
     "library": {
       "title": "Biblioteca de Exercícios",

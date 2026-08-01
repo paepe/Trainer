@@ -923,7 +923,9 @@
       "startLiveSession": "Start Live Session",
       "startFreeSession": "Start Free Training Session",
       "startLiveSessionHint": "Train {{name}} now — opens workout mode directly",
-      "sessionBlock": "Session block"
+      "sessionBlock": "Session block",
+      "exerciseNote": "Exercise note",
+      "exerciseNotePlaceholder": "Note visible to the client for this exercise…"
     },
     "library": {
       "title": "Exercise Library",

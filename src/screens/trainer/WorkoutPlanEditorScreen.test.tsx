@@ -464,4 +464,34 @@ describe('WorkoutPlanEditorScreen — session blocks (Phase 3)', () => {
     const headers = screen.getAllByText(/^(Warm-up|Strength)$/).map(el => el.textContent);
     expect(headers).toEqual(['Warm-up', 'Strength']);
   });
+
+  it('lets the trainer attach a note to a manually-added exercise, and persists it', async () => {
+    const nav = vi.fn();
+    const planInsert = vi.fn().mockReturnValue({
+      select: () => ({ single: () => Promise.resolve({ data: { id: 'plan-3' }, error: null }) }),
+    });
+    const exercisesInsert = vi.fn().mockResolvedValue({ error: null });
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'workout_plans')  return { insert: planInsert };
+      if (table === 'plan_exercises') return { insert: exercisesInsert };
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav });
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.change(screen.getByPlaceholderText('Exercise name'), { target: { value: 'Deadlift' } });
+    fireEvent.change(
+      screen.getByPlaceholderText('Note visible to the client for this exercise…'),
+      { target: { value: 'Keep the bar close to your shins' } },
+    );
+    fireEvent.click(screen.getByText('Add exercise'));
+    fireEvent.click(screen.getByText('Send to client →'));
+
+    await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
+    const [inserted] = exercisesInsert.mock.calls[0]!;
+    expect(inserted[0]).toMatchObject({ exercise_name: 'Deadlift', notes: 'Keep the bar close to your shins' });
+  });
 });

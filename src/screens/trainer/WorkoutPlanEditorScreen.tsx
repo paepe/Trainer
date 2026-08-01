@@ -884,6 +884,23 @@ export function WorkoutPlanEditorScreen({
               <TextInput icon="clock" placeholder={tr('trainer.planner.restPlaceholder')}  value={String(draft.rest_seconds || '')}
                 onChange={v => setDraft({ ...draft, rest_seconds: Number(v) || 60 })}/>
             </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: textMute(dark), marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                {tr('trainer.planner.exerciseNote')}
+              </div>
+              <textarea
+                value={draft.notes ?? ''}
+                onChange={e => setDraft({ ...draft, notes: e.target.value })}
+                placeholder={tr('trainer.planner.exerciseNotePlaceholder')}
+                rows={2}
+                style={{
+                  width: '100%', padding: '10px 12px', borderRadius: 10,
+                  border: `1px solid ${borderSubtle(dark)}`, background: 'transparent',
+                  color: textPri(dark), fontFamily: 'inherit', fontSize: 12.5,
+                  resize: 'vertical', boxSizing: 'border-box',
+                }}
+              />
+            </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => { setShowAddForm(false); setEditingIndex(null); }} style={{ ...ghostBtn(dark), flex: 1, padding: '11px 0', textAlign: 'center', borderRadius: 10 }}>
                 {tr('trainer.planner.cancelBtn')}
