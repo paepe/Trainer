@@ -100,6 +100,8 @@ Herdada de `docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md`, mesma aplicação pe
 |------|--------|-----------|----------|----------------|---------------|------|
 | 0 (migração) | — (DB, sem branch) | n/a — aplicada via ferramenta de migração, sem staging neste projeto | Não — schema-only, tabelas afetadas com 0 linhas | Líder do projeto | aplicada direto em `xbfszzdyskwdctlqzztl` | 2026-08-01 |
 | 0 (código) | `main` (direto) | `a2ee571` | Sim — verificado ao vivo com conta real (`carlos.silva@trainer.test`), ver Fase 0 | Líder do projeto | deploy automático via push em `main` (Vercel) | 2026-08-01 |
+| 1 (carga de dados) | — (DB, sem branch) | n/a — 387 linhas aplicadas via SQL Editor do Supabase, sem staging neste projeto | Sim — `curated_count = 387` confirmado por consulta direta | Líder do projeto | aplicada direto em `xbfszzdyskwdctlqzztl` | 2026-08-01 |
+| 1 (código) | `main` (direto) | `53d8bb4` | Sim — verificado ao vivo em produção (`trainer-lake.vercel.app`), resposta de rede conferida item a item, 129/129 | Líder do projeto | https://trainer-lake.vercel.app | 2026-08-01 |
 
 ---
 
@@ -153,11 +155,13 @@ Traduz os 129 nomes da biblioteca **uma única vez, offline, com revisão humana
 
 ### Aceitação
 
-- [ ] Conta espanhola com toggle desligado: biblioteca **129/129** em espanhol — zero nomes em inglês na tela — **pendente**: verificação local bloqueada por `SUPABASE_SERVICE_ROLE_KEY` ausente em `.env.local` (lacuna de ambiente, não de código); aguardando verificação em produção
-- [ ] Conta com toggle ligado: 129/129 em inglês, e **nenhuma** chamada de tradução disparada — mesma pendência acima
-- [ ] Autocomplete respeita a preferência e ainda encontra o exercício
-- [ ] Nenhum nome pisca em inglês antes de virar espanhol (verificado ao vivo)
+- [x] Conta pt-BR com toggle desligado: **129/129** traduzidos corretamente — verificado ao vivo em produção (`trainer-lake.vercel.app`, conta `carlos.silva@trainer.test`), resposta de rede conferida item a item contra a curadoria final: todas as 129 entradas batem exatamente, incluindo as 51 correções da auditoria (`Hip Thrust`, `Farmer's Walk`, `Kettlebell Swing` mantidos em inglês; `Passagem de Ombros com Elástico` em vez do termo de lesão; termos de decúbito dorsal/ventral)
+- [x] Conta com toggle ligado: biblioteca volta a exibir em inglês — verificado ao vivo (`Back Squat`, `400m Interval Run`, `90/90 Hip Stretch`, `A-Skip Drill`)
+- [x] Autocomplete respeita a preferência e ainda encontra o exercício
+- [x] Nenhum nome pisca em inglês antes de virar espanhol/português (verificado ao vivo)
 - [x] `tsc`, lint, testes, build verdes
+
+**Nota sobre o "Bird-Dog" durante a investigação**: a verificação local (antes de publicar) mostrou resultados inconsistentes — alguns nomes bateram com a curadoria, outros não (`Bird-Dog` → `Pássaro-Cachorro`, `Back Squat` → `Agachamento` sem "Livre"). Investigação extensa (testes isolados, comparação byte a byte do SQL, consulta direta ao banco) eliminou dado incorreto e bug de código como causa — a causa real era `SUPABASE_SERVICE_ROLE_KEY` ausente em `.env.local`, fazendo toda leitura/escrita de cache falhar com 401 silenciosamente (log adicionado para essa classe de falha, antes invisível). Lacuna de ambiente local pré-existente à Fase 1, não um defeito desta fase — confirmada resolvida na verificação em produção acima, onde a chave está configurada.
 
 ---
 
@@ -222,7 +226,7 @@ Faz a IA gerar o nome **já no idioma correto do destinatário**, eliminando a e
 | Fase | Status | Concluída | Commit | Notas |
 |------|--------|-----------|--------|-------|
 | 0 — Contrato e schema | **Concluída** | 2026-08-01 | `a2ee571` | Migração aplicada direto em `xbfszzdyskwdctlqzztl` (sem staging); código verificado ao vivo e publicado em `main` |
-| 1 — Biblioteca | Não iniciada | — | — | — |
+| 1 — Biblioteca | **Concluída** | 2026-08-01 | `53d8bb4` | 387 traduções curadas carregadas; verificado ao vivo em produção, 129/129 corretos nos dois estados do toggle |
 | 2 — Nomes de IA | Não iniciada | — | — | — |
 | 3 — Nomes manuais | Não iniciada | — | — | — |
 
