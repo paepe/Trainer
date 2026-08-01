@@ -99,6 +99,8 @@ Therefore, when verifying after a promotion:
 | 2 addendum (`coach_dna` RLS) | — (DB policy, no branch) | n/a — applied via migration tool, no staging exists for this project | No — see addendum | Project lead | applied directly to `xbfszzdyskwdctlqzztl` | 2026-08-01 |
 | 3 (`phase` columns) | — (DB migration, no branch) | n/a — applied via migration tool, no staging exists for this project | No — see closing notes | Project lead | applied directly to `xbfszzdyskwdctlqzztl` | 2026-08-01 |
 | 3 (code: persistence + grouped rendering) | `main` (direct) | `ece7759` | No — verified live with real trainer + client accounts, see closing notes | Project lead | https://trainer-hasv6qxki-paulo-eduardo-peress-projects.vercel.app | 2026-08-01 |
+| Open Finding (`exercise_content_translations` table) | — (DB migration, no branch) | n/a — applied via migration tool, no staging exists for this project | No — see Open Finding section | Project lead | applied directly to `xbfszzdyskwdctlqzztl` | 2026-08-01 |
+| Open Finding (translation pipeline code) | `main` (direct) | _pending — awaiting authorization_ | No — translation itself verified live with real accounts; cache-write path unverified locally (missing `SUPABASE_SERVICE_ROLE_KEY` in this dev environment), see Open Finding section | _pending_ | _pending_ | 2026-08-01 |
 
 ---
 
@@ -413,10 +415,27 @@ Found and confirmed during Phase 3's live verification, unrelated to this plan's
 
 ### Checklist
 
-- [ ] Project lead decides priority and approach (own translation pipeline vs. reusing/adapting a pattern from elsewhere)
-- [ ] Design the pipeline: on-demand, cached, versioned per §6.5 — likely mirrors the shape of `translate-content` from the sevenseeds-web reference architecture, adapted to this project (no `supabase/functions` here; would live under `api/`)
-- [ ] Decide the trigger point: translate at send-time (cached per plan) vs. translate at read-time (cached per client locale) — different cost and staleness tradeoffs
-- [ ] Apply to every raw render site: `WorkoutModeScreen`, `ExerciseCard`, `StartWorkoutScreen`'s plan card
-- [ ] Confirm scope boundary against §7.1: exercise names stay raw only when they carry brand-specific meaning; generic movement names are in scope for translation
+- [x] Project lead decides priority and approach — confirmed 2026-08-01: own pipeline, on-demand at read-time, shared cache (option A over "store source locale at write-time")
+- [x] Design the pipeline: on-demand, cached, versioned per §6.5 — `api/translate-exercise-content.ts`, self-contained per the `api/*` convention, reuses DeepSeek (same provider as `generate-workout.ts`/`generate-smart-workout.ts`, §4.5). Shared cache table `exercise_content_translations` (`source_text`, `target_locale`) unique-constrained — the same phrase is translated once, reused by every trainer and plan. RLS enabled, no policies: only the service role (inside this handler) ever touches it.
+- [x] Decide the trigger point: **read-time**, client-side, on demand — `useTranslatedExerciseContent` hook, module-level in-memory cache in front of the server's shared cache, batched per screen (one request for every distinct name/note on screen, not one per exercise)
+- [x] Apply to every raw render site: `WorkoutModeScreen` → `ExerciseCard` (live session), `StartWorkoutScreen`'s plan-card preview. **Scope extended to `notes`** (per-exercise trainer note) — found during this work: identical bug, same free-text/client-facing/trainer-authored shape, same fix. `StartWorkoutScreen`'s AI-generated plan list (`plan.map` at the "PLANO DE IA DE HOJE" section) was confirmed out of scope — that content is AI-authored and already generated in the client's locale.
+- [x] Confirm scope boundary against §7.1: exercise names stay raw only when they carry brand-specific meaning; generic movement names are in scope for translation — confirmed, `Agachamento Livre` carries no brand-specific meaning
 
-**Status: open, unscoped.** No phase in this plan addresses it. Flagged to the project lead for a decision on priority and approach.
+### Verified live, this session (2026-08-01)
+
+Logged in as Carlos Silva (pt-BR UI), added `Levantamento Terra` manually to Tiago Moreira's plan (the manual-add form has no per-exercise notes field — see observation below — so `notes` was set directly for this test: `"Desça com a barra bem próxima às canelas"`). Logged in as Tiago Moreira, switched his profile language to English via Settings (so the scenario matches "a different language chosen in the client's own profile," not just an unset device default), opened the plan:
+
+| Surface | Before | After |
+|---|---|---|
+| Plan-card preview (`StartWorkoutScreen`) | `Levantamento Terra` / `Desça com a barra bem próxima às canelas` | `Deadlift` / `Lower the bar very close to your shins` |
+| Live session (`ExerciseCard`) | (same) | (same) |
+
+Both render sites translate correctly, matching the design.
+
+**Not verified locally: the shared cache write.** `exercise_content_translations` remained empty after the test above, despite the UI translating correctly (translation doesn't depend on the cache to work — only to be cheap the second time). Server log: `cache write failed: "No API key found in request"`. Traced to `SUPABASE_SERVICE_ROLE_KEY` being absent from this machine's `.env.local` — confirmed present in Vercel (Production + Preview) via `vercel env ls production`, so this is a local-environment gap, not a code defect. Declined to paste the production service-role key (full RLS bypass) into a local file without the project lead handling that step directly. **Cache-write behavior in production is unverified by live test** — it is covered by `api/translate-exercise-content.test.ts`'s mocked-fetch unit tests (cache-hit skip, dedup, fallback-on-failure), mutation-verified individually, but not by a real database round-trip.
+
+**Observation, out of scope:** the manual "add exercise" form in `WorkoutPlanEditorScreen` has no per-exercise notes input — `notes` can only be populated via the AI-assisted path (`askAI`'s mapping from `GeneratedWorkoutExercise`). A trainer building a plan by hand cannot attach a note to an exercise at all today. Unrelated to translation; found while trying to reproduce the `notes` case for this test.
+
+**Observation, out of scope:** `generate-smart-workout.ts`'s `isTrainerRole`/`hasActiveLink` also depend on `SUPABASE_SERVICE_ROLE_KEY` and likely fail the same way in this local environment — untested directly, inferred from the same root cause. Every prior live verification in this plan that exercised those paths passed via `isClientSelf`'s alternate branch, not `isTrainerRole`, so the gap was never surfaced before now.
+
+**Status: implemented, mostly verified.** Translation confirmed live for both `exercise_name` and `notes`, at both render sites, with a client profile genuinely set to a different language. Cache persistence confirmed only by mocked unit test, not by a live database write — flagged above for the project lead, not blocking.

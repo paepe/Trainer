@@ -13,6 +13,7 @@ import { BottomPanel } from './workout/BottomPanel';
 import { LabeledInput } from './workout/LabeledInput';
 import type { Phase, ExState } from './workout/types';
 import { enqueue, flush, pendingCount, type QueuedFullSession } from '../../lib/workoutSyncQueue';
+import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
 
 interface Theme {
   primary:     string;
@@ -162,6 +163,12 @@ export function WorkoutModeScreen({
   const doneCount    = exStates.filter(e => e.status === 'completed' || e.status === 'skipped').length;
   const allDone      = doneCount === exStates.length && exStates.length > 0;
   const isOffline    = (id: string) => id.startsWith('offline-');
+
+  // Translates trainer-typed exercise names/notes to this client's locale —
+  // AI-generated content is already in the right language at generation time.
+  const translate = useTranslatedExerciseContent(
+    exStates.flatMap(e => [e.name, e.notes]),
+  );
 
   const updateEx = (idx: number, patch: Partial<ExState>) =>
     setExStates(prev => prev.map((e, i) => i === idx ? { ...e, ...patch } : e));
@@ -430,6 +437,7 @@ export function WorkoutModeScreen({
           <ExerciseCard
             key={ex.id}
             ex={ex}
+            translate={translate}
             isActive={i === activeIdx && !allDone}
             dark={dark}
             t={t}

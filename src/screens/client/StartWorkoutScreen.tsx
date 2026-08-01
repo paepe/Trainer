@@ -17,6 +17,7 @@ import { useExerciseClassification } from '../../hooks/useExerciseClassification
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
+import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
 import { notifyLinkedTrainer } from '../../lib/notify';
 
 // Primary text colour over this screen's plan/exercise list surfaces — repeated
@@ -223,6 +224,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   );
   const { classificationMap } = useExerciseClassification(
     fitnessOnlyWorkout && !isTrainerView ? allTrainerExercises : [],
+  );
+  // Translates trainer-typed exercise names/notes on the plan-card preview —
+  // AI-generated plans are already in the client's language at generation time.
+  const translate = useTranslatedExerciseContent(
+    trainerPlans.flatMap(p => p.exercises.flatMap(e => [e.exercise_name, e.notes])),
   );
 
   // When fitnessOnlyWorkout: filter performance exercises from trainer plans
@@ -919,7 +925,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                             color: t.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}>{ei + 1}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: inkPri(dark) }}>{ex.exercise_name}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: inkPri(dark) }}>{translate(ex.exercise_name)}</div>
                             <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
                               {[
                                 ex.sets        ? `${ex.sets} sets`         : null,
@@ -931,7 +937,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                               ].filter(Boolean).join(' · ')}
                               {ex.muscle_group ? ` — ${translateMuscleGroup(ex.muscle_group)}` : ''}
                             </div>
-                            {ex.notes && <div style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.35)' : '#9aa', marginTop: 1, fontStyle: 'italic' }}>{ex.notes}</div>}
+                            {ex.notes && <div style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.35)' : '#9aa', marginTop: 1, fontStyle: 'italic' }}>{translate(ex.notes)}</div>}
                           </div>
                         </div>
                       ))}

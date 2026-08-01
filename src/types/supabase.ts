@@ -498,6 +498,30 @@ export type Database = {
           },
         ]
       }
+      exercise_content_translations: {
+        Row: {
+          created_at: string
+          id: string
+          source_text: string
+          target_locale: string
+          translated_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          source_text: string
+          target_locale: string
+          translated_text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          source_text?: string
+          target_locale?: string
+          translated_text?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           accessibility_tags: string[] | null

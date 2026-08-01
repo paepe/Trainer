@@ -7,6 +7,7 @@ import type { ExState } from './types';
 
 interface ExerciseCardProps {
   ex:          ExState;
+  translate:   (text: string | null | undefined) => string;
   isActive:    boolean;
   dark:        boolean;
   t:           { primary: string; accent: string };
@@ -16,7 +17,7 @@ interface ExerciseCardProps {
   onSetActive: () => void;
 }
 
-export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, onSetActive }: ExerciseCardProps) {
+export function ExerciseCard({ ex, translate, isActive, dark, t, onLogSet, onSkip, onPain, onSetActive }: ExerciseCardProps) {
   const { t: tr } = useTranslation();
   const statusColor = ex.status === 'completed' ? t.primary
     : ex.status === 'skipped' ? textMute(dark)
@@ -44,7 +45,7 @@ export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, 
           <div style={{
             fontSize: 14, fontWeight: 700, color: textPri(dark),
             textDecoration: ex.status === 'skipped' ? 'line-through' : 'none',
-          }}>{ex.name}</div>
+          }}>{translate(ex.name)}</div>
           <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 1 }}>
             {[
               ex.muscleGroup ? translateMuscleGroup(ex.muscleGroup) : null,
@@ -79,7 +80,7 @@ export function ExerciseCard({ ex, isActive, dark, t, onLogSet, onSkip, onPain, 
           )}
           {ex.notes && (
             <div style={{ fontSize: 11.5, color: t.primary, fontStyle: 'italic', marginBottom: 10 }}>
-              {ex.notes}
+              {translate(ex.notes)}
             </div>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
