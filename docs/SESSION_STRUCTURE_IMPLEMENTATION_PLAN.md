@@ -394,3 +394,21 @@ Options for the project lead:
 Recommendation: **B**. It satisfies §9.2 and §8.1 with the same artefact — the Pull Request — and requires no new infrastructure.
 
 Implementation of each phase proceeds on its feature branch regardless; this decision gates promotion only.
+
+## Open Finding — Manually-Entered Exercise Names Are Never Translated (2026-08-01)
+
+Found and confirmed during Phase 3's live verification, unrelated to this plan's scope — recorded here so it is not lost, and flagged to the project lead at the close of this plan's execution.
+
+**Scenario:** a trainer builds a plan manually, in their own preferred UI language. A linked client whose profile is set to a different language opens that plan. Every surrounding UI string renders in the client's language — but the exercise names themselves render exactly as the trainer typed them, in the trainer's language.
+
+**Reproduced live, this session:** logged in as Carlos Silva (pt-BR UI), added `Agachamento Livre` and `Corrida Leve` manually to Andre Lima's plan. Logged in as Andre Lima — UI rendered in English (`Start Workout`, `Postpone`, `sets`, `rest`…), but both exercise names appeared verbatim in Portuguese.
+
+**Root cause:** `src/i18n/index.ts:3` — `// Exercise/muscle names are DB content and are NOT translated here.` `muscle_group` has a real translation path despite that comment (`translateMuscleGroup.ts`, mapping a closed 8-value canonical enum to the UI locale). `exercise_name` has none, anywhere in the codebase — it is free text, rendered raw on every client-facing screen (`WorkoutModeScreen`, `ExerciseCard`, `StartWorkoutScreen`'s plan card). No on-demand translation pipeline exists in this project (`api/` has nothing equivalent to sevenseeds-web's `translate-content`; there is no `supabase/functions` directory at all).
+
+**Why AI-generated plans don't show this:** the generation prompt already requests the client's own `locale`, so AI-authored exercise names are born in the client's language. The gap is specific to trainer-typed, manual exercise names.
+
+**Not covered by §7.1's identity exception:** the directive protects exercise names only "if they carry brand-specific meaning." A generic movement name like `Agachamento Livre` does not qualify — it is the same category of content as "AI-generated workout descriptions," which §7.2 already lists as translatable.
+
+**Pre-existing, not introduced by Phases 0–3.** Not fixed here — fixing it means adding a real translation pipeline for free text (on-demand, cached, versioned per §6.5), which is new feature work, not a bug-fix-sized change.
+
+**Status: open, unscoped.** No phase in this plan addresses it. Flagged to the project lead for a decision on priority and approach.
