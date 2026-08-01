@@ -42,9 +42,17 @@ Comparando com o seu print: de 6 movimentos e 26 minutos para 9–14 movimentos 
 
 **Erros deixaram de ser silenciosos.** Antes, se o envio do treino ao aluno falhasse, a tela simplesmente não fazia nada. Agora o erro aparece, e um treino não chega ao aluno pela metade.
 
+## Atualização (2026-08-01)
+
+**Agora existem divisórias visuais — no seu editor.** Quando você monta ou edita um plano, os exercícios aparecem agrupados por bloco, com título, ícone e cor (Mobilidade, Aquecimento, Técnica, Força, Condicionamento, Volta à Calma) — na ordem que você declarou no Coach DNA, independente da ordem em que você foi adicionando os exercícios. Na tela do aluno durante o treino ao vivo isso ainda não aparece — só no seu editor, por enquanto.
+
+**Você já pode anexar uma observação a cada exercício manualmente.** Antes, isso só acontecia quando a IA gerava o exercício. Agora, ao adicionar um exercício à mão, há um campo de observação visível para o aluno.
+
+**As observações e nomes de exercício digitados por você são traduzidos para o aluno.** Se você escreve em português e o aluno tem o app configurado em outro idioma, ele já vê o nome do exercício e sua observação no idioma dele — não mais em português. Antes disso não existia: qualquer coisa que você digitasse manualmente chegava sem tradução nenhuma.
+
 ## O que ainda não mudou
 
-**Não há divisórias visuais na tela.** A sessão vem na ordem correta e você identifica cada bloco pelos exercícios, mas ainda não existem títulos separando Aquecimento, Técnica, Força e assim por diante. É o próximo passo planejado.
+**Não há divisórias visuais na tela do aluno durante o treino.** Você já vê isso no seu editor (acima); a tela do aluno ainda mostra a sessão como lista, sem títulos de bloco. É uma trilha separada, ainda não priorizada.
 
 **A estimativa de tempo é uma convenção.** O sistema calcula cada série por uma média padrão mais o descanso que você prescreveu. Uma série de 8 agachamentos pesados e uma de 20 repetições leves são contadas de forma parecida. Serve para dimensionar a sessão, não para cronometrar a execução.
 

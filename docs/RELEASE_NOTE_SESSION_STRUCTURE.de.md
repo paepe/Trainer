@@ -42,9 +42,17 @@ Im Vergleich zu deinem Screenshot: von 6 Übungen und 26 Minuten auf 9–14 Übu
 
 **Fehler sind nicht mehr stumm.** Schlug das Senden eines Trainings an den Kunden fehl, passierte bisher schlicht nichts. Jetzt wird der Fehler angezeigt, und kein Training erreicht den Kunden halb fertig.
 
+## Update (2026-08-01)
+
+**Es gibt jetzt visuelle Trennlinien — in deinem Editor.** Beim Erstellen oder Bearbeiten eines Trainings werden die Übungen jetzt nach Block gruppiert angezeigt, mit Überschrift, Symbol und Farbe (Mobilität, Aufwärmen, Technik, Kraft, Konditionierung, Abwärmen) — in der Reihenfolge, die du in der Coach DNA hinterlegt hast, unabhängig davon, in welcher Reihenfolge du die Übungen hinzugefügt hast. Auf dem Bildschirm des Kunden während des laufenden Trainings erscheint das noch nicht — vorerst nur in deinem Editor.
+
+**Du kannst jetzt jeder Übung manuell einen Hinweis anhängen.** Bisher ging das nur, wenn die KI die Übung erzeugt hat. Beim manuellen Hinzufügen einer Übung gibt es jetzt ein für den Kunden sichtbares Hinweisfeld.
+
+**Von dir eingegebene Übungsnamen und Hinweise werden für den Kunden übersetzt.** Schreibst du auf Portugiesisch und der Kunde hat die App in einer anderen Sprache eingestellt, sieht er Übungsname und Hinweis jetzt in seiner Sprache — nicht mehr auf Portugiesisch. Das gab es vorher nicht: alles, was du manuell eingegeben hast, kam unübersetzt an.
+
 ## Was sich noch nicht geändert hat
 
-**Es gibt keine visuellen Trennlinien.** Die Einheit kommt in der richtigen Reihenfolge und du erkennst jeden Block an den Übungen, aber es fehlen noch Überschriften, die Aufwärmen, Technik, Kraft usw. voneinander abgrenzen. Das ist der nächste geplante Schritt.
+**Es gibt keine visuellen Trennlinien auf dem Bildschirm des Kunden während des Trainings.** Das siehst du bereits in deinem Editor (oben); der Bildschirm des Kunden zeigt die Einheit weiterhin als Liste, ohne Blocküberschriften. Das ist ein separater, noch nicht priorisierter Schritt.
 
 **Die Zeitschätzung ist eine Konvention.** Das System rechnet je Satz mit einem Standardmittelwert plus der von dir vorgegebenen Pause. Ein Satz mit 8 schweren Kniebeugen und einer mit 20 leichten Wiederholungen werden ähnlich gewertet. Das dient der Dimensionierung der Einheit, nicht der Zeitmessung während der Ausführung.
 
