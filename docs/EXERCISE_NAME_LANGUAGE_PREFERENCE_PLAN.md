@@ -200,7 +200,7 @@ Categoria de conteúdo diferente de "nome de exercício" (não é gated pelo tog
 
 Faz a IA gerar o nome **já no idioma correto do destinatário**, eliminando a etapa de tradução para esse caminho (D5). Corrige, no mesmo movimento, o `locale: 'en'` fixo (achado 9), que hoje entrega nomes em inglês a alunos configurados em outro idioma independentemente de qualquer preferência.
 
-**Nota sobre a migração (2026-08-01)**: o checklist original pedia gravar `name_source_locale` "preparando a Fase 3, mesma coluna" com o cabeçalho da fase declarando `Migração: não` — contraditório, já que nem `plan_exercises` nem `workout_session_exercises` tinham essa coluna. Confirmado via consulta direta ao schema de produção antes de codificar. Corrigido antecipando só a metade da migração da Fase 3 que esta fase precisa: `plan_exercises.name_source_locale text` (nullable, aditiva), aplicada diretamente em `xbfszzdyskwdctlqzztl` com autorização do líder. `workout_session_exercises.name_source_locale` permanece para a Fase 3, que não é tocada por este fluxo.
+**Nota sobre a migração (2026-08-01)**: o checklist original pedia gravar `name_source_locale` "preparando a Fase 3, mesma coluna" com o cabeçalho da fase declarando `Migração: não` — contraditório, já que nem `plan_exercises` nem `workout_session_exercises` tinham essa coluna. Confirmado via consulta direta ao schema de produção antes de codificar. Corrigido antecipando só a metade da migração da Fase 3 que esta fase precisa: `plan_exercises.name_source_locale text` (nullable, aditiva), aplicada diretamente em `xbfszzdyskwdctlqzztl` com autorização do líder. `workout_session_exercises.name_source_locale` permanece para a Fase 3, que não é tocada por este fluxo. Arquivada em `supabase/sql-archive/supabase-exercise-name-source-locale-20260801.sql`.
 
 **Achado durante a verificação ao vivo (2026-08-01) — RLS bloqueava a leitura da preferência do aluno**: a tabela `preferences` só tinha a política `own preferences` (`auth.uid() = user_id`). Quando o treinador consultava a preferência do aluno destinatário, o RLS filtrava silenciosamente — `data: null`, sem erro — e o código caía no fallback seguro (`en`/toggle ligado), mascarando o defeito: a IA sempre gerava em inglês, independentemente da preferência real do aluno, e a diferença só aparecia porque a tela do treinador traduzia o resultado para o idioma dele, parecendo correta à primeira vista. Corrigido com uma política aditiva, somente leitura, espelhando exatamente o padrão já usado por `profile_v2_trainer_read`/`checkin_prontidao_trainer_read` (mesma permissão `view_client_profile` + vínculo ativo em `trainer_clients`):
 ```sql
@@ -216,7 +216,7 @@ using (
   )
 );
 ```
-Aplicada em produção com autorização do líder ("outras informações de alunos já estão disponíveis no próprio check-in... não vejo problemas"). Não altera a política existente — trainer ganha apenas leitura, escrita continua restrita ao próprio dono da linha.
+Aplicada em produção com autorização do líder ("outras informações de alunos já estão disponíveis no próprio check-in... não vejo problemas"). Não altera a política existente — trainer ganha apenas leitura, escrita continua restrita ao próprio dono da linha. Arquivada em `supabase/sql-archive/supabase-preferences-trainer-read-20260801.sql`.
 
 ### Checklist
 
