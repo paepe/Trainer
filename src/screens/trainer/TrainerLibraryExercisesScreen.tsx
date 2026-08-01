@@ -109,6 +109,19 @@ export function TrainerLibraryExercisesScreen({ nav: _nav, user, keepExerciseNam
     'en',
   );
 
+  // Protocol title/objective/description — a different content category from
+  // exercise names (a routine's title, not a movement), so it always follows
+  // the trainer's app language and is never gated by the keep-English-names
+  // toggle (that toggle's label is explicitly about exercise names). Level
+  // is a closed 3-value enum and goes through the same i18n path as
+  // ex.level (trLvl) instead — see the badge below, not this hook.
+  const translateProtocolText = useTranslatedExerciseContent(
+    protocols.flatMap((p: { name: string; objective: string | null; description: string | null }) =>
+      [p.name, p.objective, p.description]),
+    undefined,
+    'en',
+  );
+
   // Fetch Data
   const loadData = async () => {
     setLoading(true);
@@ -479,19 +492,19 @@ export function TrainerLibraryExercisesScreen({ nav: _nav, user, keepExerciseNam
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 16, color: textPri(dark) }}>{p.name}</div>
-                      <div style={{ fontSize: 12, color: textMute(dark), marginTop: 2 }}>{p.description || tr('trainer.library.noDescription')}</div>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: textPri(dark) }}>{translateProtocolText(p.name)}</div>
+                      <div style={{ fontSize: 12, color: textMute(dark), marginTop: 2 }}>{p.description ? translateProtocolText(p.description) : tr('trainer.library.noDescription')}</div>
                     </div>
                     <span style={{
                       fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
                       padding: '4px 8px', borderRadius: 6, background: 'rgba(110,68,255,0.15)', color: '#9b51e0'
                     }}>
-                      {p.level}
+                      {trLvl(p.level)}
                     </span>
                   </div>
 
                   <div style={{ display: 'flex', gap: 12, fontSize: 11, color: textSec(dark), borderBottom: `1px solid ${borderSubtle(dark)}`, paddingBottom: 10, marginBottom: 10 }}>
-                    <span>🎯 {tr('trainer.library.objective')}: <b>{p.objective}</b></span>
+                    <span>🎯 {tr('trainer.library.objective')}: <b>{translateProtocolText(p.objective)}</b></span>
                     <span>⏱️ {tr('trainer.library.duration')}: <b>{p.duration_minutes}m</b></span>
                     {p.is_public && <span style={{ color: t.primary }}>🌐 {tr('trainer.library.public')}</span>}
                   </div>

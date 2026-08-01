@@ -165,6 +165,31 @@ Traduz os 129 nomes da biblioteca **uma única vez, offline, com revisão humana
 
 ---
 
+## Fase 1b — Metadados de protocolo (extensão, 2026-08-01)
+
+**Esforço:** ~2h · **Risco:** Baixo · **Depende de:** Fase 1 · **Migração:** não (apenas dados)
+
+**Origem:** achado do líder do projeto ao revisar a aba "Protocolos" da Biblioteca de Exercícios — nem o toggle de nomes de exercício, nem o idioma geral do app, alcançavam o título, a descrição, o objetivo ou o nível do protocolo (`Full Body Beginner Fat Burn`, `HIIT Cardio Blast` etc. permaneciam em inglês dentro de uma UI em português). `workout_protocols` é uma tabela dinâmica — treinadores/estúdios criam novos protocolos via `createProtocol` (`src/studio/hooks/useStudioData.ts`) — logo o problema não é dado estático a corrigir uma vez, é ausência de tradução na superfície.
+
+Categoria de conteúdo diferente de "nome de exercício" (não é gated pelo toggle "manter em inglês" — esse toggle é especificamente sobre nomes de movimento): título/objetivo/descrição de protocolo sempre seguem o idioma do app do treinador. `level` é enum fechado de 3 valores, mesmo caminho i18n já usado para `exercise.level` (`trLvl`), não a pipeline de tradução.
+
+### Checklist
+
+- [x] `{p.level}` → `{trLvl(p.level)}` — reaproveita o helper i18n já existente para o enum de nível
+- [x] Novo hook `translateProtocolText` (`useTranslatedExerciseContent`, `sourceLocale: 'en'`, sem `targetLocale` explícito — segue o idioma do app do viewer) cobrindo `name`, `objective`, `description` dos 30 protocolos
+- [x] Aplicado nos 3 pontos de exibição (título, descrição, valor do objetivo) em `TrainerLibraryExercisesScreen.tsx`
+- [x] Traduções pt/es/de compostas diretamente (sem auditoria externa — conteúdo de baixo risco de ambiguidade técnica, decisão do líder do projeto) para os 30 nomes, 30 descrições e 5 valores distintos de `objective`
+- [x] Rascunho revisável (`docs/PROTOCOL_METADATA_TRANSLATIONS_DRAFT_20260801.md`) antes da carga
+- [x] Carga no banco com `curated = true` — 195 linhas (`supabase/sql-archive/supabase-protocol-metadata-curated-translations-20260801.sql`), aplicada via MCP em `xbfszzdyskwdctlqzztl`; confirmada: 30/30 nomes com 3 traduções curadas cada, 30/30 descrições idem
+- [x] Reaproveita a mesma tabela/endpoint (`exercise_content_translations`), sem migração nova — a chave é agnóstica de qual tela originou o texto
+- [x] `tsc`, lint, testes (75/75), build verdes
+
+### Aceitação
+
+- [ ] Verificação ao vivo pendente: título, descrição e objetivo do protocolo em pt/es/de, comparados item a item contra o rascunho — ainda não executada nesta sessão
+
+---
+
 ## Fase 2 — Nomes gerados por IA
 
 **Esforço:** ~3h · **Risco:** Médio (toca geração ao vivo) · **Depende de:** Fase 0 · **Migração:** não
@@ -227,6 +252,7 @@ Faz a IA gerar o nome **já no idioma correto do destinatário**, eliminando a e
 |------|--------|-----------|--------|-------|
 | 0 — Contrato e schema | **Concluída** | 2026-08-01 | `a2ee571` | Migração aplicada direto em `xbfszzdyskwdctlqzztl` (sem staging); código verificado ao vivo e publicado em `main` |
 | 1 — Biblioteca | **Concluída** | 2026-08-01 | `53d8bb4` | 387 traduções curadas carregadas; verificado ao vivo em produção, 129/129 corretos nos dois estados do toggle |
+| 1b — Metadados de protocolo | Código + dados prontos | 2026-08-01 | *(pendente push)* | 195 traduções curadas carregadas; verificação ao vivo em produção ainda pendente |
 | 2 — Nomes de IA | Não iniciada | — | — | — |
 | 3 — Nomes manuais | Não iniciada | — | — | — |
 
