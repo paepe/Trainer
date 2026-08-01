@@ -99,6 +99,7 @@ export interface WorkoutSessionExercise {
   status:                   SessionExerciseStatus;
   substituted_from_id:      string | null;
   skipped_reason?:          string | null;
+  phase?:                   string | null;
 }
 
 export interface WorkoutSetLog {

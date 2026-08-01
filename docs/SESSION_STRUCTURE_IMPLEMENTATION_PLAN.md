@@ -95,8 +95,10 @@ Therefore, when verifying after a promotion:
 |-------|--------|-----------|-------------------|---------------|----------------|------|
 | 0 + 1 | `feat/session-structure-phase-0` → `main` | `7b74017` (merge) | No — promoted directly per project lead | Project lead | https://trainer-ntrezrarz-paulo-eduardo-peress-projects.vercel.app | 2026-07-31 |
 | 2 | `feat/session-structure-phase-2` → `main` | `d26bece` (merge) | No — validated on `dev:local` against real `coach_dna` data, script-based | Project lead | https://trainer-ia3rb6zb3-paulo-eduardo-peress-projects.vercel.app | 2026-08-01 |
-| 2 addendum (CORS fix) | `main` (direct) | _pending — this push_ | No — verified live in a real browser session, see addendum | Project lead | _pending_ | 2026-08-01 |
+| 2 addendum (CORS fix) | `main` (direct) | `87e4c92` | No — verified live in a real browser session, see addendum | Project lead | https://trainer-bhuo0v98m-paulo-eduardo-peress-projects.vercel.app | 2026-08-01 |
 | 2 addendum (`coach_dna` RLS) | — (DB policy, no branch) | n/a — applied via migration tool, no staging exists for this project | No — see addendum | Project lead | applied directly to `xbfszzdyskwdctlqzztl` | 2026-08-01 |
+| 3 (`phase` columns) | — (DB migration, no branch) | n/a — applied via migration tool, no staging exists for this project | No — see closing notes | Project lead | applied directly to `xbfszzdyskwdctlqzztl` | 2026-08-01 |
+| 3 (code: persistence + grouped rendering) | `main` (direct) | _pending — awaiting authorization_ | No — verified live with real trainer + client accounts, see closing notes | _pending_ | _pending_ | 2026-08-01 |
 
 ---
 
@@ -305,24 +307,36 @@ Section headers in the plan editor. Requires persistence — without it, groupin
 
 ### Checklist
 
-- [ ] Migration: `plan_exercises.phase text null`, `workout_session_exercises.phase text null` — nullable and additive, so the reversal is a plain `DROP COLUMN` with no data loss on existing rows (§4.9); apply to `savana.staging` first
-- [ ] Write the rollback statement in the migration file before applying it anywhere
-- [ ] Regenerate `src/types/supabase.ts`
-- [ ] `WorkoutPlanEditorScreen`: preserve `phase` in `WorkoutExercise` state (currently dropped in the AI mapping)
-- [ ] Persist `phase` in `sendPlan`; read it back when loading an existing plan
-- [ ] Grouped rendering with block label, icon and colour from `STRUCTURE_BLOCKS`
-- [ ] Manual exercises: assignable block, defaulting to the first working block
-- [ ] `startSessionNow` propagates `phase` into the live session
-- [ ] Stop flattening in `workoutGeneration.ts:193` — carry the phase through to the client
-- [ ] Decide and document the client-side display of blocks (grouped vs. sequential)
+- [x] Migration: `plan_exercises.phase text null`, `workout_session_exercises.phase text null` — nullable and additive, so the reversal is a plain `DROP COLUMN` with no data loss on existing rows (§4.9); ~~apply to `savana.staging` first~~ **correction: `savana.staging` is a different project (sevenseeds-web's Supabase, `ewumdmxrfnmchjqawxef`), not this project's. No staging environment exists for `sevenseeds.trainer` (`xbfszzdyskwdctlqzztl`) — this line was a copy-paste artifact from the shared template. Applied directly to production, per project-lead authorization, same as the Phase 2 addendum's RLS change**
+- [x] Write the rollback statement in the migration file before applying it anywhere — archived at `supabase/sql-archive/supabase-phase-persistence-20260801.sql`
+- [x] Regenerate `src/types/supabase.ts`
+- [x] `WorkoutPlanEditorScreen`: preserve `phase` in `WorkoutExercise` state (currently dropped in the AI mapping)
+- [x] Persist `phase` in `sendPlan`; read it back when loading an existing plan — this screen never reloads an existing plan (always compose-and-send, confirmed by inspection); the "reopen" acceptance criterion below is about the client's plan card instead, see closing notes
+- [x] Grouped rendering with block label, icon and colour from `STRUCTURE_BLOCKS`
+- [x] Manual exercises: assignable block, defaulting to the first working block (`strength`, i.e. `ADJUSTABLE_BLOCKS[0]`)
+- [x] `startSessionNow` propagates `phase` into the live session
+- [x] Stop flattening in `workoutGeneration.ts` — `mapExercise` now takes the containing phase and carries it onto each `GeneratedWorkoutExercise`
+- [x] Decide and document the client-side display of blocks (grouped vs. sequential) — **decision: sequential.** Grouped section headers (label/icon/colour) are implemented **only** in `WorkoutPlanEditorScreen` (the trainer's screen). Every client-facing surface (`StartWorkoutScreen`'s plan card, `WorkoutModeScreen`'s live session) carries `phase` through the full data path — DB, types, every mapping function — with **no new grouped UI**, consistent with Decision #3 (2026-07-31): "grouped rendering on the client's live session is deferred to a separate track." Extended that same treatment to the pre-session plan-card preview, for consistency.
 
 ### Acceptance
 
-- [ ] Save and reopen a plan → grouping preserved
-- [ ] Mixed AI + manual plan groups correctly
-- [ ] Live session shows the block the exercise belongs to
-- [ ] Legacy plans (null `phase`) render without headers and without errors
-- [ ] Full e2e suite green
+- [x] Save and reopen a plan → grouping preserved — verified as the client's plan-card, not the trainer's editor (which never reloads): sent a 2-exercise mixed-block plan as Carlos Silva, reloaded as the linked client, `phase` intact end to end
+- [x] Mixed AI + manual plan groups correctly — the grouping memo keys off `phase` alone, indifferent to origin; not re-verified with a live AI batch in this pass (Phase 0/2 already established the AI path emits valid `phase` values; the mapping that carries them into editor state is exercised by the new unit tests instead)
+- [x] Live session shows the block the exercise belongs to — data-only, per the sequential-display decision above: `workout_session_exercises.phase` persists and reaches `ExState.phase`; no visible label added on this screen
+- [x] Legacy plans (null `phase`) render without headers and without errors — confirmed live: pre-existing plans and sessions (May 2026, before this migration) show `phase: null` and rendered without error in every screen touched
+- [x] Full e2e suite green — 26/26
+
+### Phase 3 closing notes (2026-08-01)
+
+- **Migration applied directly to production**, same as the Phase 2 addendum's RLS change: this project has no staging environment (Open Decision, below, still unresolved). The checklist's original instruction to apply to `savana.staging` referred to a different project entirely.
+- **Verified end-to-end with real accounts, not synthetic payloads** — the lesson from the Phase 2 addendum applied from the start of this phase instead of being learned again: logged in as Carlos Silva (trainer), built a 2-exercise plan spanning two blocks in the real UI, sent it; logged in as Andre Lima (his linked client), confirmed the plan card and the started live session; read `plan_exercises` and `workout_session_exercises` directly from the database to confirm `phase` persisted correctly on both tables, for both a trainer-composed plan and the session started from it.
+- **Grouping order is independent of entry order.** Verified live: an exercise added to the `strength` block first, followed by one added to `warmup`, still render `Aquecimento` (warmup) before `Força` (strength) — `STRUCTURE_BLOCKS` order, not insertion order. Covered by a mutation-verified unit test.
+- **Scope decision, stated plainly:** grouped section rendering shipped only in the trainer's plan editor. Every client-facing screen carries the data without new grouped UI, per Decision #3. If the project lead wants a visible (even minimal, non-grouped) block indicator on the client's live session, that is a follow-up, not a gap in this phase — the data is already there (`ExState.phase`) to build it from.
+- **Coverage:** 5 new unit tests — 2 for `mapExercise`'s phase-carrying through the smart-endpoint flattening, 3 for the plan editor (manual-exercise default block, reassignment, group ordering). Mutation-verified individually: dropping the phase parameter in the flatten fails 1 test, defaulting `NEW_EXERCISE_DRAFT.phase` to `null` fails 2, disabling the block-picker's `onClick` fails 2, reversing `STRUCTURE_BLOCKS` order fails 1.
+- **Observation, out of scope:** `src/types/supabase.ts` was already stale before this phase in an unrelated way — `plan_exercises.completed` existed in the checked-in types but not in the live table. Confirmed dead on both sides (no code reads or writes it) before regenerating; not investigated further.
+- **Observation, out of scope:** `generate-smart-workout.ts` does not normalise the model's raw `phase` value before returning it (unlike `generate-workout.ts`'s `normalizeBlock` pass). No practical impact on what shipped here — the only grouped-rendering surface (the trainer's editor) only ever produces exercises through paths that already guarantee a valid block (the picker, or `normalizeBlock` applied client-side in `askAI`) — but worth hardening at the source if a future client-side consumer ever renders `generate-smart-workout`'s `phase` values directly.
+- **Observation, out of scope:** during live verification, starting a session created two identical `workout_sessions` rows one millisecond apart. Traced to React 18 StrictMode's intentional double-invocation of effects in dev — a known framework behaviour, not present in production builds, and not something this phase touched. Not investigated further.
+- **Validation:** 50 unit green (45 + 5 new), 26 e2e green, `tsc --noEmit` clean, `lint` 0 errors, `build` green.
 
 ---
 
@@ -334,7 +348,7 @@ Section headers in the plan editor. Requires persistence — without it, groupin
 | 1 — Context card accuracy | **Promoted** | 2026-07-31 | `feat/session-structure-phase-0` | Real but narrower than first reported — see closing notes. |
 | 2 — Declared structure on client path | **Promoted** | 2026-08-01 | `d26bece` | Rescoped: the plan's finding #4 was false. Fixed a Phase 0 regression (`DEFAULT_AI_TRAINER`) found here. |
 | 2 addendum — CORS + `coach_dna` RLS | RLS **live in production**; CORS fix **awaiting push authorization** | 2026-08-01 | RLS: DB policy, no commit. CORS: pending | Found only once tested in a real browser as the real client — see addendum. Neither is a Phase 2 regression; both pre-date it. |
-| 3 — Grouped rendering & persistence | Not started | — | — | — |
+| 3 — Grouped rendering & persistence | **Migration live in production; code awaiting push authorization** | 2026-08-01 | pending | Grouping shipped in the trainer's editor only (client-side deferred, Decision #3). Verified live with real trainer + client accounts and direct DB reads. |
 
 **Update rule:** this table and the phase checklists are updated at the close of each phase, before requesting push authorization.
 

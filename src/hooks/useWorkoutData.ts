@@ -56,6 +56,7 @@ export function useWorkoutData(userId: string | undefined) {
       rest_seconds:                ex.rest_seconds       ?? null,
       notes:                       ex.notes              ?? null,
       status:                      'pending',
+      phase:                       ex.phase              ?? null,
     }));
 
     if (exerciseRows.length === 0) {

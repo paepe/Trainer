@@ -922,7 +922,6 @@ export type Database = {
           actual_reps: number | null
           actual_sets: number | null
           alternative_exercise: string | null
-          completed: boolean | null
           duration_seconds: number | null
           exercise_category: string | null
           exercise_name: string
@@ -932,6 +931,7 @@ export type Database = {
           muscle_group: string | null
           notes: string | null
           order_index: number
+          phase: string | null
           plan_id: string
           reps: number | null
           rest_seconds: number | null
@@ -943,7 +943,6 @@ export type Database = {
           actual_reps?: number | null
           actual_sets?: number | null
           alternative_exercise?: string | null
-          completed?: boolean | null
           duration_seconds?: number | null
           exercise_category?: string | null
           exercise_name: string
@@ -953,6 +952,7 @@ export type Database = {
           muscle_group?: string | null
           notes?: string | null
           order_index?: number
+          phase?: string | null
           plan_id: string
           reps?: number | null
           rest_seconds?: number | null
@@ -964,7 +964,6 @@ export type Database = {
           actual_reps?: number | null
           actual_sets?: number | null
           alternative_exercise?: string | null
-          completed?: boolean | null
           duration_seconds?: number | null
           exercise_category?: string | null
           exercise_name?: string
@@ -974,6 +973,7 @@ export type Database = {
           muscle_group?: string | null
           notes?: string | null
           order_index?: number
+          phase?: string | null
           plan_id?: string
           reps?: number | null
           rest_seconds?: number | null
@@ -2118,6 +2118,7 @@ export type Database = {
           muscle_group: string | null
           notes: string | null
           order_index: number
+          phase: string | null
           plan_exercise_id: string | null
           reps_prescribed: number | null
           rest_seconds: number | null
@@ -2137,6 +2138,7 @@ export type Database = {
           muscle_group?: string | null
           notes?: string | null
           order_index?: number
+          phase?: string | null
           plan_exercise_id?: string | null
           reps_prescribed?: number | null
           rest_seconds?: number | null
@@ -2156,6 +2158,7 @@ export type Database = {
           muscle_group?: string | null
           notes?: string | null
           order_index?: number
+          phase?: string | null
           plan_exercise_id?: string | null
           reps_prescribed?: number | null
           rest_seconds?: number | null

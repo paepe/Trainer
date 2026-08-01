@@ -922,7 +922,8 @@
       "sendToClient": "Send to client →",
       "startLiveSession": "Start Live Session",
       "startFreeSession": "Start Free Training Session",
-      "startLiveSessionHint": "Train {{name}} now — opens workout mode directly"
+      "startLiveSessionHint": "Train {{name}} now — opens workout mode directly",
+      "sessionBlock": "Session block"
     },
     "library": {
       "title": "Exercise Library",

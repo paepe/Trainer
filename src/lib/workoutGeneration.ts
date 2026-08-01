@@ -120,7 +120,9 @@ export async function requestWorkoutPlan({
 // ── Smart endpoint — full safety context ──────────────────────────────────────
 
 // Map WorkoutExercise (smart format) → GeneratedWorkoutExercise (DB/UI format)
-function mapExercise(ex: WorkoutExercise): GeneratedWorkoutExercise {
+// `phase` is passed in separately because it lives on the containing
+// WorkoutPhase, not on the exercise itself — see the flatMap below.
+function mapExercise(ex: WorkoutExercise, phase: string | null): GeneratedWorkoutExercise {
   // durationSeconds is now a structured numeric field from the LLM contract
   // (api/generate-smart-workout.ts) — no more parsing time out of the reps
   // string, which used to silently drop hold/breathing exercises to null.
@@ -152,6 +154,7 @@ function mapExercise(ex: WorkoutExercise): GeneratedWorkoutExercise {
     load_kg,
     rest_seconds:     ex.restSeconds ?? null,
     notes,
+    phase,
   };
 }
 
@@ -195,10 +198,10 @@ export async function requestSmartWorkout(
       };
     }
 
-    // Flatten phases → flat exercise list
+    // Flatten phases → flat exercise list, carrying each exercise's block
+    // (phase) along — the grouping is lost once flattened otherwise.
     const exercises = (data.workout?.phases ?? [])
-      .flatMap(p => p.exercises ?? [])
-      .map(mapExercise)
+      .flatMap(p => (p.exercises ?? []).map(ex => mapExercise(ex, p.phase ?? null)))
       .filter(e => e.exercise_name);
 
     return {

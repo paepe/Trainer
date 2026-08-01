@@ -80,7 +80,7 @@ interface PlanCard {
     id:        string;
     sentAt:    string | null;
     status:    string;
-    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; duration_seconds?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null; exercise_category?:string|null}>;
+    exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; duration_seconds?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null; exercise_category?:string|null; phase?:string|null}>;
   }
 
 type GenState =
@@ -334,6 +334,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           rest_seconds:     ex.rest_seconds,
           notes:            ex.notes ?? null,
           order_index:      i,
+          phase:            ex.phase ?? null,
         }))
       );
 
@@ -382,7 +383,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         // Status is NOT mutated here — a plan only becomes 'active' when the workout actually starts.
         const { data: planRows } = await supabase
           .from('workout_plans')
-          .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category)')
+          .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category, phase)')
           .eq('assigned_to', user.id)
           .eq('source', 'manual')
           .in('status', ['sent', 'active', 'postponed'])
@@ -731,6 +732,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         load_kg:          ex.load_kg       ?? null,
         rest_seconds:     ex.rest_seconds  ?? null,
         notes:            ex.notes         ?? null,
+        phase:            ex.phase         ?? null,
       })),
     });
   };

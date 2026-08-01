@@ -124,6 +124,7 @@ export function WorkoutModeScreen({
             load_kg:          se.load_kg_prescribed,
             rest_seconds:     se.rest_seconds,
             notes:            se.notes,
+            phase:            se.phase ?? null,
           }, i)
         ));
       }
@@ -640,5 +641,6 @@ function makeExState(id: string, ex: Partial<GeneratedWorkoutExercise> & { exerc
     setsLogged:                0,
     setLogs:                   [],
     skippedReason:             null,
+    phase:                     ex.phase ?? null,
   };
 }

@@ -922,7 +922,8 @@
       "sendToClient": "Enviar ao cliente →",
       "startLiveSession": "Iniciar Sessão ao Vivo",
       "startFreeSession": "Iniciar Sessão de Treino Livre",
-      "startLiveSessionHint": "Treinar {{name}} agora — abre o modo de treino diretamente"
+      "startLiveSessionHint": "Treinar {{name}} agora — abre o modo de treino diretamente",
+      "sessionBlock": "Bloco da sessão"
     },
     "library": {
       "title": "Biblioteca de Exercícios",

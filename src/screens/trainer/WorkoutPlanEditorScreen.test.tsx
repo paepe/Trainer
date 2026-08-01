@@ -385,3 +385,83 @@ describe('WorkoutPlanEditorScreen — time-fit signal', () => {
     expect(requestWorkoutPlan).not.toHaveBeenCalled();
   });
 });
+
+describe('WorkoutPlanEditorScreen — session blocks (Phase 3)', () => {
+  beforeEach(() => {
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      throw new Error(`unexpected table in default stub: ${table}`);
+    };
+  });
+
+  it('defaults a manually-added exercise to the strength block and persists it', async () => {
+    const nav = vi.fn();
+    const planInsert = vi.fn().mockReturnValue({
+      select: () => ({ single: () => Promise.resolve({ data: { id: 'plan-1' }, error: null }) }),
+    });
+    const exercisesInsert = vi.fn().mockResolvedValue({ error: null });
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'workout_plans')  return { insert: planInsert };
+      if (table === 'plan_exercises') return { insert: exercisesInsert };
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav });
+    addOneExercise();
+    fireEvent.click(screen.getByText('Send to client →'));
+
+    await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
+    const [inserted] = exercisesInsert.mock.calls[0]!;
+    expect(inserted[0]).toMatchObject({ exercise_name: 'Squat', phase: 'strength' });
+  });
+
+  it('lets the trainer reassign an exercise to a different declared block, and persists it', async () => {
+    const nav = vi.fn();
+    const planInsert = vi.fn().mockReturnValue({
+      select: () => ({ single: () => Promise.resolve({ data: { id: 'plan-2' }, error: null }) }),
+    });
+    const exercisesInsert = vi.fn().mockResolvedValue({ error: null });
+    fromImpl = (table: string) => {
+      if (table === 'profile_v2' || table === 'checkin_prontidao') return CONTEXT_FETCH_STUB;
+      if (table === 'protocol_exercises') return CATALOG_SEARCH_STUB;
+      if (table === 'coach_dna') return COACH_DNA_STUB;
+      if (table === 'workout_plans')  return { insert: planInsert };
+      if (table === 'plan_exercises') return { insert: exercisesInsert };
+      throw new Error(`unexpected table: ${table}`);
+    };
+
+    renderScreen({ nav });
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.change(screen.getByPlaceholderText('Exercise name'), { target: { value: 'Jog' } });
+    fireEvent.click(screen.getByText('Warm-up'));
+    fireEvent.click(screen.getByText('Add exercise'));
+    fireEvent.click(screen.getByText('Send to client →'));
+
+    await waitFor(() => expect(exercisesInsert).toHaveBeenCalledTimes(1));
+    const [inserted] = exercisesInsert.mock.calls[0]!;
+    expect(inserted[0]).toMatchObject({ exercise_name: 'Jog', phase: 'warmup' });
+  });
+
+  it('groups exercises under their declared block, in STRUCTURE_BLOCKS order, regardless of add order', () => {
+    renderScreen({ nav: vi.fn() });
+
+    // Add a strength exercise first, then a warm-up one — declaration order
+    // is reversed from STRUCTURE_BLOCKS order (warmup precedes strength).
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.change(screen.getByPlaceholderText('Exercise name'), { target: { value: 'Squat' } });
+    fireEvent.click(screen.getByText('Add exercise'));
+
+    fireEvent.click(screen.getByText('Add'));
+    fireEvent.change(screen.getByPlaceholderText('Exercise name'), { target: { value: 'Jog' } });
+    fireEvent.click(screen.getByText('Warm-up'));
+    fireEvent.click(screen.getByText('Add exercise'));
+
+    const headers = screen.getAllByText(/^(Warm-up|Strength)$/).map(el => el.textContent);
+    expect(headers).toEqual(['Warm-up', 'Strength']);
+  });
+});

@@ -27,4 +27,8 @@ export interface ExState {
   // feeds the offline full-session replay (see lib/workoutSyncQueue.ts).
   setLogs:                  LocalSetLog[];
   skippedReason:            string | null;
+  // Session block this exercise belongs to (see src/lib/sessionStructure.ts).
+  // Carried through so the live session's data model is complete — grouped
+  // display here is a separate, deferred track (Decision #3, 2026-07-31).
+  phase:                     string | null;
 }

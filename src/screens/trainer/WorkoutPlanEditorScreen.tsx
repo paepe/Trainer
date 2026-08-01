@@ -24,6 +24,8 @@ import { useTrainerTheme } from '../../hooks/useTrainerTheme';
 import { friendlyError } from '../../lib/friendlyError';
 import type { ConsentMatrix } from '../../types/profile-v2';
 import { applyConsentToProfile } from '../../profile/consentVisibility';
+import { STRUCTURE_BLOCKS } from '../../coach-dna/constants';
+import { ADJUSTABLE_BLOCKS, normalizeBlock, type SessionBlock } from '../../lib/sessionStructure';
 
 interface ClientProfile {
   id:         string;
@@ -68,6 +70,10 @@ interface WorkoutExercise {
   notes?:             string;
   // Propagated from exercise_catalog when selecting from catalog; null for ad-hoc exercises
   exercise_category?: string | null;
+  // Session block (see src/lib/sessionStructure.ts). Null only for exercises
+  // carried over from a plan built before this field existed (Decision #4,
+  // 2026-07-31) — every exercise added or generated from here on gets one.
+  phase?:             SessionBlock | null;
 }
 
 // Same per-exercise time model used server-side (api/generate-workout.ts) and
@@ -92,6 +98,9 @@ const NEW_EXERCISE_DRAFT: WorkoutExercise = {
   load_kg:          '',
   rest_seconds:     60,
   notes:            '',
+  // First working block — mirrors the fitting logic's own default target
+  // (mobility/warmup/technique/cooldown are prescriptive, never assumed here).
+  phase:            ADJUSTABLE_BLOCKS[0] ?? 'strength',
 };
 
 interface TrainerDashboardUser {
@@ -244,6 +253,7 @@ export function WorkoutPlanEditorScreen({
         load_kg:           ex.load_kg ?? '',
         rest_seconds:      ex.rest_seconds || 60,
         notes:             ex.notes || '',
+        phase:             normalizeBlock(ex.phase),
       }));
 
       // Append to existing — never replace
@@ -389,6 +399,7 @@ export function WorkoutPlanEditorScreen({
         order_index:       i,
         // Propagated from catalog; null for ad-hoc exercises (no classification needed)
         exercise_category: ex.exercise_category ?? null,
+        phase:             ex.phase ?? null,
       }))
     );
 
@@ -428,6 +439,7 @@ export function WorkoutPlanEditorScreen({
       load_kg:          ex.load_kg !== '' ? Number(ex.load_kg) : null,
       rest_seconds:     ex.rest_seconds,
       notes:            ex.notes || null,
+      phase:            ex.phase ?? null,
     }));
     // freeSession is driven by App state (not payload) — router injects it into WorkoutModeScreen.
     nav('workoutMode', {
@@ -446,6 +458,52 @@ export function WorkoutPlanEditorScreen({
   const estimatedPlanMinutes = React.useMemo(() => (
     Math.ceil(exercises.reduce((sum, ex) => sum + estimateExerciseSeconds(ex), 0) / 60)
   ), [exercises]);
+  // Section headers by declared block, in STRUCTURE_BLOCKS order. Every
+  // exercise added or generated from this screen carries a phase (see
+  // NEW_EXERCISE_DRAFT and the AI-mapping above); the ungrouped bucket only
+  // exists for the theoretical case of a null phase reaching this state
+  // (Decision #4, 2026-07-31) — it renders with no header, never crashes.
+  const exerciseGroups = React.useMemo(() => {
+    const withIndex = exercises.map((ex, i) => ({ ex, i }));
+    const groups = STRUCTURE_BLOCKS
+      .map(block => ({ block, items: withIndex.filter(({ ex }) => ex.phase === block.key) }))
+      .filter(g => g.items.length > 0);
+    const ungrouped = withIndex.filter(({ ex }) => !ex.phase);
+    return { groups, ungrouped };
+  }, [exercises]);
+
+  function renderExerciseRow(ex: WorkoutExercise, i: number) {
+    return (
+      <div
+        key={i}
+        onClick={() => { if (editingIndex !== i) startEdit(i); }}
+        style={{
+          padding: '12px 14px', borderRadius: 12,
+          background: editingIndex === i ? `${t.primary}18` : surfRaised(dark),
+          border: `1px solid ${editingIndex === i ? t.primary : borderSubtle(dark)}`,
+          display: 'flex', alignItems: 'center', gap: 12,
+          cursor: 'pointer',
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{ex.exercise_name}</div>
+          <div style={{ fontSize: 11, color: textSec(dark), marginTop: 3 }}>
+            {ex.muscle_group && `${ex.muscle_group} · `}{ex.sets}×{
+              ex.duration_seconds != null ? tr('common.units.holdSec', { seconds: ex.duration_seconds }) : ex.reps
+            }
+            {ex.load_kg ? ` · ${ex.load_kg}kg` : ''}{ex.rest_seconds ? ` · ${ex.rest_seconds}s` : ''}
+          </div>
+        </div>
+        <button
+          onClick={e => { e.stopPropagation(); setExercises(exercises.filter((_, idx) => idx !== i)); if (editingIndex === i) { setShowAddForm(false); setEditingIndex(null); } }}
+          style={{
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            color: textMute(dark), fontSize: 18, lineHeight: 1, padding: '2px 6px', fontFamily: 'inherit',
+          }}
+        >×</button>
+      </div>
+    );
+  }
   // Availability resolves check-in → profile → unknown. The card must show the
   // very number the banner is measuring against, and say where it came from:
   // reading it only from the check-in left clients whose availability lives in
@@ -589,37 +647,23 @@ export function WorkoutPlanEditorScreen({
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {exercises.map((ex, i) => (
-            <div
-              key={i}
-              onClick={() => { if (editingIndex !== i) startEdit(i); }}
-              style={{
-                padding: '12px 14px', borderRadius: 12,
-                background: editingIndex === i ? `${t.primary}18` : surfRaised(dark),
-                border: `1px solid ${editingIndex === i ? t.primary : borderSubtle(dark)}`,
-                display: 'flex', alignItems: 'center', gap: 12,
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark) }}>{ex.exercise_name}</div>
-                <div style={{ fontSize: 11, color: textSec(dark), marginTop: 3 }}>
-                  {ex.muscle_group && `${ex.muscle_group} · `}{ex.sets}×{
-                    ex.duration_seconds != null ? tr('common.units.holdSec', { seconds: ex.duration_seconds }) : ex.reps
-                  }
-                  {ex.load_kg ? ` · ${ex.load_kg}kg` : ''}{ex.rest_seconds ? ` · ${ex.rest_seconds}s` : ''}
-                </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {exerciseGroups.groups.map(({ block, items }) => (
+            <div key={block.key} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name={block.icon} size={12} color={block.color} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: block.color, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                  {tr(`coachDna.step10.blocks.${block.key}.label`)}
+                </span>
               </div>
-              <button
-                onClick={e => { e.stopPropagation(); setExercises(exercises.filter((_, idx) => idx !== i)); if (editingIndex === i) { setShowAddForm(false); setEditingIndex(null); } }}
-                style={{
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: textMute(dark), fontSize: 18, lineHeight: 1, padding: '2px 6px', fontFamily: 'inherit',
-                }}
-              >×</button>
+              {items.map(({ ex, i }) => renderExerciseRow(ex, i))}
             </div>
           ))}
+          {exerciseGroups.ungrouped.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {exerciseGroups.ungrouped.map(({ ex, i }) => renderExerciseRow(ex, i))}
+            </div>
+          )}
         </div>
 
         {/* Add exercise form */}
@@ -720,6 +764,32 @@ export function WorkoutPlanEditorScreen({
                   }}>{label}</button>
                 );
               })}
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: textMute(dark), marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+                {tr('trainer.planner.sessionBlock')}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {STRUCTURE_BLOCKS.map(block => {
+                  const on = draft.phase === block.key;
+                  return (
+                    <button
+                      key={block.key}
+                      onClick={() => setDraft({ ...draft, phase: block.key })}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        padding: '5px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                        background: on ? block.color : DARK.surface,
+                        color: on ? '#fff' : textSec(dark),
+                        border: 'none', fontFamily: 'inherit', cursor: 'pointer',
+                      }}
+                    >
+                      <Icon name={block.icon} size={11} color={on ? '#fff' : textSec(dark)} />
+                      {tr(`coachDna.step10.blocks.${block.key}.label`)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
