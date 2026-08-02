@@ -8,7 +8,7 @@
 // not exhaustive — see the plan doc's "Decisões de desenho".
 import { FALLBACK_LIBRARY, type FallbackLibraryExercise, type ContraindicationRegion } from '../data/fallbackExerciseLibrary';
 import { sortBySessionBlock, type SessionBlock } from './sessionStructure';
-import { fitToBudget, estimateExerciseSeconds, estimateSessionMinutes, FILL_CEILING, type BudgetExercise } from './sessionBudget';
+import { fitToBudget, estimateExerciseSeconds, estimateSessionMinutes, FILL_CEILING, FILL_FLOOR, type BudgetExercise } from './sessionBudget';
 import type { GeneratedWorkoutExercise } from './workoutGeneration';
 import type { AppLanguage } from '../i18n';
 
@@ -107,7 +107,9 @@ function eligible(
 // cannot resize one, so an outlier (e.g. a low-rep/high-rest competition
 // lift) could make a tight budget unreachable. Skipped for a block if it
 // would leave nothing eligible, so it never causes the actual "empty block"
-// failure it exists to prevent.
+// failure it exists to prevent. A survivor can still be individually larger
+// than the whole session ceiling (found live, Fase 6, 2026-08-02 — see
+// squeezeToCeiling below, which is what actually brings it back in line).
 function sizeFiltered(candidates: FallbackLibraryExercise[], capSeconds: number): FallbackLibraryExercise[] {
   const under = candidates.filter(ex => estimateExerciseSeconds(toCandidate(ex)) <= capSeconds);
   return under.length > 0 ? under : candidates;
@@ -119,16 +121,36 @@ function libraryExerciseName(ex: FallbackLibraryExercise, locale: AppLanguage): 
 }
 
 // Last-resort squeeze for tight budgets (achado plan item "orçamentos
-// exíguos"): once work volume is already minimal (fitToBudget's trim loop
-// never empties a block, so 1 strength + 1 conditioning is the floor), the
-// only remaining lever is the warmup's own duration — never remove it,
-// clamp it down to a real 60s of the chosen movement instead.
-function squeezeWarmupToFloor(candidates: Candidate[]): Candidate[] {
-  return candidates.map(c =>
-    c.phase === WARMUP
-      ? { ...c, sets: 1, duration_seconds: MIN_WARMUP_SECONDS, rest_seconds: 0 }
-      : c
-  );
+// exíguos"): fitToBudget's trim loop only removes whole exercises and never
+// empties a block, so it can leave a single candidate that is, on its own,
+// larger than the entire ceiling — found live (Fase 6, 2026-08-02): fitnessOnly
+// combined with a contraindicated region can shrink the conditioning pool
+// down to only long steady-state cardio machines (Elliptical Trainer, Rowing
+// Machine, Stationary Bike), every one of them individually bigger than a
+// 15-minute session. "Reduzir volume de trabalho primeiro, cortar
+// desaquecimento depois" — shrink the single biggest non-warmup exercise
+// first (one set at a time, then duration down to a 60s floor); only once
+// nothing else can shrink does warmup itself become the lever, and even then
+// never below 60s. Never removes an exercise outright.
+function squeezeToCeiling(candidates: Candidate[], ceilingSeconds: number): Candidate[] {
+  const result = candidates.map(c => ({ ...c }));
+  const canShrink = (c: Candidate) =>
+    (c.sets ?? 1) > 1 || (c.duration_seconds != null && c.duration_seconds > MIN_WARMUP_SECONDS);
+
+  let guard = 0;
+  while (estimateSessionMinutes(result) * 60 > ceilingSeconds && guard++ < 50) {
+    const nonWarmup = result.filter(c => c.phase !== WARMUP && canShrink(c));
+    const pool = nonWarmup.length > 0 ? nonWarmup : result.filter(canShrink);
+    if (pool.length === 0) break; // nothing left to shrink, accept best effort
+
+    const worst = pool.reduce((a, b) => estimateExerciseSeconds(b) > estimateExerciseSeconds(a) ? b : a);
+    const idx = result.indexOf(worst);
+    const c = result[idx]!;
+    result[idx] = (c.sets ?? 1) > 1
+      ? { ...c, sets: (c.sets ?? 1) - 1 }
+      : { ...c, duration_seconds: Math.max(MIN_WARMUP_SECONDS, (c.duration_seconds ?? MIN_WARMUP_SECONDS) - 60), rest_seconds: c.phase === WARMUP ? 0 : c.rest_seconds };
+  }
+  return result;
 }
 
 export interface FallbackGeneratorOptions {
@@ -219,9 +241,31 @@ export function generateFallbackPlan(options: FallbackGeneratorOptions): Fallbac
       .reduce((sum, c) => sum + estimateExerciseSeconds(c), 0);
   }
 
-  const { exercises: fitted } = fitToBudget(picks, targetMinutes);
+  const { exercises: budgetFitted } = fitToBudget(picks, targetMinutes);
+
+  // fitToBudget's own trim loop removes whole exercises — coarse enough that
+  // it can occasionally overshoot below the floor (found live, Fase 6,
+  // scanning many seeds: fitToBudget's set-padding alone, capped at
+  // MAX_PADDED_SETS, isn't always enough to close the gap it just opened).
+  // Top up with fresh exercises from the same pools — continuing past
+  // whatever over-provisioning already tried — before accepting the result.
+  let fitted = budgetFitted;
+  const floorSeconds = targetSeconds * FILL_FLOOR;
+  let topUpGuard = 0;
+  while (estimateSessionMinutes(fitted) * 60 < floorSeconds && capacity > 0 && topUpGuard++ < 20) {
+    const wantConditioning = rng() < conditioningShare;
+    let extra: Candidate | null = null;
+    if (wantConditioning && conditioningIdx < conditioningPool.length) extra = toCandidate(conditioningPool[conditioningIdx++]!);
+    else if (!wantConditioning && strengthIdx < strengthPool.length) extra = toCandidate(strengthPool[strengthIdx++]!);
+    else if (conditioningIdx < conditioningPool.length) extra = toCandidate(conditioningPool[conditioningIdx++]!);
+    else if (strengthIdx < strengthPool.length) extra = toCandidate(strengthPool[strengthIdx++]!);
+    if (!extra) break; // both pools exhausted — accept best effort
+    fitted = [...fitted, extra];
+    capacity--;
+  }
+
   const overCeiling = estimateSessionMinutes(fitted) > targetSeconds * FILL_CEILING / 60;
-  const finalCandidates = overCeiling ? squeezeWarmupToFloor(fitted) : fitted;
+  const finalCandidates = overCeiling ? squeezeToCeiling(fitted, ceilingSeconds) : fitted;
 
   const ordered = sortBySessionBlock(finalCandidates);
   const exercises: GeneratedWorkoutExercise[] = ordered.map(c => {

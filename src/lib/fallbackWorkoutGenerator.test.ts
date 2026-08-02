@@ -236,6 +236,85 @@ describe('generateFallbackPlan — planMayOverrun never fires on a local plan', 
   }
 });
 
+describe('generateFallbackPlan — band adherence across many seeds (Fase 6 live-verification regressions)', () => {
+  // Fase 4 originally checked only seed=7 per combo — live verification
+  // (Fase 6, 2026-08-02) scanning more seeds found two real gaps a single
+  // fixed seed had masked: fitToBudget's trim loop can leave a single
+  // candidate individually bigger than the whole ceiling (fixed by
+  // squeezeToCeiling, generalized from a warmup-only squeeze), and its own
+  // set-padding can undershoot the floor when only 1-2 trimmable exercises
+  // survive (fixed by a floor top-up pulling fresh exercises from the same
+  // pools). These two specific seeds reproduced each gap before the fix.
+  it('goal=weight_loss target=30min seed=45 no longer lands below the floor (was 68.1%)', () => {
+    const result = generateFallbackPlan(base({ goal: 'weight_loss', targetMinutes: 30, seed: 45, locale: 'en' }));
+    expect(result.blocked).toBe(false);
+    if (result.blocked) return;
+    const minutes = estimateSessionMinutes(
+      result.exercises.map(e => ({ sets: e.sets, reps: e.reps, duration_seconds: e.duration_seconds, rest_seconds: e.rest_seconds, phase: e.phase }))
+    );
+    expect(minutes).toBeGreaterThanOrEqual(30 * FILL_FLOOR);
+  });
+
+  it('goal=hypertrophy target=15min seed=21 no longer exceeds the ceiling', () => {
+    const result = generateFallbackPlan(base({ goal: 'hypertrophy', targetMinutes: 15, seed: 21, locale: 'en' }));
+    expect(result.blocked).toBe(false);
+    if (result.blocked) return;
+    const minutes = estimateSessionMinutes(
+      result.exercises.map(e => ({ sets: e.sets, reps: e.reps, duration_seconds: e.duration_seconds, rest_seconds: e.rest_seconds, phase: e.phase }))
+    );
+    expect(minutes).toBeLessThanOrEqual(15 * FILL_CEILING);
+  });
+
+  it('holds the 90-110% band across 50 seeds per goal x budget combination, not just one', () => {
+    const violations: string[] = [];
+    for (const goal of GOALS) {
+      for (const minutes of BUDGETS) {
+        for (let seed = 0; seed < 50; seed++) {
+          const result = generateFallbackPlan(base({ goal, targetMinutes: minutes, seed, locale: 'en' }));
+          if (result.blocked) continue;
+          const actual = estimateSessionMinutes(
+            result.exercises.map(e => ({ sets: e.sets, reps: e.reps, duration_seconds: e.duration_seconds, rest_seconds: e.rest_seconds, phase: e.phase }))
+          );
+          const pct = actual / minutes * 100;
+          const EPSILON = 0.05; // float slack at the exact boundary, not a real violation
+          if (pct < 90 - EPSILON || pct > 110 + EPSILON) violations.push(`${goal}/${minutes}min seed=${seed}: ${pct.toFixed(2)}%`);
+        }
+      }
+    }
+    expect(violations, violations.slice(0, 10).join('\n')).toEqual([]);
+  });
+});
+
+describe('generateFallbackPlan — maxExercises can structurally prevent reaching the floor (documented, not "fixed")', () => {
+  // Found live, Fase 6: with maxExercises=6 (Free tier's real production
+  // value, workout.exercises_per_session) and MAX_PADDED_SETS=5, 4 working
+  // slots (6 minus warmup/cooldown) capped at 5 sets each cannot
+  // mathematically reach a 60-minute floor for ordinary exercise costs —
+  // this is a ceiling created by the exercise-cap and set-cap themselves,
+  // not a selection bug. Never exceeds maxExercises to compensate (that
+  // would defeat the plan-tier limit); documented here so a future change
+  // to either cap is a deliberate decision, not a silent regression.
+  it('never exceeds maxExercises even when it cannot reach the floor', () => {
+    const result = generateFallbackPlan(base({ goal: 'general', targetMinutes: 60, maxExercises: 6, seed: 191, locale: 'en' }));
+    expect(result.blocked).toBe(false);
+    if (result.blocked) return;
+    expect(result.exercises.length).toBeLessThanOrEqual(6);
+  });
+
+  it('demonstrates the shortfall is real and structural, not a random unlucky seed', () => {
+    let anyUnderFloor = false;
+    for (let seed = 0; seed < 100; seed++) {
+      const result = generateFallbackPlan(base({ goal: 'general', targetMinutes: 60, maxExercises: 6, seed, locale: 'en' }));
+      if (result.blocked) continue;
+      const actual = estimateSessionMinutes(
+        result.exercises.map(e => ({ sets: e.sets, reps: e.reps, duration_seconds: e.duration_seconds, rest_seconds: e.rest_seconds, phase: e.phase }))
+      );
+      if (actual < 60 * FILL_FLOOR) anyUnderFloor = true;
+    }
+    expect(anyUnderFloor).toBe(true);
+  });
+});
+
 describe('generateFallbackPlan — ordering', () => {
   it('output is ordered warmup -> strength -> conditioning -> cooldown', () => {
     const result = generateFallbackPlan(base({ targetMinutes: 45, seed: 7 }));
