@@ -17,6 +17,8 @@ import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseC
 import { useTranslatedExerciseNamesByRow } from '../../hooks/useTranslatedExerciseNamesByRow';
 import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
 import type { AppLanguage } from '../../i18n';
+import { STRUCTURE_BLOCKS } from '../../coach-dna/constants';
+import { sortBySessionBlock } from '../../lib/sessionStructure';
 
 interface Theme {
   primary:     string;
@@ -126,11 +128,15 @@ export function WorkoutModeScreen({
     startWorkoutSession(sessionInput).then(({ data, error }) => {
       if (error || !data) {
         setInitErr(tr('client.mode.offlineSaved'));
-        const fallback: ExState[] = exercises.map((ex, i) => makeExState(`offline-${i}`, ex, i));
+        const fallback: ExState[] = sortBySessionBlock(exercises.map((ex, i) => makeExState(`offline-${i}`, ex, i)));
         setExStates(fallback);
       } else {
         setSessionId(data.sessionId);
-        setExStates(data.sessionExercises.map((se, i) =>
+        // Reordered into the trainer's declared block sequence (mobility →
+        // warmup → technique → strength → conditioning → cooldown), same
+        // grouping already shown in the trainer's plan editor — not just a
+        // visual label, activeIdx and progression follow this order too.
+        setExStates(sortBySessionBlock(data.sessionExercises.map((se, i) =>
           makeExState(se.id, {
             exercise_name:    se.exercise_name,
             muscle_group:     se.muscle_group,
@@ -143,7 +149,7 @@ export function WorkoutModeScreen({
             phase:            se.phase ?? null,
             name_source_locale: se.name_source_locale ?? null,
           }, i)
-        ));
+        )));
       }
       setPhase('active');
     });
@@ -179,6 +185,17 @@ export function WorkoutModeScreen({
   const doneCount    = exStates.filter(e => e.status === 'completed' || e.status === 'skipped').length;
   const allDone      = doneCount === exStates.length && exStates.length > 0;
   const isOffline    = (id: string) => id.startsWith('offline-');
+
+  // exStates is already ordered by block (sortBySessionBlock, above), so a
+  // group boundary is just a phase change from the previous item — mirrors
+  // the trainer plan editor's section headers, one capability one contract.
+  const blockHeaderAt = React.useMemo(() => {
+    const set = new Set<number>();
+    exStates.forEach((ex, i) => {
+      if (ex.phase && (i === 0 || exStates[i - 1]?.phase !== ex.phase)) set.add(i);
+    });
+    return set;
+  }, [exStates]);
 
   // Translates exercise names to this client's locale — every row carries
   // its own name_source_locale (AI-generated, catalog, or hand-typed, D7),
@@ -458,23 +475,35 @@ export function WorkoutModeScreen({
           </div>
         )}
 
-        {phase !== 'init' && !noPlan && exStates.map((ex, i) => (
-          <ExerciseCard
-            key={ex.id}
-            ex={ex}
-            translateName={translateName}
-            translateNote={translateNote}
-            isActive={i === activeIdx && !allDone}
-            dark={dark}
-            t={t}
-            onLogSet={openSetForm}
-            onSkip={skipExercise}
-            onPain={() => { setPainRegion(''); setPhase('pain_form'); }}
-            onSetActive={() => {
-              if (ex.status === 'pending' || ex.status === 'in_progress') setActiveIdx(i);
-            }}
-          />
-        ))}
+        {phase !== 'init' && !noPlan && exStates.map((ex, i) => {
+          const block = ex.phase ? STRUCTURE_BLOCKS.find(b => b.key === ex.phase) : undefined;
+          return (
+            <React.Fragment key={ex.id}>
+              {blockHeaderAt.has(i) && block && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: i === 0 ? '0 0 8px' : '18px 0 8px' }}>
+                  <Icon name={block.icon} size={12} color={block.color} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: block.color, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                    {tr(`coachDna.step10.blocks.${block.key}.label`)}
+                  </span>
+                </div>
+              )}
+              <ExerciseCard
+                ex={ex}
+                translateName={translateName}
+                translateNote={translateNote}
+                isActive={i === activeIdx && !allDone}
+                dark={dark}
+                t={t}
+                onLogSet={openSetForm}
+                onSkip={skipExercise}
+                onPain={() => { setPainRegion(''); setPhase('pain_form'); }}
+                onSetActive={() => {
+                  if (ex.status === 'pending' || ex.status === 'in_progress') setActiveIdx(i);
+                }}
+              />
+            </React.Fragment>
+          );
+        })}
 
         {/* Finish CTA */}
         {phase === 'active' && (allDone || exStates.length > 0) && (

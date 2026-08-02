@@ -62,3 +62,19 @@ export function sanitizeSessionOrder(order: readonly string[] | null | undefined
     .filter((k): k is SessionBlock => !!k && KNOWN.has(k) && !seen.has(k) && !!seen.add(k));
   return cleaned.length ? cleaned : DEFAULT_SESSION_ORDER;
 }
+
+const RANK = new Map<string, number>(SESSION_BLOCKS.map((b, i) => [b, i]));
+
+/**
+ * Orders a list by its declared session block, in canonical
+ * mobility → warmup → technique → strength → conditioning → cooldown
+ * sequence — the same grouping the trainer's plan editor already renders
+ * (WorkoutPlanEditorScreen), extended to the client-facing screens
+ * (docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md, follow-up to Decision #3).
+ * Items with no/unrecognised phase sort after every named block;
+ * ties keep their original relative order (Array.sort is spec-stable).
+ */
+export function sortBySessionBlock<T extends { phase?: string | null }>(items: readonly T[]): T[] {
+  const rank = (phase?: string | null) => phase ? RANK.get(phase) ?? SESSION_BLOCKS.length : SESSION_BLOCKS.length;
+  return [...items].sort((a, b) => rank(a.phase) - rank(b.phase));
+}

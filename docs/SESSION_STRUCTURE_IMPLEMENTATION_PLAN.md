@@ -376,8 +376,27 @@ Section headers in the plan editor. Requires persistence — without it, groupin
 
 1. **Execution order:** 0 → 1 → 2 → 3, as proposed.
 2. **Default order for trainers without Coach DNA:** `warmup → strength → conditioning → cooldown`.
-3. **Phase 3 client display:** grouped rendering on the client's live session is deferred to a separate track.
+3. **Phase 3 client display:** grouped rendering on the client's live session is deferred to a separate track. **Superseded 2026-08-02** — see follow-up below.
 4. **Legacy backfill:** existing `plan_exercises` rows keep `phase` null; they render ungrouped.
+
+## Follow-up — Grouped rendering extended to the client (2026-08-02)
+
+**Origin:** project lead reported the trainer's plan editor grouping (Phase 3) was well received, and asked for the same grouping on the CLIENT side — the plan-card preview and the live session both still rendered a flat list.
+
+Data already flowed end-to-end (`ExState.phase`, `PlanCard.exercises[].phase`) — Decision #3 above had deferred only the rendering. One open question required a decision before implementing: should grouping on the live session (`WorkoutModeScreen`) also reorder actual exercise progression (`activeIdx`), or stay a purely visual label over the existing `order_index` order? Asked directly — **decided: reorder** (the session should genuinely progress mobility → warmup → technique → strength → conditioning → cooldown, matching the trainer's declared structure, not just relabel whatever order the plan happened to persist in).
+
+**Implementation:**
+- `sortBySessionBlock()` added to `src/lib/sessionStructure.ts` — orders any list by canonical block sequence, ties stable. Single shared helper for both client screens (§4.5, one capability one contract).
+- `StartWorkoutScreen.tsx`'s plan-card preview: exercises sorted and rendered with the same block headers (icon, label, colour) as the trainer's editor.
+- `WorkoutModeScreen.tsx`: `exStates` is sorted by block **at creation** (both the online and offline-fallback paths), so `activeIdx`, `advanceToNext`, `doneCount`/`allDone` and the offline full-session queue all operate on the reordered array without any special-casing — the live session now genuinely progresses in block order, not `order_index` order. Section headers render on each block boundary.
+
+**Coverage:** 5 new unit tests for `sortBySessionBlock` (canonical order, stable ties, unrecognised/null phase sorts last, no mutation, empty input) + 4 new tests in `WorkoutModeScreen.test.tsx` (reorders exercises given out-of-order `order_index`; renders one header per block in canonical order; the block-order-first exercise is the active card, not `exStates[0]` pre-sort; legacy null-phase exercises render without a header). All mutation-verified: removing the sort call fails the reorder test; disabling header rendering fails the header test; reversing the block-rank map fails 3 tests. One redundant defensive tiebreak (`a.i - b.i`) was found dead by mutation testing (`Array.sort` is spec-stable since ES2019) and removed rather than kept.
+
+**Verified live** (`carlos.silva@trainer.test` → `goncalo.fonseca@client.test`, local dev against production Supabase): built a 3-exercise plan adding blocks out of canonical order (strength → warmup → mobility), sent it. Client's plan-card preview showed `MOBILITY → WARM-UP → STRENGTH` with correct headers. Started the live session: same grouped order, `Trunk Rotation` (mobility, highest `order_index`) was the active card first — confirming progression follows block order, not persistence order. Skipped through all three; progression advanced mobility → warmup → strength as expected; workout completed cleanly.
+
+**Not done:** no automated test coverage added for `StartWorkoutScreen.tsx` (the file has no existing test suite to extend — out of proportion to add one from scratch for this change); verified live instead, per the project's established substitute where automated coverage is impractical.
+
+`tsc --noEmit` clean, lint 0 errors (pre-existing warnings only), 101/101 unit tests green, build green.
 
 ## Open Decision — Staging Environment (blocks promotion, not implementation)
 

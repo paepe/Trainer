@@ -18,6 +18,8 @@ import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
 import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseContent';
+import { STRUCTURE_BLOCKS } from '../../coach-dna/constants';
+import { sortBySessionBlock } from '../../lib/sessionStructure';
 import { useTranslatedExerciseNamesByRow } from '../../hooks/useTranslatedExerciseNamesByRow';
 import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
 import type { AppLanguage } from '../../i18n';
@@ -929,35 +931,55 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                   {/* Expanded: exercise list + contextual actions */}
                   {isOpen && (
                     <div style={{ padding: '0 14px 12px', background: 'var(--sunken)' }}>
-                      {p.exercises.map((ex, ei) => (
-                        <div key={ex.id} style={{
-                          display: 'flex', alignItems: 'center', gap: 8,
-                          padding: '7px 10px', borderRadius: 9, marginBottom: 5,
-                          background: 'var(--sunken)',
-                          border: `1px solid ${t.primary}22`,
-                        }}>
-                          <div style={{
-                            width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                            background: `${t.primary}22`, fontSize: 9, fontWeight: 700,
-                            color: t.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          }}>{ei + 1}</div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: inkPri(dark) }}>{translateName({ name: ex.exercise_name, name_source_locale: ex.name_source_locale })}</div>
-                            <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
-                              {[
-                                ex.sets        ? `${ex.sets} sets`         : null,
-                                ex.reps        ? `${ex.reps} reps`
-                                  : ex.duration_seconds ? tr('common.units.holdSec', { seconds: ex.duration_seconds })
-                                  : null,
-                                ex.load_kg     ? `${ex.load_kg} kg`        : null,
-                                ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
-                              ].filter(Boolean).join(' · ')}
-                              {ex.muscle_group ? ` — ${translateMuscleGroup(ex.muscle_group)}` : ''}
-                            </div>
-                            {ex.notes && <div style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.35)' : '#9aa', marginTop: 1, fontStyle: 'italic' }}>{translateNote(ex.notes)}</div>}
-                          </div>
-                        </div>
-                      ))}
+                      {(() => {
+                        // Same grouping the trainer already sees in the plan
+                        // editor (STRUCTURE_BLOCKS canonical order), extended
+                        // to the client's plan-card preview.
+                        const sorted = sortBySessionBlock(p.exercises);
+                        return sorted.map((ex, ei) => {
+                          const block = ex.phase ? STRUCTURE_BLOCKS.find(b => b.key === ex.phase) : undefined;
+                          const isFirstOfBlock = block && (ei === 0 || sorted[ei - 1]?.phase !== ex.phase);
+                          return (
+                            <React.Fragment key={ex.id}>
+                              {isFirstOfBlock && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: ei === 0 ? '0 0 6px' : '12px 0 6px' }}>
+                                  <Icon name={block.icon} size={11} color={block.color} />
+                                  <span style={{ fontSize: 10.5, fontWeight: 700, color: block.color, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                                    {tr(`coachDna.step10.blocks.${block.key}.label`)}
+                                  </span>
+                                </div>
+                              )}
+                              <div style={{
+                                display: 'flex', alignItems: 'center', gap: 8,
+                                padding: '7px 10px', borderRadius: 9, marginBottom: 5,
+                                background: 'var(--sunken)',
+                                border: `1px solid ${t.primary}22`,
+                              }}>
+                                <div style={{
+                                  width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                                  background: `${t.primary}22`, fontSize: 9, fontWeight: 700,
+                                  color: t.primary, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}>{ei + 1}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: inkPri(dark) }}>{translateName({ name: ex.exercise_name, name_source_locale: ex.name_source_locale })}</div>
+                                  <div style={{ fontSize: 11, color: dark ? 'rgba(255,255,255,.5)' : '#6b7a90', marginTop: 1 }}>
+                                    {[
+                                      ex.sets        ? `${ex.sets} sets`         : null,
+                                      ex.reps        ? `${ex.reps} reps`
+                                        : ex.duration_seconds ? tr('common.units.holdSec', { seconds: ex.duration_seconds })
+                                        : null,
+                                      ex.load_kg     ? `${ex.load_kg} kg`        : null,
+                                      ex.rest_seconds ? `${ex.rest_seconds}s rest` : null,
+                                    ].filter(Boolean).join(' · ')}
+                                    {ex.muscle_group ? ` — ${translateMuscleGroup(ex.muscle_group)}` : ''}
+                                  </div>
+                                  {ex.notes && <div style={{ fontSize: 10, color: dark ? 'rgba(255,255,255,.35)' : '#9aa', marginTop: 1, fontStyle: 'italic' }}>{translateNote(ex.notes)}</div>}
+                                </div>
+                              </div>
+                            </React.Fragment>
+                          );
+                        });
+                      })()}
 
                       {/* Actions — Postpone only offered while the plan is still 'sent' */}
                       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>

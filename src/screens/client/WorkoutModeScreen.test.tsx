@@ -221,3 +221,85 @@ describe('WorkoutModeScreen — exercise name translation by source locale (Fase
     expect(body.sourceLocale).toBe('pt');
   });
 });
+
+// The client now sees the same block grouping the trainer already sees in
+// the plan editor (docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md, Decision #3
+// follow-up) — session progression itself follows the canonical block order,
+// not whatever order_index the plan happened to persist.
+describe('WorkoutModeScreen — grouped by session block (client-side follow-up)', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function sessionExercisesOutOfOrder() {
+    // order_index 0-2, but declared blocks are strength → warmup → mobility —
+    // the reverse of the canonical sequence, so a passing test proves the
+    // screen re-sorts rather than just trusting input order.
+    return [
+      { id: 'ex-strength', session_id: 's-1', exercise_name: 'Back Squat', muscle_group: 'Legs',
+        order_index: 0, sets_prescribed: 3, reps_prescribed: 8, duration_seconds_prescribed: null, load_kg_prescribed: 60,
+        rest_seconds: 90, notes: null, status: 'pending', skipped_reason: null, phase: 'strength' },
+      { id: 'ex-warmup', session_id: 's-1', exercise_name: 'Jumping Jacks', muscle_group: 'Full body',
+        order_index: 1, sets_prescribed: 1, reps_prescribed: null, duration_seconds_prescribed: 60, load_kg_prescribed: null,
+        rest_seconds: 30, notes: null, status: 'pending', skipped_reason: null, phase: 'warmup' },
+      { id: 'ex-mobility', session_id: 's-1', exercise_name: 'Cat-Cow Stretch', muscle_group: 'Spine',
+        order_index: 2, sets_prescribed: 1, reps_prescribed: 10, duration_seconds_prescribed: null, load_kg_prescribed: null,
+        rest_seconds: 15, notes: null, status: 'pending', skipped_reason: null, phase: 'mobility' },
+    ];
+  }
+
+  it('renders exercises in canonical block order (mobility → warmup → strength), not order_index order', async () => {
+    const startWorkoutSession = vi.fn().mockResolvedValue({
+      data: { sessionId: 'session-1', sessionExercises: sessionExercisesOutOfOrder() },
+      error: null,
+    });
+    render(<WorkoutModeScreen {...makeProps({ startWorkoutSession })} />);
+
+    const names = (await screen.findAllByText(/Cat-Cow Stretch|Jumping Jacks|Back Squat/))
+      .map(el => el.textContent);
+    expect(names).toEqual(['Cat-Cow Stretch', 'Jumping Jacks', 'Back Squat']);
+  });
+
+  it('shows one section header per block, in canonical order, above the first exercise of that block', async () => {
+    const startWorkoutSession = vi.fn().mockResolvedValue({
+      data: { sessionId: 'session-1', sessionExercises: sessionExercisesOutOfOrder() },
+      error: null,
+    });
+    render(<WorkoutModeScreen {...makeProps({ startWorkoutSession })} />);
+
+    await screen.findByText('Cat-Cow Stretch');
+    expect(screen.getByText('Mobility')).toBeInTheDocument();
+    expect(screen.getByText('Warm-up')).toBeInTheDocument();
+    expect(screen.getByText('Strength')).toBeInTheDocument();
+  });
+
+  it('makes the mobility exercise (first in block order) the active card, even though it has the highest order_index', async () => {
+    const startWorkoutSession = vi.fn().mockResolvedValue({
+      data: { sessionId: 'session-1', sessionExercises: sessionExercisesOutOfOrder() },
+      error: null,
+    });
+    render(<WorkoutModeScreen {...makeProps({ startWorkoutSession })} />);
+
+    await screen.findByText('Cat-Cow Stretch');
+    // Only the active card renders a Log Set control — proves activeIdx
+    // points at the block-order-first exercise, not exStates[0] pre-sort.
+    const logButtons = await screen.findAllByTestId('log-set-btn');
+    expect(logButtons).toHaveLength(1);
+  });
+
+  it('renders without a block header for legacy exercises with no phase recorded', async () => {
+    const startWorkoutSession = vi.fn().mockResolvedValue({
+      data: {
+        sessionId: 'session-1',
+        sessionExercises: [{
+          id: 'ex-1', session_id: 's-1', exercise_name: 'Deadlift', muscle_group: 'Back',
+          order_index: 0, sets_prescribed: 3, reps_prescribed: 5, duration_seconds_prescribed: null, load_kg_prescribed: 80,
+          rest_seconds: 90, notes: null, status: 'pending', skipped_reason: null, phase: null,
+        }],
+      },
+      error: null,
+    });
+    render(<WorkoutModeScreen {...makeProps({ startWorkoutSession })} />);
+
+    expect(await screen.findByText('Deadlift')).toBeInTheDocument();
+    expect(screen.queryByText('Strength')).not.toBeInTheDocument();
+  });
+});
