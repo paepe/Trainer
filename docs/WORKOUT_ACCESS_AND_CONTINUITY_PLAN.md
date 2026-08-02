@@ -321,15 +321,47 @@ Todas as 17 chaves em produção têm correspondência exata no union `FeatureKe
 
 ### Checklist
 
-- [ ] Conta Free real: confirmar geração por IA, ausência de adaptação por check-in, teto semanal ativo, e volume de exercícios coerente com o decidido na Fase 0
-- [ ] Simular indisponibilidade da IA na mesma conta e confirmar que a contingência entrega sessão estruturada, dentro do tempo e respeitando restrição sinalizada
-- [ ] Conferir no banco `phase` e `name_source_locale` nos dois caminhos, e os cabeçalhos de bloco nas duas telas do aluno
-- [ ] Exercitar as pontas do orçamento (15 e 60 min)
-- [ ] Confirmar não-regressão do caminho pago com treinador vinculado
-- [ ] Confirmar que planos legados (`phase` nulo) seguem renderizando sem cabeçalho e sem erro
-- [ ] Limpar dados de teste e restaurar as contas ao estado neutro
-- [ ] Atualizar `SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md` e `EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md` com notas de fechamento apontando para cá
-- [ ] Registrar evidências com números medidos, não "ok"
+- [x] Conta Free real: confirmar geração por IA, ausência de adaptação por check-in, teto semanal ativo, e volume de exercícios coerente com o decidido na Fase 0 — ver evidência 1 abaixo
+- [x] Simular indisponibilidade da IA na mesma conta e confirmar que a contingência entrega sessão estruturada, dentro do tempo e respeitando restrição sinalizada — ver evidência 2 abaixo. **Achou 2 defeitos reais, ambos corrigidos e publicados nesta fase** (ver "Defeitos encontrados e corrigidos")
+- [x] Conferir no banco `phase` e `name_source_locale` nos dois caminhos, e os cabeçalhos de bloco nas duas telas do aluno — ver evidência 3 abaixo
+- [x] Exercitar as pontas do orçamento (15 e 60 min) — 15 min: contas Free e paga; 60 min: contas Free e paga. Ver evidências 1, 2, 4
+- [x] Confirmar não-regressão do caminho pago com treinador vinculado — ver evidência 4 abaixo
+- [x] Confirmar que planos legados (`phase` nulo) seguem renderizando sem cabeçalho e sem erro — 532/671 linhas de `plan_exercises` em produção têm `phase` nulo (população real, não hipotética); `WorkoutModeScreen.tsx:195` só adiciona fronteira de grupo quando `ex.phase` é truthy (`if (ex.phase && ...)`) e `:479` resolve `block` como `undefined` no mesmo caso — nulo-seguro por construção, confirmado por leitura de código; não foi necessário (nem seria conclusivo) forçar um clique ao vivo num desses 532 registros específicos
+- [x] Limpar dados de teste e restaurar as contas ao estado neutro — ver "Limpeza" abaixo
+- [x] Atualizar `SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md` e `EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md` com notas de fechamento apontando para cá — feito, topo de cada documento
+- [x] Registrar evidências com números medidos, não "ok" — todo este fechamento segue essa disciplina
+
+### Defeitos encontrados e corrigidos nesta fase
+
+A verificação ao vivo desta fase — não a suíte de testes da Fase 4, que usava uma única semente fixa por combinação — encontrou **dois defeitos reais** no gerador local, ambos publicados em produção antes do fechamento:
+
+1. **Um exercício sozinho podia estourar o teto inteiro.** `fitnessOnly` (padrão do Free) combinado com exclusão de região pode reduzir o pool de `conditioning` a só 3 máquinas de cardio contínuo (Elliptical Trainer, Rowing Machine, Stationary Bike), todas maiores sozinhas que um orçamento de 15 min. `sizeFiltered` corretamente evitava esvaziar o bloco, mas deixava passar o item grande demais sem ajuste. Reproduzido ao vivo: conta Free, 15 min, dor no joelho → plano de ~20 min (133%). Corrigido generalizando o antigo `squeezeWarmupToFloor` (só cortava aquecimento) para `squeezeToCeiling`: reduz primeiro o maior exercício fora do aquecimento, depois o aquecimento por último — mesma ordem de prioridade do achado original, generalizada.
+2. **O padding do `fitToBudget` nem sempre alcançava o piso.** Ao escanear múltiplas sementes (não só a semente fixa da Fase 4), várias combinações caíam bem abaixo de 90% — pior caso 68,1% (`weight_loss`/30min, semente 45) — porque o corte do `fitToBudget` remove exercícios inteiros (granularidade grossa) e o preenchimento por séries (capado em `MAX_PADDED_SETS=5`) nem sempre fecha a diferença que o próprio corte abriu. Corrigido com um passo de "top-up": puxa exercícios novos dos mesmos pools semeados antes de aceitar o resultado.
+
+Ambos corrigidos em `src/lib/fallbackWorkoutGenerator.ts` (commit `ddb44e2`), com 5 testes novos (2 regressões exatas das sementes que reproduziram cada defeito ao vivo, 1 varredura de 50 sementes × 24 combinações, 2 documentando o achado abaixo) e 2 mutações aplicadas e capturadas. Escaneando 1200 gerações (50 sementes × 24 combinações), a banda de 90-110% agora se sustenta em todo o espaço sem `maxExercises`, dentro de tolerância de ponto flutuante.
+
+### Achado não corrigido — decisão de produto pendente
+
+**`maxExercises=6` (valor real de produção do Free) entra em conflito estrutural com orçamentos longos, independente de qualquer restrição.** Com 6 exercícios (2 reservados para aquecimento/volta à calma, sobrando 4 de trabalho) e `MAX_PADDED_SETS=5`, o teto matemático de volume que 4 exercícios podem representar fica abaixo do piso de 90% de uma sessão de 60 min para custos típicos de exercício — confirmado presente mesmo **sem** nenhuma restrição de região ou `fitnessOnly`: escaneando 100 sementes em `general`/60min/`maxExercises=6`, o pior caso chega a 39,6% do alvo.
+
+Isso **não é um defeito do algoritmo** — é uma tensão real entre duas decisões já tomadas (Fase 0 fixou `exercises_per_session=6` para o Free; o check-in oferece até 90 min a qualquer tier, sem gating por duração). O gerador nunca ultrapassa `maxExercises` para compensar — isso anularia o propósito do teto comercial. Documentado com teste dedicado (`fallbackWorkoutGenerator.test.ts`, describe "maxExercises can structurally prevent reaching the floor"), não resolvido unilateralmente. **Precisa de decisão do líder do projeto:** elevar `exercises_per_session` para sessões longas, limitar a duração selecionável no Free, ou aceitar sessões mais curtas que o pedido com aviso explícito na tela (hoje só existe aviso para *estouro* de tempo, `planMayOverrun`, nenhum para *sub-preenchimento*).
+
+### Evidências
+
+**1. Conta Free real** (`andre.lima@client.test`, `f01d36a2`→`5063088e-5bc7-4d00-a0d1-c36c1abe9973`, dentro da janela de boas-vindas — expirada temporariamente via `current_period_end` para o teste, restaurada depois): check-in 60 min, sem dor. Tela mostrou corretamente "Your Free plan includes Quick Check-in only" e, após gerar, "Your plan is generated by AI, but doesn't adapt to today's energy, sleep or fatigue yet" — geração por IA confirmada, ausência de adaptação confirmada por texto explícito. **Plano com 10 exercícios**, não 6 — achado, não presumido: `task.maxExercises` continua sendo instrução textual ao modelo (mesmo achado já registrado na Fase 0, agora confirmado também com o valor numérico correto de 6, não só com um teto nulo). Confirmado no banco: `plan_exercises` — 10/10 linhas com `phase` preenchido (`conditioning, cooldown, mobility, strength, technique, warmup`), 10/10 com `name_source_locale='en'` (idioma do app de André). Teto semanal: André e Gonçalo (as duas contas Free do roster) já estavam no limite de 1 sessão/semana antes mesmo do teste começar (evidência de que o teto está ativo no uso real, não fabricada para o teste) — bypass local via interceptação de `fetch` só na consulta de contagem semanal (não na geração em si) foi necessário para testar a geração propriamente dita nesta mesma conta.
+
+**2. Simulação de indisponibilidade de IA, conta Free, 15 min, dor no joelho:** primeira tentativa (antes da correção) produziu ~20 min (133% do alvo) — o Achado 1 dos "Defeitos encontrados" acima. Após a correção e novo deploy: `Treadmill Walk (warm-up)` 60s, `Dumbbell Bench Press` 3×10, `Elliptical Trainer` 1×564s (dentro do teto agora), `Cool-down Walk` 1×180s — nenhum exercício com tag `knee`. `console.warn('[start-workout] AI generation failed...')` confirmou a passagem pelo caminho de contingência real (não a IA).
+
+**3. `phase`/`name_source_locale` nos dois caminhos:** caminho IA confirmado no banco (evidência 1, 10/10 em ambos os campos). Caminho local **não é persistido** hoje (gap pré-existente, registrado desde a Fase 4, fora de escopo desta fase) — confirmado por 75 testes automatizados de `fallbackWorkoutGenerator.ts` que todo `GeneratedWorkoutExercise` retornado tem `phase` e `name_source_locale` preenchidos, e por inspeção visual ao vivo de que o `phase` retornado chega corretamente a `WorkoutModeScreen` mesmo sem persistência (evidência 4, cabeçalhos de bloco renderizados a partir do plano recém-gerado, passado por estado de navegação).
+
+**4. Não-regressão do caminho pago + ponta de 60 min:** `tiago.moreira@client.test` (AI Performance, treinador vinculado), check-in 60 min, sem dor, IA simulada indisponível. Plano: 14 exercícios (teto `null` neste tier, sem limite), **60,6 min = 101,0% do alvo** — dentro da banda. Nenhum exercício com tag `lower_back` apesar de restrição registrada no roster. `Start Workout` → `WorkoutModeScreen` renderizou corretamente os cabeçalhos **WARM-UP**, **STRENGTH**, **CONDITIONING / WOD** a partir do plano gerado localmente e não persistido — confirma que `sortBySessionBlock` e a UI de blocos (herdadas de `SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md`) funcionam com o novo gerador sem modificação.
+
+### Limpeza
+
+- Plano de teste de André (`e3f810ab-...`, criado 17:36 durante o teste) marcado `cancelled`.
+- `subscriptions.current_period_end` de André restaurado ao valor original (`2026-08-22 06:18:09.954+00`).
+- Nenhuma sessão de treino (`workout_sessions`) foi criada durante os testes em nenhuma conta — confirmado por consulta, nenhuma limpeza necessária nesse ponto.
+- Check-ins de teste (`checkin_prontidao`) **não** foram removidos — tratados como dado histórico legítimo, mesmo padrão já estabelecido nas fases anteriores desta workstream.
 
 ---
 

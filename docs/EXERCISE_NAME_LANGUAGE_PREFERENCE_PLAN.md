@@ -1,5 +1,15 @@
 # Plano de Implementação — Preferência de Idioma para Nomes de Exercícios
 
+> **Nota de fechamento (2026-08-02):** a lacuna que este plano deixou em
+> aberto no caminho de auto-geração do cliente — `i18n.language` cru em vez
+> de `resolveExerciseNameLocale`, e `name_source_locale` nunca gravado para
+> o gerador local — foi fechada por `docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md`
+> Fases 1 e 3-4. O gerador local agora emite nomes já traduzidos a partir das
+> traduções curadas embutidas no espelho (Fase 3), sem nenhuma chamada de
+> rede — verificado ao vivo (Fase 4 e Fase 6) com `fetch` interceptado no
+> navegador, incluindo pt-BR. Nenhuma ação adicional pendente contra este
+> documento.
+
 **Versão:** 1.0
 **Data:** 2026-08-01
 **Referências:** `src/types/preferences.ts` · `src/screens/client/SettingsScreen.tsx` · `api/translate-exercise-content.ts` · `src/hooks/useTranslatedExerciseContent.ts` · `api/generate-workout.ts` · `src/screens/trainer/WorkoutPlanEditorScreen.tsx` · `docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md` (Open Finding)

@@ -1,5 +1,15 @@
 # Implementation Plan — Session Structure & Coach DNA Activation
 
+> **Closing note (2026-08-02):** the client-side gap this plan left open — the
+> local fallback generator never tagging `phase` — is closed by
+> `docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md` Fases 3-4 (mirrored library,
+> session-block classification, phase-aware local generator) and verified
+> live in that plan's Fase 6. `sortBySessionBlock` and the block-header
+> rendering this plan introduced are now exercised by both the remote and
+> local generation paths, confirmed live in `WorkoutModeScreen` (WARM-UP /
+> STRENGTH / CONDITIONING headers render correctly for a locally-generated,
+> unpersisted plan). No further action against this document.
+
 **Version:** 1.0
 **Date:** 2026-07-31
 **References:** `src/coach-dna/constants.ts` (STRUCTURE_BLOCKS) · `api/generate-workout.ts` · `api/generate-smart-workout.ts` · `policies/references/PROFILE.md`
