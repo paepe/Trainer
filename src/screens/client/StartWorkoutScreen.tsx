@@ -23,6 +23,7 @@ import { sortBySessionBlock } from '../../lib/sessionStructure';
 import { useTranslatedExerciseNamesByRow } from '../../hooks/useTranslatedExerciseNamesByRow';
 import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
 import type { AppLanguage } from '../../i18n';
+import { estimateSessionMinutes } from '../../lib/sessionBudget';
 import { notifyLinkedTrainer } from '../../lib/notify';
 
 // Primary text colour over this screen's plan/exercise list surfaces — repeated
@@ -321,13 +322,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   // blocks starting the workout.
   const estimatedPlanMinutes = React.useMemo(() => {
     if (!plan?.length) return 0;
-    const totalSeconds = plan.reduce((sum, ex) => {
-      const sets         = ex.sets ?? 1;
-      const perSetActive = ex.duration_seconds ?? (ex.reps ? 40 : 30);
-      const perSetRest   = ex.rest_seconds ?? 30;
-      return sum + sets * (perSetActive + perSetRest);
-    }, 0);
-    return Math.ceil(totalSeconds / 60);
+    return Math.ceil(estimateSessionMinutes(plan));
   }, [plan]);
   const availableMinutes = activeCheckin.minutes ?? 0;
   const planMayOverrun = estimatedPlanMinutes > 0 && availableMinutes > 0

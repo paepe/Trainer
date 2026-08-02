@@ -32,6 +32,7 @@ import { useTranslatedExerciseContent } from '../../hooks/useTranslatedExerciseC
 import { useTranslatedExerciseNamesByRow } from '../../hooks/useTranslatedExerciseNamesByRow';
 import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
 import type { AppLanguage } from '../../i18n';
+import { estimateExerciseSeconds } from '../../lib/sessionBudget';
 
 interface ClientProfile {
   id:         string;
@@ -87,15 +88,6 @@ interface WorkoutExercise {
   // whenever the trainer edits the name by hand (the text may no longer be
   // in this locale).
   name_source_locale?: AppLanguage | null;
-}
-
-// Same per-exercise time model used server-side (api/generate-workout.ts) and
-// in the client's own StartWorkoutScreen — active time is the hold duration
-// when set, otherwise an assumed ~40s per rep-based set; rest defaults to 30s.
-function estimateExerciseSeconds(ex: { sets: number; reps: number | null; duration_seconds: number | null; rest_seconds?: number | null }): number {
-  const active = ex.duration_seconds ?? 40;
-  const rest   = ex.rest_seconds ?? 30;
-  return ex.sets * (active + rest);
 }
 
 // Below this many minutes left there is nothing worth generating — mirrors the

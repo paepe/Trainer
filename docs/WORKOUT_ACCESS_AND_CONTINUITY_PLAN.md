@@ -172,15 +172,19 @@ Fecha os achados 17 e 18. Ganha urgência com a Fase 0: se o Free passa a gerar 
 
 ### Checklist
 
-- [ ] Criar `src/lib/sessionBudget.ts` com `estimateExerciseSeconds`, `estimateSessionMinutes`, `fitToBudget` e as constantes `FILL_FLOOR = 0.9`, `FILL_CEILING = 1.1`, `MAX_PADDED_SETS = 5`, comentadas como espelho de `api/generate-workout.ts` (a cópia em `api/*` permanece duplicada — regra de handlers autocontidos)
-- [ ] Regra de corte **única e explícita**: cortável = blocos ajustáveis (`strength`, `conditioning`) quando existirem; na ausência deles, tudo que não seja `warmup` nem `cooldown`. Superconjunto deliberado da regra remota, necessário porque o conjunto local produz sessões só de mobilidade, coisa que o remoto nunca produz
-- [ ] Nunca esvaziar um bloco declarado (invariante que o remoto adotou após defeito real em 2026-07-31)
-- [ ] `WorkoutPlanEditorScreen` e `StartWorkoutScreen` passam a importar o estimador — corrige as duas divergências do achado 16
-- [ ] Testes mutation-testados: corte, preenchimento, proteção de prescritivos, não-esvaziamento, categoria sem bloco ajustável, entrada vazia
+- [x] Criar `src/lib/sessionBudget.ts` com `estimateExerciseSeconds`, `estimateSessionMinutes`, `fitToBudget` e as constantes `FILL_FLOOR = 0.9`, `FILL_CEILING = 1.1`, `MAX_PADDED_SETS = 5`, comentadas como espelho de `api/generate-workout.ts` (a cópia em `api/*` permanece duplicada — regra de handlers autocontidos). Reaproveita `normalizeBlock`/`ADJUSTABLE_BLOCKS`/`SESSION_BLOCKS` de `sessionStructure.ts` em vez de duplicá-los — só o modelo de custo era duplicado entre os três lugares, o vocabulário de blocos já era compartilhado
+- [x] Regra de corte **única e explícita**: cortável = blocos ajustáveis (`strength`, `conditioning`) quando existirem; na ausência deles, tudo que não seja `warmup` nem `cooldown`. Superconjunto deliberado da regra remota, necessário porque o conjunto local produz sessões só de mobilidade, coisa que o remoto nunca produz
+- [x] Nunca esvaziar um bloco declarado (invariante que o remoto adotou após defeito real em 2026-07-31)
+- [x] `WorkoutPlanEditorScreen` e `StartWorkoutScreen` passam a importar o estimador — corrige as duas divergências do achado 16 (30s vs 40s de tempo ativo assumido; `sets` nulo agora tratado como 1 nos dois lugares)
+- [x] Testes mutation-testados: corte, preenchimento, proteção de prescritivos, não-esvaziamento, categoria sem bloco ajustável, entrada vazia — 17 testes, 5 mutações aplicadas uma a uma (remoção da proteção de bloco, default 40→30, remoção do teto `MAX_PADDED_SETS`, remoção do alargamento sem-bloco-de-trabalho) e todas capturadas
+
+**Efeito medido da unificação (achado 16), consulta em produção 2026-08-02:** 3 planos, 22 linhas com `duration_seconds` e `reps` ambos nulos — exatamente a condição em que o estimador antigo do cliente assumia 30s em vez de 40s. Efeito: +2min, +3min e +1,3min respectivamente nesses três planos (10s × total de séries afetadas por plano). Nenhum outro plano em produção muda de valor.
 
 ### Aceitação
 
-- [ ] Banner do treinador e banner do cliente produzem o mesmo número para o mesmo plano
+- [x] `tsc`, lint, testes, build verdes — 122/122 testes (17 novos)
+- [x] O gerador local (`generateFallbackPlan`) ainda não usa o motor — confirmado por `git diff`, fora de escopo desta fase (Fase 4)
+- [x] Banner do treinador e banner do cliente produzem o mesmo número para o mesmo plano — garantido por construção, os dois agora chamam a mesma função; os 3 planos com a divergência medida acima são a prova de que antes **não** produziam
 - [ ] **O banner do cliente muda de valor** para exercícios sem reps e sem duração — é a correção do achado 16, não efeito colateral, e precisa estar medida e registrada aqui
 
 ---
