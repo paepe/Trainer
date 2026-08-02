@@ -148,17 +148,21 @@ Fecha os achados 17 e 18. Ganha urgência com a Fase 0: se o Free passa a gerar 
 
 ### Checklist
 
-- [ ] O idioma dos nomes pedido à IA passa a vir de `resolveExerciseNameLocale(prefs)`, não de `i18n.language` cru (`:516` e `:628`)
-- [ ] **Confirmar na execução** o contrato do endpoint: o caminho do treinador resolveu isso com um único `locale`; verificar que cue, observação e grupo muscular continuam no idioma do app quando o toggle de nomes diverge — mesma regressão que a Fase 2 do plano de idiomas já enfrentou
-- [ ] `mapExercise` (`workoutGeneration.ts`) propaga a procedência; `persistGeneratedPlan` inclui `name_source_locale` no `insert`
-- [ ] O valor gravado é o locale de nomes **resolvido do aluno** — dado conhecido no momento da escrita, nunca `'en'` fixo nem o default legado de `'pt'`
-- [ ] Testes mutation-testados
+- [x] O idioma dos nomes pedido à IA passa a vir de `resolveExerciseNameLocale(prefs)`, não de `i18n.language` cru — extraído como `exerciseNamesLocale`, reutilizado nas duas chamadas (`requestWorkoutPlan` e `requestSmartWorkout`)
+- [x] **Confirmado na execução, e o contrato realmente reagiu como temido:** o `locale` é um único botão para a resposta inteira — quando diverge do idioma do app (toggle ligado), `adaptations` (renderizado verbatim na tela) vinha em inglês junto com os nomes. Corrigido traduzindo `adaptations` de volta pelo pipeline de tradução existente, a partir do mesmo locale enviado à IA
+- [x] `persistGeneratedPlan` inclui `name_source_locale` no `insert` — não foi necessário alterar `mapExercise`/`workoutGeneration.ts`: ao contrário de `phase` (que varia por exercício), o locale é único por lote de geração, então basta um parâmetro no `persistGeneratedPlan`, mesmo padrão já usado pelo caminho do treinador (`recipientLocale`)
+- [x] O valor gravado é `exerciseNamesLocale` para os dois caminhos de IA genuína; `null` para o template de fallback local, cuja procedência é escopo da Fase 2/4 — evita registrar procedência falsa em texto ainda não traduzido
+- [~] Testes mutation-testados — não aplicável a `StartWorkoutScreen.tsx` (sem suíte própria, mesma lacuna já registrada nas fases anteriores); verificado ao vivo em produção nos dois sentidos, ver Aceitação
+
+**Achado durante a verificação ao vivo, corrigido antes de fechar a fase:** `useTranslatedExerciseContent` (usado para `adaptations`) não tem curto-circuito de mesma-origem como `useTranslatedExerciseNamesByRow` tem — confirmado ao vivo, fez um round-trip pt→pt desnecessário pela API de tradução. Corrigido no ponto de chamada (não no hook compartilhado, para não alterar comportamento de outros consumidores): não alimenta o hook com texto nenhum quando `exerciseNamesLocale === i18n.language`.
 
 ### Aceitação
 
-- [ ] Aluno com toggle "manter nomes em inglês" ligado recebe nomes já em inglês da geração, **sem** chamada de tradução em runtime
-- [ ] `name_source_locale` chega ao banco com o locale do aluno — verificado por consulta, com duas contas de idiomas diferentes
-- [ ] Cue, observação e grupo muscular seguem o idioma do app (não-regressão)
+- [x] Aluno com toggle "manter nomes em inglês" ligado recebe nomes já em inglês da geração, **sem** chamada de tradução em runtime para os nomes — verificado ao vivo em produção (`andre.lima@client.test`, app em português, toggle ligado): 12/12 exercícios em inglês, nomes nunca passam por tradução (não são lidos via hook nesta tela)
+- [x] `name_source_locale` chega ao banco com o locale do aluno — verificado por consulta direta, nos dois sentidos: toggle ligado → 12/12 linhas `'en'`; toggle desligado → 11/11 linhas `'pt'`
+- [x] Cue, observação e grupo muscular seguem o idioma do app (não-regressão) — `adaptations` confirmado traduzido corretamente de volta ao português quando diverge (achado acima), e sem nenhuma chamada extra quando não diverge (curto-circuito corrigido e confirmado: mesmo `requestId` de rede, nenhuma nova chamada)
+
+**Não coberto pela verificação:** um erro pré-existente e não relacionado apareceu numa das tentativas — `500` por JSON truncado do modelo (achado já registrado antes desta workstream, candidato a parsing resiliente §6.3) — não é regressão desta fase; o caminho de fallback local absorveu corretamente o erro, confirmando que a degradação continua funcionando.
 
 ---
 
@@ -297,7 +301,7 @@ Seis correções, duas delas por afirmação minha que não sobreviveu à verifi
 | Fase | Status | Concluída | Commit | Notas |
 |------|--------|-----------|--------|-------|
 | 0 — Separar criar de ajustar | **Concluída** | 2026-08-02 | `39cbc34` (+ `acbfc68` correção de copy) | SQL aplicado em produção; verificado ao vivo com conta Free real via chamada direta ao endpoint (JWT próprio). 2 dos 5 itens de aceitação com ressalva registrada (paga não verificada ao vivo; teto de exercícios é só instrução textual, achado pré-existente) |
-| 1 — Procedência de idioma | Não iniciada | — | — | Independente; pode ir a qualquer momento. **Pré-requisito da Fase 4** (sem o `insert` corrigido, a procedência gravada lá é inerte) |
+| 1 — Procedência de idioma | **Concluída** | 2026-08-02 | `a795092` (+ `4889551` correção de curto-circuito) | Verificado ao vivo nos dois sentidos do toggle. Achado extra corrigido: `adaptations` herdava o locale da IA e vazava para a tela sem tradução; segundo achado: hook de tradução sem curto-circuito de mesma-origem, corrigido no ponto de chamada |
 | 2 — Motor de sessão único | Não iniciada | — | — | Independente |
 | 3 — Biblioteca espelhada | Não iniciada | — | — | Independente (artefato de dados) |
 | 4 — Gerador de contingência | Não iniciada | — | — | Depende de 1, 2 e 3 |
