@@ -304,9 +304,16 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   // (keep-English-names toggle on, non-English app), the WHOLE response
   // comes back in exerciseNamesLocale (single-locale AI contract, api/
   // generate-smart-workout.ts), not just the names. Translate it back to
-  // what's actually displayed here; short-circuits to zero calls when they
-  // match (the common case, unchanged from before Fase 1).
-  const translateAdaptation = useTranslatedExerciseContent(adaptations, undefined, exerciseNamesLocale);
+  // what's actually displayed here. Unlike useTranslatedExerciseNamesByRow,
+  // useTranslatedExerciseContent has no same-locale short-circuit of its
+  // own (verified live: it round-trips pt->pt through the translation API
+  // and back unchanged) — so the common, no-divergence case is short-
+  // circuited here instead, by not feeding it any text to look up.
+  const translateAdaptation = useTranslatedExerciseContent(
+    exerciseNamesLocale === (i18n.language as AppLanguage) ? [] : adaptations,
+    undefined,
+    exerciseNamesLocale,
+  );
 
   // Soft, client-side time-fit check: neither generation endpoint validates
   // its own totalDurationMin against the requested window server-side (see
