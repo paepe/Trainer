@@ -1165,6 +1165,7 @@
       "phaseDay": "{{phase}} phase · Day {{day}}/{{length}}",
       "cycleAdapted": "· Cycle-adapted",
       "timeMayOverrun": "This workout may take longer than your {{available}} min — estimated ~{{estimated}} min.",
+      "timeMayUnderrun": "This workout is shorter than your {{available}} min — estimated ~{{estimated}} min, limited by your plan's exercise allowance.",
       "adjustedFor": "Adjusted for: ",
       "cancelModalTitle": "Cancel this plan?",
       "cancelModalFrom": "The plan from ",

@@ -278,6 +278,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const availableMinutes = activeCheckin.minutes ?? 0;
   const planMayOverrun = estimatedPlanMinutes > 0 && availableMinutes > 0
     && estimatedPlanMinutes > availableMinutes * 1.2;
+  // Symmetric case: a plan capped by a plan-tier exercise limit (e.g. Free's
+  // maxExercises=6) genuinely cannot fill a long window even fully padded —
+  // real, not a bug (docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md Fase 6,
+  // "Opção 3": accept the shorter session, say so plainly, don't invent
+  // exercises past the tier's own limit or force-fit numbers that aren't real.
+  const planMayUnderrun = estimatedPlanMinutes > 0 && availableMinutes > 0
+    && estimatedPlanMinutes < availableMinutes * 0.8;
 
   // Derive current cycle phase — only for female users with cycle tracking data
   const getCycleContext = () => {
@@ -1164,6 +1171,18 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 <span style={{ fontSize: 11 }}>⏱️</span>
                 <span style={{ fontSize: 11.5, color: t.accent, lineHeight: 1.4 }}>
                   {tr('client.workout.timeMayOverrun', { estimated: estimatedPlanMinutes, available: availableMinutes })}
+                </span>
+              </div>
+            )}
+            {planMayUnderrun && (
+              <div style={{
+                display: 'flex', alignItems: 'flex-start', gap: 6,
+                marginBottom: 10, padding: '6px 10px', borderRadius: 10,
+                background: `${t.accent}18`, border: `1px solid ${t.accent}44`,
+              }}>
+                <span style={{ fontSize: 11 }}>⏱️</span>
+                <span style={{ fontSize: 11.5, color: t.accent, lineHeight: 1.4 }}>
+                  {tr('client.workout.timeMayUnderrun', { estimated: estimatedPlanMinutes, available: availableMinutes })}
                 </span>
               </div>
             )}
