@@ -197,19 +197,25 @@ Substitui o conjunto fixo de 36 templates pela biblioteca real. Resolve o achado
 
 ### Checklist
 
-- [ ] Classificar os 129 exercícios nos 6 blocos de sessão por inspeção direta — o eixo não existe hoje (achado 21) e o material está lá (achado 22)
-- [ ] Definir séries, repetições e duração sensatas **por bloco** ao classificar (achado 23): alongamento em 1 série de 30-45s, aquecimento em 1 série contínua, trabalho em 3-4 séries
-- [ ] Marcar contraindicação por região corporal. **Nível conservador**, legitimado pela moldura de contingência: excluir o que carrega região sinalizada, com deny-list curta e explícita, em vez da curadoria exaustiva que o produto principal exigiria (achado 24)
-- [ ] Gerar o espelho local como artefato versionado no repositório, com os nomes canônicos em inglês **e** as 387 traduções curadas de nome já existentes (pt/es/de) embutidas — subconjunto relevante das 582 linhas curadas, que incluem também metadados de protocolo fora deste escopo
-- [ ] **Decisão de idioma no espelho, para não repetir a contradição da versão anterior deste plano:** o gerador emite o nome **já no idioma do aluno**, tirado da tabela embutida, e grava `name_source_locale` = locale do aluno. Não emite inglês com `'en'`. O motivo é a própria natureza da contingência: se o nome saísse em inglês, a exibição dependeria do endpoint de tradução — que numa queda de rede não responde, e o aluno lusófono veria o nome cru em inglês. Traduzir na origem é o que torna o estepe realmente offline
-- [ ] Rascunho revisável antes de virar código, como nos backfills anteriores desta workstream
-- [ ] Atualização oportunista do espelho quando online, mantendo a cópia empacotada como piso garantido (achado 25) — evita que o estepe envelheça
+- [x] Classificar os 129 exercícios nos 6 blocos de sessão por inspeção direta — o eixo não existe hoje (achado 21) e o material está lá (achado 22). Rascunho: `docs/FALLBACK_LIBRARY_MIRROR_CLASSIFICATION_DRAFT_20260802.md`
+- [x] Definir séries, repetições e duração sensatas **por bloco** ao classificar (achado 23) — revisão em produção mostrou que `sets`/`reps`/`rest_seconds` já estão prescritos em 100% das linhas; só `duration_seconds` era nulo em toda a tabela, e só importa nas ~40 linhas onde `reps` também é nulo (holds, cardio contínuo, intervalos, alongamentos). Backfilled por categoria no rascunho
+- [x] Marcar contraindicação por região corporal. **Nível conservador**, legitimado pela moldura de contingência: excluir o que carrega região sinalizada, com deny-list curta e explícita (`knee`, `lower_back`, `shoulder`, `wrist`), em vez da curadoria exaustiva que o produto principal exigiria (achado 24). Bloco `mobility` fica sem tags por desenho — é o "elenco seguro" para substituição
+- [x] Gerar o espelho local como artefato versionado no repositório (`src/data/fallbackExerciseLibrary.ts`), com os nomes canônicos em inglês **e** as traduções curadas de nome já existentes (pt/es/de) embutidas — subconjunto de 387 linhas (129 × 3 locales) das 582 linhas curadas em produção, que incluem também 65 nomes fora do escopo dos 129 exercícios da biblioteca
+- [x] **Decisão de idioma no espelho:** o artefato embute `translations: { pt, es, de }` por exercício, para que o gerador (Fase 4) emita o nome já no idioma do aluno sem depender do endpoint de tradução — o que de fato torna o estepe offline. A gravação de `name_source_locale` no momento da geração é responsabilidade da Fase 4, que ainda vai consumir este espelho
+- [x] Rascunho revisável antes de virar código, como nos backfills anteriores desta workstream — apresentado e aprovado (decisão do usuário: manter os defaults propostos para os 2 casos ambíguos, ver abaixo)
+- [ ] Atualização oportunista do espelho quando online (achado 25) — **não implementado nesta fase.** O artefato é gerado por script (`scratchpad/build_artifact.py`, não versionado) a partir de uma consulta pontual em produção; não existe hoje um gatilho automático de regeneração. Registrado como item em aberto para a Fase 5 ou uma rotina futura, não bloqueia a Fase 4
+
+**2 casos ambíguos do rascunho — decisão do usuário ("go ahead"): manter os defaults.**
+`Farmer's Walk` → `strength` (dosagem de baixo volume/alto descanso). `Easy Run` → `conditioning` (distinto de `Easy Run (cool-down)`, que é `cooldown`).
+
+**Reclassificação em relação à suposição original do plano (achado 23):** o plano previa que dados de prescrição estivessem largamente ausentes. Consulta direta em produção (2026-08-02) mostrou o oposto — `sets`, `reps`, `rest_seconds` e `intensity` já existem para as 129 linhas; o esforço real foi de classificação por bloco, não de invenção de prescrição.
 
 ### Aceitação
 
-- [ ] Todos os 129 classificados; nenhum bloco vazio no conjunto global
-- [ ] Tamanho do artefato registrado (estimativa: 30-50 KB)
-- [ ] Traduções conferidas contra a curadoria existente, sem divergência
+- [x] Todos os 129 classificados; nenhum bloco vazio no conjunto global — mobility 27, warmup 4, technique 6, strength 54, conditioning 22, cooldown 16 = 129. Testado (`fallbackExerciseLibrary.test.ts`, "has no empty session block")
+- [x] Tamanho do artefato registrado — **40.009 bytes** (~39,1 KB), dentro da estimativa de 30-50 KB
+- [x] Traduções conferidas contra a curadoria existente, sem divergência — consulta em produção confirmou as 129×3=387 traduções curadas (`curated=true`, `source_locale='en'`), sem nome faltante. Testado (`fallbackExerciseLibrary.test.ts`, "every entry carries all three curated translations")
+- [x] `tsc`, lint, testes, build verdes — 128/128 testes (6 novos em `fallbackExerciseLibrary.test.ts`), mutação aplicada e capturada (nome duplicado → teste de unicidade falha; restaurado)
 
 ---
 
