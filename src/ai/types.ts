@@ -174,6 +174,11 @@ export interface TaskContext {
   extraInstructions?:  string | undefined;
   maxExercises?:       number | undefined; // plan gate: max exercises per session (null = unlimited)
   fitnessOnly?:        boolean;            // plan gate: exclude performance exercises
+  // ai.checkin_adjustment gate (docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md Fase
+  // 0): false disables daily calibration by energy/sleep/fatigue only. Never
+  // gates a safety signal — pain and Safety Gate reach the prompt regardless,
+  // for every tier. Defaults to true (calibration on) when unset.
+  adjustmentAllowed?:  boolean;
 }
 
 // ─── Unified AI Context ───────────────────────────────────────────────────────

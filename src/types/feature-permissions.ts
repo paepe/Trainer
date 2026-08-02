@@ -1,7 +1,8 @@
 export type FeatureKey =
   | 'scores.basic'
   | 'scores.advanced'
-  | 'ai.checkin_adjustment'
+  | 'ai.workout_generation'   // gates whether AI generates the workout at all (creation)
+  | 'ai.checkin_adjustment'   // gates daily calibration by energy/sleep/fatigue only — never gates safety signals (pain, Safety Gate)
   | 'ai.advanced_analysis'
   | 'coach_dna'
   | 'clients.limit'

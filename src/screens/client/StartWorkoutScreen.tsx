@@ -193,11 +193,17 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const effectivePlanKey = useEffectivePlanKey(user.subscription ?? null);
   const aiAccessMap = useFeatureAccessMap(
     effectivePlanKey,
-    ['ai.checkin_adjustment', 'ai.advanced_analysis',
+    ['ai.workout_generation', 'ai.checkin_adjustment', 'ai.advanced_analysis',
      'workout.sessions_per_week', 'workout.exercises_per_session', 'workout.exercise_type',
      'trainer_plan.days_per_week'],
     isTrainerView,
   );
+  // ai.workout_generation gates whether the AI creates the workout at all.
+  // ai.checkin_adjustment (below) only modifies HOW it's generated — daily
+  // calibration by energy/sleep/fatigue — never whether it's generated, and
+  // never gates a safety signal (pain, Safety Gate: those reach the prompt
+  // for every tier, docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md Fase 0).
+  const aiWorkoutGenerationAllowed = aiAccessMap['ai.workout_generation']?.allowed ?? false;
   const aiCheckinAllowed    = aiAccessMap['ai.checkin_adjustment']?.allowed    ?? false;
   const aiAdvancedAllowed   = aiAccessMap['ai.advanced_analysis']?.allowed     ?? false;
   const sessionsPerWeekCap  = aiAccessMap['workout.sessions_per_week']?.limitValue  ?? null; // null = unlimited
@@ -597,12 +603,16 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           durationMin:       resolvedCheckin.minutes ?? clientCtx.sessionDuration,
           maxExercises:      exercisesPerSession ?? undefined,
           fitnessOnly:       fitnessOnlyWorkout,
+          adjustmentAllowed: aiCheckinAllowed,
         };
 
         // ── Call smart endpoint ─────────────────────────────────────────────
-        // ai.checkin_adjustment gate: free plan always gets the template fallback.
+        // ai.workout_generation gate: whether the AI creates the workout at
+        // all (docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md Fase 0). Separate
+        // from ai.checkin_adjustment, which only modifies HOW — passed above
+        // as adjustmentAllowed, never gates creation itself.
         // ai.advanced_analysis gate: ai_fitness gets smart workout but without M5 predictive scores.
-        const useSmart = aiCheckinAllowed && (prefs?.aiPersonalization !== false || !!linkedTrainerId);
+        const useSmart = aiWorkoutGenerationAllowed && (prefs?.aiPersonalization !== false || !!linkedTrainerId);
 
         // Strip advanced predictive scores from stats context when not allowed —
         // avoids leaking premium signals to the AI prompt for free/ai_fitness clients.
@@ -678,11 +688,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   // Wait for the feature-permission matrix to resolve before generating.
   // useFeatureAccessMap always starts as { allowed: false, loading: true } —
   // firing fetchPlan() on an empty-deps mount effect would permanently
-  // capture that unresolved `false` for aiCheckinAllowed (stale closure),
-  // forcing useSmart to false and silently persisting a zero-exercise plan
-  // for every client (most visibly trainer-less ones, whose only path is
-  // this AI branch — see system audit follow-up, 2026-07-09).
-  const aiPermsLoading = aiAccessMap['ai.checkin_adjustment']?.loading ?? true;
+  // capture that unresolved `false` for aiWorkoutGenerationAllowed (stale
+  // closure), forcing useSmart to false and silently persisting a
+  // zero-exercise plan for every client (most visibly trainer-less ones,
+  // whose only path is this AI branch — see system audit follow-up,
+  // 2026-07-09). Tracks ai.workout_generation, the gate useSmart now reads
+  // (was ai.checkin_adjustment before Fase 0 of WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md).
+  const aiPermsLoading = aiAccessMap['ai.workout_generation']?.loading ?? true;
   const fetchFiredRef = React.useRef(false);
 
   React.useEffect(() => {

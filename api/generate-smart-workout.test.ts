@@ -16,7 +16,12 @@ import { DEFAULT_SESSION_ORDER, SESSION_BLOCKS } from '../src/lib/sessionStructu
 // fixture is built loosely and cast once, here.
 type Ctx = Parameters<typeof buildPrompt>[0];
 
-function contextWith(sessionOrder: string[], trainerId = 'trainer-1'): Ctx {
+function contextWith(
+  sessionOrder: string[],
+  trainerId = 'trainer-1',
+  taskOverrides: Record<string, unknown> = {},
+  todayOverrides: Record<string, unknown> = {},
+): Ctx {
   return {
     trainer: {
       id: trainerId, name: 'Kamil', archetype: 'performance',
@@ -44,6 +49,7 @@ function contextWith(sessionOrder: string[], trainerId = 'trainer-1'): Ctx {
       energyLevel: 4, sleepQuality: 'good', fatigueLevel: 2, painPresent: false,
       painIntensity: 0, painRegions: [], safetyStatus: 'clear', aiLedBlocked: false,
       safetySignals: [], availableMinutes: 45, location: 'gym',
+      ...todayOverrides,
     },
     stats: {
       adherenceRate: 0.8, workoutStreak: 2, sessionsLast30d: 10,
@@ -58,7 +64,7 @@ function contextWith(sessionOrder: string[], trainerId = 'trainer-1'): Ctx {
       excludedRegions: [], favoriteExercises: [], avoidExercises: [],
       equipmentAvailable: ['dumbbells'],
     },
-    task: { type: 'generate_workout', durationMin: 45 },
+    task: { type: 'generate_workout', durationMin: 45, ...taskOverrides },
     locale: 'en',
     contextVersion: '1.0',
     builtAt: new Date().toISOString(),
@@ -116,6 +122,44 @@ describe('generate-smart-workout — session structure is binding', () => {
     const { system } = buildPrompt(contextWith(['warmup', 'strength', 'cooldown']));
     expect(system).toContain('SESSION STRUCTURE');
     for (const block of SESSION_BLOCKS) expect(system).toContain(block);
+  });
+});
+
+// ai.checkin_adjustment (docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md Fase 0):
+// gates daily calibration by energy/sleep/fatigue only. Must never gate a
+// safety signal — pain and Safety Gate reach the prompt for every tier.
+describe('generate-smart-workout — checkin-adjustment gate never touches safety', () => {
+  it('includes daily calibration by default (adjustmentAllowed unset)', () => {
+    const { user } = buildPrompt(contextWith(['warmup', 'strength', 'cooldown']));
+    expect(user).toContain('Energy: 4/10');
+    expect(user).toContain('Sleep quality: good');
+    expect(user).toContain('Fatigue: 2/10');
+  });
+
+  it('omits daily calibration when adjustmentAllowed is false, without inventing safe values', () => {
+    const { user } = buildPrompt(contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { adjustmentAllowed: false }));
+    expect(user).not.toContain('Energy: 4/10');
+    expect(user).not.toContain('Sleep quality: good');
+    expect(user).not.toContain('Fatigue: 2/10');
+    expect(user).toContain('Daily calibration: not available on this plan');
+  });
+
+  it('still reports pain and Safety Gate when adjustmentAllowed is false', () => {
+    const { user } = buildPrompt(
+      contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { adjustmentAllowed: false }, {
+        painPresent: true, painIntensity: 6, painRegions: ['knee'], safetyStatus: 'flagged',
+      }),
+    );
+    expect(user).toContain('Pain present: yes — intensity 6/10, regions: knee');
+    expect(user).toContain('Safety gate: flagged');
+  });
+
+  it('reports pain and Safety Gate identically whether or not adjustment is allowed', () => {
+    const todayOverrides = { painPresent: true, painIntensity: 6, painRegions: ['knee'], safetyStatus: 'flagged' };
+    const withAdjustment    = buildPrompt(contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { adjustmentAllowed: true },  todayOverrides)).user;
+    const withoutAdjustment = buildPrompt(contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { adjustmentAllowed: false }, todayOverrides)).user;
+    const safetyLine = (u: string) => u.split('\n').filter(l => l.startsWith('Pain present:') || l.startsWith('Safety gate:')).join('\n');
+    expect(safetyLine(withAdjustment)).toBe(safetyLine(withoutAdjustment));
   });
 });
 

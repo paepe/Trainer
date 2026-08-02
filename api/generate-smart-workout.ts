@@ -251,6 +251,12 @@ interface TaskContext {
   durationMin?:        number | undefined;
   focusOverride?:      string | undefined;
   extraInstructions?:  string | undefined;
+  maxExercises?:       number | undefined; // plan gate: max exercises per session (already read below; was missing from this type)
+  fitnessOnly?:        boolean;            // plan gate: exclude performance exercises (already read below; was missing from this type)
+  // ai.checkin_adjustment gate: false disables daily calibration by
+  // energy/sleep/fatigue only. Never gates a safety signal — pain and Safety
+  // Gate reach the prompt regardless, for every tier. Defaults to true.
+  adjustmentAllowed?:  boolean;
 }
 
 interface AIContext {
@@ -661,11 +667,21 @@ function buildUserPrompt(ctx: AIContext): string {
 
   lines.push("## TODAY'S READINESS (Check-in)");
   lines.push(`Check-in type: ${today.variant}`);
-  lines.push(`Readiness score: ${today.readinessScore}/100`);
-  lines.push(`Energy: ${today.energyLevel}/10`);
-  lines.push(`Sleep quality: ${today.sleepQuality}${today.sleepHours ? ` (${today.sleepHours}h)` : ''}`);
-  lines.push(`Fatigue: ${today.fatigueLevel}/10${today.fatigueType ? ` — type: ${today.fatigueType}` : ''}`);
-  if (today.emotionalState) lines.push(`Emotional state: ${today.emotionalState}`);
+  // Calibration by today's energy/sleep/fatigue is gated by
+  // ai.checkin_adjustment (a plan feature); safety signals below are not
+  // gated by any plan and always reach the prompt (docs/
+  // WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md Fase 0 — a commercial tier must
+  // never be able to turn off pain/Safety Gate awareness).
+  const adjustmentAllowed = task.adjustmentAllowed !== false;
+  if (adjustmentAllowed) {
+    lines.push(`Readiness score: ${today.readinessScore}/100`);
+    lines.push(`Energy: ${today.energyLevel}/10`);
+    lines.push(`Sleep quality: ${today.sleepQuality}${today.sleepHours ? ` (${today.sleepHours}h)` : ''}`);
+    lines.push(`Fatigue: ${today.fatigueLevel}/10${today.fatigueType ? ` — type: ${today.fatigueType}` : ''}`);
+    if (today.emotionalState) lines.push(`Emotional state: ${today.emotionalState}`);
+  } else {
+    lines.push('Daily calibration: not available on this plan — generate at a moderate, general-population intensity, not adapted to today\'s energy/sleep/fatigue.');
+  }
   lines.push(`Pain present: ${today.painPresent ? `yes — intensity ${today.painIntensity}/10${today.painRegions.length ? ', regions: ' + today.painRegions.join(', ') : ''}` : 'no'}`);
   lines.push(`Safety gate: ${today.safetyStatus}${today.safetySignals.length ? ` (signals: ${today.safetySignals.join(', ')})` : ''}`);
   lines.push(`AI-led session blocked: ${today.aiLedBlocked}`);
