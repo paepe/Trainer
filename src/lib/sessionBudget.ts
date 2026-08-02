@@ -17,11 +17,11 @@ export const FILL_CEILING    = 1.1;
 export const MAX_PADDED_SETS = 5;
 
 export interface BudgetExercise {
-  sets?:             number | null;
-  reps?:             number | null;
-  duration_seconds?: number | null;
-  rest_seconds?:     number | null;
-  phase?:            string | null;
+  sets?:             number | null | undefined;
+  reps?:             number | null | undefined;
+  duration_seconds?: number | null | undefined;
+  rest_seconds?:     number | null | undefined;
+  phase?:            string | null | undefined;
 }
 
 /**

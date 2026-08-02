@@ -24,6 +24,8 @@ import { useTranslatedExerciseNamesByRow } from '../../hooks/useTranslatedExerci
 import { resolveExerciseNameLocale } from '../../lib/exerciseNameLocale';
 import type { AppLanguage } from '../../i18n';
 import { estimateSessionMinutes } from '../../lib/sessionBudget';
+import { generateFallbackPlan as generateLocalFallbackPlan } from '../../lib/fallbackWorkoutGenerator';
+import type { ContraindicationRegion } from '../../data/fallbackExerciseLibrary';
 import { notifyLinkedTrainer } from '../../lib/notify';
 
 // Primary text colour over this screen's plan/exercise list surfaces — repeated
@@ -99,91 +101,19 @@ type GenState =
   | { phase: 'blocked'; safetyTitle: string; safetyMessage: string; readinessScore: number };
 
 // ── Fallback plan generator ──────────────────────────────────────────────────
-// Activated when the AI workout API is unreachable (DeepSeek outage, timeout, etc.)
-// Produces a basic bodyweight circuit based on the user's goal and available time.
-// reps XOR durationSeconds — hold/static/continuous exercises (Plank Hold,
-// Jogging in Place, ...) specify durationSeconds instead of a meaningless rep
-// count; countable-motion exercises specify reps as before.
-type FallbackTemplate =
-  | { name: string; muscle: string; sets: number; reps: number; durationSeconds?: undefined; rest: number }
-  | { name: string; muscle: string; sets: number; reps?: undefined; durationSeconds: number; rest: number };
+// Local contingency generator (docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md,
+// Fase 4) — activated when the client is on a tier without AI workout
+// generation, or when the AI endpoint is unreachable (outage, timeout, etc.).
+// Selects from the 129-exercise mirror (src/data/fallbackExerciseLibrary.ts,
+// Fase 3), respects the same safety gate and contraindication signals the AI
+// path uses, and never invents a workout when the Safety Gate is active — see
+// generateFallbackPlan/isSafetyGateActive in src/lib/fallbackWorkoutGenerator.ts.
+const VALID_CONTRAINDICATION_REGIONS = ['knee', 'lower_back', 'shoulder', 'wrist'] as const;
 
-const GOAL_TEMPLATES: Record<string, FallbackTemplate[]> = {
-  hypertrophy: [
-    { name: 'Push-up',            muscle: 'Chest',      sets: 4, reps: 12, rest: 60 },
-    { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 4, reps: 15, rest: 60 },
-    { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 15, rest: 45 },
-    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, durationSeconds: 30, rest: 45 },
-    { name: 'Lunges',             muscle: 'Quadriceps', sets: 3, reps: 12, rest: 45 },
-    { name: 'Tricep Dip',         muscle: 'Triceps',    sets: 3, reps: 12, rest: 45 },
-  ],
-  weight_loss: [
-    { name: 'Burpees',            muscle: 'Full Body',  sets: 4, reps: 12, rest: 30 },
-    { name: 'Mountain Climbers',  muscle: 'Core',       sets: 4, reps: 20, rest: 30 },
-    { name: 'Jump Squats',        muscle: 'Quadriceps', sets: 3, reps: 15, rest: 45 },
-    { name: 'High Knees',         muscle: 'Cardio',     sets: 3, reps: 30, rest: 30 },
-    { name: 'Bicycle Crunches',   muscle: 'Core',       sets: 3, reps: 20, rest: 30 },
-    { name: 'Jumping Jacks',      muscle: 'Full Body',  sets: 3, reps: 30, rest: 20 },
-  ],
-  endurance: [
-    { name: 'Jogging in Place',   muscle: 'Cardio',     sets: 1, durationSeconds: 60, rest: 0 },
-    { name: 'Bodyweight Squat',  muscle: 'Quadriceps', sets: 3, reps: 20, rest: 30 },
-    { name: 'Push-up',            muscle: 'Chest',      sets: 3, reps: 15, rest: 30 },
-    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, durationSeconds: 40, rest: 30 },
-    { name: 'Walking Lunges',     muscle: 'Quadriceps', sets: 3, reps: 16, rest: 30 },
-    { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 20, rest: 30 },
-  ],
-  mobility: [
-    { name: 'Cat-Cow Stretch',    muscle: 'Spine',      sets: 2, reps: 10, rest: 20 },
-    { name: 'Hip Circles',        muscle: 'Hips',       sets: 2, reps: 10, rest: 20 },
-    { name: 'World\'s Greatest Stretch', muscle: 'Full Body', sets: 2, reps: 6, rest: 30 },
-    { name: 'Downward Dog',       muscle: 'Shoulders',  sets: 2, durationSeconds: 30, rest: 20 },
-    { name: 'Child\'s Pose',      muscle: 'Back',       sets: 2, durationSeconds: 30, rest: 20 },
-    { name: 'Thoracic Rotation',  muscle: 'Spine',      sets: 2, reps: 8, rest: 20 },
-  ],
-  strength: [
-    { name: 'Push-up',            muscle: 'Chest',      sets: 4, reps: 10, rest: 75 },
-    { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 4, reps: 20, rest: 60 },
-    { name: 'Pull-up or Row',     muscle: 'Back',       sets: 3, reps: 8,  rest: 75 },
-    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, durationSeconds: 45, rest: 45 },
-    { name: 'Bulgarian Split Squat', muscle: 'Quadriceps', sets: 3, reps: 10, rest: 60 },
-    { name: 'Pike Push-up',       muscle: 'Shoulders',  sets: 3, reps: 10, rest: 60 },
-  ],
-  general: [
-    { name: 'Push-up',            muscle: 'Chest',      sets: 3, reps: 12, rest: 45 },
-    { name: 'Bodyweight Squat',   muscle: 'Quadriceps', sets: 3, reps: 15, rest: 45 },
-    { name: 'Plank Hold',         muscle: 'Core',       sets: 3, durationSeconds: 30, rest: 45 },
-    { name: 'Lunges',             muscle: 'Quadriceps', sets: 3, reps: 10, rest: 45 },
-    { name: 'Glute Bridge',       muscle: 'Glutes',     sets: 3, reps: 15, rest: 45 },
-    { name: 'Superman Hold',      muscle: 'Back',       sets: 3, durationSeconds: 15, rest: 45 },
-  ],
-};
-
-function generateFallbackPlan(
-  goal: string | undefined,
-  availableMinutes: number,
-): GeneratedWorkoutExercise[] {
-  const g = (goal ?? '').toLowerCase();
-  let category: keyof typeof GOAL_TEMPLATES = 'general';
-  if (g.includes('hypertrophy'))       category = 'hypertrophy';
-  else if (g.includes('weight') || g.includes('loss') || g.includes('perda') || g.includes('emagrecimento')) category = 'weight_loss';
-  else if (g.includes('strength') || g.includes('força') || g.includes('forca')) category = 'strength';
-  else if (g.includes('endurance') || g.includes('conditioning') || g.includes('resistência') || g.includes('condicionamento')) category = 'endurance';
-  else if (g.includes('mobility') || g.includes('mobilidade') || g.includes('flexibility') || g.includes('alongamento')) category = 'mobility';
-
-  const templates = (GOAL_TEMPLATES[category] ?? GOAL_TEMPLATES.general) as FallbackTemplate[];
-  const exerciseCount = Math.min(templates.length, Math.max(3, Math.floor(availableMinutes / 7)));
-
-  return templates.slice(0, exerciseCount).map(t => ({
-    exercise_name:    t.name,
-    muscle_group:     t.muscle,
-    sets:             t.sets,
-    reps:             t.reps ?? null,
-    duration_seconds: t.durationSeconds ?? null,
-    load_kg:          null,
-    rest_seconds:     t.rest,
-    notes:            null,
-  }));
+function toContraindicationRegions(regions: readonly string[]): ContraindicationRegion[] {
+  return regions.filter(
+    (r): r is ContraindicationRegion => (VALID_CONTRAINDICATION_REGIONS as readonly string[]).includes(r)
+  );
 }
 
 export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', source, prefs }: StartWorkoutScreenProps) {
@@ -224,6 +154,16 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
+  // Real readiness/safety signal for the local fallback generator, captured
+  // as soon as today's check-in is fetched — available even in the outer
+  // catch block below, where `todayCtx` (block-scoped to the try) is not.
+  // Fase 4 achado: never fabricate a readinessScore when a real one exists.
+  const fallbackContextRef = React.useRef<{
+    readinessScore: number | null;
+    painRegions:    string[];
+    safetyStatus:   string;
+    aiLedBlocked:   boolean;
+  }>({ readinessScore: null, painRegions: [], safetyStatus: 'clear', aiLedBlocked: false });
 
   // Flatten all trainer plan exercises for classification
   const allTrainerExercises = React.useMemo(
@@ -534,6 +474,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             sleep_quality: (ciData.sleep_quality     ?? checkin.sleep_quality) as typeof checkin.sleep_quality,
             equipment:     checkin.equipment,
           };
+          const gate = ciData.safety_gate as { status?: string } | null;
+          fallbackContextRef.current = {
+            readinessScore: ciData.readiness_score ?? null,
+            painRegions:    resolvedCheckin.soreness ?? [],
+            safetyStatus:   gate?.status ?? 'clear',
+            aiLedBlocked:   !!ciData.ai_led_blocked,
+          };
         }
         setLatestCheckin(resolvedCheckin);
 
@@ -652,8 +599,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         };
 
         // When useSmart is false (free tier, AI personalization disabled, or no
-        // trainer link), the client still gets a real workout — a deterministic
-        // template plan, not an empty one (see generateFallbackPlan above).
+        // trainer link), the client still gets a real workout from the local
+        // mirror (Fase 4 of the continuity plan) — a seeded selection out of
+        // 129 exercises, never an empty plan, and never a workout at all when
+        // the Safety Gate is active (generateLocalFallbackPlan enforces this
+        // itself, mirroring the server-side gate in generate-smart-workout.ts).
         const result = useSmart
           ? await requestSmartWorkout({
               trainer: trainerCtx, client: clientCtx,
@@ -661,14 +611,21 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               library: libraryCtx, task: taskCtx,
               locale: exerciseNamesLocale,
             })
-          : {
-              exercises:      generateFallbackPlan(resolvedCheckin.goal, taskCtx.durationMin ?? 30),
-              readinessScore: todayCtx.readinessScore || 60,
-              blocked:        false,
-              adaptations:    [] as string[],
-              safetyTitle:    null as any,
-              safetyMessage:  null as any,
-            };
+          : (() => {
+              const local = generateLocalFallbackPlan({
+                goal:            resolvedCheckin.goal,
+                targetMinutes:   taskCtx.durationMin ?? 30,
+                locale:          exerciseNamesLocale,
+                excludedRegions: toContraindicationRegions(todayCtx.painRegions),
+                maxExercises:    exercisesPerSession ?? undefined,
+                fitnessOnly:     fitnessOnlyWorkout,
+                seed:            Date.now(),
+                safety:          { aiLedBlocked: todayCtx.aiLedBlocked, safetyStatus: todayCtx.safetyStatus },
+              });
+              return local.blocked
+                ? { exercises: [] as GeneratedWorkoutExercise[], readinessScore: todayCtx.readinessScore, blocked: true, adaptations: [] as string[], safetyTitle: null as any, safetyMessage: null as any }
+                : { exercises: local.exercises, readinessScore: todayCtx.readinessScore, blocked: false, adaptations: [] as string[], safetyTitle: null as any, safetyMessage: null as any };
+            })();
 
         const readiness   = result.readinessScore;
         const adaptResult = result.adaptations;
@@ -691,22 +648,41 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           adaptations:    adaptResult,
         });
         setPlanSource('ai');
-        // Provenance only for genuine AI generation — the local fallback
-        // template's own text isn't in exerciseNamesLocale yet (untranslated
-        // English literals), so tagging it here would misrecord the source
-        // (D7). That template's per-exercise locale is separate scope.
-        void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile, useSmart ? exerciseNamesLocale : null);
+        // Both paths now emit names already in exerciseNamesLocale — the
+        // smart endpoint via its own `locale` param, the local generator via
+        // the curated translations embedded in the Fase 3 mirror (Fase 4).
+        void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile, exerciseNamesLocale);
       } // end if (user?.id)
     } catch (err: unknown) {
       console.warn('[start-workout] AI generation failed — using fallback plan', err);
-      const goal    = activeCheckin.goal;
-      const minutes = activeCheckin.minutes ?? 30;
-      const fallback = generateFallbackPlan(goal, minutes);
+      // `todayCtx` is out of scope here (declared inside the try above) —
+      // fallbackContextRef carries the same readiness/safety signal, captured
+      // as soon as the check-in was fetched, for every path including this one.
+      const ctx = fallbackContextRef.current;
+      const local = generateLocalFallbackPlan({
+        goal:            activeCheckin.goal,
+        targetMinutes:   activeCheckin.minutes ?? 30,
+        locale:          exerciseNamesLocale,
+        excludedRegions: toContraindicationRegions(ctx.painRegions),
+        maxExercises:    exercisesPerSession ?? undefined,
+        fitnessOnly:     fitnessOnlyWorkout,
+        seed:            Date.now(),
+        safety:          ctx,
+      });
+      if (local.blocked) {
+        setGenState({
+          phase: 'blocked',
+          readinessScore: ctx.readinessScore ?? 60,
+          safetyTitle:    tr('client.workout.safetyGateTitle'),
+          safetyMessage:  tr('client.workout.safetyGateMsg'),
+        });
+        return;
+      }
       setGenState({
         phase:          'success',
-        plan:           fallback,
+        plan:           local.exercises,
         planId:         '',
-        readinessScore: 60,
+        readinessScore: ctx.readinessScore ?? 60,
         adaptations:    [],
       });
       setPlanSource('ai');
