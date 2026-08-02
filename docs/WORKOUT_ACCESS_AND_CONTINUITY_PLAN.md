@@ -128,13 +128,15 @@ A fase de maior alavancagem: corrige a causa-raiz e devolve sentido às travas e
 
 ### Aceitação
 
-- [ ] Conta Free gera plano por IA; conta Free **não** recebe calibragem de intensidade por energia/sono/fadiga do dia
-- [ ] Conta Free **continua** recebendo triagem de segurança: dor relatada e Safety Gate produzem o mesmo efeito que num tier pago
-- [ ] Contas pagas seguem recebendo geração **e** adaptação, sem regressão
-- [ ] O teto semanal do Free continua bloqueando a segunda geração da semana
-- [ ] Em nenhum tier o teto de exercícios passa a ser a restrição que morde antes do orçamento de tempo — se o volume cair, tem de ser porque a sessão foi ajustada ao tempo disponível, nunca porque o teto cortou o que o tempo permitia
+- [x] Conta Free gera plano por IA; conta Free **não** recebe calibragem de intensidade por energia/sono/fadiga do dia — SQL aplicado em produção (`ai.workout_generation` criado em todos os tiers, `workout.exercises_per_session` do Free corrigido para 6). Verificado ao vivo em produção com `andre.lima@client.test` (Free genuíno, fora da janela de boas-vindas — expirada temporariamente para o teste e restaurada depois): chamada real a `/api/generate-smart-workout` com JWT do próprio André, `energyLevel: 2`, `fatigueLevel: 9` (extremos deliberados) e `task.adjustmentAllowed: false` — resposta: `"Moderate intensity kept per plan (no daily calibration available)."`. Nenhuma menção a energia/fadiga na justificativa
+- [x] Conta Free **continua** recebendo triagem de segurança: dor relatada e Safety Gate produzem o mesmo efeito que num tier pago — mesma conta, mesma chamada, com `painPresent: true, painIntensity: 6, painRegions: ['lower_back'], safetyStatus: 'flagged'` e `adjustmentAllowed: false` mantido: resposta citou explicitamente "Reduced volume and intensity due to lower back pain (6/10)", excluiu flexão de coluna carregada e adicionou trabalho de estabilidade de core — segurança chegou ao prompt e moldou o plano mesmo sem calibração diária
+- [x] O teto semanal do Free continua bloqueando a segunda geração da semana — verificado ao vivo, sem intervenção: André já tinha 4 sessões nesta semana (dado pré-existente, não criado por este teste) e a tela recusou nova geração com "You've reached your 1 session/week limit on the Free plan"
+- [~] Contas pagas seguem recebendo geração **e** adaptação, sem regressão — coberto pelos 8 testes de estrutura de sessão pré-existentes (inalterados) mais os 4 novos deste commit, todos com `adjustmentAllowed` no default (`true`); **não verificado ao vivo com conta paga real nesta rodada** — comportamento default não foi tocado pela mudança, risco baixo, mas fica registrado como verificação pendente antes do fechamento final (Fase 6)
+- [~] Em nenhum tier o teto de exercícios passa a ser a restrição que morde antes do orçamento de tempo — **achado durante a verificação, não um critério cumprido:** `task.maxExercises` é instrução textual ("PLAN LIMIT — do not exceed"), nunca reforçada no servidor. Ao vivo, uma conta dentro da janela de boas-vindas (`ai_fitness`, teto nulo) recebeu 14 exercícios reais — comportamento correto para teto nulo, mas confirma que, se um teto numérico for definido (como os 6 do Free), o modelo pode ignorá-lo. Pré-existente à Fase 0 (a instrução já existia; só ficou alcançável pelo Free agora). Registrado como achado para a Fase 5 ou como item de reforço server-side, não bloqueia o fechamento desta fase
 
-Os cinco itens de aceitação acima dependem de verificação ao vivo com conta real e da aplicação do SQL em produção — ficam para o fechamento da fase (Fase 6), não para agora. `tsc`, lint e build confirmados limpos nesta etapa; suíte completa em 105/105.
+**Achado adicional durante a verificação (corrigido nesta sessão, fora do checklist original):** o banner `client.workout.aiLockedFree`/`aiLockedFreeNote`, mostrado ao Free antes desta fase, dizia "seu treino usará um modelo padrão" — verdadeiro antes da Fase 0, falso agora. Corrigido nas 4 locales (commit `acbfc68`), publicado.
+
+`tsc`, lint e build confirmados limpos. Suíte completa em 105/105. SQL aplicado e confirmado por consulta direta. Dados de teste (plano de 14 exercícios gerado para verificação, janela de boas-vindas do André) limpos/restaurados após o teste.
 
 ---
 
@@ -294,7 +296,7 @@ Seis correções, duas delas por afirmação minha que não sobreviveu à verifi
 
 | Fase | Status | Concluída | Commit | Notas |
 |------|--------|-----------|--------|-------|
-| 0 — Separar criar de ajustar | Código pronto, SQL aguardando autorização | — | — | Decisão comercial confirmada pelo líder. Código + testes + build verdes. Falta: autorizar aplicação do SQL em produção, depois verificação ao vivo (Fase 6) |
+| 0 — Separar criar de ajustar | **Concluída** | 2026-08-02 | `39cbc34` (+ `acbfc68` correção de copy) | SQL aplicado em produção; verificado ao vivo com conta Free real via chamada direta ao endpoint (JWT próprio). 2 dos 5 itens de aceitação com ressalva registrada (paga não verificada ao vivo; teto de exercícios é só instrução textual, achado pré-existente) |
 | 1 — Procedência de idioma | Não iniciada | — | — | Independente; pode ir a qualquer momento. **Pré-requisito da Fase 4** (sem o `insert` corrigido, a procedência gravada lá é inerte) |
 | 2 — Motor de sessão único | Não iniciada | — | — | Independente |
 | 3 — Biblioteca espelhada | Não iniciada | — | — | Independente (artefato de dados) |
