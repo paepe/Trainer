@@ -279,16 +279,39 @@ Solicitada pelo líder do projeto. Trata o que a investigação expôs, sem varr
 
 ### Checklist
 
-- [ ] Resolver o destino de `workout.exercises_per_session` e `workout.exercise_type` conforme decidido na Fase 0 — corrigir valor ou remover a chave, nunca deixar configuração sem efeito
-- [ ] `isTrainerRole` — **declarada e nunca chamada** em `api/generate-workout.ts:53` e `api/generate-smart-workout.ts:61`. Atenção ao escopo: a mesma função **está viva** em `send-invitation.ts:109` e existe por duplicação deliberada (handlers autocontidos). Remover apenas nos dois handlers de geração, nunca por busca global de nome
-- [ ] ~~`plan_exercises.completed`~~ — **verificado, não procede.** A coluna solta não existe em `src/types/supabase.ts`; só há `completed_at`, que é usada. A observação registrada durante a Fase 3 de `SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md` já foi resolvida na regeneração dos tipos daquela fase
-- [ ] Levantar demais chaves de `feature_permissions` sem ponto de aplicação no código e listá-las **para decisão**, sem remover por conta própria
-- [ ] Cada remoção acompanhada da evidência de ausência de uso (busca no código, e consulta quando for dado)
+- [x] Resolver o destino de `workout.exercises_per_session` e `workout.exercise_type` conforme decidido na Fase 0 — **já resolvido lá**, não em aberto: `free.workout.exercises_per_session = 6` e `free.workout.exercise_type = 0 (fitness only)` confirmados em produção (consulta 2026-08-02), e ambos agora têm efeito real desde a Fase 0 (gate `ai.workout_generation`) e a Fase 4 (`maxExercises`/`fitnessOnly` chegam ao gerador local também)
+- [x] `isTrainerRole` — **declarada e nunca chamada** em `api/generate-workout.ts:53` e `api/generate-smart-workout.ts:61`. Removida nesses dois arquivos apenas; confirmada viva em `api/send-invitation.ts:109`, intocada. Como consequência direta (evidenciada por `eslint`, não presumida), `TRAINER_ROLES` também ficou órfã nos dois arquivos — removida junto
+- [x] ~~`plan_exercises.completed`~~ — **verificado, não procede.** A coluna solta não existe em `src/types/supabase.ts`; só há `completed_at`, que é usada. A observação registrada durante a Fase 3 de `SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md` já foi resolvida na regeneração dos tipos daquela fase
+- [x] Levantar demais chaves de `feature_permissions` sem ponto de aplicação no código e listá-las **para decisão**, sem remover por conta própria — ver tabela abaixo
+- [x] Cada remoção acompanhada da evidência de ausência de uso (busca no código, e consulta quando for dado)
+
+**Achado adicional, fora do escopo original desta fase — registrado, não removido.** Rodar `eslint` sobre `api/` inteiro (o gate do projeto, `npm run lint`, cobre só `src/` — `api/` nunca passou por lint automatizado) revelou que `isTrainerRole` e/ou `hasActiveLink` estão **também** declaradas-e-nunca-chamadas em outros quatro handlers, duplicação do mesmo padrão encontrado nos dois handlers de geração:
+
+| Arquivo | Função morta |
+|---|---|
+| `api/billing-portal.ts:56,71` | `isTrainerRole`, `hasActiveLink` |
+| `api/create-checkout-session.ts:56,71` | `isTrainerRole`, `hasActiveLink` |
+| `api/send-notification.ts:59` | `isTrainerRole` |
+| `api/send-invitation.ts:78` | `hasActiveLink` (note: `isTrainerRole` no mesmo arquivo está viva, `:109`) |
+
+Este achado é novo — a investigação original desta workstream (achados 1-25) não cobriu `api/` fora dos dois handlers de geração, e esta fase foi explicitamente desenhada para tratar só "o que a investigação expôs, sem varredura especulativa". Removê-las agora seria exatamente essa varredura especulativa. Fica registrado para decisão — provavelmente uma Fase própria ou um item de higiene recorrente, dado que o padrão (helpers de auth inline duplicados por arquivo, por causa do bundler da Vercel) tende a repetir esse tipo de deriva a cada novo handler.
+
+**Chaves de `feature_permissions` sem ponto de aplicação — para decisão do líder, nenhuma removida:**
+
+| Chave | Situação | Evidência |
+|---|---|---|
+| `marketplace.listing` | Nunca lida em nenhum `useFeatureAccess`/`useFeatureAccessMap` | grep em `src/` e `api/`: 0 ocorrências fora do tipo `FeatureKey` |
+| `marketplace.revenue_share` | Idem | Idem |
+| `studio.branding` | Idem | Idem |
+| `scores.advanced` | Idem | Idem |
+| `scores.basic` | **Consultada** (`PerformanceDashboardScreen.tsx:77`, dentro do array passado a `useFeatureAccessMap`) mas o resultado (`accessMap['scores.basic']`) nunca é lido — a chamada de rede acontece, o gate não | grep confirma 1 única ocorrência, a da própria consulta |
+
+Todas as 17 chaves em produção têm correspondência exata no union `FeatureKey` (`src/types/feature-permissions.ts`) — nenhuma órfã do lado oposto (tipo sem linha, ou linha sem tipo).
 
 ### Aceitação
 
-- [ ] Nenhuma chave de permissão permanece configurada e inaplicada sem decisão registrada
-- [ ] Suíte verde após cada remoção
+- [x] Nenhuma chave de permissão permanece configurada e inaplicada sem decisão registrada — 5 chaves listadas acima, aguardando decisão; nenhuma removida unilateralmente
+- [x] Suíte verde após cada remoção — `tsc`, `npm run lint` (o gate real do projeto) e `vitest` (198/198) verdes após a remoção de `isTrainerRole`/`TRAINER_ROLES` nos dois handlers
 
 ---
 

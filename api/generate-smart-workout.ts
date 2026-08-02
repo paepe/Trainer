@@ -9,11 +9,6 @@
 // ── Inlined auth helpers (Vercel's Node.js function builder does not trace
 // relative imports outside this file into the deployed bundle — confirmed in
 // production; every api/* file must be self-contained, see generate-smart-workout.ts) ──
-const TRAINER_ROLES = [
-  'trainer', 'studio_trainer', 'studio_admin',
-  'internal_trainer', 'technical_coordinator', 'studio_manager',
-] as const;
-
 function authSupabaseUrl(): string {
   return process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
 }
@@ -55,21 +50,6 @@ async function verifyRequestUser(req: { headers?: Record<string, string | string
   } catch (err) {
     console.error('[auth] JWT verification failed:', (err as Error)?.message);
     return null;
-  }
-}
-
-async function isTrainerRole(userId: string): Promise<boolean> {
-  try {
-    const res = await fetch(
-      `${authSupabaseUrl()}/rest/v1/profiles?select=role&id=eq.${encodeURIComponent(userId)}&limit=1`,
-      { headers: authServiceHeaders() },
-    );
-    if (!res.ok) return false;
-    const rows = await res.json() as { role?: string }[];
-    const role = rows[0]?.role;
-    return !!role && (TRAINER_ROLES as readonly string[]).includes(role);
-  } catch {
-    return false;
   }
 }
 
