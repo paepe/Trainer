@@ -244,12 +244,19 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   // keep-English-names toggle (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md,
   // D1) — notes (translateNote below) always follow the client's own app
   // language, untouched by that toggle.
+  // This client's own exercise-name locale (D2 — the reader's preference
+  // governs what reaches them). Used both to READ trainer-sent plans below,
+  // and to ask the AI to WRITE self-generated exercise names directly in
+  // this locale (Fase 1 of docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md) —
+  // fixes the client's own auto-generation path sending i18n.language raw,
+  // ignoring the keep-English-names toggle, and never recording provenance.
+  const exerciseNamesLocale = resolveExerciseNameLocale({
+    keepExerciseNamesInEnglish: prefs?.keepExerciseNamesInEnglish ?? true,
+    language: i18n.language as AppLanguage,
+  });
   const translateName = useTranslatedExerciseNamesByRow(
     trainerPlans.flatMap(p => p.exercises.map(e => ({ name: e.exercise_name, name_source_locale: e.name_source_locale }))),
-    resolveExerciseNameLocale({
-      keepExerciseNamesInEnglish: prefs?.keepExerciseNamesInEnglish ?? true,
-      language: i18n.language as AppLanguage,
-    }),
+    exerciseNamesLocale,
   );
   const translateNote = useTranslatedExerciseContent(
     trainerPlans.flatMap(p => p.exercises.map(e => e.notes)),
@@ -292,6 +299,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const safetyMessage   = genState.phase === 'blocked' ? genState.safetyMessage             : null;
   const readinessScore  = genState.phase === 'success' || genState.phase === 'blocked' ? genState.readinessScore : null;
   const adaptations     = genState.phase === 'success' ? genState.adaptations               : ([] as string[]);
+  // adaptations is free text from the same AI call as the exercise names —
+  // when exerciseNamesLocale diverges from the client's real app language
+  // (keep-English-names toggle on, non-English app), the WHOLE response
+  // comes back in exerciseNamesLocale (single-locale AI contract, api/
+  // generate-smart-workout.ts), not just the names. Translate it back to
+  // what's actually displayed here; short-circuits to zero calls when they
+  // match (the common case, unchanged from before Fase 1).
+  const translateAdaptation = useTranslatedExerciseContent(adaptations, undefined, exerciseNamesLocale);
 
   // Soft, client-side time-fit check: neither generation endpoint validates
   // its own totalDurationMin against the requested window server-side (see
@@ -326,6 +341,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     sourceCheckin: CheckIn,
     cycleContext: CycleContext | null,
     physicalProfile: Json | null,
+    // Provenance of the names in `exercises` (D7 — registered at write time,
+    // never inferred). Pass the resolved client locale for AI-generated
+    // names (the model was asked to write in it); pass null for the local
+    // fallback template, whose own per-exercise locale tagging is separate
+    // scope (Fase 2/4 of docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md).
+    nameSourceLocale: AppLanguage | null,
   ) => {
     if (!user?.id) return;
 
@@ -365,6 +386,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           notes:            ex.notes ?? null,
           order_index:      i,
           phase:            ex.phase ?? null,
+          name_source_locale: nameSourceLocale,
         }))
       );
 
@@ -519,9 +541,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
         // If no profile, fall back to legacy endpoint
         if (!profileData) {
-          const           exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: i18n.language });
+          const           exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: exerciseNamesLocale });
           setGenState({ phase: 'success', plan: exercises, planId: '', readinessScore: -1, adaptations: [] });
-          void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile);
+          void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile, exerciseNamesLocale);
           return;
         }
 
@@ -635,7 +657,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               trainer: trainerCtx, client: clientCtx,
               today: todayCtx as any, stats: gatedStatsCtx,
               library: libraryCtx, task: taskCtx,
-              locale: i18n.language,
+              locale: exerciseNamesLocale,
             })
           : {
               exercises:      generateFallbackPlan(resolvedCheckin.goal, taskCtx.durationMin ?? 30),
@@ -667,7 +689,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           adaptations:    adaptResult,
         });
         setPlanSource('ai');
-        void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile);
+        // Provenance only for genuine AI generation — the local fallback
+        // template's own text isn't in exerciseNamesLocale yet (untranslated
+        // English literals), so tagging it here would misrecord the source
+        // (D7). That template's per-exercise locale is separate scope.
+        void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile, useSmart ? exerciseNamesLocale : null);
       } // end if (user?.id)
     } catch (err: unknown) {
       console.warn('[start-workout] AI generation failed — using fallback plan', err);
@@ -1053,7 +1079,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {!safetyBlocked && adaptations.length > 0 && (
         <div style={{ margin: '0 22px 10px', padding: '8px 12px', borderRadius: 10, background: `${t.primary}14`, border: `1px solid ${t.primary}33` }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: t.primary, marginBottom: 4 }}>{tr('client.workout.sessionAdapted')}</div>
-          {adaptations.map((a, i) => <div key={i} style={{ fontSize: 11.5, color: textSec(dark) }}>· {a}</div>)}
+          {adaptations.map((a, i) => <div key={i} style={{ fontSize: 11.5, color: textSec(dark) }}>· {translateAdaptation(a)}</div>)}
         </div>
       )}
 
