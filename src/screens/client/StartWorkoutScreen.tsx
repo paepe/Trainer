@@ -154,16 +154,27 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
-  // Real readiness/safety signal for the local fallback generator, captured
-  // as soon as today's check-in is fetched — available even in the outer
-  // catch block below, where `todayCtx` (block-scoped to the try) is not.
+  // Real readiness/safety/duration signal for the local fallback generator,
+  // captured as soon as today's check-in is fetched — available even in the
+  // outer catch block below, where `todayCtx` (block-scoped to the try) is
+  // not. Deliberately NOT read from `activeCheckin`/`latestCheckin` state in
+  // that catch block: `fetchPlan` calls `setLatestCheckin(resolvedCheckin)`
+  // earlier in this same execution, but the state update does not apply
+  // until the next render, so `activeCheckin` there would still be the
+  // *previous* checkin — e.g. an old 60-minute session — even though the
+  // real one the user just submitted was 15. Found live (Fase 4 verification,
+  // 2026-08-02): a 15-minute request produced a ~50-minute local plan because
+  // the catch block was budgeting against a stale duration. A ref, updated
+  // synchronously, has no such lag.
   // Fase 4 achado: never fabricate a readinessScore when a real one exists.
   const fallbackContextRef = React.useRef<{
     readinessScore: number | null;
     painRegions:    string[];
     safetyStatus:   string;
     aiLedBlocked:   boolean;
-  }>({ readinessScore: null, painRegions: [], safetyStatus: 'clear', aiLedBlocked: false });
+    minutes:        number | null;
+    goal:           string | null;
+  }>({ readinessScore: null, painRegions: [], safetyStatus: 'clear', aiLedBlocked: false, minutes: null, goal: null });
 
   // Flatten all trainer plan exercises for classification
   const allTrainerExercises = React.useMemo(
@@ -480,6 +491,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             painRegions:    resolvedCheckin.soreness ?? [],
             safetyStatus:   gate?.status ?? 'clear',
             aiLedBlocked:   !!ciData.ai_led_blocked,
+            minutes:        resolvedCheckin.minutes ?? null,
+            goal:           resolvedCheckin.goal ?? null,
           };
         }
         setLatestCheckin(resolvedCheckin);
@@ -655,13 +668,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       } // end if (user?.id)
     } catch (err: unknown) {
       console.warn('[start-workout] AI generation failed — using fallback plan', err);
-      // `todayCtx` is out of scope here (declared inside the try above) —
-      // fallbackContextRef carries the same readiness/safety signal, captured
-      // as soon as the check-in was fetched, for every path including this one.
+      // `todayCtx` is out of scope here (declared inside the try above), and
+      // `activeCheckin`/`latestCheckin` state is stale within this same
+      // execution (see fallbackContextRef's own comment) — the ref is the
+      // only reliably fresh source of goal/duration/safety here.
       const ctx = fallbackContextRef.current;
       const local = generateLocalFallbackPlan({
-        goal:            activeCheckin.goal,
-        targetMinutes:   activeCheckin.minutes ?? 30,
+        goal:            ctx.goal ?? activeCheckin.goal,
+        targetMinutes:   ctx.minutes ?? activeCheckin.minutes ?? 30,
         locale:          exerciseNamesLocale,
         excludedRegions: toContraindicationRegions(ctx.painRegions),
         maxExercises:    exercisesPerSession ?? undefined,
