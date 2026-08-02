@@ -229,28 +229,45 @@ Algoritmo acordado com o líder: **montar com excesso deliberado e subtrair até
 
 ### Checklist
 
-- [ ] **Triagem de segurança antes de qualquer geração local (achado 15b).** Avaliar `pain_present`, `safety_gate` e `ai_led_blocked` do check-in já carregado; quando o Safety Gate estiver ativo, a contingência **não** entrega treino genérico — apresenta a mesma pausa que o caminho de IA apresentaria. Degradar serviço é aceitável num plano de continuidade; degradar segurança não é
-- [ ] Substituir o `readinessScore: 60` fabricado pelo valor real do check-in, ou por ausência explícita quando não houver check-in — nunca por um número inventado que a tela exibe como se fosse medição
-
-- [ ] Selecionar por bloco a partir do espelho, com escolha pseudoaleatória **semeada** dentro de cada bloco — variedade real (hoje são sempre os mesmos 6 exercícios) sem perder testabilidade determinística
-- [ ] Aplicar restrições do perfil e do check-in via as marcações da Fase 3
-- [ ] Montar a matriz pré-treino deliberadamente acima do orçamento e subtrair pelos blocos cortáveis até cair na banda de 90-110%
-- [ ] Nenhum bloco termina com zero exercícios
-- [ ] **Orçamentos exíguos (15 min):** reduzir volume de trabalho primeiro, cortar desaquecimento depois; o aquecimento sobrevive sempre, ainda que em 60s — prevenção de lesão é a última coisa a sacrificar num produto de saúde
-- [ ] Remover o piso rígido de 3 exercícios (achado 12): quem manda é o ajuste ao tempo
-- [ ] Aplicar `maxExercises` e `fitnessOnly` já resolvidos na Fase 0
-- [ ] Saída ordenada por `sortBySessionBlock`, com `phase` e `name_source_locale` preenchidos
-- [ ] Corrigir o comentário de `:101`, que descreve só o gatilho de indisponibilidade da IA
+- [x] **Triagem de segurança antes de qualquer geração local (achado 15b).** `isSafetyGateActive` (`src/lib/fallbackWorkoutGenerator.ts`) avalia `aiLedBlocked`/`safetyStatus` antes de qualquer seleção de exercício, mirroring o gate server-side de `generate-smart-workout.ts`. Quando ativo, `generateFallbackPlan` retorna `{ blocked: true }` sem tocar no espelho — a tela mostra a mesma pausa do caminho de IA
+- [x] Substituir o `readinessScore: 60` fabricado pelo valor real do check-in, ou por ausência explícita quando não houver check-in. `fallbackContextRef` captura `ciData.readiness_score` de forma síncrona assim que o check-in chega; usado em ambos os pontos de chamada (`todayCtx.readinessScore` no ramo não-smart, `ctx.readinessScore ?? 60` no catch), nunca mais um `60` incondicional
+- [x] Selecionar por bloco a partir do espelho, com escolha pseudoaleatória **semeada** (mulberry32) dentro de cada bloco
+- [x] Aplicar restrições do perfil e do check-in via as marcações da Fase 3 — `excludedRegions` interseta `todayCtx.painRegions`/`ctx.painRegions` com as 4 regiões do deny-list
+- [x] Montar a matriz pré-treino deliberadamente acima do orçamento (fator 1,3×) e subtrair pelos blocos cortáveis via `fitToBudget` (reaproveitado da Fase 2, não duplicado) até cair na banda de 90-110%
+- [x] Nenhum bloco termina com zero exercícios — baseline garante 1 de cada bloco antes do over-provisioning; verificado contra a biblioteca real que nenhuma combinação de contraindicação (mesmo as 4 simultâneas) esvazia um bloco
+- [x] **Orçamentos exíguos (15 min):** `squeezeWarmupToFloor` reduz a duração do aquecimento a 60s como último recurso, só quando o corte de volume de trabalho (via `fitToBudget`) não bastou — nunca remove o bloco
+- [x] Removido o piso rígido de 3 exercícios (achado 12) — contagem final é inteiramente resultado do ajuste ao tempo, sem `Math.max(3, ...)` algum
+- [x] `maxExercises` e `fitnessOnly` aplicados — `maxExercises` limita a contagem durante a seleção (nunca excedido, mesmo pós-`fitToBudget`); `fitnessOnly` exclui `intensity === 'high'` (mapeamento defensável: são exatamente os exercícios de performance/potência do espelho)
+- [x] Saída ordenada por `sortBySessionBlock`, com `phase` e `name_source_locale` preenchidos em 100% das linhas
+- [x] Comentário de `:101` reescrito — agora descreve os dois gatilhos (tier sem `ai.workout_generation`, falha de rede) e o comportamento de segurança, não só a indisponibilidade da IA
 
 ### Aceitação
 
-- [ ] **Matriz determinística provada por teste:** cada objetivo × cada orçamento de `{15, 30, 45, 60}` cai em 90-110%, com semente fixa
-- [ ] Aquecimento presente em todas as combinações, inclusive 15 min
-- [ ] Restrição sinalizada nunca produz exercício contraindicado — teste por região
-- [ ] Safety Gate ativo ⇒ nenhum treino é gerado nem persistido; a tela mostra a pausa, não uma sessão
-- [ ] O nome exibido chega no idioma do aluno **sem nenhuma chamada de rede** — testado com `fetch` indisponível, que é a condição real de contingência
-- [ ] Sementes diferentes produzem treinos diferentes e igualmente válidos
-- [ ] Banner `planMayOverrun` (`:305`) **não dispara** em plano local: ceiling 1,1× é menor que o limiar 1,2×, logo é asserção, não medição
+- [x] **Matriz determinística provada por teste:** 24/24 combinações (6 objetivos × {15,30,45,60}min, semente fixa) caem entre 90,8% e 107,4% do alvo — dentro da banda 90-110% sem tolerância extra. Medido antes de escrever a asserção final (não presumido)
+- [x] Aquecimento presente em todas as 24 combinações, inclusive 15 min
+- [x] Restrição sinalizada nunca produz exercício contraindicado — testado por região (4 regiões × 4 orçamentos) e com as 4 simultâneas
+- [x] Safety Gate ativo ⇒ nenhum treino é gerado nem persistido — **verificado ao vivo em produção** (ver Log de progresso)
+- [x] O nome exibido chega no idioma do aluno sem nenhuma chamada de rede — testado com `globalThis.fetch` deletado (`fallbackWorkoutGenerator.test.ts`) e **verificado ao vivo** com `fetch` interceptado no navegador real
+- [x] Sementes diferentes produzem treinos diferentes; mesma semente é 100% reprodutível (`toEqual` exato)
+- [x] Banner `planMayOverrun` não dispara: `FILL_CEILING` (1,1) < limiar do banner (1,2), provado por teste dedicado nas 24 combinações, e **confirmado ausente ao vivo** em produção
+
+### Log de progresso
+
+**2026-08-02 — implementação e testes.** `src/lib/fallbackWorkoutGenerator.ts` (novo), 70 testes em `fallbackWorkoutGenerator.test.ts`, 5 mutações aplicadas e capturadas (gate de segurança, filtro de contraindicação, filtro `fitnessOnly`, garantia de bloco não-vazio, teto de `maxExercises`). Integrado em `StartWorkoutScreen.tsx` nos dois pontos de chamada (ramo não-smart e `catch` de falha de IA), substituindo o `GOAL_TEMPLATES` fixo de 6 exercícios. `tsc`/lint/`vitest`/`build` verdes (198 testes totais).
+
+**Defeito real encontrado na verificação ao vivo, corrigido no mesmo dia (commit `037ab34`):** um pedido de 15 min produziu um plano de ~50 min. Causa raiz: o bloco `catch` lia `activeCheckin.minutes`/`.goal`, e `activeCheckin` deriva do estado React `latestCheckin` — mas `setLatestCheckin(resolvedCheckin)` já havia rodado mais cedo na mesma execução de `fetchPlan`; a atualização de estado só se aplica no próximo render, então `activeCheckin` ali ainda era o check-in *anterior* (uma sessão antiga, bem mais longa). `fallbackContextRef` passou a carregar também `minutes`/`goal`, capturados de forma síncrona junto aos demais campos — elimina a dependência do estado obsoleto. Bug pré-existente (a mesma leitura já existia antes da Fase 4); só ficou visível agora porque o gerador fixo de 6 templates não conseguia estourar o orçamento da mesma forma que uma sessão real ajustada ao tempo consegue.
+
+**Verificação ao vivo em produção** (conta `tiago.moreira@client.test`, restrição de lombar no roster, tier AI Performance com trainer vinculado — por isso `useSmart` é `true` por padrão; `window.fetch` interceptado no navegador real para forçar o ramo `catch`, condição idêntica à indisponibilidade de rede real):
+
+1. **Check-in com dor lombar moderada, 15 min:** plano gerado com `Treadmill Walk (warm-up)` (aquecimento espremido a 60s), `Box Jump`, `Battle Rope Slam`, `Hip Flexor Lunge Stretch` — 865s = 14,4 min = 96,1% de 15 min. Nenhum exercício com tag `lower_back`. Sem banner de estouro.
+2. **Mesmo cenário, idioma pt-BR, nomes traduzidos ligado:** `Aquecimento Dinâmico` (60s), `Elevação Lateral`, `Escalador (Mountain Climber)`, `Postura da Criança (restaurativa)` — mesma convergência (865s = 96,1%), nomes 100% em português, vindos do espelho embutido, sem qualquer chamada de tradução de rede (confirmado no painel de rede).
+3. **Check-in com dor 9/10, fadiga 9/10, energia 2/10 → `SAFETY_GATE = AI-LED BLOCKED`, readiness 0/100:** tela de Workout mostrou "Safety Gate Active — Your check-in indicates this is not a safe moment for an AI-led session. Readiness score: 0/100" — nenhum exercício gerado, nenhuma tentativa de persistência. `0/100` é o valor real do check-in, não o `60` fabricado do código antigo.
+
+Console confirmou em todos os casos que o `catch` (não o caminho smart) processou a requisição, via o log `[start-workout] AI generation failed — using fallback plan`.
+
+**Pendências conscientes, fora do escopo desta fase:**
+- O plano gerado no `catch` continua **não sendo persistido** (gap pré-existente, não introduzido nem fechado aqui) — `planId` fica `''`, igual ao comportamento anterior. Registrado para decisão futura (Fase 5 ou item próprio), não bloqueia a aceitação desta fase.
+- `fitnessOnly` mapeado para `intensity === 'high'` é uma heurística defensável mas não testada contra a classificação `performance` usada em outros pontos do app (`classificationMap` em `StartWorkoutScreen.tsx`) — os dois sistemas de classificação não foram reconciliados.
 
 ---
 
