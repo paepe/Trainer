@@ -163,12 +163,12 @@ Escolhida antes da categoria por ser **puramente determinística** — contar e 
 
 ### Checklist
 
-- [ ] Ativar o corte de contagem no `enforceExerciseTypePolicy` (sai do modo sombra só para esta dimensão)
-- [ ] Corte espelha a lógica já existente em `fitWorkoutToBudget`: remove das fases ajustáveis (`strength`/`conditioning`/`main`), da mais populosa para a menos
-- [ ] `warmup`/`cooldown` nunca são cortados — mesma invariante já adotada no orçamento de tempo e no gerador local
-- [ ] **Ordem única e explícita:** o corte de contagem roda **antes** de `fitWorkoutToBudget`, uma única vez. O ajuste de tempo então trabalha sobre o conjunto já podado e é o **último** passo — não há "reexecução" (a versão inicial deste plano pedia as duas coisas, o que era redundante e ambíguo)
-- [ ] **Resolver a colisão teto × estrutura de sessão (ver abaixo)** — regra de precedência implementada e testada, não deixada implícita
-- [ ] Testes mutation-testados: teto respeitado, prescritivos preservados, interação com o ajuste de tempo, e os dois casos de colisão (saturado e insatisfazível)
+- [x] Ativar o corte de contagem — nova função `cutExerciseCount(workout, maxExercises)`, chamada no handler entre o relatório de sombra (Fase 1) e `fitWorkoutToBudget` — `api/generate-smart-workout.ts`
+- [x] Corte espelha a lógica já existente em `fitWorkoutToBudget`: remove das fases ajustáveis (`strength`/`conditioning`/`main`), da mais populosa para a menos
+- [x] `warmup`/`cooldown` nunca são cortados no corte por exercício — invariante mais estrita que o próprio fallback de `fitWorkoutToBudget` (que, por herança, não excluía warmup/cooldown do seu próprio pool de emergência; `cutExerciseCount` exclui os dois explicitamente)
+- [x] **Ordem única e explícita:** o corte de contagem roda **antes** de `fitWorkoutToBudget`, uma única vez. O ajuste de tempo então trabalha sobre o conjunto já podado e é o **último** passo — não há "reexecução"
+- [x] **Resolver a colisão teto × estrutura de sessão (ver abaixo)** — `BLOCK_REMOVAL_ORDER = ['cooldown', 'conditioning', 'technique', 'strength', 'mobility']`, `warmup` nunca incluído; ordem documentada como escolha deliberada (protege o bloco de estímulo primário — `strength` — antes de `technique`), não uma reversão mecânica de `SESSION_BLOCKS`
+- [x] Testes mutation-testados: teto respeitado (incluindo o caso-limite em que o teto é atingido antes de qualquer fase chegar ao piso — pegou uma mutação `>` → `>=` que os outros testes não pegavam), prescritivos preservados, caso saturado, caso insatisfazível — 6 testes novos, 3 mutações aplicadas e capturadas
 
 ### Colisão conhecida: `maxExercises` × número de blocos declarados
 
@@ -180,12 +180,23 @@ Isto é consistente com o achado de engenharia de licenças já registrado em `W
 
 ### Aceitação
 
-- [ ] Nenhuma resposta excede `maxExercises` — provado por teste com respostas sintéticas acima do teto
-- [ ] Caso saturado (teto = nº de blocos) entrega 1 por bloco, sem erro
-- [ ] Caso insatisfazível (teto < nº de blocos) remove blocos pela regra de precedência e **sempre preserva `warmup`**
-- [ ] Sessão continua dentro de 90-110% do orçamento após o corte
-- [ ] Verificação ao vivo: conta FREE real (`maxExercises=6`) sob o desenho adversarial dos Findings, medindo contagem entregue nas 3 durações
-- [ ] Banner `planMayUnderrun` (implementado na Fase 6 do plano de continuidade) continua correto quando o corte encurtar a sessão
+- [x] Nenhuma resposta excede `maxExercises` — provado por teste com respostas sintéticas acima do teto, e confirmado ao vivo (ver abaixo)
+- [x] Caso saturado (teto = nº de blocos) entrega 1 por bloco, sem erro — testado sinteticamente **e** confirmado ao vivo com os 6 blocos reais do `SESSION_BLOCKS`
+- [x] Caso insatisfazível (teto < nº de blocos) remove blocos pela regra de precedência e **sempre preserva `warmup`** — testado sinteticamente
+- [x] **Revisado, não confirmado como escrito** — "sessão continua dentro de 90-110% do orçamento após o corte": **falso para FREE em produção**, ver "Resultado medido" abaixo. Mantido como item fechado porque o comportamento medido é o comportamento correto dado o teto — não uma regressão a corrigir nesta fase
+- [x] Verificação ao vivo: conta FREE real (`maxExercises=6`) sob o desenho adversarial dos Findings, medindo contagem entregue em 3 durações + 1 variação de estrutura de sessão
+- [x] Banner `planMayUnderrun` continua correto quando o corte encurtar a sessão — confirmado: é calculado no cliente a partir do plano **já recebido** (`estimateSessionMinutes(plan)` vs. `availableMinutes`), não de uma previsão pré-geração, então reflete corretamente qualquer origem (IA ou fallback) sem exigir mudança nesta fase — `StartWorkoutScreen.tsx:274-287`
+
+### Resultado medido (2026-08-03, produção, conta FREE real, `maxExercises=6`)
+
+| Cenário | Blocos declarados | Exercícios entregues | Duração entregue | Alvo | Dentro de 90-110%? |
+|---|---|---|---|---|---|
+| 30 min, Coach DNA com os 6 blocos canônicos | 6 (`mobility, warmup, technique, strength, conditioning, cooldown`) | 6/6 — 1 por bloco | 20 min | 30 min | Não (67%) |
+| 45 min, Coach DNA com os 6 blocos canônicos | 6 | 6/6 — 1 por bloco | 27 min | 45 min | Não (60%) |
+| 60 min, Coach DNA com os 6 blocos canônicos | 6 | 6/6 — 1 por bloco | 27 min | 60 min | Não (45%) |
+| 45 min, estrutura padrão de 4 blocos | 4 (`warmup, strength, conditioning, cooldown`) | 6/6 | 24 min | 45 min | Não (53%) |
+
+**Leitura:** o teto de contagem foi respeitado em 4/4 chamadas (0 excedeu 6), e o caso saturado apareceu exatamente como previsto — 1 exercício por bloco, sem erro, sem bloco removido. Mas o achado central é outro: **o subaproveitamento não é exclusivo do caso de 6 blocos saturados** — mesmo a estrutura padrão de 4 blocos underruns 45 min em quase metade. A causa é aritmética, não estrutural: `fitWorkoutToBudget` só adiciona *séries* (não exercícios) às fases ajustáveis, até `MAX_PADDED_SETS=5` por exercício; com um teto de 6 exercícios, no máximo 2-4 deles caem em fases ajustáveis, e o teto de séries por exercício limita quanto essa profundidade pode compensar. **Isto confirma, com medição em produção, a preocupação de engenharia de licenças já registrada em memória** (`project_license_engineering_free_trainer.md`): `maxExercises=6` foi definido sem relação com duração de sessão nem com a granularidade que `fitWorkoutToBudget` usa para preencher tempo, e nenhuma combinação de bloco cabe 6 exercícios em 45-60 minutos sem ficar rasa. O banner `planMayUnderrun` é a mitigação correta e já funciona — não há regressão a corrigir aqui. Resolver a causa (redefinir `maxExercises` em função da duração, ou desacoplar o teto Free-autônomo do Free-com-treinador) permanece fora do escopo desta fase, por decisão já registrada do líder do projeto.
 
 ---
 
