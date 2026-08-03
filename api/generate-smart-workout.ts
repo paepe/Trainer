@@ -501,6 +501,79 @@ export function cutExerciseCount(workout: SmartWorkout, maxExercises: number) {
   };
 }
 
+// Fase 3: secondary safety net, consulted only when the model omits
+// `category` — never overrides an explicit classification. Names return in
+// the client's own locale (buildSystemPrompt), so this only catches literal
+// keyword matches — mostly English-locale clients. Documented residual risk,
+// not a primary mechanism (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md
+// Fase 3, "Limite real da rede secundária").
+//
+// Resolves a wording gap in the plan itself: its enumerated deny-list uses
+// three narrow "X jump" phrases (box/broad/depth jump), yet it also calls
+// for an allowlist exception on "Jumping Jacks" — which matches none of
+// those three phrases. The only deny-list shape consistent with both is a
+// bare "jump" token (catching box/broad/depth/squat/tuck jump generically),
+// so that is what is implemented here, with the allowlist exception it implies.
+const DENY_LIST_PATTERNS  = ['sprint', 'plyo', 'agility', 'shuttle', 'sled', 'snatch', 'clean & jerk', 'jump'];
+const DENY_LIST_ALLOWLIST = new Set(['jumping jacks']);
+
+function looksLikePerformanceByName(name: string): boolean {
+  const lower = name.toLowerCase();
+  if (DENY_LIST_ALLOWLIST.has(lower)) return false;
+  return DENY_LIST_PATTERNS.some(p => lower.includes(p));
+}
+
+export interface CategoryFilterReport {
+  removedExercises:     { name: string; phase: string; reason: 'category' | 'name-heuristic' }[];
+  forcedNonEmptyPhases: string[];
+}
+
+/**
+ * Fase 3 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md — activates the
+ * category dimension of the policy: under fitnessOnly, removes (never
+ * substitutes — api/* cannot import a replacement library, and inventing one
+ * without equipment/injury context would be worse than removing) every
+ * exercise classified or heuristically detected as performance. Never empties
+ * a phase: if every exercise in a block would be removed, the first one (in
+ * the model's own returned order) is kept and reported instead — degrading
+ * content is acceptable, delivering a session with no work block is not.
+ * Runs after cutExerciseCount and before fitWorkoutToBudget, so time fitting
+ * stays the single last step.
+ */
+export function enforceCategoryFilter(
+  workout: SmartWorkout,
+  fitnessOnly: boolean,
+): { workout: SmartWorkout; report: CategoryFilterReport } {
+  const report: CategoryFilterReport = { removedExercises: [], forcedNonEmptyPhases: [] };
+  if (!fitnessOnly) return { workout, report };
+
+  const isPerformance = (ex: WorkoutExercise) =>
+    ex.category === 'performance' || (ex.category == null && looksLikePerformanceByName(ex.name));
+
+  const phases: WorkoutPhase[] = (workout.phases ?? []).map(p => {
+    const original = p.exercises ?? [];
+    let kept = original.filter(ex => !isPerformance(ex));
+
+    if (kept.length === 0 && original.length > 0) {
+      report.forcedNonEmptyPhases.push(p.phase);
+      kept = [original[0]!];
+    }
+
+    for (const ex of original) {
+      if (!kept.includes(ex)) {
+        report.removedExercises.push({
+          name: ex.name, phase: p.phase,
+          reason: ex.category === 'performance' ? 'category' : 'name-heuristic',
+        });
+      }
+    }
+
+    return { ...p, exercises: kept };
+  });
+
+  return { workout: { ...workout, phases }, report };
+}
+
 interface DailyInsight {
   title:    string;
   body:     string;
@@ -1067,6 +1140,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
       }
       parsed.workout = cut.workout;
+    }
+
+    // Fase 3 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md: activate the
+    // category dimension. Runs after the count cut, still before
+    // fitWorkoutToBudget, so time fitting remains the single last step.
+    if (parsed.workout?.phases?.length && body.task.fitnessOnly) {
+      const filtered = enforceCategoryFilter(parsed.workout, body.task.fitnessOnly);
+      if (filtered.report.removedExercises.length > 0 || filtered.report.forcedNonEmptyPhases.length > 0) {
+        console.warn(
+          `[generate-smart-workout] category filter (fitnessOnly): removed ${filtered.report.removedExercises.length} exercise(s)` +
+          (filtered.report.forcedNonEmptyPhases.length ? `, forced non-empty in [${filtered.report.forcedNonEmptyPhases.join(', ')}] (all exercises were performance)` : '') +
+          ` — ${JSON.stringify(filtered.report.removedExercises)}`,
+        );
+      }
+      parsed.workout = filtered.workout;
     }
 
     // Enforce the time budget on generated sessions (safety-gate responses carry

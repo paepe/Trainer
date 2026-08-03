@@ -7,7 +7,7 @@
 // the right order while the prompt says nothing about order at all.
 
 import { describe, it, expect } from 'vitest';
-import { buildPrompt, enforceExerciseTypePolicy, cutExerciseCount } from './generate-smart-workout';
+import { buildPrompt, enforceExerciseTypePolicy, cutExerciseCount, enforceCategoryFilter } from './generate-smart-workout';
 import type { ExerciseTypePolicyReport } from './generate-smart-workout';
 import { DEFAULT_AI_TRAINER } from '../src/ai/buildAIContext';
 import { DEFAULT_SESSION_ORDER, SESSION_BLOCKS } from '../src/lib/sessionStructure';
@@ -379,6 +379,87 @@ describe('cutExerciseCount (Fase 2, count cap active)', () => {
     expect(result.removedBlocks).toEqual([]);
     const total = result.workout.phases.reduce((sum, p) => sum + p.exercises.length, 0);
     expect(total).toBe(4);
+  });
+});
+
+describe('enforceCategoryFilter (Fase 3, category filter active)', () => {
+  it('removes every category=performance exercise under fitnessOnly', () => {
+    const w = workoutWith([
+      { phase: 'conditioning', exercises: [
+        { name: 'Kettlebell Swing', category: 'fitness' },
+        { name: 'Box Jump', category: 'performance' },
+      ] },
+    ]);
+    const { workout, report } = enforceCategoryFilter(w, true);
+    const names = workout.phases[0]!.exercises.map(e => e.name);
+    expect(names).toEqual(['Kettlebell Swing']);
+    expect(report.removedExercises).toEqual([{ name: 'Box Jump', phase: 'conditioning', reason: 'category' }]);
+  });
+
+  it('does not touch anything when fitnessOnly is false', () => {
+    const w = workoutWith([
+      { phase: 'conditioning', exercises: [{ name: 'Box Jump', category: 'performance' }] },
+    ]);
+    const { workout, report } = enforceCategoryFilter(w, false);
+    expect(workout.phases[0]!.exercises).toHaveLength(1);
+    expect(report.removedExercises).toEqual([]);
+  });
+
+  it('never empties a phase: keeps the first exercise in returned order if every exercise in the block is performance', () => {
+    const w = workoutWith([
+      { phase: 'conditioning', exercises: [
+        { name: 'Box Jump', category: 'performance' },
+        { name: 'Sprint', category: 'performance' },
+      ] },
+    ]);
+    const { workout, report } = enforceCategoryFilter(w, true);
+    expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Box Jump']);
+    expect(report.forcedNonEmptyPhases).toEqual(['conditioning']);
+    expect(report.removedExercises).toEqual([{ name: 'Sprint', phase: 'conditioning', reason: 'category' }]);
+  });
+
+  it('applies the name-heuristic deny-list only when category is missing', () => {
+    const w = workoutWith([
+      { phase: 'conditioning', exercises: [
+        { name: '40m Sprint' /* no category */ },
+        { name: 'Kettlebell Swing' /* no category */ },
+      ] },
+    ]);
+    const { workout, report } = enforceCategoryFilter(w, true);
+    expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Kettlebell Swing']);
+    expect(report.removedExercises).toEqual([{ name: '40m Sprint', phase: 'conditioning', reason: 'name-heuristic' }]);
+  });
+
+  it('never overrides an explicit category=fitness classification, even if the name matches the deny-list', () => {
+    // A second, unambiguous survivor alongside it — with only the one
+    // deny-list-matching exercise, the "never empty a phase" fallback would
+    // keep it regardless of whether the category-wins precedence held.
+    const w = workoutWith([
+      { phase: 'conditioning', exercises: [
+        { name: 'Bicep Curl', category: 'fitness' },
+        { name: 'Sprint Intervals', category: 'fitness' },
+      ] },
+    ]);
+    const { workout, report } = enforceCategoryFilter(w, true);
+    expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Bicep Curl', 'Sprint Intervals']);
+    expect(report.removedExercises).toEqual([]);
+  });
+
+  it('allowlists "Jumping Jacks" despite containing "jump", when category is missing', () => {
+    // Three exercises, with a third clean survivor — if only "Jumping Jacks"
+    // and a deny-listed exercise were present, the "never empty a phase"
+    // fallback would keep "Jumping Jacks" regardless of whether the
+    // allowlist actually ran, masking the case.
+    const w = workoutWith([
+      { phase: 'warmup', exercises: [
+        { name: 'Kettlebell Swing' /* no category, no deny-list match */ },
+        { name: 'Jumping Jacks' /* no category */ },
+        { name: '40m Sprint' /* no category */ },
+      ] },
+    ]);
+    const { workout, report } = enforceCategoryFilter(w, true);
+    expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Kettlebell Swing', 'Jumping Jacks']);
+    expect(report.removedExercises).toEqual([{ name: '40m Sprint', phase: 'warmup', reason: 'name-heuristic' }]);
   });
 });
 
