@@ -1,5 +1,6 @@
 import type { CheckIn } from '../types';
 import type { Json } from '../types/supabase';
+import type { ExerciseCategory } from '../types/workout';
 import type { SmartWorkoutRequest, SmartWorkoutResponse, WorkoutExercise } from '../ai/types';
 import { authHeaders } from './authHeaders';
 
@@ -22,6 +23,8 @@ export interface GeneratedWorkoutExercise {
   phase?:           string | null;
   /** Locale the name was written/generated in (docs/EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, D7). */
   name_source_locale?: string | null;
+  /** As declared by the model, already validated server-side (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 1/3/4). */
+  category?:        ExerciseCategory | null;
 }
 
 // Result from smart workout — includes safety context alongside exercises
@@ -157,6 +160,7 @@ function mapExercise(ex: WorkoutExercise, phase: string | null): GeneratedWorkou
     rest_seconds:     ex.restSeconds ?? null,
     notes,
     phase,
+    category:         ex.category ?? null,
   };
 }
 

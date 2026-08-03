@@ -1,4 +1,5 @@
 import type { CoachArchetype } from '../types/coach-dna';
+import type { ExerciseCategory } from '../types/workout';
 
 export type AITask = 'generate_workout' | 'suggest_objectives' | 'daily_insight';
 
@@ -211,6 +212,10 @@ export interface WorkoutExercise {
   restSeconds:     number;
   cue:              string;
   safetyNote?:      string | undefined;
+  // 1.1 (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 1/4): declared
+  // by the model, validated server-side (Fase 3), persisted as-is (Fase 4) —
+  // not an independent client-side reclassification.
+  category?:        ExerciseCategory | undefined;
 }
 
 export interface WorkoutPhase {

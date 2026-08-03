@@ -12,7 +12,7 @@ vi.mock('../supabase', () => ({
 import { requestSmartWorkout } from './workoutGeneration';
 import type { SmartWorkoutRequest } from '../ai/types';
 
-function smartWorkoutResponse(phases: Array<{ phase: string; exercises: Array<{ name: string }> }>) {
+function smartWorkoutResponse(phases: Array<{ phase: string; exercises: Array<{ name: string; category?: string }> }>) {
   return {
     workout: {
       title: 'Test', format: 'Circuit', totalDurationMin: 40,
@@ -22,6 +22,7 @@ function smartWorkoutResponse(phases: Array<{ phase: string; exercises: Array<{ 
         exercises: p.exercises.map(e => ({
           name: e.name, muscleGroup: 'Legs', sets: 3, reps: '10',
           durationSeconds: null, load: 'bodyweight', restSeconds: 30, cue: 'go',
+          category: e.category,
         })),
       })),
     },
@@ -65,5 +66,42 @@ describe('requestSmartWorkout — phase survives the phases[] → flat-list flat
 
     const result = await requestSmartWorkout(MINIMAL_REQUEST);
     expect(result.exercises[0]?.phase).toBeNull();
+  });
+});
+
+// docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 4: category propagated
+// through mapExercise into GeneratedWorkoutExercise, same shape persisted by
+// StartWorkoutScreen.tsx's persistGeneratedPlan.
+describe('requestSmartWorkout — category propagation (Fase 4)', () => {
+  beforeEach(() => { vi.stubGlobal('fetch', vi.fn()); });
+
+  it('carries the model-declared category through to the flattened result', async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      json: async () => smartWorkoutResponse([
+        { phase: 'strength', exercises: [{ name: 'Back Squat', category: 'fitness' }, { name: 'Box Jump', category: 'performance' }] },
+      ]),
+    });
+
+    const result = await requestSmartWorkout(MINIMAL_REQUEST);
+
+    expect(result.exercises.map(e => [e.exercise_name, e.category])).toEqual([
+      ['Back Squat', 'fitness'],
+      ['Box Jump', 'performance'],
+    ]);
+  });
+
+  it('sets category to null, not undefined, when the model omits it (unclassified rows keep working with useExerciseClassification)', async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      json: async () => smartWorkoutResponse([
+        { phase: 'strength', exercises: [{ name: 'Mystery Move' /* no category */ }] },
+      ]),
+    });
+
+    const result = await requestSmartWorkout(MINIMAL_REQUEST);
+    expect(result.exercises[0]?.category).toBeNull();
   });
 });

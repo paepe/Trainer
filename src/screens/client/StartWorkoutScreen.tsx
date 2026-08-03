@@ -347,6 +347,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           order_index:      i,
           phase:            ex.phase ?? null,
           name_source_locale: nameSourceLocale,
+          exercise_category: ex.category ?? null,
         }))
       );
 
