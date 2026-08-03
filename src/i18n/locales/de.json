@@ -1198,6 +1198,10 @@
     },
     "mode": {
       "finishWorkout": "Training beenden",
+      "confirmFinishTitle": "Training jetzt vorzeitig beenden?",
+      "confirmFinishBody": "Es sind noch {{remaining}} Übung(en) offen. Nach dem Beenden kannst du nicht zu dieser Einheit zurückkehren — sie wird so abgeschlossen, wie sie ist.",
+      "confirmFinishContinue": "Training fortsetzen",
+      "confirmFinishOk": "Trotzdem beenden",
       "saving": "Wird gespeichert…",
       "reps": "Wdh.",
       "cancel": "Abbrechen",

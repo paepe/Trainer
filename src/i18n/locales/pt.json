@@ -1198,6 +1198,10 @@
     },
     "mode": {
       "finishWorkout": "Finalizar Treino",
+      "confirmFinishTitle": "Finalizar o treino agora?",
+      "confirmFinishBody": "Ainda restam {{remaining}} exercício(s). Depois de finalizar, não é possível voltar a esta sessão — ela será marcada como concluída do jeito que está.",
+      "confirmFinishContinue": "Continuar treino",
+      "confirmFinishOk": "Finalizar mesmo assim",
       "saving": "Salvando…",
       "reps": "Reps",
       "cancel": "Cancelar",

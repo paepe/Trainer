@@ -1,6 +1,6 @@
 import type { SessionExerciseStatus } from '../../../types/workout';
 
-export type Phase = 'init' | 'active' | 'set_form' | 'rest' | 'pain_form' | 'skip_form';
+export type Phase = 'init' | 'active' | 'set_form' | 'rest' | 'pain_form' | 'skip_form' | 'confirm_finish';
 
 export interface LocalSetLog {
   set_number:       number;

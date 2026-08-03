@@ -509,7 +509,7 @@ export function WorkoutModeScreen({
         {phase === 'active' && (allDone || exStates.length > 0) && (
           <div style={{ paddingTop: 16 }}>
             <button
-              onClick={finishWorkout}
+              onClick={() => { if (allDone) void finishWorkout(); else setPhase('confirm_finish'); }}
               disabled={finishing}
               data-testid="finish-workout-btn"
               style={{
@@ -680,6 +680,25 @@ export function WorkoutModeScreen({
             >
               {tr('client.mode.confirmSkip')}
             </button>
+          </div>
+        </BottomPanel>
+      )}
+
+      {/* ── Overlay: confirm finishing early (remaining exercises would be lost) ── */}
+      {phase === 'confirm_finish' && (
+        <BottomPanel title={tr('client.mode.confirmFinishTitle')} dark={dark}>
+          <div style={{ fontSize: 13.5, color: textSec(dark), lineHeight: 1.5 }}>
+            {tr('client.mode.confirmFinishBody', { remaining: exStates.length - doneCount })}
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+            <button onClick={() => setPhase('active')} data-testid="confirm-finish-cancel-btn" style={{
+              flex: 1, padding: '12px 0', borderRadius: 999, border: `1.5px solid ${borderSubtle(dark)}`,
+              background: 'transparent', color: textPri(dark), fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            }}>{tr('client.mode.confirmFinishContinue')}</button>
+            <button onClick={() => void finishWorkout()} data-testid="confirm-finish-ok-btn" style={{
+              flex: 2, ...primaryBtn(t.accent),
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            }}>{tr('client.mode.confirmFinishOk')}</button>
           </div>
         </BottomPanel>
       )}

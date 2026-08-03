@@ -1198,6 +1198,10 @@
     },
     "mode": {
       "finishWorkout": "Finish Workout",
+      "confirmFinishTitle": "Finish workout early?",
+      "confirmFinishBody": "{{remaining}} exercise(s) are still pending. Once you finish, you can't come back to this session — it will be marked complete as-is.",
+      "confirmFinishContinue": "Continue workout",
+      "confirmFinishOk": "Finish anyway",
       "saving": "Saving…",
       "reps": "Reps",
       "cancel": "Cancel",
