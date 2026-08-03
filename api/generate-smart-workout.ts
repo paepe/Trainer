@@ -239,6 +239,13 @@ interface TaskContext {
   adjustmentAllowed?:  boolean;
 }
 
+// Version history (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 1,
+// directive §6.3 "version AI response schemas alongside prompt versions"):
+//   1.0 — original contract (no per-exercise `category`)
+//   1.1 — WorkoutExercise gained `category: 'fitness'|'performance'|'mobility'`
+//         (optional on input — the model may omit it; see enforceExerciseTypePolicy)
+type ContextVersion = '1.0' | '1.1';
+
 interface AIContext {
   trainer:        TrainerContext;
   client:         ClientContext;
@@ -247,7 +254,7 @@ interface AIContext {
   library:        LibraryContext;
   task:           TaskContext;
   locale:         string;
-  contextVersion: '1.0';
+  contextVersion: ContextVersion;
   builtAt:        string;
 }
 
@@ -267,6 +274,14 @@ interface WorkoutPhase {
   exercises:   WorkoutExercise[];
 }
 
+// 'fitness' | 'performance' | 'mobility' — same three categories and
+// definitions as api/classify-exercises.ts (mirrored, not imported: api/*
+// handlers are self-contained, the Vercel function builder does not trace
+// relative imports outside each handler). Optional on the wire: older
+// responses and any model call that omits the field must not break parsing
+// (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 1).
+type ExerciseTypeCategory = 'fitness' | 'performance' | 'mobility';
+
 interface WorkoutExercise {
   name:            string;
   muscleGroup:     string;
@@ -277,6 +292,7 @@ interface WorkoutExercise {
   restSeconds:     number;
   cue:              string;
   safetyNote?:      string | undefined;
+  category?:        ExerciseTypeCategory | undefined;
 }
 
 // ── Time budget enforcement ───────────────────────────────────────────────────
@@ -375,6 +391,59 @@ function fitWorkoutToBudget(workout: SmartWorkout, targetMinutes: number) {
   };
 }
 
+// ── Exercise-type policy (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md) ──
+// Fase 1: shadow mode only — computes and reports violations, never mutates
+// the workout. Fases 2/3 activate cutting on top of the same report, in this
+// order: count first (purely deterministic, no semantic judgement), then
+// category (Fase 3). Neither is active yet; this function is called for
+// measurement only (see the handler below).
+export interface ExerciseTypeViolation {
+  kind:         'category' | 'count';
+  exerciseName?: string;
+  phase?:        string;
+  detail:        string;
+}
+
+export interface ExerciseTypePolicyReport {
+  violations:          ExerciseTypeViolation[];
+  totalExercises:      number;
+  missingCategoryCount: number;
+}
+
+export function enforceExerciseTypePolicy(
+  workout: SmartWorkout | undefined,
+  task: Pick<TaskContext, 'fitnessOnly' | 'maxExercises'>,
+): ExerciseTypePolicyReport {
+  const violations: ExerciseTypeViolation[] = [];
+  let totalExercises = 0;
+  let missingCategoryCount = 0;
+
+  for (const phase of workout?.phases ?? []) {
+    for (const ex of phase.exercises ?? []) {
+      totalExercises++;
+      if (ex.category == null) {
+        missingCategoryCount++;
+        continue;
+      }
+      if (task.fitnessOnly && ex.category === 'performance') {
+        violations.push({
+          kind: 'category', exerciseName: ex.name, phase: phase.phase,
+          detail: `"${ex.name}" is category=performance but task.fitnessOnly is true`,
+        });
+      }
+    }
+  }
+
+  if (task.maxExercises != null && totalExercises > task.maxExercises) {
+    violations.push({
+      kind: 'count',
+      detail: `workout has ${totalExercises} exercises, task.maxExercises=${task.maxExercises}`,
+    });
+  }
+
+  return { violations, totalExercises, missingCategoryCount };
+}
+
 interface DailyInsight {
   title:    string;
   body:     string;
@@ -445,7 +514,16 @@ ${isAutonomous ? '- Since there is no trainer, generate a plan consistent with t
   roughly 15-25% of the session for the preparation blocks (mobility/warmup/technique) and
   10-15% for the cool-down, adjusted to goal, energy and soreness.
 - Respond in ${lang}. All workout titles, coach notes, exercise cues, descriptions, and adaptation notes MUST be written in ${lang}. Never mix languages.
-- Return ONLY valid JSON matching the required output shape — no markdown fences, no commentary.`;
+- Return ONLY valid JSON matching the required output shape — no markdown fences, no commentary.
+- For "generate_workout" only: classify every exercise into exactly one "category":
+  - fitness: general strength, hypertrophy, endurance, flexibility, mobility, and health-oriented exercises
+    (e.g. Squat, Bench Press, Deadlift, Plank, Row, Bicep Curl, Yoga stretch, Swimming laps)
+  - performance: sport-specific, power, speed, agility, and athletic development exercises
+    (e.g. Sprint, Box Jump, Olympic lifts, ATL/CTL training, Plyometrics, Agility ladder, Throw)
+  - mobility: dedicated range-of-motion, stretching, and joint health exercises
+    (e.g. Hip flexor stretch, Foam roll, PNF stretch, Thoracic rotation, Joint circles)
+  When in doubt between fitness and performance, choose fitness. Compound movements like Squat or
+  Deadlift are fitness unless explicitly athletic/power-focused.`;
 
   const shapes: Record<typeof task, string> = {
     generate_workout: `
@@ -472,7 +550,8 @@ Output shape:
             "load": "string — e.g. 'bodyweight', '60% 1RM', 'light'",
             "restSeconds": number,
             "cue": "string — 1 coaching cue in trainer's tone",
-            "safetyNote": "string | omit if not needed"
+            "safetyNote": "string | omit if not needed",
+            "category": "fitness|performance|mobility — see the classification rule above"
           }
         ]
       }
@@ -847,7 +926,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const ctx: AIContext = {
     ...body,
-    contextVersion: '1.0',
+    contextVersion: '1.1',
     builtAt: new Date().toISOString(),
   };
 
@@ -897,6 +976,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!match) throw new Error('AI returned unexpected format');
 
     const parsed = JSON.parse(match[0]) as Partial<SmartWorkoutResponse>;
+
+    // Shadow mode (Fase 1 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md):
+    // measure category/count violations on the model's raw output — before
+    // fitWorkoutToBudget reshapes it — and log them. Never alters `parsed`.
+    // Fases 2/3 will consume the same report to actually cut violations;
+    // until then this exists purely to establish a real violation rate.
+    if (parsed.workout?.phases?.length) {
+      const report = enforceExerciseTypePolicy(parsed.workout, body.task);
+      if (report.violations.length > 0) {
+        console.warn(
+          `[generate-smart-workout] exercise-type policy violations (shadow mode, not enforced): ` +
+          `${report.violations.length} violation(s) of ${report.totalExercises} exercise(s) — ` +
+          JSON.stringify(report.violations),
+        );
+      }
+      if (report.missingCategoryCount > 0) {
+        console.warn(
+          `[generate-smart-workout] ${report.missingCategoryCount}/${report.totalExercises} exercises missing "category"`,
+        );
+      }
+    }
 
     // Enforce the time budget on generated sessions (safety-gate responses carry
     // an insight and no workout, so there is nothing to fit in that case).

@@ -191,7 +191,11 @@ export interface AIContext {
   library:        LibraryContext;
   task:           TaskContext;
   locale:         string;
-  contextVersion: '1.0';
+  // 1.1 (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 1): response
+  // WorkoutExercise gained `category`. The server overrides whatever is sent
+  // here, so this only documents intent — see api/generate-smart-workout.ts
+  // for the version this build actually declares.
+  contextVersion: '1.0' | '1.1';
   builtAt:        string;
 }
 

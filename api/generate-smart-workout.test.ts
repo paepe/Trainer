@@ -7,7 +7,8 @@
 // the right order while the prompt says nothing about order at all.
 
 import { describe, it, expect } from 'vitest';
-import { buildPrompt } from './generate-smart-workout';
+import { buildPrompt, enforceExerciseTypePolicy } from './generate-smart-workout';
+import type { ExerciseTypePolicyReport } from './generate-smart-workout';
 import { DEFAULT_AI_TRAINER } from '../src/ai/buildAIContext';
 import { DEFAULT_SESSION_ORDER, SESSION_BLOCKS } from '../src/lib/sessionStructure';
 
@@ -215,6 +216,96 @@ describe('generate-smart-workout — fitnessOnly precedence over trainer favouri
     ));
     expect(user).toContain('Trainer avoid exercises: Overhead Press');
     expect(user).not.toContain('Trainer avoid exercises (secondary');
+  });
+});
+
+// docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 1: shadow-mode
+// validator. Synthetic responses, since the real endpoint is what would be
+// under test — these assert the report itself, not a live generation.
+type SyntheticExercise = { name: string; category?: 'fitness' | 'performance' | 'mobility' };
+function workoutWith(phasesSpec: Array<{ phase: string; exercises: SyntheticExercise[] }>) {
+  return {
+    title: 't', format: 'f', totalDurationMin: 30, coachNote: '', adaptations: [],
+    phases: phasesSpec.map(p => ({
+      phase: p.phase, label: p.phase, durationMin: 10,
+      exercises: p.exercises.map(e => ({
+        name: e.name, muscleGroup: 'full body', sets: 3, reps: '10',
+        durationSeconds: null, load: 'bodyweight', restSeconds: 30, cue: 'go',
+        category: e.category,
+      })),
+    })),
+  } as unknown as Parameters<typeof enforceExerciseTypePolicy>[0];
+}
+
+describe('enforceExerciseTypePolicy (Fase 1, shadow mode)', () => {
+  it('reports no violations for a clean fitness-only response', () => {
+    const w = workoutWith([
+      { phase: 'strength', exercises: [{ name: 'Back Squat', category: 'fitness' }] },
+    ]);
+    const report: ExerciseTypePolicyReport = enforceExerciseTypePolicy(w, { fitnessOnly: true });
+    expect(report.violations).toEqual([]);
+    expect(report.totalExercises).toBe(1);
+    expect(report.missingCategoryCount).toBe(0);
+  });
+
+  it('flags a category violation: performance exercise under fitnessOnly', () => {
+    const w = workoutWith([
+      { phase: 'conditioning', exercises: [{ name: 'Box Jump', category: 'performance' }] },
+    ]);
+    const report = enforceExerciseTypePolicy(w, { fitnessOnly: true });
+    expect(report.violations).toHaveLength(1);
+    expect(report.violations[0]).toMatchObject({ kind: 'category', exerciseName: 'Box Jump', phase: 'conditioning' });
+  });
+
+  it('does not flag performance exercises when fitnessOnly is false', () => {
+    const w = workoutWith([
+      { phase: 'conditioning', exercises: [{ name: 'Box Jump', category: 'performance' }] },
+    ]);
+    const report = enforceExerciseTypePolicy(w, { fitnessOnly: false });
+    expect(report.violations).toEqual([]);
+  });
+
+  it('flags a count violation when total exercises exceed maxExercises', () => {
+    const w = workoutWith([
+      { phase: 'strength', exercises: [{ name: 'A', category: 'fitness' }, { name: 'B', category: 'fitness' }, { name: 'C', category: 'fitness' }] },
+    ]);
+    const report = enforceExerciseTypePolicy(w, { maxExercises: 2 });
+    expect(report.violations).toContainEqual(expect.objectContaining({ kind: 'count' }));
+    expect(report.totalExercises).toBe(3);
+  });
+
+  it('does not flag count when at or under maxExercises', () => {
+    const w = workoutWith([{ phase: 'strength', exercises: [{ name: 'A', category: 'fitness' }] }]);
+    const report = enforceExerciseTypePolicy(w, { maxExercises: 1 });
+    expect(report.violations).toEqual([]);
+  });
+
+  it('treats a missing category as neither a violation nor a crash, and counts it', () => {
+    const w = workoutWith([
+      { phase: 'strength', exercises: [{ name: 'Mystery Move' /* no category */ }] },
+    ]);
+    const report = enforceExerciseTypePolicy(w, { fitnessOnly: true });
+    expect(report.violations).toEqual([]);
+    expect(report.missingCategoryCount).toBe(1);
+    expect(report.totalExercises).toBe(1);
+  });
+
+  it('handles an undefined workout without throwing (safety-gate responses carry no workout)', () => {
+    const report = enforceExerciseTypePolicy(undefined, { fitnessOnly: true, maxExercises: 6 });
+    expect(report).toEqual({ violations: [], totalExercises: 0, missingCategoryCount: 0 });
+  });
+
+  it('can report both a category and a count violation in the same response', () => {
+    const w = workoutWith([
+      { phase: 'conditioning', exercises: [
+        { name: 'Box Jump', category: 'performance' },
+        { name: 'Sprint', category: 'performance' },
+        { name: 'Squat', category: 'fitness' },
+      ] },
+    ]);
+    const report = enforceExerciseTypePolicy(w, { fitnessOnly: true, maxExercises: 2 });
+    const kinds = report.violations.map(v => v.kind).sort();
+    expect(kinds).toEqual(['category', 'category', 'count']);
   });
 });
 

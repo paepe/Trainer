@@ -278,7 +278,7 @@ export function buildAIContext(
     library,
     task,
     locale,
-    contextVersion: '1.0',
+    contextVersion: '1.1',
     builtAt: new Date().toISOString(),
   };
 }
