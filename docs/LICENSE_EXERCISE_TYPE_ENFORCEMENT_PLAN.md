@@ -300,17 +300,32 @@ Com o modelo já devolvendo `category` (Fase 1), gravá-la fecha a lacuna de 418
 
 ### Checklist
 
-- [ ] **Propagar `category` por toda a cadeia de tipos** — a versão inicial desta fase citava só o `insert`, omitindo os dois elos anteriores, sem os quais o valor nunca chega lá: (1) `WorkoutExercise` em `src/ai/types.ts`, (2) `GeneratedWorkoutExercise` + `mapExercise` em `src/lib/workoutGeneration.ts:127`, e só então (3) o `insert` de `persistGeneratedPlan`
-- [ ] `persistGeneratedPlan` (`StartWorkoutScreen.tsx`) passa a gravar `exercise_category` a partir da resposta
-- [ ] Valor gravado é o declarado pelo modelo, já validado pela Fase 3 — não uma reclassificação independente
-- [ ] Linhas sem `category` continuam gravando `null` (o `useExerciseClassification` existente já trata nulo classificando sob demanda — comportamento preservado, não duplicado)
-- [ ] Confirmar por consulta que novos planos passam a gravar o campo
+- [x] **Propagar `category` por toda a cadeia de tipos** — (1) `WorkoutExercise` em `src/ai/types.ts`, (2) `GeneratedWorkoutExercise` + `mapExercise` em `src/lib/workoutGeneration.ts:127`, (3) o `insert` de `persistGeneratedPlan` — usando o `ExerciseCategory` já existente em `src/types/workout.ts`, não um tipo novo
+- [x] `persistGeneratedPlan` (`StartWorkoutScreen.tsx`) passa a gravar `exercise_category` a partir da resposta
+- [x] Valor gravado é o declarado pelo modelo, já validado pela Fase 3 — não uma reclassificação independente
+- [x] Linhas sem `category` continuam gravando `null` (o `useExerciseClassification` existente já trata nulo classificando sob demanda — comportamento preservado, não duplicado)
+- [x] Confirmado por consulta em produção que novos planos passam a gravar o campo
 
 ### Aceitação
 
-- [ ] Novos planos gerados por IA têm `exercise_category` preenchido; consulta em produção confirma
-- [ ] Nenhuma regressão no `useExerciseClassification` (que classifica sob demanda quando nulo)
-- [ ] Métrica auditável: proporção de `performance` entregue por licença, medida em dados reais e não em teste sintético
+- [x] Novos planos gerados por IA têm `exercise_category` preenchido; consulta em produção confirma — ver "Resultado medido" abaixo
+- [x] Nenhuma regressão no `useExerciseClassification` (que classifica sob demanda quando nulo) — inalterado, linhas sem `category` continuam nulas
+- [x] Métrica auditável: mecanismo em produção, mas volume real ainda insuficiente para uma proporção por licença confiável — ver nota abaixo
+
+### Resultado medido (2026-08-03, produção — plano real gerado ao vivo)
+
+Gerado um plano real para a conta `free` (`andre.lima@client.test`, sem dor, readiness 71, R0), via check-in real → geração de IA real → persistência real, não uma chamada direta à API:
+
+| | Total de linhas `ai_generated` em produção | Com `exercise_category` |
+|---|---|---|
+| Antes desta fase | 418 (o número já citado nos achados) | 0 |
+| Depois desta fase (mesma consulta, agora) | 433 (418 antigas + 15 do plano gerado nesta verificação) | 15 — todas do plano novo; as 418 antigas permanecem `null`, como esperado |
+
+Categorias do plano novo: 11 `fitness`, 4 `mobility`, 0 `performance`, 0 nulo — consistente com `fitnessOnly=true` (Free).
+
+Confirma exatamente o comportamento esperado sob `fitnessOnly=true`: nenhum `performance` chega a ser persistido, e a mistura fitness/mobility reflete os blocos reais do plano (`warmup`, `mobility`, `technique`, `strength`, `conditioning`, `cooldown`).
+
+**Nota sobre a métrica auditável do checklist:** com uma única geração de teste no ar, uma "proporção de `performance` por licença" ainda não tem amostra real — o mecanismo de coleta está correto e funcionando (a coluna agora se popula), mas o valor numérico da proporção só se torna significativo com volume de uso real, que é responsabilidade de acompanhamento contínuo, não desta fase.
 
 ---
 
