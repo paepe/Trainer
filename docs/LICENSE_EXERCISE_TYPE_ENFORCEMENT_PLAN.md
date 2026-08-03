@@ -262,13 +262,13 @@ Só depois da Fase 1 ter medido a taxa real e confirmado que o modelo classifica
 
 ### Checklist
 
-- [ ] Ativar o filtro de categoria no `enforceExerciseTypePolicy`
-- [ ] Exercício com `category: 'performance'` sob `fitnessOnly` é **removido**, não substituído — substituir exigiria uma biblioteca server-side que `api/*` não pode importar, e inventar um exercício substituto sem contexto de equipamento/lesão seria pior que remover
-- [ ] Remoção seguida de reexecução do ajuste de tempo, para que a sessão não encolha para fora da banda
-- [ ] **Nunca esvaziar uma fase:** se todos os exercícios de um bloco forem `performance`, manter **o primeiro da ordem devolvida** e registrar — degradar conteúdo é aceitável, entregar uma sessão sem bloco de trabalho não é
-- [ ] Rede de segurança secundária: deny-list de padrões de nome (`sprint`, `plyo`, `agility`, `shuttle`, `sled`, `snatch`, `clean & jerk`, `depth jump`, `broad jump`, `box jump`) aplicada **apenas quando `category` estiver ausente** — nunca sobrepondo uma classificação explícita do modelo
-- [ ] Allowlist explícita para os falsos positivos conhecidos da deny-list (`Jumping Jacks` contém "jump" e é aquecimento canônico)
-- [ ] Testes mutation-testados incluindo o caso de bloco inteiro de performance e o caso de `category` ausente
+- [x] Ativar o filtro de categoria — nova função `enforceCategoryFilter(workout, fitnessOnly)`, chamada após o corte de contagem (Fase 2) e antes de `fitWorkoutToBudget`
+- [x] Exercício com `category: 'performance'` sob `fitnessOnly` é **removido**, não substituído
+- [x] Remoção seguida de reexecução do ajuste de tempo (`fitWorkoutToBudget` roda depois, sobre o conjunto já filtrado) — sessão não encolhe para fora da banda além do que o próprio corte já explica
+- [x] **Nunca esvaziar uma fase:** se todos os exercícios de um bloco forem `performance`, mantém **o primeiro da ordem devolvida** e registra em `forcedNonEmptyPhases`
+- [x] Rede de segurança secundária — deny-list de padrões de nome, aplicada **apenas quando `category` estiver ausente**, nunca sobrepondo uma classificação explícita do modelo. **Ajuste em relação ao texto original:** as três frases estreitas (`depth jump`, `broad jump`, `box jump`) foram substituídas pelo token solto `jump` — são a única forma consistente com a allowlist que o próprio checklist já exigia (`Jumping Jacks` não contém nenhuma das três frases, só "jump"); documentado no código como resolução deliberada de uma lacuna no texto do plano
+- [x] Allowlist explícita para `Jumping Jacks`
+- [x] Testes mutation-testados incluindo o caso de bloco inteiro de performance e o caso de `category` ausente — 6 testes novos, 3 mutações aplicadas e capturadas (2 exigiram redesenho: a primeira versão de 2 testes tinha só 1 exercício por fase, e o próprio fallback "nunca esvaziar" mascarava a mutação ao manter o exercício certo pelo motivo errado)
 
 > **Correção de contrato:** a versão inicial desta fase mandava "manter o de menor intensidade". **Não é implementável** — `WorkoutExercise` (`api/generate-smart-workout.ts:270`) não tem campo `intensity`; expõe apenas `name`, `muscleGroup`, `sets`, `reps`, `durationSeconds`, `load`, `restSeconds`, `cue`, `safetyNote`. O critério foi trocado por "o primeiro da ordem devolvida", que é determinístico e existe de fato. (`intensity` existe apenas no espelho local `FALLBACK_LIBRARY`, que `api/*` não pode importar.)
 
@@ -276,11 +276,19 @@ Só depois da Fase 1 ter medido a taxa real e confirmado que o modelo classifica
 
 ### Aceitação
 
-- [ ] Nenhum exercício `category: 'performance'` sobrevive sob `fitnessOnly` — teste com resposta sintética
-- [ ] Nenhuma fase termina vazia em nenhum cenário testado
-- [ ] Sessão permanece em 90-110% após as remoções
-- [ ] Verificação ao vivo: repetir os 3 testes adversariais para AI_FITNESS **e** FREE, comparando com a linha de base (1/3 e 2/3) — meta: 0 vazamentos
-- [ ] Não-regressão do AI_PERFORMANCE: os 3 testes adversariais continuam entregando conteúdo de performance, inalterados
+- [x] Nenhum exercício `category: 'performance'` sobrevive sob `fitnessOnly` — teste com resposta sintética
+- [x] Nenhuma fase termina vazia em nenhum cenário testado
+- [x] Sessão permanece em 90-110% após as remoções — confirmado ao vivo para AI_FITNESS (3/3) e AI_PERFORMANCE (3/3); FREE continua abaixo da banda, mas por causa já documentada na Fase 2 (teto de 6 exercícios), não por esta fase
+- [x] Verificação ao vivo: repetidos os 3 testes adversariais para AI_FITNESS **e** FREE — **0/3 vazamentos nos dois**, contra a linha de base de 1/3 e 2/3
+- [x] Não-regressão do AI_PERFORMANCE: os 3 testes adversariais continuam entregando `Box Jump`, `40m Sprint`, `Broad Jump` sem alteração (3/3, `category=performance` presente como esperado — `fitnessOnly=false` não aciona o filtro)
+
+### Resultado medido (2026-08-03, produção, 9 chamadas — mesmo desenho adversarial dos Findings)
+
+| Licença | Vazamentos | Linha de base | Duração (min, alvo 45) | Fases vazias |
+|---|---|---|---|---|
+| `ai_fitness` | 0/3 | 1/3 | 45, 42, 45 (banda ok) | 0 |
+| `free` (`maxExercises=6`) | 0/3 | 2/3 | 26, 24, 23 (abaixo da banda — Fase 2, não regressão) | 0 |
+| `ai_performance` | 3/3 (esperado — `fitnessOnly=false`) | 3/3 | 44, 49, 46 (banda ok) | 0 |
 
 ---
 
