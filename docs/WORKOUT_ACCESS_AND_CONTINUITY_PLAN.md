@@ -406,6 +406,13 @@ Seis correções, duas delas por afirmação minha que não sobreviveu à verifi
 
 **Unificação do modelo de custo com `api/*`:** a duplicação permanece por decisão arquitetural. Exige-se constantes idênticas e comentadas.
 
+**Engenharia de licenças: `exercises_per_session` não distingue Free autônomo de Free gerenciado por treinador — registrado para revisão futura, não meu de resolver agora.** Levantado em revisão pós-fechamento (2026-08-02): o teto de 6 exercícios do Free é assimétrico entre os dois caminhos (irrestrito na IA normal, aplicado só no fallback — ver achado "Opção 3" acima) por uma razão puramente técnica (o fallback é código local onde aplicar o teto é trivial; a IA só recebe instrução textual, nunca reforçada no servidor), não por decisão de produto. Dois fatos elevam isso de detalhe de implementação a questão de arquitetura de licenças:
+
+1. **Free-com-treinador não é caso raro — é a maioria dos dados reais.** Consulta em produção: 4 de 5 clientes `free` ativos têm treinador vinculado (`trainer_clients.status='active'`). O modelo mental "Free = autônomo, sem treinador" não corresponde ao uso real.
+2. **Um teto rígido de 6 colidiria com a estrutura de sessão do Coach DNA.** `SESSION_BLOCKS` (`sessionStructure.ts`) tem 6 blocos (`mobility, warmup, technique, strength, conditioning, cooldown`). Um treinador que configura os 6 blocos já precisa de 6 exercícios só para 1 por bloco — um teto de exatamente 6, se algum dia reforçado no servidor, não sobra profundidade nenhuma (nenhum bloco poderia ter 2 exercícios). O número foi fixado sem considerar essa interação.
+
+Não corrigido nem revertido nesta sessão — o comportamento assimétrico já estabilizado (fallback capado, IA livre) foi mantido deliberadamente. A pergunta de fundo para a revisão futura não é "qual número", é "o que 'Free' deveria limitar, e isso muda quando há um treinador envolvido".
+
 ---
 
 ## Caminho de reversão
