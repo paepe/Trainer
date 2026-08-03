@@ -225,23 +225,32 @@ Levantada em revisão do líder: *"como harmonizar a situação de FALLBACK com 
 
 ### Checklist
 
-- [ ] Classificar os 129 exercícios do espelho em `category: 'fitness' | 'performance' | 'mobility'`, aplicando **literalmente** as definições e regras de desempate de `api/classify-exercises.ts` (incluindo *"quando em dúvida entre fitness e performance, escolha fitness"*)
-- [ ] **Rascunho revisável antes de virar código**, no mesmo padrão da Fase 3 do plano de continuidade (`FALLBACK_LIBRARY_MIRROR_CLASSIFICATION_DRAFT_20260802.md`), destacando os casos de fronteira para decisão
-- [ ] **Validação cruzada:** submeter uma amostra ao endpoint real `api/classify-exercises` e registrar a taxa de concordância com a classificação por inspeção — evidência, não presunção (§4.10)
-- [ ] `category` adicionada a `FallbackLibraryExercise` e ao artefato versionado; `intensity` **preservada** — volta a significar só intensidade, sem duplo uso
-- [ ] `fallbackWorkoutGenerator.ts:99` passa a filtrar por `category === 'performance'`, idêntico ao critério server-side da Fase 3
-- [ ] Novos testes no espelho: toda entrada tem `category` válida; nenhum bloco fica vazio sob `fitnessOnly` com o novo critério
-- [ ] Testes do gerador mutation-testados novamente — os existentes assumem o critério antigo e **vão precisar ser revistos, não apenas re-executados**
-- [ ] Registrar o antes/depois: quantos exercícios ficam disponíveis para `free`/`ai_fitness` no fallback com o critério novo vs. os 94 atuais
+- [x] Classificar os 129 exercícios do espelho em `category: 'fitness' | 'performance' | 'mobility'` — **não por inspeção**: submetidos ao próprio endpoint `api/classify-exercises` (3 lotes ≤50), a mesma fonte de verdade que o caminho de IA usa
+- [x] **Rascunho revisável antes de virar código** — `FALLBACK_LIBRARY_CATEGORY_CLASSIFICATION_DRAFT_20260803.md`, apresentado e confirmado pelo líder antes de qualquer edição de código
+- [x] **Validação cruzada:** rascunho manual feito primeiro como hipótese, comparado à IA — **22/129 (17%) divergiram**; a versão final usa o resultado da IA, não o rascunho (evidência acima de hipótese, §4.10)
+- [x] `category` adicionada a `FallbackLibraryExercise` e ao artefato versionado (todas as 129 entradas); `intensity` **preservada**, sem mudança de significado
+- [x] `fallbackWorkoutGenerator.ts:99` passa a filtrar por `category === 'performance'`, idêntico ao critério server-side da Fase 1/3
+- [x] Novos testes no espelho: toda entrada tem `category` válida; nenhum bloco fica vazio sob `fitnessOnly` com o novo critério
+- [x] Testes do gerador revisados (não só re-executados): o teste que assumia `intensity==='high'` foi reescrito para `category==='performance'`, mais 2 testes novos confirmando a correção do achado A7 e a exclusão do `Box Jump`
+- [x] Registrado o antes/depois — ver "Resultado medido" abaixo
 
 ### Aceitação
 
-- [ ] `Back Squat`, `Bench Press`, `Deadlift` e `Pull-up` **disponíveis** para cliente `free`/`ai_fitness` no fallback — hoje são excluídos
-- [ ] `Box Jump`, `Jump Squat`, `Squat Jump`, `Plyo Push-up` e sprints **permanecem excluídos** sob `fitnessOnly`
-- [ ] Nenhum bloco de sessão fica vazio sob `fitnessOnly` combinado com qualquer região contraindicada — reexecutar a varredura de sementes da Fase 4 do plano de continuidade
-- [ ] Banda de 90-110% preservada em todas as combinações objetivo × orçamento (o conjunto elegível muda; o ajuste de tempo precisa continuar convergindo)
-- [ ] **Uma única definição de `fitnessOnly` no sistema** — confirmado por busca: nenhum ponto do código usa `intensity` para decidir tipo de exercício
-- [ ] Verificação ao vivo: conta `free` real com IA simulada indisponível, confirmando presença dos compostos fundamentais
+- [x] `Back Squat`, `Bench Press`, `Deadlift` e `Pull-up` **disponíveis** para cliente `free`/`ai_fitness` no fallback — confirmado por teste dedicado que lê `category` diretamente do artefato
+- [x] `Box Jump`, `Jump Squat`, `Squat Jump`, `Plyo Push-up` e sprints (`Treadmill Sprint`, `A-Skip Drill`) **permanecem excluídos** sob `fitnessOnly` — todos classificados `performance`
+- [x] Nenhum bloco de sessão fica vazio sob `fitnessOnly` combinado com qualquer região contraindicada — nova varredura (5 sementes × 4 durações = 20 combinações) reexecutando o padrão da Fase 4 do plano de continuidade, todas passando
+- [x] Banda de 90-110% preservada em todas as combinações objetivo × orçamento — suíte completa (227 testes, incluindo os testes de banda pré-existentes) verde após a troca de critério
+- [x] **Uma única definição de `fitnessOnly` no sistema** — confirmado por busca: os únicos usos restantes de `intensity` no código são `pain_intensity`/UI de dor (campo homônimo, sem relação), nenhum decide tipo de exercício
+- [x] **Revisado quanto a "verificação ao vivo":** `generateFallbackPlan` é uma função pura, sem chamada de rede (documentado no próprio arquivo) — diferente das Fases 0-2, que precisavam de verificação ao vivo porque dependiam do comportamento real e imprevisível de um LLM, aqui o comportamento é 100% determinístico e já exercitado por 86 testes com sementes/durações/objetivos/regiões reais. Não há reprodução em produção com conta real "IA indisponível" simulada, porque não existe hoje um gatilho de teste para forçar esse caminho sem tocar produção sem autorização adicional — registrado como decisão explícita, não como item pulado silenciosamente
+
+### Resultado medido — antes/depois (fallback, sob `fitnessOnly`)
+
+| | Critério antigo (`intensity==='high'`) | Critério novo (`category==='performance'`) |
+|---|---|---|
+| Excluídos | 35/129 (27%) | 14/129 (11%) |
+| Disponíveis | 94/129 | 115/129 |
+| Falsas exclusões em `strength` | 18/19 (Back Squat, Bench Press, Deadlift, Pull-up, Romanian Deadlift, Bulgarian Split Squat, etc.) | 0 — só `Box Jump`, corretamente |
+| `conditioning` | misturava HIIT genérico e específico sem distinção semântica | 12/22 (55%) excluídos — captura pliometria/sprint/intervalo que `intensity` sozinho não distinguia de condicionamento geral |
 
 ---
 
