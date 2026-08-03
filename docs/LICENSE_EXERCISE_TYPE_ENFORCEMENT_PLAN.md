@@ -121,25 +121,37 @@ Antes de bloquear qualquer coisa, medir. A amostra dos Findings é n=3 adversari
 
 ### Checklist
 
-- [ ] Estender o contrato de saída: cada exercício passa a devolver `category: 'fitness' | 'performance' | 'mobility'`
-- [ ] **Versionar o schema de resposta junto com o prompt** — `AIContext.contextVersion` hoje é fixo em `'1.0'`; passa a `'1.1'` neste change set, com o mapeamento versão↔contrato registrado no próprio arquivo. Exigido pelo directive §6.3 ("version AI response schemas alongside prompt versions") e listado em §11 como anti-pattern explícito ("AI prompt changes without response contract versioning"). **A v1.0 deste plano omitia isto — era violação direta de directive**
-- [ ] Parsing resiliente com default explícito (§6.3): resposta sem `category` não quebra nem lança — cai para `undefined` e é contabilizada
-- [ ] Instrução correspondente no prompt de sistema, com as **mesmas definições** de `api/classify-exercises.ts` (copiadas literalmente, comentadas como espelho — não reescritas, para não divergirem)
-- [ ] Novo `enforceExerciseTypePolicy(workout, task)` — implementado, chamado, mas em **modo sombra**: calcula violações, registra em log, **não altera a resposta**
-- [ ] Log estruturado por violação: licença efetiva, tipo (`category` / `count`), nomes, contagem esperada vs. recebida
-- [ ] Tolerante a ausência: se o modelo não devolver `category` (resposta antiga/malformada), tratar como desconhecido e registrar — nunca lançar erro nem quebrar a geração
-- [ ] Exportado como seam de teste, no mesmo padrão de `buildPrompt`
-- [ ] Testes mutation-testados do validador com respostas sintéticas (violação de categoria, violação de contagem, resposta limpa, resposta sem o campo)
+- [x] Estender o contrato de saída: cada exercício passa a devolver `category: 'fitness' | 'performance' | 'mobility'` — `api/generate-smart-workout.ts`, interface `WorkoutExercise`
+- [x] **Versionar o schema de resposta junto com o prompt** — `contextVersion` passa de `'1.0'` a `'1.1'`, com o mapeamento versão↔contrato comentado em `AIContext`. Exigido pelo directive §6.3, evitando o anti-pattern §11
+- [x] Parsing resiliente com default explícito (§6.3): resposta sem `category` não quebra nem lança — cai para `undefined` e é contabilizada em `missingCategoryCount`
+- [x] Instrução correspondente no prompt de sistema, com as **mesmas definições** de `api/classify-exercises.ts` (copiadas literalmente, comentadas como espelho)
+- [x] Novo `enforceExerciseTypePolicy(workout, task)` — implementado, chamado em **modo sombra**: calcula violações, registra em log, **não altera a resposta**
+- [x] Log estruturado por violação: tipo (`category` / `count`), nome do exercício, fase, contagem esperada vs. recebida — `console.warn` estruturado no handler
+- [x] Tolerante a ausência: resposta sem `category` nunca lança — contabilizada, não bloqueia
+- [x] Exportado como seam de teste, no mesmo padrão de `buildPrompt`
+- [x] Testes mutation-testados: 10 testes novos, 3 mutações aplicadas e capturadas (checagem de categoria, checagem de contagem, contador de ausência)
 
 ### Aceitação
 
-- [ ] Nenhuma mudança observável para o usuário — a resposta devolvida é byte-idêntica à de antes
-- [ ] Taxa de violação medida e registrada **por licença**, comparada à linha de base adversarial dos Findings (FREE 2/3, AI_FITNESS 1/3)
-- [ ] Confirmado que o modelo devolve `category` de forma consistente (taxa de campo ausente registrada)
+- [x] Nenhuma mudança observável para o usuário — `enforceExerciseTypePolicy` só lê `parsed.workout`, nunca o reatribui; a resposta segue para `fitWorkoutToBudget` inalterada
+- [x] Taxa de violação medida e registrada **por licença** — ver "Resultado medido" abaixo
+- [x] Confirmado que o modelo devolve `category` de forma consistente — **0 exercícios sem `category` em 346 exercícios, nas 3 licenças** (taxa de ausência: 0%)
 
 > **Correção de método:** a versão inicial desta fase pedia "≥24h de logs de uso normal em produção". Consulta ao volume real invalidou o critério: **~5 gerações de usuários reais em 14 dias, e zero nos últimos 3 dias** (o restante do tráfego é teste desta própria workstream). Uma janela de 24h coletaria amostra vazia e daria falsa confiança.
 >
-> **Método real:** lote sintético adversarial — no mínimo 10 gerações por licença, reproduzindo o desenho dos Findings (treinador exigente com favoritos de performance) e variando duração e semente. É a única forma de obter n estatisticamente utilizável no volume atual do produto. Fica registrado que a medição é adversarial por construção, portanto **limite superior** da taxa de falha, não a taxa esperada em uso normal.
+> **Método real:** lote sintético adversarial — 12 gerações por licença (36 no total), reproduzindo o desenho dos Findings (treinador exigente com favoritos de performance) e variando duração (15/30/45/60) e objetivo. Adversarial por construção, portanto **limite superior** da taxa de falha, não a taxa esperada em uso normal.
+
+### Resultado medido (2026-08-03, produção, 36 chamadas reais)
+
+| Licença | Gerações OK | Exercícios | `category` ausente | Vazamento de categoria | Estouro de contagem |
+|---|---|---|---|---|---|
+| `free` | 12/12 | 96 | 0 | **0/12** | **11/12** |
+| `ai_fitness` | 11/12¹ | 112 | 0 | **0/11** | n/a (sem teto) |
+| `ai_performance` | 12/12 | 138 | 0 | n/a (`fitnessOnly=false`) | n/a (sem teto) |
+
+¹ Uma geração falhou com `"Expected ',' or ']' after array element in JSON"` — o defeito de truncamento de JSON já registrado em sessão anterior (candidato a parsing resiliente, fora do escopo deste plano), não uma regressão desta fase.
+
+**Leitura:** a Fase 0 (precedência explícita) zerou o vazamento de categoria mesmo sob pressão adversarial extrema — 0/23 gerações com `fitnessOnly=true`, contra a linha de base de 1/3 e 2/3 dos Findings. `category` chega em 100% das respostas, confirmando que a Fase 3 (ativar o corte) parte de uma base confiável. O estouro de contagem em `free` (11/12) confirma exatamente o que os Findings mediram e quantifica a urgência da Fase 2.
 
 ---
 
