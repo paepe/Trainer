@@ -124,14 +124,55 @@ describe('generateFallbackPlan — contraindication deny-list', () => {
   });
 });
 
-describe('generateFallbackPlan — fitnessOnly (plan gate)', () => {
-  it('excludes every high-intensity (performance) exercise when fitnessOnly is set', () => {
-    const highIntensityNames = new Set(FALLBACK_LIBRARY.filter(e => e.intensity === 'high').map(e => e.name));
+describe('generateFallbackPlan — fitnessOnly (plan gate, Fase 2.5: category, not intensity)', () => {
+  it('excludes every category=performance exercise when fitnessOnly is set', () => {
+    const performanceNames = new Set(FALLBACK_LIBRARY.filter(e => e.category === 'performance').map(e => e.name));
     const result = generateFallbackPlan(base({ targetMinutes: 45, fitnessOnly: true, seed: 7, locale: 'en' }));
     expect(result.blocked).toBe(false);
     if (result.blocked) return;
     for (const ex of result.exercises) {
-      expect(highIntensityNames.has(ex.exercise_name)).toBe(false);
+      expect(performanceNames.has(ex.exercise_name)).toBe(false);
+    }
+  });
+
+  // Achado A7: the old intensity==='high' proxy falsely excluded these under
+  // fitnessOnly (classify-exercises.ts calls all of them category=fitness).
+  // Confirms the fix, not just the absence of a regression.
+  it('makes fitness staples previously excluded by the intensity proxy eligible again', () => {
+    const previouslyFalselyExcluded = ['Back Squat', 'Bench Press', 'Deadlift', 'Pull-up', 'Romanian Deadlift', 'Bulgarian Split Squat'];
+    for (const name of previouslyFalselyExcluded) {
+      const ex = FALLBACK_LIBRARY.find(e => e.name === name);
+      expect(ex, `${name} missing from library`).toBeDefined();
+      expect(ex!.intensity, `${name} intensity`).toBe('high');
+      expect(ex!.category, `${name} category`).toBe('fitness');
+    }
+  });
+
+  it('still excludes the one genuine performance exercise in the strength block', () => {
+    const boxJump = FALLBACK_LIBRARY.find(e => e.name === 'Box Jump');
+    expect(boxJump?.category).toBe('performance');
+    const result = generateFallbackPlan(base({ targetMinutes: 45, fitnessOnly: true, seed: 7, locale: 'en' }));
+    expect(result.blocked).toBe(false);
+    if (result.blocked) return;
+    expect(result.exercises.some(e => e.exercise_name === 'Box Jump')).toBe(false);
+  });
+
+  // Fase 2.5 acceptance: fitnessOnly stacked with every contraindicated
+  // region must never empty a block — rerun of the Fase 4 seed sweep with
+  // the new category-based filter added on top of the region deny-list.
+  it('never empties a block with fitnessOnly and every contraindicated region combined, across seeds and durations', () => {
+    const REGIONS: ContraindicationRegion[] = ['knee', 'lower_back', 'shoulder', 'wrist'];
+    for (const seed of [1, 7, 21, 45, 99]) {
+      for (const minutes of BUDGETS) {
+        const result = generateFallbackPlan(base({
+          targetMinutes: minutes, fitnessOnly: true, excludedRegions: REGIONS, seed, locale: 'en',
+        }));
+        expect(result.blocked, `seed=${seed} minutes=${minutes}`).toBe(false);
+        if (result.blocked) continue;
+        for (const block of ['warmup', 'strength', 'conditioning', 'cooldown']) {
+          expect(result.exercises.some(e => e.phase === block), `seed=${seed} minutes=${minutes} block=${block}`).toBe(true);
+        }
+      }
     }
   });
 });

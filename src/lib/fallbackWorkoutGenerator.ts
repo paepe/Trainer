@@ -96,7 +96,11 @@ function eligible(
 ): FallbackLibraryExercise[] {
   return FALLBACK_LIBRARY.filter(ex => {
     if (ex.phase !== block) return false;
-    if (fitnessOnly && ex.intensity === 'high') return false;
+    // docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 2.5: category, not
+    // intensity — intensity=high includes plenty of fitness staples (Back
+    // Squat, Bench Press, Deadlift...) that api/classify-exercises.ts itself
+    // classifies as fitness, not performance.
+    if (fitnessOnly && ex.category === 'performance') return false;
     if (ex.contraindications.some(r => excludedRegions.has(r))) return false;
     return true;
   });

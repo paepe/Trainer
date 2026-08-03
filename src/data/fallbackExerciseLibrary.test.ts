@@ -37,4 +37,19 @@ describe('FALLBACK_LIBRARY', () => {
       expect(e.sets, e.name).toBeGreaterThan(0);
     }
   });
+
+  // docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 2.5
+  it('every entry has a valid category', () => {
+    const valid = new Set(['fitness', 'performance', 'mobility']);
+    for (const e of FALLBACK_LIBRARY) {
+      expect(valid.has(e.category), `${e.name} has invalid category "${e.category}"`).toBe(true);
+    }
+  });
+
+  it('no session block is left with zero non-performance exercises (fitnessOnly would empty it)', () => {
+    for (const block of SESSION_BLOCKS) {
+      const nonPerformance = FALLBACK_LIBRARY.filter(e => e.phase === block && e.category !== 'performance');
+      expect(nonPerformance.length, block).toBeGreaterThan(0);
+    }
+  });
 });
