@@ -375,18 +375,28 @@ Isso não é impossibilidade — é um trade-off de latência, e a decisão é d
 
 ### Checklist
 
-- [ ] **Decisão do líder registrada:** nível (a) ou (b), ou a alternativa comercial
-- [ ] Política implementada na mesma `enforceExerciseTypePolicy`, com o parâmetro invertido — sem função paralela (§4.5, "uma capacidade, um contrato")
-- [ ] Ramificação para cliente autônomo (sem Coach DNA) usando sinais do próprio perfil
-- [ ] **Piso de segurança inegociável:** Safety Gate ativo, dor relatada ou `readinessScore` baixo suprimem a exigência de performance em qualquer licença — degradar conteúdo é aceitável, degradar segurança não
-- [ ] Testes mutation-testados: exigência ativa com sinal atlético, suprimida por segurança, ramificação autônoma, e não-regressão de `free`/`ai_fitness`
-- [ ] Se a alternativa comercial for escolhida: revisão de copy nas 4 locales, sem mudança de código
+- [x] **Decisão do líder registrada:** nível (a) — direcionar + detectar + registrar, sem nova tentativa. Confirmado pelo líder em 2026-08-03
+- [x] Política implementada na mesma `enforceExerciseTypePolicy`, com o parâmetro invertido (`requirePerformance`) — sem função paralela (§4.5). O cálculo do sinal (`requiresPerformanceContent`) é uma função à parte porque é uma responsabilidade diferente (decidir *se* a política se aplica, não aplicá-la) — a política em si permanece unificada
+- [x] Ramificação para cliente autônomo (sem Coach DNA) usando sinais do próprio perfil (`client.trainingFocus`, `preferenceIntensity`, `fitnessLevel`)
+- [x] **Piso de segurança inegociável:** Safety Gate ativo, dor relatada ou `readinessScore < 50` suprimem a exigência em qualquer licença, checados primeiro e de forma absoluta
+- [x] Testes mutation-testados: exigência ativa com sinal atlético, suprimida por segurança (4 sinais, `it.each`), ramificação autônoma (3 casos), e não-regressão de `free`/`ai_fitness` — 20 testes novos, 3 mutações aplicadas e capturadas
+- [x] Alternativa comercial: não escolhida, permanece registrada como opção futura caso o nível (a) se mostre insuficiente
 
 ### Aceitação
 
-- [ ] Verificação ao vivo com treinador **neutro** (o teste de controle dos Findings) — hoje entrega 0/3 de conteúdo performático; medir o novo resultado
-- [ ] Verificação ao vivo com check-in de dor/readiness baixo: exigência suprimida, sessão segura
-- [ ] Não-regressão: `free` e `ai_fitness` continuam com 0 vazamentos após a Fase 3
+- [x] Verificação ao vivo com treinador **neutro** (o teste de controle dos Findings) — **0/3 de conteúdo performático**, idêntico à linha de base. Confirma que a Fase 5 não empurra conteúdo para um perfil que nunca pediu (o próprio comentário do código já previa isso: a linha de base 0/3 é o resultado correto, não um defeito)
+- [x] Verificação ao vivo com check-in de dor + região excluída: **0 exercícios que sobrecarregam o joelho** entregues em 3/3 chamadas (mecanismo de `excludedRegions`, pré-existente, intacto). A supressão da *exigência* em si (`requiresPerformanceContent` retornando `false` sob dor) não é observável pela saída sozinha, porque `ai_performance` roda com `fitnessOnly=false` e portanto nunca exclui `performance` — 2/3 chamadas ainda trouxeram conteúdo performático não perigoso (Kettlebell Swing, Battle Rope Slam), variação natural do modelo, não a diretiva (que está desativada nesse cenário). A prova de que a supressão realmente ocorre é a suíte de testes mutados sobre `requiresPerformanceContent`, função pura e determinística — a verificação ao vivo aqui prova a ausência de risco de segurança, não a supressão da diretiva em si, que não é observável por este canal
+- [x] Não-regressão: `free` e `ai_fitness` continuam com **0/3 vazamentos** após a Fase 3
+
+### Resultado medido (2026-08-03, produção, 14 chamadas)
+
+| Cenário | Licença | Resultado | Leitura |
+|---|---|---|---|
+| Treinador neutro (controle dos Findings) | `ai_performance` | 0/3 conteúdo performático | Idêntico à linha de base — sem empurrão indevido |
+| Treinador atlético, **sem favoritos** de performance | `ai_performance` | 3/3 conteúdo performático | Novo — antes dependia de favoritos explícitos; agora o próprio perfil (arquétipo/foco/intensidade) já é suficiente |
+| Treinador atlético + dor no joelho + região excluída | `ai_performance` | 0/3 exercícios que sobrecarregam o joelho; 2/3 ainda com conteúdo performático seguro | Segurança intacta; presença de performance é variação natural, não a diretiva (suprimida) |
+| `free` (`maxExercises=6`) | `free` | 0/3 vazamentos | Não-regressão confirmada |
+| `ai_fitness` | `ai_fitness` | 0/3 vazamentos | Não-regressão confirmada |
 
 ---
 
