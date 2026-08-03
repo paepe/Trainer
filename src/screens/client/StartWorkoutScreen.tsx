@@ -27,6 +27,7 @@ import { estimateSessionMinutes } from '../../lib/sessionBudget';
 import { generateFallbackPlan as generateLocalFallbackPlan } from '../../lib/fallbackWorkoutGenerator';
 import type { ContraindicationRegion } from '../../data/fallbackExerciseLibrary';
 import { notifyLinkedTrainer } from '../../lib/notify';
+import aiPlanIcon from '../../assets/ai-plan-icon.png';
 
 // Primary text colour over this screen's plan/exercise list surfaces — repeated
 // identically (white in dark mode, navy `#0E1A2B` in light) across the plan
@@ -858,14 +859,22 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           display: 'flex', alignItems: 'center', gap: 14,
           minHeight: 100,
         }}>
-          {/* Trainer avatar */}
-          <AvatarImage
-            url={trainerAvatarUrl}
-            label={trainerName ?? tr('client.workout.trainerFallback')}
-            w={64} h={64}
-            radius={16}
-            dark={dark}
-          />
+          {/* Trainer avatar, or a distinct AI mark when no human trainer generated this plan */}
+          {planSource === 'trainer' ? (
+            <AvatarImage
+              url={trainerAvatarUrl}
+              label={trainerName ?? tr('client.workout.trainerFallback')}
+              w={64} h={64}
+              radius={16}
+              dark={dark}
+            />
+          ) : (
+            <img
+              src={aiPlanIcon}
+              alt={tr('client.workout.aiPoweredPlan')}
+              style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover', flexShrink: 0 }}
+            />
+          )}
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
