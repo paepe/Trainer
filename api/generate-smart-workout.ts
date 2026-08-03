@@ -552,8 +552,18 @@ function buildUserPrompt(ctx: AIContext): string {
     lines.push(`Session order: ${sanitizeSessionOrder(trainer.sessionOrder).join(' \u2192 ')}`);
     lines.push(`Intensity curve: ${trainer.intensityCurve || 'not specified'}`);
     lines.push(`Communication tone: ${trainer.communicationTone.join(', ') || 'not specified'}`);
-    if (trainer.favoriteExercises.length > 0)
-      lines.push(`Trainer favourite exercises: ${trainer.favoriteExercises.slice(0, 10).join(', ')}`);
+    if (trainer.favoriteExercises.length > 0) {
+      // Under fitnessOnly the plan limit must win over any conflicting
+      // favourite — labelling this as a subordinate preference here, paired
+      // with the precedence sentence on the PLAN LIMIT line below, is what
+      // makes that an explicit hierarchy instead of two directives of equal
+      // weight left for the model to arbitrate on its own
+      // (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md, Fase 0).
+      const favouritesLabel = task.fitnessOnly
+        ? 'Trainer favourite exercises (secondary preference — the PLAN LIMIT below overrides any of these it conflicts with)'
+        : 'Trainer favourite exercises';
+      lines.push(`${favouritesLabel}: ${trainer.favoriteExercises.slice(0, 10).join(', ')}`);
+    }
     if (trainer.avoidExercises.length > 0)
       lines.push(`Trainer avoid exercises: ${trainer.avoidExercises.slice(0, 10).join(', ')}`);
     lines.push('');
@@ -708,7 +718,7 @@ function buildUserPrompt(ctx: AIContext): string {
   if (task.focusOverride)     lines.push(`Focus override: ${task.focusOverride}`);
   if (task.extraInstructions) lines.push(`Additional instructions: ${task.extraInstructions}`);
   if (task.maxExercises)      lines.push(`PLAN LIMIT — max exercises this session: ${task.maxExercises}. Do not exceed this number.`);
-  if (task.fitnessOnly)       lines.push(`PLAN LIMIT — fitness exercises only. Do NOT include performance, sport-specific, or high-intensity power exercises. Keep all exercises in the general fitness / hypertrophy / endurance categories.`);
+  if (task.fitnessOnly)       lines.push(`PLAN LIMIT — fitness exercises only. Do NOT include performance, sport-specific, or high-intensity power exercises. Keep all exercises in the general fitness / hypertrophy / endurance categories. This limit takes precedence over the trainer's favourite exercises listed above — skip any favourite that falls into a restricted category rather than including it anyway.`);
 
   // Sessions were coming back at 55-80% of the client's window (measured live),
   // because the prompt only stated the available time without a fill target or

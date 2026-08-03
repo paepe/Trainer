@@ -21,6 +21,7 @@ function contextWith(
   trainerId = 'trainer-1',
   taskOverrides: Record<string, unknown> = {},
   todayOverrides: Record<string, unknown> = {},
+  trainerOverrides: Record<string, unknown> = {},
 ): Ctx {
   return {
     trainer: {
@@ -33,6 +34,7 @@ function contextWith(
       sessionOrder,
       communicationTone: [], clientProfiles: [],
       favoriteExercises: [], avoidExercises: [],
+      ...trainerOverrides,
     },
     client: {
       id: 'client-1', name: 'Ana', primaryGoal: 'hypertrophy', secondaryGoals: [],
@@ -160,6 +162,59 @@ describe('generate-smart-workout — checkin-adjustment gate never touches safet
     const withoutAdjustment = buildPrompt(contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { adjustmentAllowed: false }, todayOverrides)).user;
     const safetyLine = (u: string) => u.split('\n').filter(l => l.startsWith('Pain present:') || l.startsWith('Safety gate:')).join('\n');
     expect(safetyLine(withAdjustment)).toBe(safetyLine(withoutAdjustment));
+  });
+});
+
+// docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 0: fitnessOnly and the
+// trainer's favourite exercises used to enter the prompt as two directives of
+// equal weight, with nothing arbitrating a conflict between them. This
+// declares the plan limit's precedence explicitly, without removing any
+// favourite from the prompt (a favourite that IS fitness — e.g. Back Squat —
+// should still reach the model).
+describe('generate-smart-workout — fitnessOnly precedence over trainer favourites (Fase 0)', () => {
+  it('marks favourites as a subordinate preference and states precedence when fitnessOnly is true', () => {
+    const { user } = buildPrompt(contextWith(
+      ['warmup', 'strength', 'cooldown'], 'trainer-1', { fitnessOnly: true }, {},
+      { favoriteExercises: ['Back Squat', 'Box Jump'] },
+    ));
+    expect(user).toContain('Trainer favourite exercises (secondary preference — the PLAN LIMIT below overrides any of these it conflicts with): Back Squat, Box Jump');
+    expect(user).toMatch(/PLAN LIMIT — fitness exercises only.*This limit takes precedence over the trainer's favourite exercises/s);
+  });
+
+  it('never removes a favourite from the prompt, even under fitnessOnly', () => {
+    const { user } = buildPrompt(contextWith(
+      ['warmup', 'strength', 'cooldown'], 'trainer-1', { fitnessOnly: true }, {},
+      { favoriteExercises: ['Back Squat', 'Box Jump', 'Sprint Intervals'] },
+    ));
+    expect(user).toContain('Back Squat');
+    expect(user).toContain('Box Jump');
+    expect(user).toContain('Sprint Intervals');
+  });
+
+  it('uses the plain label and no precedence clause when fitnessOnly is false/unset', () => {
+    const { user } = buildPrompt(contextWith(
+      ['warmup', 'strength', 'cooldown'], 'trainer-1', {}, {},
+      { favoriteExercises: ['Back Squat', 'Box Jump'] },
+    ));
+    expect(user).toContain('Trainer favourite exercises: Back Squat, Box Jump');
+    expect(user).not.toContain('secondary preference');
+    expect(user).not.toContain('PLAN LIMIT — fitness exercises only');
+  });
+
+  it('does not print a favourites line at all when the trainer has none, fitnessOnly or not', () => {
+    const on  = buildPrompt(contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { fitnessOnly: true })).user;
+    const off = buildPrompt(contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { fitnessOnly: false })).user;
+    expect(on).not.toContain('Trainer favourite exercises');
+    expect(off).not.toContain('Trainer favourite exercises');
+  });
+
+  it('leaves avoidExercises completely unaffected by fitnessOnly', () => {
+    const { user } = buildPrompt(contextWith(
+      ['warmup', 'strength', 'cooldown'], 'trainer-1', { fitnessOnly: true }, {},
+      { avoidExercises: ['Overhead Press'] },
+    ));
+    expect(user).toContain('Trainer avoid exercises: Overhead Press');
+    expect(user).not.toContain('Trainer avoid exercises (secondary');
   });
 });
 
