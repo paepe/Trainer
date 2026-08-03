@@ -7,7 +7,7 @@
 // the right order while the prompt says nothing about order at all.
 
 import { describe, it, expect } from 'vitest';
-import { buildPrompt, enforceExerciseTypePolicy, cutExerciseCount, enforceCategoryFilter } from './generate-smart-workout';
+import { buildPrompt, enforceExerciseTypePolicy, cutExerciseCount, enforceCategoryFilter, requiresPerformanceContent } from './generate-smart-workout';
 import type { ExerciseTypePolicyReport } from './generate-smart-workout';
 import { DEFAULT_AI_TRAINER } from '../src/ai/buildAIContext';
 import { DEFAULT_SESSION_ORDER, SESSION_BLOCKS } from '../src/lib/sessionStructure';
@@ -23,6 +23,7 @@ function contextWith(
   taskOverrides: Record<string, unknown> = {},
   todayOverrides: Record<string, unknown> = {},
   trainerOverrides: Record<string, unknown> = {},
+  clientOverrides: Record<string, unknown> = {},
 ): Ctx {
   return {
     trainer: {
@@ -46,6 +47,7 @@ function contextWith(
       locations: ['gym'], equipment: ['dumbbells'], preferenceIntensity: 'moderate',
       explanationLevel: 'standard', trainingFocus: 'strength',
       riskLevel: 'low', riskFlags: [],
+      ...clientOverrides,
     },
     today: {
       checkinAt: new Date().toISOString(), variant: 'quick', readinessScore: 70,
@@ -460,6 +462,134 @@ describe('enforceCategoryFilter (Fase 3, category filter active)', () => {
     const { workout, report } = enforceCategoryFilter(w, true);
     expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Kettlebell Swing', 'Jumping Jacks']);
     expect(report.removedExercises).toEqual([{ name: '40m Sprint', phase: 'warmup', reason: 'name-heuristic' }]);
+  });
+});
+
+// docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 5, level (a) — decided
+// 2026-08-03: direct + detect + log, no retry. contextWith's default trainer
+// already has archetype='performance', so tests that need a *neutral*
+// trainer override it explicitly — this also doubles as the coverage for the
+// "signal present" path, since the default fixture is itself an athletic case.
+describe('requiresPerformanceContent (Fase 5)', () => {
+  it('requires performance content when the trainer archetype is performance', () => {
+    expect(requiresPerformanceContent(contextWith(['warmup', 'strength', 'cooldown']), false)).toBe(true);
+  });
+
+  it('requires performance content when trainer.focus.athletic is high, even with a neutral archetype', () => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', {}, {}, {
+      archetype: 'technician', intensity: 'moderate',
+      focus: { strength: 5, endurance: 5, mobility: 5, athletic: 8, coord: 3, balance: 3 },
+    });
+    expect(requiresPerformanceContent(ctx, false)).toBe(true);
+  });
+
+  it('requires performance content when trainer.intensity is high, even with a neutral archetype/focus', () => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', {}, {}, {
+      archetype: 'technician', intensity: 'high',
+      focus: { strength: 5, endurance: 5, mobility: 5, athletic: 4, coord: 3, balance: 3 },
+    });
+    expect(requiresPerformanceContent(ctx, false)).toBe(true);
+  });
+
+  it('does not require performance content for a neutral trainer (matches the Findings control, which delivered 0/3)', () => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', {}, {}, {
+      archetype: 'technician', intensity: 'moderate',
+      focus: { strength: 5, endurance: 5, mobility: 5, athletic: 4, coord: 3, balance: 3 },
+    });
+    expect(requiresPerformanceContent(ctx, false)).toBe(false);
+  });
+
+  it('never requires performance content under fitnessOnly, even with an athletic trainer', () => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { fitnessOnly: true });
+    expect(requiresPerformanceContent(ctx, false)).toBe(false);
+  });
+
+  it.each([
+    ['aiLedBlocked', { aiLedBlocked: true }],
+    ['safetyStatus=blocked', { safetyStatus: 'blocked' }],
+    ['painPresent', { painPresent: true }],
+    ['low readiness', { readinessScore: 30 }],
+  ])('safety floor: %s suppresses the requirement even with an athletic trainer', (_label, todayOverrides) => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', {}, todayOverrides);
+    expect(requiresPerformanceContent(ctx, false)).toBe(false);
+  });
+
+  it('autonomous branch: requires performance content from client.trainingFocus when no Coach DNA reaches the prompt', () => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'ai-coach', {}, {}, {}, { trainingFocus: 'athletic performance' });
+    expect(requiresPerformanceContent(ctx, true)).toBe(true);
+  });
+
+  it('autonomous branch: requires performance content from high intensity preference + non-beginner level', () => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'ai-coach', {}, {}, {}, {
+      preferenceIntensity: 'high', fitnessLevel: 'intermediate', trainingFocus: 'general_fitness',
+    });
+    expect(requiresPerformanceContent(ctx, true)).toBe(true);
+  });
+
+  it('autonomous branch: does not require performance content for a neutral client profile', () => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'ai-coach', {}, {}, {}, {
+      preferenceIntensity: 'moderate', fitnessLevel: 'beginner', trainingFocus: 'general_fitness',
+    });
+    expect(requiresPerformanceContent(ctx, true)).toBe(false);
+  });
+
+  it('autonomous branch: high intensity preference alone does not require it for a beginner', () => {
+    const ctx = contextWith(['warmup', 'strength', 'cooldown'], 'ai-coach', {}, {}, {}, {
+      preferenceIntensity: 'high', fitnessLevel: 'beginner', trainingFocus: 'general_fitness',
+    });
+    expect(requiresPerformanceContent(ctx, true)).toBe(false);
+  });
+});
+
+describe('buildPrompt — PLAN FOCUS directive (Fase 5)', () => {
+  it('includes the PLAN FOCUS line when the context calls for performance content', () => {
+    const { user } = buildPrompt(contextWith(['warmup', 'strength', 'cooldown']));
+    expect(user).toContain('PLAN FOCUS');
+  });
+
+  it('omits the PLAN FOCUS line for a neutral trainer', () => {
+    const { user } = buildPrompt(contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', {}, {}, {
+      archetype: 'technician', intensity: 'moderate',
+      focus: { strength: 5, endurance: 5, mobility: 5, athletic: 4, coord: 3, balance: 3 },
+    }));
+    expect(user).not.toContain('PLAN FOCUS');
+  });
+
+  it('never emits both the PLAN LIMIT and PLAN FOCUS lines together', () => {
+    const { user } = buildPrompt(contextWith(['warmup', 'strength', 'cooldown'], 'trainer-1', { fitnessOnly: true }));
+    expect(user).toContain('PLAN LIMIT');
+    expect(user).not.toContain('PLAN FOCUS');
+  });
+});
+
+describe('enforceExerciseTypePolicy — requirePerformance (Fase 5, shadow mode)', () => {
+  it('flags missing-performance when required but the workout has none', () => {
+    const w = workoutWith([
+      { phase: 'strength', exercises: [{ name: 'Back Squat', category: 'fitness' }] },
+    ]);
+    const report = enforceExerciseTypePolicy(w, {}, true);
+    expect(report.violations).toContainEqual(expect.objectContaining({ kind: 'missing-performance' }));
+  });
+
+  it('does not flag missing-performance when at least one performance exercise is present', () => {
+    const w = workoutWith([
+      { phase: 'strength', exercises: [{ name: 'Back Squat', category: 'fitness' }, { name: 'Box Jump', category: 'performance' }] },
+    ]);
+    const report = enforceExerciseTypePolicy(w, {}, true);
+    expect(report.violations.some(v => v.kind === 'missing-performance')).toBe(false);
+  });
+
+  it('does not flag missing-performance when requirePerformance is false', () => {
+    const w = workoutWith([
+      { phase: 'strength', exercises: [{ name: 'Back Squat', category: 'fitness' }] },
+    ]);
+    const report = enforceExerciseTypePolicy(w, {}, false);
+    expect(report.violations).toEqual([]);
+  });
+
+  it('does not flag missing-performance for an undefined workout (safety-gate responses)', () => {
+    const report = enforceExerciseTypePolicy(undefined, {}, true);
+    expect(report.violations).toEqual([]);
   });
 });
 

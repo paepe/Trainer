@@ -396,7 +396,7 @@ function fitWorkoutToBudget(workout: SmartWorkout, targetMinutes: number) {
 // the workout. Fase 2 activates cutting for the count dimension only (see
 // cutExerciseCount below); category stays shadow-only until Fase 3.
 export interface ExerciseTypeViolation {
-  kind:         'category' | 'count';
+  kind:         'category' | 'count' | 'missing-performance';
   exerciseName?: string;
   phase?:        string;
   detail:        string;
@@ -408,13 +408,21 @@ export interface ExerciseTypePolicyReport {
   missingCategoryCount: number;
 }
 
+// `requirePerformance` (Fase 5, level (a) — decided 2026-08-03: direct +
+// detect + log, no retry) is the same policy inverted, not a parallel
+// mechanism (§4.5): free/ai_fitness exclude category=performance under
+// fitnessOnly (below); ai_performance instead expects at least one, when
+// requiresPerformanceContent() said the context calls for it. Detection
+// only — nothing here mutates the workout or retries the call.
 export function enforceExerciseTypePolicy(
   workout: SmartWorkout | undefined,
   task: Pick<TaskContext, 'fitnessOnly' | 'maxExercises'>,
+  requirePerformance = false,
 ): ExerciseTypePolicyReport {
   const violations: ExerciseTypeViolation[] = [];
   let totalExercises = 0;
   let missingCategoryCount = 0;
+  let performanceCount = 0;
 
   for (const phase of workout?.phases ?? []) {
     for (const ex of phase.exercises ?? []) {
@@ -423,6 +431,7 @@ export function enforceExerciseTypePolicy(
         missingCategoryCount++;
         continue;
       }
+      if (ex.category === 'performance') performanceCount++;
       if (task.fitnessOnly && ex.category === 'performance') {
         violations.push({
           kind: 'category', exerciseName: ex.name, phase: phase.phase,
@@ -436,6 +445,13 @@ export function enforceExerciseTypePolicy(
     violations.push({
       kind: 'count',
       detail: `workout has ${totalExercises} exercises, task.maxExercises=${task.maxExercises}`,
+    });
+  }
+
+  if (requirePerformance && totalExercises > 0 && performanceCount === 0) {
+    violations.push({
+      kind: 'missing-performance',
+      detail: `context signals called for performance content but 0/${totalExercises} exercises are category=performance`,
     });
   }
 
@@ -736,6 +752,41 @@ Output shape:
   return base + shapes[task];
 }
 
+// Fase 5 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md — same signals
+// Fases 0-3 already read, inverted: instead of excluding performance content,
+// decide whether the context calls for requiring some. Not read from a
+// license flag — task.fitnessOnly=false (ai_performance, and any autonomous
+// default) is necessary but not sufficient; a neutral trainer/client profile
+// should not be steered into performance content it never asked for (the
+// Findings' own neutral-trainer control delivered 0/3 performance content,
+// which is the correct baseline, not a defect).
+//
+// Safety floor is checked first and is absolute: no combination of other
+// signals overrides it (§4.1 — content may degrade, safety may not).
+export function requiresPerformanceContent(ctx: AIContext, isAutonomous: boolean): boolean {
+  const { trainer, client, today, task } = ctx;
+
+  if (task.fitnessOnly) return false; // mutually exclusive with the exclude-side of the policy
+  if (today.aiLedBlocked || today.safetyStatus === 'blocked') return false;
+  if (today.painPresent) return false;
+  if (today.readinessScore < 50) return false;
+
+  if (isAutonomous) {
+    // No Coach DNA reaches the prompt for this client (buildUserPrompt's own
+    // `if (!isAutonomous)` gate below) — fall back to the client's own
+    // profile signals, which are always present.
+    const focus     = (client.trainingFocus ?? '').toLowerCase();
+    const intensity = (client.preferenceIntensity ?? '').toLowerCase();
+    const level     = (client.fitnessLevel ?? '').toLowerCase();
+    return focus.includes('athletic') || focus.includes('performance') || focus.includes('sport')
+      || (intensity === 'high' && level !== 'beginner');
+  }
+
+  return trainer.archetype === 'performance'
+    || trainer.focus.athletic >= 7
+    || trainer.intensity === 'high';
+}
+
 function buildUserPrompt(ctx: AIContext): string {
   const { trainer, client, today, stats, library, task } = ctx;
 
@@ -928,6 +979,13 @@ function buildUserPrompt(ctx: AIContext): string {
   if (task.extraInstructions) lines.push(`Additional instructions: ${task.extraInstructions}`);
   if (task.maxExercises)      lines.push(`PLAN LIMIT — max exercises this session: ${task.maxExercises}. Do not exceed this number.`);
   if (task.fitnessOnly)       lines.push(`PLAN LIMIT — fitness exercises only. Do NOT include performance, sport-specific, or high-intensity power exercises. Keep all exercises in the general fitness / hypertrophy / endurance categories. This limit takes precedence over the trainer's favourite exercises listed above — skip any favourite that falls into a restricted category rather than including it anyway.`);
+  // Fase 5 (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md) — the same policy,
+  // inverted direction: the profile above already reads as athletic/high-
+  // intensity, so ask for genuine performance content instead of merely
+  // allowing it. Never fires alongside the PLAN LIMIT line above (mutually
+  // exclusive by construction in requiresPerformanceContent).
+  if (requiresPerformanceContent(ctx, isAutonomous))
+    lines.push('PLAN FOCUS — this profile calls for genuine sport-specific/athletic training. Include at least one performance-category exercise (explosive, powerful, speed, or sport-specific movement) alongside any general fitness work, unless doing so would conflict with a safety instruction above.');
 
   // Sessions were coming back at 55-80% of the client's window (measured live),
   // because the prompt only stated the available time without a fill target or
@@ -1059,6 +1117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     contextVersion: '1.1',
     builtAt: new Date().toISOString(),
   };
+  const isAutonomous = ctx.trainer.id === 'ai-coach';
 
   const { system, user } = buildPrompt(ctx);
   const maxTokens = MAX_TOKENS[body.task.type] ?? 1024;
@@ -1110,10 +1169,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Shadow mode (Fase 1 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md):
     // measure category/count violations on the model's raw output — before
     // fitWorkoutToBudget reshapes it — and log them. Never alters `parsed`.
-    // Fases 2/3 will consume the same report to actually cut violations;
-    // until then this exists purely to establish a real violation rate.
+    // Fases 2/3 consume the same report to actually cut violations. Fase 5
+    // adds the inverted direction (requirePerformance) — detect-and-log only,
+    // level (a), no retry: never alters `parsed` either.
     if (parsed.workout?.phases?.length) {
-      const report = enforceExerciseTypePolicy(parsed.workout, body.task);
+      const requirePerformance = requiresPerformanceContent(ctx, isAutonomous);
+      const report = enforceExerciseTypePolicy(parsed.workout, body.task, requirePerformance);
       if (report.violations.length > 0) {
         console.warn(
           `[generate-smart-workout] exercise-type policy violations (shadow mode, not enforced): ` +
