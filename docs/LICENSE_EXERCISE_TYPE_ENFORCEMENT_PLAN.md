@@ -97,17 +97,17 @@ Classificar isso por nome é tão pouco confiável quanto classificar a resposta
 
 ### Checklist
 
-- [ ] Quando `task.fitnessOnly` for verdadeiro, o prompt passa a declarar **explicitamente a precedência**: o limite de plano prevalece sobre as preferências do treinador, e favoritos incompatíveis devem ser ignorados em vez de acomodados
-- [ ] A linha de favoritos passa a ser apresentada como *preferência subordinada*, não como diretiva de mesmo nível — hoje as duas entram como itens paralelos sem hierarquia
-- [ ] Nenhum favorito é removido do prompt: o modelo continua vendo a preferência do treinador e pode honrá-la quando ela **for** compatível (`Back Squat` é favorito e é fitness — filtrar cegamente perderia isso)
-- [ ] `avoidExercises` permanece intocado e continua com precedência máxima: é restrição, não preferência, e vale em qualquer licença
-- [ ] Testes de `buildPrompt` mutation-testados: a cláusula de precedência aparece sob `fitnessOnly`, está ausente sem ele, e os favoritos continuam presentes nos dois casos
+- [x] Quando `task.fitnessOnly` for verdadeiro, o prompt passa a declarar **explicitamente a precedência**: o limite de plano prevalece sobre as preferências do treinador, e favoritos incompatíveis devem ser ignorados em vez de acomodados — `api/generate-smart-workout.ts:711`
+- [x] A linha de favoritos passa a ser apresentada como *preferência subordinada*, não como diretiva de mesmo nível — `:555-564`
+- [x] Nenhum favorito é removido do prompt: o modelo continua vendo a preferência do treinador e pode honrá-la quando ela **for** compatível (`Back Squat` é favorito e é fitness — filtrar cegamente perderia isso)
+- [x] `avoidExercises` permanece intocado e continua com precedência máxima: é restrição, não preferência, e vale em qualquer licença
+- [x] Testes de `buildPrompt` mutation-testados: a cláusula de precedência aparece sob `fitnessOnly`, está ausente sem ele, e os favoritos continuam presentes nos dois casos — 5 testes novos, 2 mutações aplicadas e capturadas
 
 ### Aceitação
 
-- [ ] Prompt com `fitnessOnly: true` contém a cláusula de precedência **e** ainda lista os favoritos
-- [ ] Prompt com `fitnessOnly: false` é byte-idêntico ao atual (não-regressão do AI_PERFORMANCE)
-- [ ] Verificação ao vivo: repetir os 3 testes adversariais dos Findings para AI_FITNESS, medindo a nova taxa de vazamento contra a linha de base de 1/3
+- [x] Prompt com `fitnessOnly: true` contém a cláusula de precedência **e** ainda lista os favoritos
+- [x] Prompt com `fitnessOnly: false` não contém a cláusula nem o rótulo de subordinação (não-regressão do AI_PERFORMANCE) — confirmado por teste dedicado
+- [x] Verificação ao vivo: repetidos os 3 testes adversariais dos Findings para AI_FITNESS (mesmos payloads, mesmo treinador exigente com favoritos de performance) — **0/3 vazamentos**, contra a linha de base de 1/3. O teste que vazou `Box Jump` na linha de base produziu, desta vez, `Kettlebell Swings, Mountain Climbers, Burpees` — sem nenhum item de performance
 
 > **Limite reconhecido:** isto continua sendo instrução textual, o mesmo mecanismo que este plano existe para não depender. A diferença é que aqui ele remove uma **ambiguidade** (algo que modelos resolvem bem) em vez de impor uma **restrição** (algo que já medimos falhar). Não substitui a validação das Fases 2-3; reduz a pressão sobre ela.
 
