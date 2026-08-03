@@ -1,6 +1,6 @@
 # Plano de Implementação — Aplicação Real do Tipo de Exercício por Licença (CLIENT)
 
-**Versão:** 1.3 (três varreduras: consistência técnica, conformidade com a governança, harmonização com o fallback — 12 falhas corrigidas, 5 fases reescritas, 1 acrescentada; ver "Varredura de consistência")
+**Versão:** 1.4 — **PLANO CONCLUÍDO** (todas as 8 fases publicadas, verificadas ao vivo, achados A1-A7 fechados; ver "Resultado medido" na Fase 6)
 **Data:** 2026-08-03
 **Origem:** `docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_FINDINGS_20260803.md` — testes adversariais ao vivo mostraram que `fitnessOnly` e `maxExercises` são instruções textuais nunca validadas, com falha real medida em FREE (2/3) e AI_FITNESS (1/3), e que AI_PERFORMANCE não possui mecanismo positivo de injeção.
 **Escopo:** as 3 licenças de cliente (`free`, `ai_fitness`, `ai_performance`) em ambos os caminhos de geração — o de IA (`api/generate-smart-workout.ts`, Fases 0-1-2-3-4-5) e o de contingência local (`src/lib/fallbackWorkoutGenerator.ts`, **apenas** a Fase 2.5, que unifica a definição de `fitnessOnly`). O gerador local é mecanicamente correto quanto a orçamento, segurança e contagem (75 testes); o defeito tratado aqui é de **critério de classificação**, não de mecânica.
@@ -56,17 +56,17 @@ Precedência (directive §3): este documento é nível 4 (*findings, plans, hist
 1. **§8.1 (branches + Pull Request):** a prática corrente desta workstream é push direto para `main`. Deploy vai direto a produção, sem preview intermediário. Registrado como desvio consciente já em curso — não introduzido por este plano, mas não silenciado por ele.
 2. **§9.2 (staging antes de produção):** o directive exige validação canônica em ambiente não-produtivo. O projeto não tem staging em uso; a verificação ao vivo deste plano ocorre em produção com contas de teste. **Mitigação:** todas as fases de aplicação (2, 3, 5) são precedidas pela Fase 1 em modo sombra, que mede sem alterar comportamento — é o substituto mais próximo de staging disponível hoje.
 
-## Achados a fechar
+## Achados — todos fechados em 2026-08-03
 
-| # | Achado | Origem | Fase |
-|---|--------|--------|------|
-| A1 | `library.favoriteExercises` do treinador nunca é cruzado com `fitnessOnly` — as duas instruções competem no prompt sem arbitragem em código | Findings, seção "Contexto" | Fase 0 |
-| A2 | `task.fitnessOnly` é texto de prompt, nunca validado na resposta | Findings, AI_FITNESS 1/3 e FREE 2/3 | Fases 1, 3 |
-| A3 | `task.maxExercises` é texto de prompt, nunca validado — produção real entregou 10 com teto 6 | Findings + Fase 0 do plano de continuidade | Fases 1, 2 |
-| A4 | `exercise_category` é `null` em 418/418 linhas geradas por IA — o único mecanismo semântico real do sistema nunca alcança este caminho | Findings, consulta em produção | Fase 4 |
-| A5 | AI_PERFORMANCE não injeta conteúdo de performance; só remove o bloqueio. Cliente com treinador genérico recebe conteúdo idêntico ao AI_FITNESS | Findings, teste de controle + 7 planos reais do Tiago | Fase 5 |
-| A6 | `docs/FEATURE_ACCESS_MATRIX.md` está desatualizado: documenta `FREE=2` exercícios; o valor real em produção é 6 desde a Fase 0 do plano de continuidade | Leitura direta, `:124`, `:157` | Fase 6 |
-| A7 | **`fitnessOnly` tem duas definições contraditórias.** O fallback usa `intensity === 'high'` e exclui 18 exercícios que a definição canônica do sistema classifica como `fitness` (Back Squat, Bench Press, Deadlift, Pull-up…). Defeito ativo em produção, não hipotético | `fallbackWorkoutGenerator.ts:99` vs. `classify-exercises.ts` SYSTEM_PROMPT; medido no espelho | Fase 2.5 |
+| # | Achado | Origem | Fase | Status |
+|---|--------|--------|------|--------|
+| A1 | `library.favoriteExercises` do treinador nunca é cruzado com `fitnessOnly` — as duas instruções competem no prompt sem arbitragem em código | Findings, seção "Contexto" | Fase 0 | ✅ Fechado |
+| A2 | `task.fitnessOnly` é texto de prompt, nunca validado na resposta | Findings, AI_FITNESS 1/3 e FREE 2/3 | Fases 1, 3 | ✅ Fechado |
+| A3 | `task.maxExercises` é texto de prompt, nunca validado — produção real entregou 10 com teto 6 | Findings + Fase 0 do plano de continuidade | Fases 1, 2 | ✅ Fechado |
+| A4 | `exercise_category` é `null` em 418/418 linhas geradas por IA — o único mecanismo semântico real do sistema nunca alcança este caminho | Findings, consulta em produção | Fase 4 | ✅ Fechado |
+| A5 | AI_PERFORMANCE não injeta conteúdo de performance; só remove o bloqueio. Cliente com treinador genérico recebe conteúdo idêntico ao AI_FITNESS | Findings, teste de controle + 7 planos reais do Tiago | Fase 5 | ✅ Fechado (nível a) |
+| A6 | `docs/FEATURE_ACCESS_MATRIX.md` está desatualizado: documenta `FREE=2` exercícios; o valor real em produção é 6 desde a Fase 0 do plano de continuidade | Leitura direta, `:124`, `:157` | Fase 6 | ✅ Fechado |
+| A7 | **`fitnessOnly` tem duas definições contraditórias.** O fallback usa `intensity === 'high'` e exclui 18 exercícios que a definição canônica do sistema classifica como `fitness` (Back Squat, Bench Press, Deadlift, Pull-up…). Defeito ativo em produção, não hipotético | `fallbackWorkoutGenerator.ts:99` vs. `classify-exercises.ts` SYSTEM_PROMPT; medido no espelho | Fase 2.5 | ✅ Fechado |
 
 ---
 
@@ -406,17 +406,33 @@ Isso não é impossibilidade — é um trade-off de latência, e a decisão é d
 
 ### Checklist
 
-- [ ] `docs/FEATURE_ACCESS_MATRIX.md` atualizado: `workout.exercises_per_session` do FREE documenta 2, valor real é 6 (`:124`, `:157`) — corrigir e anotar a data da mudança
-- [ ] Mesma tabela: coluna "aplicado?" passa a distinguir **configurado** de **efetivamente aplicado**, distinção que não existe hoje e que originou toda esta investigação
-- [ ] `docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_FINDINGS_20260803.md` recebe nota de fechamento apontando para este plano e para os resultados medidos
-- [ ] Verificação ao vivo final: matriz completa de 3 licenças × 3 durações, com o desenho adversarial, registrando números medidos e não "ok"
-- [ ] Memória do projeto atualizada (o achado de engenharia de licenças já registrado passa a apontar para o que foi resolvido e o que permanece aberto)
+- [x] `docs/FEATURE_ACCESS_MATRIX.md` atualizado: `workout.exercises_per_session` do FREE corrigido de 2 para 6 (confirmado direto na coluna `feature_permissions.limit_value` — valor real desde 2026-06-17, nunca 2 em produção), com a data da correção anotada. O seed histórico (SQL de 2026-06-17) foi mantido como está, com uma nota apontando para o valor real, em vez de reescrever um registro histórico
+- [x] Mesma tabela: nova coluna **"Aplicado?"**, distinguindo configurado de efetivamente aplicado — com nota explícita de que "✅" agora significa validado ao vivo, não presumido
+- [x] `docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_FINDINGS_20260803.md` recebeu nota de fechamento com a matriz final e os achados que permanecem abertos
+- [x] Verificação ao vivo final: matriz completa de 3 licenças × 3 durações (9 chamadas), mesmo desenho adversarial — ver "Resultado medido" abaixo
+- [x] Memória do projeto atualizada — `project_license_engineering_free_trainer.md` passa a apontar para este plano como o que foi resolvido (vazamento de tipo/contagem) vs. o que permanece aberto (engenharia de licenças Free-com-treinador)
 
 ### Aceitação
 
-- [ ] Nenhuma linha da matriz de acesso documenta um valor divergente da produção
-- [ ] Taxa de vazamento final medida e registrada por licença, comparada à linha de base dos Findings
-- [ ] Todo achado A1-A6 está fechado ou explicitamente registrado como decisão pendente
+- [x] Nenhuma linha da matriz de acesso documenta um valor divergente da produção — confirmado por consulta direta a `feature_permissions`
+- [x] Taxa de vazamento final medida e registrada por licença, comparada à linha de base dos Findings — ver tabela abaixo
+- [x] Todo achado A1-A7 está fechado: A1 (Fase 0), A2 (Fases 1/3), A3 (Fases 1/2), A4 (Fase 4), A5 (Fase 5), A6 (Fase 6 — este documento), A7 (Fase 2.5). A engenharia de licenças Free-com-treinador não tem número de achado neste plano — está registrada à parte, em `WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md` e na memória do projeto, como decisão de produto pendente, fora de escopo por decisão do líder
+
+### Resultado medido (2026-08-03, produção, matriz final — 9 chamadas)
+
+| Licença | Duração | Exercícios | Vazamento de performance | Banda 90-110% |
+|---|---|---|---|---|
+| `ai_fitness` | 30 min | 10 | Nenhum | ✅ 29 min |
+| `ai_fitness` | 45 min | 14 | Nenhum | ✅ 45 min |
+| `ai_fitness` | 60 min | 16 | Nenhum | ✅ 54 min |
+| `free` (`maxExercises=6`) | 30 min | 6 | Nenhum | ❌ 24 min (80%) |
+| `free` (`maxExercises=6`) | 45 min | 5 | Nenhum | ❌ 25 min (56%) |
+| `free` (`maxExercises=6`) | 60 min | 6 | Nenhum | ❌ 25 min (42%) |
+| `ai_performance` | 30 min | 8 | Box Jump, Broad Jump — **esperado**, `fitnessOnly=false` | ✅ 29 min |
+| `ai_performance` | 45 min | 12 | Box Jump, Broad Jump, 40m Sprint — **esperado** | ✅ 44 min |
+| `ai_performance` | 60 min | 15 | Box Jump, 40m Sprint, Broad Jump, Agility Ladder Drill — **esperado** | ✅ 65 min |
+
+**Leitura final:** 0/6 vazamentos reais (`ai_fitness` + `free` combinados, contra a linha de base de 1/3 e 2/3 dos Findings). O "vazamento" listado para `ai_performance` é o comportamento correto e desejado — a licença nunca restringiu conteúdo de performance, e a Fase 5 agora ativamente o favorece quando o perfil indica. `free` fica fora da banda de tempo nas 3 durações — comportamento já medido e explicado na Fase 2 (teto de 6 exercícios não cabe em sessões médias/longas, mesmo saturando blocos e séries), não uma regressão desta fase.
 
 ---
 

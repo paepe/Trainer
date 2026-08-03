@@ -106,28 +106,30 @@ O limite `clients.limit` é validado em dois pontos:
 
 ## 4. Feature Keys na Base de Dados
 
-**Última actualização:** 2026-06-18 — Fases 0–8 concluídas
+**Última actualização:** 2026-08-03 — valor real de `workout.exercises_per_session`/FREE corrigido (era documentado como 2, a coluna `feature_permissions.limit_value` já estava em 6 desde 2026-06-17; ver `docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md` Fase 6). Fases 0–8 originais concluídas em 2026-06-18.
 
-| feature_key | Tipo | Usado em | Estado |
-| --- | --- | --- | --- |
-| `scores.basic` | boolean | PerformanceDashboardScreen | ✅ |
-| `scores.advanced` | boolean | PerformanceDashboardScreen | ✅ (legacy; substituído pelos gates granulares abaixo) |
-| `ai.checkin_adjustment` | boolean | StartWorkoutScreen | ✅ |
-| `ai.advanced_analysis` | boolean | StartWorkoutScreen | ✅ |
-| `coach_dna` | boolean | CoachDNAScreen | ✅ |
-| `clients.limit` | integer cap | TrainerDashboardScreen + api/send-invitation.ts | ✅ TRIAL=3, PRO=50, ELITE=∞ |
-| `studio.branding` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 |
-| `marketplace.listing` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 |
-| `marketplace.revenue_share` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 |
-| `checkin.full` | boolean | CheckInProntidaoScreen → CheckInHub | ✅ |
-| `workout.sessions_per_week` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=1, AI Fitness=7, AI Performance=∞ |
-| `workout.exercises_per_session` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=2, resto=∞ |
-| `workout.exercise_type` | integer encoded | StartWorkoutScreen (geração IA) | ✅ 0=fitness only, null=all |
-| `trainer_plan.days_per_week` | integer cap | StartWorkoutScreen (plano do treinador) | ✅ FREE=1, AI Fitness=3, AI Performance=∞ |
-| `progress.fitness_advanced` | boolean | PerformanceDashboardScreen | ✅ |
-| `progress.performance` | boolean | PerformanceDashboardScreen | ✅ |
+| feature_key | Tipo | Usado em | **Configurado** | **Aplicado?** |
+| --- | --- | --- | --- | --- |
+| `scores.basic` | boolean | PerformanceDashboardScreen | ✅ | ✅ |
+| `scores.advanced` | boolean | PerformanceDashboardScreen | ✅ (legacy; substituído pelos gates granulares abaixo) | ✅ |
+| `ai.checkin_adjustment` | boolean | StartWorkoutScreen | ✅ | ✅ |
+| `ai.advanced_analysis` | boolean | StartWorkoutScreen | ✅ | ✅ |
+| `coach_dna` | boolean | CoachDNAScreen | ✅ | ✅ |
+| `clients.limit` | integer cap | TrainerDashboardScreen + api/send-invitation.ts | ✅ TRIAL=3, PRO=50, ELITE=∞ | ✅ (frontend + backend, ver §3) |
+| `studio.branding` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
+| `marketplace.listing` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
+| `marketplace.revenue_share` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
+| `checkin.full` | boolean | CheckInProntidaoScreen → CheckInHub | ✅ | ✅ |
+| `workout.sessions_per_week` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=1, AI Fitness=7, AI Performance=∞ | não auditado por este plano |
+| `workout.exercises_per_session` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=**6** (não 2 — corrigido 2026-08-03), resto=∞ | ✅ caminho de IA (Fase 2, `cutExerciseCount`, medido 0 violações); ✅ fallback local (Fase 0 do plano de continuidade) |
+| `workout.exercise_type` | integer encoded | StartWorkoutScreen (geração IA) | ✅ 0=fitness only, null=all | ✅ caminho de IA (Fase 3, `enforceCategoryFilter`, medido 0/3 vazamentos); ✅ fallback local (Fase 2.5, `category` em vez de `intensity`) |
+| `trainer_plan.days_per_week` | integer cap | StartWorkoutScreen (plano do treinador) | ✅ FREE=1, AI Fitness=3, AI Performance=∞ | não auditado por este plano |
+| `progress.fitness_advanced` | boolean | PerformanceDashboardScreen | ✅ | ✅ |
+| `progress.performance` | boolean | PerformanceDashboardScreen | ✅ | ✅ |
 
 **Nota:** `useEffectivePlanKey` eleva automaticamente `free → ai_fitness` (welcome window 21 dias) e `trial → pro` (trial window 21 dias) — todos os gates acima respeitam esta elevação.
+
+**Sobre a coluna "Aplicado?":** até 2026-08-03 esta tabela só documentava se um valor estava *configurado* em `feature_permissions`, não se o caminho de geração da IA de fato o *respeitava* — foi exatamente essa lacuna que permitiu `workout.exercises_per_session`/FREE ficar documentado como 2 (nunca aplicado nesse valor, nem antes nem depois da mudança para 6) e `workout.exercise_type` ficar sem validação server-side por meses (`docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_FINDINGS_20260803.md`). "✅" nesta coluna significa validado com medição ao vivo em produção, não presunção de que o código faz o que o nome sugere.
 
 ---
 
@@ -154,6 +156,10 @@ Para implementar as regras dos planos de cliente definidas nesta sessão, são n
 ('workout.sessions_per_week', 'ai_performance', true, null),
 
 -- workout.exercises_per_session
+-- Histórico, não o valor atual: a coluna real em produção está em 6 desde
+-- 2026-06-17 (mesmo dia deste seed), sem que este documento fosse atualizado
+-- — corrigido em §4 acima em 2026-08-03
+-- (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 6).
 ('workout.exercises_per_session', 'free',           true, 2),
 ('workout.exercises_per_session', 'ai_fitness',     true, null),
 ('workout.exercises_per_session', 'ai_performance', true, null),

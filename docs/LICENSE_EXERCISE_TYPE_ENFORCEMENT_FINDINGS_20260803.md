@@ -84,3 +84,24 @@ Amostra pequena (n=3 por tier) — suficiente para provar que a falha é real e 
 - Este documento estende o mesmo achado: a causa raiz (`task.fitnessOnly`/`task.maxExercises` como texto de prompt, nunca validados na resposta) é comum às três licenças — a diferença entre elas é só o número de restrições empilhadas, não a confiabilidade do mecanismo em si.
 
 **Correção estrutural, se decidido:** validação server-side pós-resposta — cruzar os exercícios devolvidos pela IA contra `exercise_category` (já existe, `classify-exercises.ts`, hoje só usado em planos do treinador) e contra a contagem, cortando o que vazar antes de persistir. Decisão de produto/engenharia pendente, não executada.
+
+---
+
+## Nota de fechamento (2026-08-03) — `LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md`
+
+A correção estrutural proposta acima foi executada, em 6 fases (0, 1, 2, 2.5, 3, 4, 5), todas publicadas em produção e verificadas ao vivo. Resultado final medido (matriz completa, 9 chamadas, mesmo treinador exigente com favoritos de performance destas achados):
+
+| Licença | Vazamento de performance sob `fitnessOnly` | Teto de contagem | Banda de tempo (90-110%) |
+|---|---|---|---|
+| `ai_fitness` | 0/3 (era 1/3) | não aplicável | ✅ 3/3 |
+| `free` | 0/3 (era 2/3) | 0/3 violações (era 100%) | ❌ 0/3 — causa conhecida e documentada: `maxExercises=6` não cabe em sessões de 30-60min mesmo saturando os blocos, ver Fase 2 do plano |
+| `ai_performance` | n/a (`fitnessOnly=false` por desenho — entregar conteúdo de performance é o comportamento correto, não um vazamento) | não aplicável | ✅ 3/3 |
+
+A causa raiz identificada aqui — `task.fitnessOnly`/`task.maxExercises` como texto de prompt nunca validado na resposta — está corrigida (Fases 1-3). `exercise_category` agora é persistido para planos gerados por IA (Fase 4, fechando a lacuna de 418/418 linhas nulas). A política de tipo de exercício é bidirecional: exclui `performance` sob `fitnessOnly`, e opcionalmente a exige quando o contexto do treinador/cliente indicar e a segurança permitir (Fase 5, nível (a) — direcionar + detectar + registrar, decisão do líder).
+
+**Achados que permanecem abertos, registrados, não corrigidos por este plano:**
+- Engenharia de licenças Free-com-treinador (`WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md`, "Fora de escopo") — pergunta de produto, não de engenharia.
+- Rede secundária de deny-list só funciona para nomes em inglês — risco residual aceito para clientes pt/es/de (Fase 3).
+- Nível (b) da Fase 5 (nova tentativa reforçada, +28s) e a alternativa comercial (não diferenciar por conteúdo) permanecem na mesa, não descartados, apenas não escolhidos.
+
+Detalhes de implementação, testes e verificação ao vivo por fase: `docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md`.
