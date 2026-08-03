@@ -7,7 +7,7 @@
 // the right order while the prompt says nothing about order at all.
 
 import { describe, it, expect } from 'vitest';
-import { buildPrompt, enforceExerciseTypePolicy } from './generate-smart-workout';
+import { buildPrompt, enforceExerciseTypePolicy, cutExerciseCount } from './generate-smart-workout';
 import type { ExerciseTypePolicyReport } from './generate-smart-workout';
 import { DEFAULT_AI_TRAINER } from '../src/ai/buildAIContext';
 import { DEFAULT_SESSION_ORDER, SESSION_BLOCKS } from '../src/lib/sessionStructure';
@@ -306,6 +306,79 @@ describe('enforceExerciseTypePolicy (Fase 1, shadow mode)', () => {
     const report = enforceExerciseTypePolicy(w, { fitnessOnly: true, maxExercises: 2 });
     const kinds = report.violations.map(v => v.kind).sort();
     expect(kinds).toEqual(['category', 'category', 'count']);
+  });
+});
+
+// docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md Fase 2: count cap active.
+function workoutWithCounts(blockCounts: Record<string, number>) {
+  return workoutWith(
+    Object.entries(blockCounts).map(([phase, n]) => ({
+      phase,
+      exercises: Array.from({ length: n }, (_, i) => ({ name: `${phase}-ex${i}` })),
+    })),
+  )!;
+}
+
+describe('cutExerciseCount (Fase 2, count cap active)', () => {
+  it('trims exercises from the most populous adjustable phase until at or under the cap', () => {
+    const w = workoutWithCounts({ warmup: 1, strength: 4, cooldown: 1 });
+    const result = cutExerciseCount(w, 3);
+    const total = result.workout.phases.reduce((sum, p) => sum + p.exercises.length, 0);
+    expect(total).toBe(3);
+    expect(result.workout.phases.find(p => p.phase === 'warmup')!.exercises).toHaveLength(1);
+    expect(result.workout.phases.find(p => p.phase === 'cooldown')!.exercises).toHaveLength(1);
+    expect(result.workout.phases.find(p => p.phase === 'strength')!.exercises).toHaveLength(1);
+    expect(result.removedExercises).toBe(3);
+    expect(result.removedBlocks).toEqual([]);
+  });
+
+  it('stops exactly at the cap, not one exercise short, when the cap is reached before any adjustable phase hits its floor', () => {
+    const w = workoutWithCounts({ strength: 4, conditioning: 4 });
+    const result = cutExerciseCount(w, 4);
+    const total = result.workout.phases.reduce((sum, p) => sum + p.exercises.length, 0);
+    expect(total).toBe(4);
+  });
+
+  it('never trims warmup, even past the cap, once no other phase can absorb the cut', () => {
+    const w = workoutWithCounts({ warmup: 2, strength: 1 });
+    const result = cutExerciseCount(w, 1);
+    expect(result.workout.phases.find(p => p.phase === 'warmup')!.exercises).toHaveLength(2);
+    // strength was removed whole (block-level fallback) but warmup's own
+    // count still leaves the total over the cap — a documented best-effort
+    // limit, not a silent violation of the "warmup is never cut" invariant.
+    const total = result.workout.phases.reduce((sum, p) => sum + p.exercises.length, 0);
+    expect(total).toBe(2);
+  });
+
+  it('saturated case: cap equal to the number of declared blocks yields exactly one exercise per block, no block removed', () => {
+    const w = workoutWithCounts({
+      mobility: 1, warmup: 1, technique: 1, strength: 2, conditioning: 2, cooldown: 1,
+    });
+    const result = cutExerciseCount(w, 6);
+    expect(result.workout.phases).toHaveLength(6);
+    for (const p of result.workout.phases) expect(p.exercises).toHaveLength(1);
+    expect(result.removedBlocks).toEqual([]);
+  });
+
+  it('unsatisfiable case: cap below the number of declared blocks removes whole blocks per BLOCK_REMOVAL_ORDER and always preserves warmup', () => {
+    const w = workoutWithCounts({
+      mobility: 1, warmup: 1, technique: 1, strength: 1, conditioning: 1, cooldown: 1,
+    });
+    const result = cutExerciseCount(w, 3);
+    const total = result.workout.phases.reduce((sum, p) => sum + p.exercises.length, 0);
+    expect(total).toBe(3);
+    expect(result.removedBlocks).toEqual(['cooldown', 'conditioning', 'technique']);
+    const remaining = result.workout.phases.map(p => p.phase).sort();
+    expect(remaining).toEqual(['mobility', 'strength', 'warmup']);
+  });
+
+  it('does not modify the workout when already at or under the cap', () => {
+    const w = workoutWithCounts({ warmup: 1, strength: 2, cooldown: 1 });
+    const result = cutExerciseCount(w, 10);
+    expect(result.removedExercises).toBe(0);
+    expect(result.removedBlocks).toEqual([]);
+    const total = result.workout.phases.reduce((sum, p) => sum + p.exercises.length, 0);
+    expect(total).toBe(4);
   });
 });
 

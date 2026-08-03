@@ -393,10 +393,8 @@ function fitWorkoutToBudget(workout: SmartWorkout, targetMinutes: number) {
 
 // ── Exercise-type policy (docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md) ──
 // Fase 1: shadow mode only — computes and reports violations, never mutates
-// the workout. Fases 2/3 activate cutting on top of the same report, in this
-// order: count first (purely deterministic, no semantic judgement), then
-// category (Fase 3). Neither is active yet; this function is called for
-// measurement only (see the handler below).
+// the workout. Fase 2 activates cutting for the count dimension only (see
+// cutExerciseCount below); category stays shadow-only until Fase 3.
 export interface ExerciseTypeViolation {
   kind:         'category' | 'count';
   exerciseName?: string;
@@ -442,6 +440,65 @@ export function enforceExerciseTypePolicy(
   }
 
   return { violations, totalExercises, missingCategoryCount };
+}
+
+// Fase 2: whole-block removal order for the "insatisfazível" collision (cap <
+// number of declared blocks, so even 1 exercise per block still exceeds it).
+// Deliberately NOT a mechanical reversal of SESSION_BLOCKS: technique
+// (movement-pattern practice) is sacrificed before strength (the primary
+// training stimulus) — matches the plan's own example ("cooldown →
+// conditioning → technique → …"). warmup is never in this list: injury
+// prevention is the last thing sacrificed, same priority already used in the
+// local fallback generator.
+const BLOCK_REMOVAL_ORDER = ['cooldown', 'conditioning', 'technique', 'strength', 'mobility'];
+
+/**
+ * Fase 2 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md — activates the
+ * count dimension of the policy above: cuts a generated workout down to
+ * task.maxExercises. Runs once, before fitWorkoutToBudget, so time fitting
+ * works on the already-cut set and is the last step — no re-execution.
+ *
+ * Two-step precedence: first trim exercises one at a time from the same
+ * adjustable phases fitWorkoutToBudget trims (most populous first, never
+ * below 1, warmup/cooldown untouched). If the cap still can't be met once
+ * every phase is down to 1 exercise, remove whole blocks per
+ * BLOCK_REMOVAL_ORDER — warmup can never be removed.
+ */
+export function cutExerciseCount(workout: SmartWorkout, maxExercises: number) {
+  const phases: WorkoutPhase[] = (workout.phases ?? [])
+    .map(p => ({ ...p, exercises: [...(p.exercises ?? [])] }));
+
+  const total = () => phases.reduce((sum, p) => sum + p.exercises.length, 0);
+
+  let removedExercises = 0;
+  while (total() > maxExercises) {
+    const working = phases.filter(p => p.exercises.length > 1 && ADJUSTABLE_PHASES.has(p.phase));
+    const pool    = working.length
+      ? working
+      : phases.filter(p => p.exercises.length > 1 && p.phase !== 'warmup' && p.phase !== 'cooldown');
+    if (!pool.length) break; // every phase is down to 1 exercise (or is warmup/cooldown) — block removal below
+    pool.sort((a, b) => b.exercises.length - a.exercises.length);
+    pool[0]!.exercises.pop();
+    removedExercises++;
+  }
+
+  const removedBlocks: string[] = [];
+  if (total() > maxExercises) {
+    for (const blockName of BLOCK_REMOVAL_ORDER) {
+      if (total() <= maxExercises) break;
+      const idx = phases.findIndex(p => p.phase === blockName);
+      if (idx < 0) continue;
+      removedExercises += phases[idx]!.exercises.length;
+      removedBlocks.push(blockName);
+      phases.splice(idx, 1);
+    }
+  }
+
+  return {
+    workout: { ...workout, phases },
+    removedExercises,
+    removedBlocks,
+  };
 }
 
 interface DailyInsight {
@@ -996,6 +1053,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `[generate-smart-workout] ${report.missingCategoryCount}/${report.totalExercises} exercises missing "category"`,
         );
       }
+    }
+
+    // Fase 2 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md: activate the
+    // count dimension measured above. Runs once, before fitWorkoutToBudget,
+    // so time fitting operates on the already-cut set.
+    if (parsed.workout?.phases?.length && body.task.maxExercises != null) {
+      const cut = cutExerciseCount(parsed.workout, body.task.maxExercises);
+      if (cut.removedExercises > 0) {
+        console.warn(
+          `[generate-smart-workout] cut to maxExercises=${body.task.maxExercises}: removed ${cut.removedExercises} exercise(s)` +
+          (cut.removedBlocks.length ? `, dropped block(s) [${cut.removedBlocks.join(', ')}]` : ''),
+        );
+      }
+      parsed.workout = cut.workout;
     }
 
     // Enforce the time budget on generated sessions (safety-gate responses carry
