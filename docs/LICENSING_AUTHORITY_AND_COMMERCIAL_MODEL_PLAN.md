@@ -72,7 +72,7 @@ Derivados de `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` e `PROFILE.md` §Quality Direct
 | 1 | Núcleo de entitlements (fonte única) | 2,3 | ✅ Concluída — sucesso | 2026-08-04 |
 | 2 | Autoridade no servidor (3 gates de IA) | 4 | ✅ Concluída — sucesso | 2026-08-04 |
 | 3 | Cobertura de dados + guarda anti-regressão | 4, 6 | ✅ Concluída — sucesso | 2026-08-04 |
-| 4 | Direito autónomo × patrocinado (comercial #1 — **decidida**) | 5 | ⬜ Pendente | — |
+| 4 | Direito autónomo × patrocinado (comercial #1 — **decidida**) | 5 | ✅ Concluída — verificação parcial ao vivo (ver §Fase 4) | 2026-08-04 |
 | 4.1 | Decomposição de `checkin.full` e métricas — fecha comercial #1 em paralelo à Fase 4 | — | ⬜ Pendente | — |
 | 4.2 | Franquia de IA do treinador | — | ⛔ Bloqueada por medição | — |
 | 5 | Fitness×Performance por planeamento (comercial #2 — **decidida**) | — | ⬜ Pendente | — |
@@ -205,7 +205,7 @@ imported from /var/task/api/generate-smart-workout.js
 
 ---
 
-### Fase 4 — Direito autónomo × direito patrocinado ⬜ *(decisão comercial #1 — DECIDIDA)*
+### Fase 4 — Direito autónomo × direito patrocinado ✅ Concluída (2026-08-04) *(decisão comercial #1 — DECIDIDA)*
 
 **Objectivo:** resolver o conflito central da análise comercial — *o plano do aluno não pode bloquear o programa que um treinador autorizado prescreveu* — separando **dados e execução** (patrocinados) de **automação e inteligência variável** (pagas por quem remunera a chamada de IA).
 
@@ -232,16 +232,20 @@ Este é o caso literal de *"temos funções disponíveis e não as alcançamos p
 
 #### Checklist
 
-- [ ] Adicionar `origin: 'trainer_prescribed' | 'autonomous_ai'` ao núcleo de entitlements (Fase 1), derivado de `created_by <> assigned_to` — **função única, sem reimplementação por superfície**
-- [ ] Servidor resolve `origin` **antes** de aplicar qualquer cap; `trainer_prescribed` ignora `sessions_per_week`, `exercises_per_session`, `exercise_type` e `trainer_plan.days_per_week`
-- [ ] `autonomous_ai` mantém todos os caps, aplicados e verificados no servidor (Fase 2) e registados para controlo de custo
-- [ ] Remover a filtragem de exercícios do plano do treinador pelo tier do aluno (`filteredTrainerPlans`, `StartWorkoutScreen.tsx:218-241`)
-- [ ] `trainer_plan.days_per_week` deixa de limitar execução de programa prescrito com vínculo activo — **fecha, por eliminação de uso, a lacuna de RLS que a auditoria encontrou nesta key** (§3.3: `workout_sessions` não valida plano na escrita). A única aplicação desta key é conteúdo prescrito, que passa a ser sempre liberado; confirmar que nenhuma outra leitura dela sobrevive antes de a dar por resolvida
-- [ ] Rever i18n: mensagens de limite deixam de aparecer sobre programa prescrito
-- [ ] Remover o cap autónomo do AI FITNESS (`workout.sessions_per_week` → `null`) — decisão #4, D4 — e actualizar as 4 strings `limitWeeklyCta` (pt/en/es/de:1187) que trazem "7" hardcoded
-- [ ] Teste: aluno FREE vinculado executa 100% do programa prescrito **e** continua capado em 1 sessão autónoma/semana
+- [x] `resolveWorkoutOrigin` adicionado a `src/licensing/entitlements.ts` (`created_by <> assigned_to`), testado (2/2) — **correcção ao plano original:** os bullets seguintes (§235-237 da v-anterior) presumiam que `generate-smart-workout.ts` precisava de resolver `origin` para decidir se aplica os caps. Investigação directa mostrou que não: a query que popula `trainerPlans` em `StartWorkoutScreen.tsx` já filtra `.eq('source', 'manual')` — **tudo o que chega a esse array já é, por construção, `trainer_prescribed`**; `generate-smart-workout.ts` nunca gera nem recebe conteúdo prescrito, só autónomo. Não havia nenhum caminho de código onde os caps precisassem de ser condicionalmente ignorados no servidor — precisavam era de **parar de ser aplicados no cliente** a um array que já sabia ser prescrito
+- [x] Removida a filtragem de exercícios do plano do treinador pelo tier do aluno (`filteredTrainerPlans`/`filteredCount`, e o fetch de classificação que só existia para as alimentar — `allTrainerExercises`/`useExerciseClassification`)
+- [x] Removido o bloqueio por `trainer_plan.days_per_week` (`isPlanLocked`, o modal `trainerPlanLocked`) — a key deixa de ser lida em `StartWorkoutScreen.tsx`; confirmado por grep que não sobrevive nenhuma outra leitura. **Fecha a lacuna de RLS da auditoria §3.3 por eliminação de uso**, como previsto
+- [x] i18n: removidas as 4 strings agora inalcançáveis (`client.trainerPlan.dayLocked*`, `exercisesFiltered`) em pt/en/es/de
+- [x] Cap autónomo do AI FITNESS removido (`workout.sessions_per_week` → `null` em produção) — decisão #4, D4 — e as 4 strings `limitWeeklyCta` actualizadas para "ilimitado" em vez de "7"
+- [~] Teste: cobertura parcial — ver nota de verificação abaixo
 
 **Critério de aceitação:** aluno FREE vinculado executa 100% do programa prescrito; o cap autónomo permanece aplicado e verificado no servidor; nenhuma chamada de IA é disparada automaticamente por execução de programa prescrito.
+
+**Nota de verificação — honesta sobre o que foi e não foi provado ao vivo:**
+- ✅ `tsc --noEmit` limpo (zero referências órfãs às variáveis/imports removidos — confirmado por grep antes e depois)
+- ✅ `npx vitest run`: 266/266 relevantes (264 + 2 novos para `resolveWorkoutOrigin`)
+- ✅ Deploy real (`vercel build` → push → CI do Vercel) `READY`; página carrega sem crash, confirmado ao vivo (`andre.lima@client.test`, FREE)
+- ⚠️ **Não foi possível exercer ao vivo o cenário exacto** (plano prescrito com >1 dia, ou com exercício `performance`, sendo executado sem filtro/bloqueio): nenhuma conta `@client.test` tem hoje mais de 1 plano prescrito activo ou exercícios de categoria `performance` num plano prescrito. O único plano prescrito de `andre.lima` mudou de estado **durante os próprios testes desta sessão** — `autoExpirePlans`/auto-heal (lógica pré-existente, não tocada por esta fase) corre a cada abertura do ecrã e cancelou/completou os planos de teste disponíveis. Forçar o cenário exigiria criar novo dado de teste (mais escrita em produção) — não feito sem perguntar primeiro. A mudança é puramente subtractiva (remoção de filtros client-side), risco mais baixo do que a autoridade de servidor da Fase 2, mas a ressalva fica registada, não escondida.
 
 ---
 
@@ -417,6 +421,7 @@ Após a Fase 4 o cap aplica-se só à geração autónoma; após a Fase 5 a dife
 | 1 | 2026-08-04 | **Sucesso.** `src/licensing/entitlements.ts` criado (núcleo puro); `useFeatureAccess.ts` refactorado para delegar; fail-open dos caps numéricos invertido. 30 testes novos, 252 pré-existentes intactos, zero erros de tipo. | `src/licensing/entitlements.test.ts` (30/30); `npx vitest run` (252/252 relevantes); `npx tsc --noEmit` limpo |
 | 2 | 2026-08-04 | **Sucesso, com um bug real encontrado e corrigido no caminho.** `api/_lib/entitlements.ts` criado; `generate-smart-workout.ts` deriva os 3 gates de IA do servidor, não do cliente; `send-invitation.ts` consome o mesmo resolvedor; 7/7 handlers migrados para `_lib/auth`; instrumentação de custo adicionada. A primeira chamada HTTP real (project lead autenticado, credenciais nunca digitadas por mim) devolveu 500 `ERR_MODULE_NOT_FOUND` — imports relativos sem extensão `.js`, que nem `tsc` nem a prova de bundle da Fase 0 detectam sob Node ESM nativo. Corrigido (`f24e376`), redeploy, 200 confirmado ao vivo com conta FREE real, incluindo a elevação `free→ai_fitness` a funcionar correctamente. Rollback por feature flag **não implementado** — divergência registada, não pendência oculta. | `api/_lib/entitlements.test.ts` (6/6); `npx vitest run` (258/258 relevantes); 7 bundles confirmados; `vercel logs` do 500 e do 200 pós-fix; log `ai_generation_cost` real com tokens a bater com a resposta |
 | 3 | 2026-08-04 | **Sucesso.** 14 linhas semeadas em `feature_permissions` (73→87, primeira escrita de dados da sessão); `ai.workout_generation` documentado; teste de completude com mapa de audiência derivado do código real, não suposto. | `src/licensing/completeness.test.ts` (6/6); `npm run check:feature-permissions` contra a BD real — "6 planos, 87 linhas, nenhuma lacuna"; `npx vitest run` (264/264 relevantes) |
+| 4 | 2026-08-04 | **Sucesso, com correcção ao plano no caminho.** Investigação mostrou que `generate-smart-workout.ts` nunca lida com conteúdo prescrito — a query de `trainerPlans` já filtra `source='manual'`, então o bug era filtrar/bloquear no cliente algo já sabido ser prescrito, não falta de um discriminador de servidor. Removida a filtragem por tipo de exercício e o cap de dias em `StartWorkoutScreen.tsx`; `resolveWorkoutOrigin` formalizado no núcleo para reuso futuro (Fase 5.1). Decisão #4 aplicada (cap do AI FITNESS removido). Verificação ao vivo parcial: página carrega sem crash, mas nenhuma conta de teste tinha dado qualificado (>1 plano prescrito ou exercício `performance`) para exercer o cenário exacto — os dados disponíveis mudaram de estado durante os próprios testes (auto-expire/auto-heal pré-existente). | `npx vitest run` (266/266 relevantes); `tsc --noEmit` limpo; deploy READY, carregamento ao vivo confirmado sem erro; cenário exacto não reproduzido ao vivo por falta de dado de teste qualificado |
 
 ---
 
