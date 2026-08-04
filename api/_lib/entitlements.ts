@@ -11,9 +11,9 @@
 // territory beyond Fase 0's proof (which only covered api/ → api/_lib/) —
 // verify with the same build-output-bundle-inspection technique before
 // trusting it.
-import { resolveEffectivePlanKey, toEntitlements, startOfWeek, type Entitlements } from '../../src/licensing/entitlements';
-import type { FeaturePermission, Subscription } from '../../src/types';
-import { authSupabaseUrl, authServiceHeaders } from './auth';
+import { resolveEffectivePlanKey, toEntitlements, startOfWeek, type Entitlements } from '../../src/licensing/entitlements.js';
+import type { FeaturePermission, Subscription } from '../../src/types/index.js';
+import { authSupabaseUrl, authServiceHeaders } from './auth.js';
 
 /**
  * Resolves `userId`'s real, current entitlements from the database —

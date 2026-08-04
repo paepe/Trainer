@@ -47,7 +47,7 @@ const MAX_TEXT_CHARS = 300;
 // authServiceHeaders() used to bundle 'Content-Type': 'application/json' in
 // automatically; _lib/auth's version doesn't (most callers are GET), so the
 // one POST call site below (storeTranslations) now sets it explicitly.
-import { verifyRequestUser, authSupabaseUrl, authServiceHeaders } from './_lib/auth';
+import { verifyRequestUser, authSupabaseUrl, authServiceHeaders } from './_lib/auth.js';
 
 interface CacheRow {
   source_text:     string;

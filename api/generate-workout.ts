@@ -4,7 +4,7 @@
 // function builder (confirmed via build-output inspection, Fase 0/2 of the
 // same plan); the "self-contained" premise this file used to carry is
 // disproven.
-import { verifyRequestUser } from './_lib/auth';
+import { verifyRequestUser } from './_lib/auth.js';
 
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.

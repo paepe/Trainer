@@ -14,8 +14,8 @@ import { randomUUID } from 'crypto';
 // caller's real plan server-side, never trust the client) — written inline
 // here and never reused elsewhere. It's now a consumer of the same
 // resolver every other handler uses, not the lone exemplar.
-import { verifyRequestUser, isTrainerRole, authSupabaseUrl, authServiceHeaders } from './_lib/auth';
-import { resolveUserEntitlements } from './_lib/entitlements';
+import { verifyRequestUser, isTrainerRole, authSupabaseUrl, authServiceHeaders } from './_lib/auth.js';
+import { resolveUserEntitlements } from './_lib/entitlements.js';
 
 const INVITE_TTL_DAYS = 7;
 

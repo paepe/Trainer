@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 // docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md (isTrainerRole and
 // hasActiveLink were defined here but never called — dropped, not migrated,
 // per the same discipline applied to billing-portal.ts in Fase 0).
-import { verifyRequestUser } from './_lib/auth';
+import { verifyRequestUser } from './_lib/auth.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-06-24.dahlia' });
 

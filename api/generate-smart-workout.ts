@@ -13,11 +13,11 @@
 // carry ("does not trace relative imports"). This was the first of the 3 AI
 // gates without server-side authority; see resolveAuthoritativeTaskGates
 // below for where the fix actually happens.
-import { verifyRequestUser, hasActiveLink } from './_lib/auth';
+import { verifyRequestUser, hasActiveLink } from './_lib/auth.js';
 import {
   resolveUserEntitlements, countSessionsThisWeek, isSessionsPerWeekCapReached,
   resolveAuthoritativeTaskGates,
-} from './_lib/entitlements';
+} from './_lib/entitlements.js';
 
 // ─── Inlined types (from src/ai/types.ts + src/types/coach-dna.ts) ────────────
 

@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 // test whether the "Vercel doesn't trace relative imports" premise the other
 // 6 handlers were written under actually holds. Do not copy this pattern to
 // other handlers until that premise is confirmed in a real preview deploy.
-import { verifyRequestUser } from './_lib/auth';
+import { verifyRequestUser } from './_lib/auth.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-06-24.dahlia' });
 

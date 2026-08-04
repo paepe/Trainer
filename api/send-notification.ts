@@ -8,7 +8,7 @@
 // docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md (isTrainerRole was
 // defined here but never called — dropped, not migrated, per the same
 // discipline applied to billing-portal.ts in Fase 0).
-import { verifyRequestUser, hasActiveLink } from './_lib/auth';
+import { verifyRequestUser, hasActiveLink } from './_lib/auth.js';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
