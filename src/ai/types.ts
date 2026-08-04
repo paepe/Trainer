@@ -154,6 +154,13 @@ export interface StatsContext {
     painRecurrence:       number;
     sessionCompletion:    number;
     planFit:              number;
+    // Real ATL/CTL/TSB-derived load scores (perf-engines.ts computeTrainingLoad,
+    // Fase 5.1 of LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md) — the model
+    // already existed and was already shown in PerformanceDashboardScreen; it
+    // just never reached generation before this wiring.
+    acuteLoad:            number;
+    trainingForm:         number;
+    trainingStrain:       number;
   };
 }
 

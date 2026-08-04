@@ -166,6 +166,10 @@ interface StatsContext {
     painRecurrence:       number;
     sessionCompletion:    number;
     planFit:              number;
+    // Real ATL/CTL/TSB-derived load scores (Fase 5.1) — see src/ai/types.ts.
+    acuteLoad:            number;
+    trainingForm:         number;
+    trainingStrain:       number;
   };
 }
 
@@ -593,6 +597,7 @@ ${isAutonomous ? '- Since there is no trainer, generate a plan consistent with t
 - Respect equipment and location constraints exactly — never prescribe equipment not listed.
 - Honour the trainer's avoidExercises and client's injury/pain restrictions.
 - Adapt intensity based on readinessScore, fatigueRisk, and intensityCeiling.
+- If training_form is low (below 40) or training_strain is high (70+), the client is carrying real accumulated fatigue from recent sessions — reduce this session's volume and/or intensity accordingly, even if today's check-in looks fine. Say so plainly in coachNote/adaptations as something you adjusted, not as a warning for the client to act on themselves.
 - For rep-based exercises, set "reps" to a plain count (e.g. "10" or "8-12") and leave "durationSeconds" null.
 - For isometric, breathing, or hold-based exercises (e.g. plank, neck rotations, diaphragmatic breathing) that have no meaningful rep count, set "reps" to null and set "durationSeconds" to the hold/execution time in seconds instead. Every exercise MUST have either "reps" or "durationSeconds" set — never both null.
 - SESSION STRUCTURE: a workout is a complete session, not a list of lifts. The user message states
@@ -905,6 +910,11 @@ function buildUserPrompt(ctx: AIContext): string {
   lines.push(`Pain events (14d): ${stats.painEvents14d}${stats.primaryPainRegion ? ` — primary region: ${stats.primaryPainRegion}` : ''}`);
   if (stats.painRecurrenceAlert) lines.push('\u26a0 Pain recurrence alert: yes');
   lines.push(`Predictive scores (0-100): progression_readiness=${stats.predictiveScores.progressionReadiness}, fatigue_risk=${stats.predictiveScores.fatigueRisk}, pain_recurrence=${stats.predictiveScores.painRecurrence}, session_completion=${stats.predictiveScores.sessionCompletion}, plan_fit=${stats.predictiveScores.planFit}`);
+  // Real ATL/CTL/TSB-derived load (Fase 5.1): low training_form or high
+  // training_strain means the accumulated load from prior sessions — including
+  // ones this same AI prescribed — is high. Autonomous sessions must self-
+  // regulate on this signal now, not just report it after the fact.
+  lines.push(`Training load (0-100, low = more fatigue): acute_load=${stats.predictiveScores.acuteLoad}, training_form=${stats.predictiveScores.trainingForm}, training_strain=${stats.predictiveScores.trainingStrain}`);
   lines.push('');
 
   lines.push('## EXERCISE CONSTRAINTS');

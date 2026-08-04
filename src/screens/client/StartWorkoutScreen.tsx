@@ -9,9 +9,11 @@ import type { NavFn, CheckIn, Subscription } from '../../types';
 import type { Json } from '../../types/supabase';
 import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGeneration';
 import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
-import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext } from '../../ai/buildAIContext';
+import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext, buildStatsContext } from '../../ai/buildAIContext';
 import type { TrainerContext, TaskContext } from '../../ai/types';
 import { useFeatureAccessMap, useEffectivePlanKey } from '../../hooks/useFeatureAccess';
+import { useM5Data } from './performance/perf-engines';
+import { handleHighTrainingLoad } from '../../lib/events';
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
@@ -140,6 +142,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const exercisesPerSession = aiAccessMap['workout.exercises_per_session']?.limitValue ?? null;
   // workout.exercise_type: limit_value 0 = fitness only, null = all
   const fitnessOnlyWorkout  = (aiAccessMap['workout.exercise_type']?.limitValue ?? null) === 0;
+  // Real training-load signal (Fase 5.1) — same computation PerformanceDashboardScreen
+  // already uses (perf-engines.ts computeTrainingLoad), now also feeding generation
+  // instead of only being displayed after the fact.
+  const m5 = useM5Data(user?.id ?? null);
   const [genState, setGenState] = React.useState<GenState>({ phase: 'idle' });
   const [planSource, setPlanSource] = React.useState<string | null>(null);
   const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
@@ -206,6 +212,22 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   // this content in the first place; they were being applied here by
   // mistake, not by design.
   const hasTrainerPlans = trainerPlans.length > 0;
+
+  // Fase 5.1: the AI has no authority to alter a trainer-prescribed program —
+  // when accumulated load is high and a prescribed session is pending, alert
+  // the trainer instead of silently adjusting (mirrors the autonomous path,
+  // where this same signal feeds generation directly via gatedStatsCtx below).
+  // handleHighTrainingLoad dedupes against existing open alerts server-side;
+  // this ref only avoids firing the check redundantly within one mount.
+  const trainingLoadAlertFiredRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!hasTrainerPlans || !linkedTrainerId || !user?.id || !m5.data || trainingLoadAlertFiredRef.current) return;
+    const { trainingForm, trainingStrain } = m5.data.scores;
+    if (trainingForm.score < 40 || trainingStrain.score >= 70) {
+      trainingLoadAlertFiredRef.current = true;
+      void handleHighTrainingLoad(user.id, linkedTrainerId, trainingForm.score, trainingStrain.score);
+    }
+  }, [hasTrainerPlans, linkedTrainerId, user?.id, m5.data]);
 
   // Derived accessors — single point of truth from discriminated union
   const loading         = genState.phase === 'loading';
@@ -526,12 +548,18 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const avgReadiness = checkinHist.length
           ? Math.round(checkinHist.reduce((s, c) => s + (c.readiness_score ?? 0), 0) / checkinHist.length) : 60;
         const completed = sessions.filter((s: any) => s.status === 'completed').length;
-        const statsCtx = {
+        // Real stats, not placeholders (Fase 5.1 achado: this was hardcoded —
+        // progressionReadiness/fatigueRisk/avgRPELast3/workoutStreak/
+        // painEvents14d were constant for every user, always — buildStatsContext
+        // already existed for this exact purpose and was simply never called
+        // here). Falls back to the same neutral placeholders only if m5 data
+        // never resolved (e.g. fetch error) — generation must never block on it.
+        const statsCtx = m5.data ? buildStatsContext(m5.data) : {
           adherenceRate: sessions.length > 0 ? completed / sessions.length : 0,
           workoutStreak: 0, sessionsLast30d: sessions.length,
           avgEnergy7d: avgEnergy, avgReadiness7d: avgReadiness, avgRPELast3: 0,
           painEvents14d: 0, painRecurrenceAlert: false,
-          predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70 },
+          predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70, acuteLoad: 50, trainingForm: 60, trainingStrain: 20 },
         };
 
         // 5. TrainerContext — Coach DNA if linked, else DEFAULT_AI_TRAINER + client prefs.
@@ -583,6 +611,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             painRecurrence:       10,
             sessionCompletion:    70,
             planFit:              70,
+            acuteLoad:            50,
+            trainingForm:         60,
+            trainingStrain:       20,
           },
         };
 
@@ -696,14 +727,17 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   }, []);
 
   React.useEffect(() => {
-    if (aiPermsLoading || fetchFiredRef.current) return;
+    // Also wait for m5 (real training-load stats, Fase 5.1) — both fetches run
+    // in parallel from mount, so this rarely adds real latency, but it means
+    // generation never fires against the fake-placeholder branch by a race.
+    if (aiPermsLoading || m5.loading || fetchFiredRef.current) return;
     fetchFiredRef.current = true;
     const fetch = async () => {
       try { await fetchPlan(); } catch { /* caught internally */ }
     };
     void fetch();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aiPermsLoading]);
+  }, [aiPermsLoading, m5.loading]);
 
   // Live: a new plan sent by the trainer while this screen is open
   React.useEffect(() => {
