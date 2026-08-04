@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  resolveEffectivePlanKey, toEntitlements, DEFAULTS, ALL_FEATURE_KEYS,
+  resolveEffectivePlanKey, toEntitlements, DEFAULTS, ALL_FEATURE_KEYS, resolveWorkoutOrigin,
 } from './entitlements';
 import type { FeaturePermission, Subscription, PlanKey } from '../types';
 
@@ -229,5 +229,15 @@ describe('regressão: trial elevado a pro nunca perde capacidade face a trial br
         }
       }
     }
+  });
+});
+
+describe('resolveWorkoutOrigin', () => {
+  it('classifica como autonomous_ai quando o próprio aluno criou o plano para si', () => {
+    expect(resolveWorkoutOrigin({ created_by: 'user-1', assigned_to: 'user-1' })).toBe('autonomous_ai');
+  });
+
+  it('classifica como trainer_prescribed quando o criador difere do destinatário', () => {
+    expect(resolveWorkoutOrigin({ created_by: 'trainer-1', assigned_to: 'client-1' })).toBe('trainer_prescribed');
   });
 });

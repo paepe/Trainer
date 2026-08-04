@@ -166,3 +166,23 @@ export function toEntitlements(
 
   return result;
 }
+
+// ─── Origem do treino — Fase 4 ──────────────────────────────────────────────
+
+export type WorkoutOrigin = 'trainer_prescribed' | 'autonomous_ai';
+
+/**
+ * `trainer_prescribed` × `autonomous_ai` — a partir de `created_by <>
+ * assigned_to` em `workout_plans` (verificado em produção: correlação
+ * perfeita com `source`, 136/136 linhas, docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md
+ * §Fase 4). Nenhuma coluna nova, nenhum backfill — o discriminador já existe
+ * e já é autoridade na RLS (`client creates own ai-generated plan`).
+ *
+ * Único lugar onde esta decisão é tomada — Fase 4 remove as duas
+ * reimplementações inline que existiam (o filtro de exercícios em
+ * StartWorkoutScreen.tsx e o cap de dias, ambos aplicados incorrectamente a
+ * conteúdo que a própria query já garantia ser `trainer_prescribed`).
+ */
+export function resolveWorkoutOrigin(plan: { created_by: string; assigned_to: string }): WorkoutOrigin {
+  return plan.created_by === plan.assigned_to ? 'autonomous_ai' : 'trainer_prescribed';
+}

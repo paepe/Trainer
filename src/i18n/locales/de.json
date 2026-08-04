@@ -1184,17 +1184,11 @@
       "aiLockedFree": "Tägliche Check-in-Kalibrierung ist ab dem AI Fitness-Plan verfügbar.",
       "aiLockedFreeNote": "Dein Plan wird bereits von der KI erstellt, passt sich aber noch nicht an deine heutige Energie, deinen Schlaf oder deine Erschöpfung an. Upgrade, um ihn an deinen täglichen Check-in zu kalibrieren.",
       "limitWeekly": "Du hast das Limit von {{n}} Einheit/Woche im Free-Plan erreicht.",
-      "limitWeeklyCta": "Upgrade auf AI Fitness — 7 Einheiten/Woche",
+      "limitWeeklyCta": "Upgrade auf AI Fitness — unbegrenzte Einheiten",
       "limitType": "Performance-Übungen erfordern den AI Performance-Plan.",
       "limitTypeCta": "Upgrade, um Performance-Training freizuschalten",
       "performanceTeaser": "Performance-Training — Geschwindigkeit, Kraft & Ausdauer-Metriken (ATL/CTL/TSB) — ist im AI Performance-Plan verfügbar.",
       "performanceTeaserCta": "Verfügbar im AI Performance — Pläne ansehen"
-    },
-    "trainerPlan": {
-      "dayLocked": "Trainingstag gesperrt",
-      "dayLockedNote": "Dein {{plan}}-Plan erlaubt {{n}} Trainertag(e)/Woche. Upgrade, um mehr Tage freizuschalten.",
-      "dayLockedCta": "Pläne ansehen",
-      "exercisesFiltered": "{{count}} Performance-Übung(en) aus diesem Trainingsplan sind in deinem Plan nicht enthalten."
     },
     "mode": {
       "finishWorkout": "Training beenden",

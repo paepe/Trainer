@@ -1184,17 +1184,11 @@
       "aiLockedFree": "A calibragem diária por check-in está disponível a partir do plano AI Fitness.",
       "aiLockedFreeNote": "Seu plano já é gerado por IA, mas ainda não se adapta à sua energia, sono ou fadiga do dia. Faça upgrade para calibrá-lo pelo seu check-in diário.",
       "limitWeekly": "Atingiu o limite de {{n}} sessão/semana do plano Free.",
-      "limitWeeklyCta": "Actualize para AI Fitness — 7 sessões/semana",
+      "limitWeeklyCta": "Actualize para AI Fitness — sessões ilimitadas",
       "limitType": "Exercícios de Desempenho requerem o plano AI Performance.",
       "limitTypeCta": "Actualize para desbloquear o treino de desempenho",
       "performanceTeaser": "Treino de Desempenho — velocidade, potência e métricas de resistência (ATL/CTL/TSB) — disponível no plano AI Performance.",
       "performanceTeaserCta": "Disponível no AI Performance — Ver planos"
-    },
-    "trainerPlan": {
-      "dayLocked": "Dia de treino bloqueado",
-      "dayLockedNote": "O seu plano {{plan}} permite {{n}} dia(s)/semana do plano do treinador. Actualize para desbloquear mais dias.",
-      "dayLockedCta": "Ver planos",
-      "exercisesFiltered": "{{count}} exercício(s) de desempenho deste plano do treinador não estão incluídos no seu plano."
     },
     "mode": {
       "finishWorkout": "Finalizar Treino",
