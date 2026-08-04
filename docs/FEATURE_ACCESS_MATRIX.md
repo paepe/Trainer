@@ -33,28 +33,30 @@ feature_permissions (Supabase)
 
 ### 2.1 Matriz de Acesso
 
-| Funcionalidade | FREE | AI FITNESS | AI PERFORMANCE |
-|---|:---:|:---:|:---:|
-| **Sessões / semana (IA)** | 1 | 7 | Ilimitado |
-| **Exercícios por sessão (IA)** | 2 | Sem limite (tempo disponível) | Sem limite |
-| **Tipo de exercícios** | Fitness apenas | Fitness apenas | Fitness + Desempenho |
-| **Plano do treinador — dias activos** | 1 dia | 3 dias / semana | Todos os dias |
-| **Plano do treinador — tipo exercícios** | Fitness apenas | Fitness apenas | Fitness + Desempenho |
-| **Check-in Rápido** | ✅ | ✅ | ✅ |
-| **Check-in Completo** | ❌ | ✅ | ✅ |
-| **Progresso — métricas básicas** | ✅ | ✅ | ✅ |
-| **Progresso — métricas fitness avançadas** | ❌ bloqueado | ✅ | ✅ |
-| **Progresso — métricas de desempenho** | ❌ bloqueado | ❌ bloqueado | ✅ |
-| **AI Score — básico** (4 scores) | ✅ | ✅ | ✅ |
-| **AI Score — avançado** (8 scores) | ❌ bloqueado | ❌ bloqueado | ✅ |
-| **AI Checkin Adjustment** | ❌ | ✅ | ✅ |
-| **AI Advanced Analysis** | ❌ | ❌ | ✅ |
-| **Convite de treinador** | ✅ (limitado ao plano) | ✅ (limitado ao plano) | ✅ |
-| **CTA de upgrade** | ✅ ao exceder limite | ✅ ao tentar desempenho | — |
+**Nota 2026-08-04:** coluna Descrição adicionada; valor de "Exercícios por sessão (IA)" para FREE corrigido de 2 para 6, alinhando com a correcção já feita em §4 (2026-08-03).
+
+| Funcionalidade | Descrição | FREE | AI FITNESS | AI PERFORMANCE |
+|---|---|:---:|:---:|:---:|
+| **Sessões / semana (IA)** | Quantas sessões de treino a IA gera automaticamente por semana | 1 | 7 | Ilimitado |
+| **Exercícios por sessão (IA)** | Nº máximo de exercícios que a IA inclui em cada sessão gerada | 6 | Sem limite (tempo disponível) | Sem limite |
+| **Tipo de exercícios** | Se a IA pode prescrever exercícios de Desempenho (velocidade, potência, resistência) além de Fitness | Fitness apenas | Fitness apenas | Fitness + Desempenho |
+| **Plano do treinador — dias activos** | Quantos dias/semana do plano criado pelo treinador o aluno consegue efectivamente treinar; nos restantes vê CTA de upgrade | 1 dia | 3 dias / semana | Todos os dias |
+| **Plano do treinador — tipo exercícios** | Se os exercícios de Desempenho do plano do treinador chegam ao aluno, ou são filtrados para Fitness apenas | Fitness apenas | Fitness apenas | Fitness + Desempenho |
+| **Check-in Rápido** | Registo de prontidão por toque único, sem perguntas detalhadas | ✅ | ✅ | ✅ |
+| **Check-in Completo** | Formulário detalhado (voz/texto) que alimenta o AI Checkin Adjustment | ❌ | ✅ | ✅ |
+| **Progresso — métricas básicas** | Treinos concluídos, sequência e indicadores essenciais no ecrã de Progresso | ✅ | ✅ | ✅ |
+| **Progresso — métricas fitness avançadas** | Evolução física detalhada (força, volume, tendências) | ❌ bloqueado | ✅ | ✅ |
+| **Progresso — métricas de desempenho** | Métricas atléticas (ATL/CTL/TSB — carga aguda/crónica e forma) | ❌ bloqueado | ❌ bloqueado | ✅ |
+| **AI Score — básico** (4 scores) | Pontuações de IA sobre prontidão/risco, versão reduzida | ✅ | ✅ | ✅ |
+| **AI Score — avançado** (8 scores) | Versão completa das pontuações de IA, maior granularidade | ❌ bloqueado | ❌ bloqueado | ✅ |
+| **AI Checkin Adjustment** | Ajusta o treino do dia consoante energia, dor e sono reportados no check-in | ❌ | ✅ | ✅ |
+| **AI Advanced Analysis** | Análise preditiva aprofundada de carga e recuperação sobre o histórico do aluno | ❌ | ❌ | ✅ |
+| **Convite de treinador** | Permite ao aluno vincular-se a um treinador e receber o respectivo plano | ✅ (limitado ao plano) | ✅ (limitado ao plano) | ✅ |
+| **CTA de upgrade** | Botão/mensagem de actualização mostrado ao aluno ao atingir um limite do plano | ✅ ao exceder limite | ✅ ao tentar desempenho | — |
 
 ### 2.2 Regras de Negócio — FREE
 
-1. **Sessão única semanal:** A IA gera no máximo 1 sessão com 2 exercícios fitness por semana.
+1. **Sessão única semanal:** A IA gera no máximo 1 sessão com 6 exercícios fitness por semana.
 2. **Plano do treinador:** Se vinculado a um treinador, pode receber plano para 1 dos dias disponíveis. Nos dias restantes, ao tentar treinar, aparece mensagem de limitação + botão **Actualizar conta**.
 3. **Check-in:** Apenas Check-in Rápido disponível.
 4. **Progresso:** Todas as abas visíveis, mas métricas fitness avançadas e de desempenho bloqueadas.
@@ -81,18 +83,20 @@ feature_permissions (Supabase)
 
 ### 3.1 Matriz de Acesso
 
-| Funcionalidade | TRIAL | PRO | ELITE |
-|---|:---:|:---:|:---:|
-| **Clientes activos (limite)** | 3 | 50 | Ilimitado |
-| **Coach DNA** | ❌ | ✅ | ✅ |
-| **Studio Branding** | ❌ | ✅ | ✅ |
-| **Marketplace — listagem** | ❌ | ❌ | ✅ |
-| **Marketplace — revenue share** | ❌ | ❌ | ✅ |
-| **AI Score — básico** (4 scores) | ✅ | ✅ | ✅ |
-| **AI Score — avançado** (8 scores) | ❌ | ✅ | ✅ |
-| **AI Checkin Adjustment** | ❌ | ✅ | ✅ |
-| **AI Advanced Analysis** | ❌ | ✅ | ✅ |
-| **Vista do dashboard do cliente** | ✅ (override completo) | ✅ (override completo) | ✅ (override completo) |
+**Correção 2026-08-04:** Studio Branding e Marketplace estavam documentados como "✅" para PRO/ELITE, mas nunca tiveram UI implementada — permanecem com badge "Em breve" em `PlansScreen.tsx` (confirmado por captura de ecrã da produção). Consistente com §4, que já documentava `studio.branding`/`marketplace.*` como "UI pendente".
+
+| Funcionalidade | Descrição | TRIAL | PRO | ELITE |
+|---|---|:---:|:---:|:---:|
+| **Clientes activos (limite)** | Nº máximo de alunos que o treinador pode gerir em simultâneo na conta | 3 | 50 | Ilimitado |
+| **Coach DNA** | Motor que codifica a metodologia própria do treinador (estrutura de blocos, princípios) para a IA gerar planos alinhados ao seu método | ❌ | ✅ | ✅ |
+| **Studio Branding** | Marca própria (logo/cores) no espaço/app voltado ao aluno | ❌ | 🔜 (UI pendente) | 🔜 (UI pendente) |
+| **Marketplace — listagem** | Perfil do treinador visível no marketplace do TrAIner para novos alunos o encontrarem | ❌ | ❌ | 🔜 (UI pendente) |
+| **Marketplace — revenue share** | Participação de 15% na receita de alunos captados via marketplace | ❌ | ❌ | 🔜 (UI pendente) |
+| **AI Score — básico** (4 scores) | Pontuações de IA sobre prontidão/risco de cada aluno, versão reduzida, na perspectiva do dashboard do treinador | ✅ | ✅ | ✅ |
+| **AI Score — avançado** (8 scores) | Versão completa das pontuações de IA por aluno, no dashboard do treinador | ❌ | ✅ | ✅ |
+| **AI Checkin Adjustment** | O motor de IA do treinador ajusta os planos gerados consoante o check-in dos alunos | ❌ | ✅ | ✅ |
+| **AI Advanced Analysis** | Análises preditivas avançadas sobre os alunos geridos pelo treinador | ❌ | ✅ | ✅ |
+| **Vista do dashboard do cliente** | Ao abrir o dashboard de um aluno, o treinador vê sempre todos os dados — o gating é do plano do aluno, não do seu próprio | ✅ (override completo) | ✅ (override completo) | ✅ (override completo) |
 
 > **Nota override:** Um treinador que acede ao dashboard de um cliente vê sempre todos os scores e métricas, independentemente do seu próprio plano. O gating é aplicado pelo plano do **cliente**, não do treinador. Implementado via `isTrainerOverride = !!selectedClient` em `PerformanceDashboardScreen.tsx`.
 

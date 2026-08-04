@@ -27,6 +27,7 @@ import { estimateSessionMinutes } from '../../lib/sessionBudget';
 import { generateFallbackPlan as generateLocalFallbackPlan } from '../../lib/fallbackWorkoutGenerator';
 import type { ContraindicationRegion } from '../../data/fallbackExerciseLibrary';
 import { notifyLinkedTrainer } from '../../lib/notify';
+import { startOfWeek } from '../../licensing/entitlements';
 import aiPlanIcon from '../../assets/ai-plan-icon.png';
 
 // Primary text colour over this screen's plan/exercise list surfaces — repeated
@@ -536,13 +537,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const sessions = sessionsRes.status === 'fulfilled' ? (sessionsRes.value.data ?? []) : [];
 
         // ── Weekly session cap (workout.sessions_per_week gate) ────────────────
-        // Count sessions started this calendar week (Monday–Sunday).
+        // Count sessions started this calendar week (Monday–Sunday). Same
+        // enforcement now runs server-side in generate-smart-workout.ts
+        // (Fase 2, docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md) —
+        // this client-side check is UX (fail fast, no round trip), not the
+        // authority; startOfWeek is the one shared implementation of the
+        // week-boundary rule.
         if (sessionsPerWeekCap !== null) {
-          const now = new Date();
-          const dayOfWeek = (now.getDay() + 6) % 7; // 0=Mon … 6=Sun
-          const weekStart = new Date(now);
-          weekStart.setHours(0, 0, 0, 0);
-          weekStart.setDate(now.getDate() - dayOfWeek);
+          const weekStart = startOfWeek();
           const weekCount = sessions.filter((s: any) =>
             new Date(s.started_at) >= weekStart
           ).length;

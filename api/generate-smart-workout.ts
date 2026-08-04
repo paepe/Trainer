@@ -6,68 +6,18 @@
 // consent.allow_ai_adaptation is true (gated in buildAIContext.ts). When false, both are omitted before the request is sent.
 // NOTE: All types and prompt-building logic are inlined (self-contained) for Vercel bundling.
 
-// ── Inlined auth helpers (Vercel's Node.js function builder does not trace
-// relative imports outside this file into the deployed bundle — confirmed in
-// production; every api/* file must be self-contained, see generate-smart-workout.ts) ──
-function authSupabaseUrl(): string {
-  return process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-}
-function authServiceKey(): string {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-}
-function authAnonKey(): string {
-  return process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
-}
-function authServiceHeaders(): Record<string, string> {
-  const key = authServiceKey();
-  return { apikey: key, Authorization: `Bearer ${key}` };
-}
-
-interface AuthedUser { id: string; email: string | null }
-
-async function verifyRequestUser(req: { headers?: Record<string, string | string[] | undefined> }): Promise<AuthedUser | null> {
-  const raw = req.headers?.authorization ?? req.headers?.Authorization;
-  const header = Array.isArray(raw) ? raw[0] : raw;
-  if (!header?.startsWith('Bearer ')) return null;
-  const jwt = header.slice('Bearer '.length).trim();
-  if (!jwt) return null;
-
-  const url = authSupabaseUrl();
-  const key = authAnonKey();
-  if (!url || !key) {
-    console.error('[auth] SUPABASE_URL / SUPABASE_ANON_KEY not set — cannot verify callers');
-    return null;
-  }
-
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, {
-      headers: { apikey: key, Authorization: `Bearer ${jwt}` },
-    });
-    if (!res.ok) return null;
-    const user = await res.json() as { id?: string; email?: string };
-    if (!user?.id) return null;
-    return { id: user.id, email: user.email ?? null };
-  } catch (err) {
-    console.error('[auth] JWT verification failed:', (err as Error)?.message);
-    return null;
-  }
-}
-
-async function hasActiveLink(userA: string, userB: string): Promise<boolean> {
-  const a = encodeURIComponent(userA);
-  const b = encodeURIComponent(userB);
-  try {
-    const res = await fetch(
-      `${authSupabaseUrl()}/rest/v1/trainer_clients?select=id&status=eq.active&or=(and(trainer_id.eq.${a},client_id.eq.${b}),and(trainer_id.eq.${b},client_id.eq.${a}))&limit=1`,
-      { headers: authServiceHeaders() },
-    );
-    if (!res.ok) return false;
-    const rows = await res.json() as { id: string }[];
-    return rows.length > 0;
-  } catch {
-    return false;
-  }
-}
+// Auth + entitlements now come from shared api/_lib modules — Fase 0/2 of
+// docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md confirmed relative
+// imports inside api/ (and api/ → src/) ARE traced into the deployed bundle
+// by Vercel's function builder, disproving the premise this file used to
+// carry ("does not trace relative imports"). This was the first of the 3 AI
+// gates without server-side authority; see resolveAuthoritativeTaskGates
+// below for where the fix actually happens.
+import { verifyRequestUser, hasActiveLink } from './_lib/auth';
+import {
+  resolveUserEntitlements, countSessionsThisWeek, isSessionsPerWeekCapReached,
+  resolveAuthoritativeTaskGates,
+} from './_lib/entitlements';
 
 // ─── Inlined types (from src/ai/types.ts + src/types/coach-dna.ts) ────────────
 
@@ -1088,6 +1038,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(403).json({ error: 'Caller is not the client or their linked trainer' });
   }
 
+  // ── Server-side authority for the AI generation gates (Fase 2 of
+  // docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md, auditoria §3.1).
+  // body.task.maxExercises/fitnessOnly are still accepted on the wire for
+  // backward compatibility but are no longer trusted — resolveAuthoritativeTaskGates
+  // below is what actually decides. Resolved against body.client.id: content
+  // is always gated by the CLIENT's plan, whether the caller is the client
+  // themself or their linked trainer generating on their behalf.
+  const clientEntitlements = await resolveUserEntitlements(body.client.id);
+
+  const sessionsThisWeek = await countSessionsThisWeek(body.client.id);
+  if (isSessionsPerWeekCapReached(clientEntitlements, sessionsThisWeek)) {
+    return res.status(403).json({
+      error: 'sessions_per_week_limit_reached',
+      limit: clientEntitlements['workout.sessions_per_week'].limitValue,
+    });
+  }
+
+  const resolvedGates = resolveAuthoritativeTaskGates(clientEntitlements, body.task);
+  if (resolvedGates.divergences.length > 0) {
+    // Measurement window per the plan's checklist: log divergence for ~1
+    // week before hardening further. Never blocks — cutExerciseCount /
+    // enforceCategoryFilter below already enforce the resolved values
+    // regardless of what the client claimed.
+    console.warn(
+      `[generate-smart-workout] client task diverges from server entitlements ` +
+      `(client=${body.client.id}, caller=${caller.id}): ${resolvedGates.divergences.join('; ')}`,
+    );
+  }
+
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'DEEPSEEK_API_KEY not set' });
@@ -1114,6 +1093,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const ctx: AIContext = {
     ...body,
+    // Overrides the client-supplied task gates with the server-resolved
+    // ones — from here on, everything downstream (the prompt itself via
+    // buildPrompt(ctx), requiresPerformanceContent(ctx), the post-hoc
+    // cutExerciseCount/enforceCategoryFilter) reads the true entitlement,
+    // never body.task directly.
+    task: { ...body.task, maxExercises: resolvedGates.maxExercises, fitnessOnly: resolvedGates.fitnessOnly },
     contextVersion: '1.1',
     builtAt: new Date().toISOString(),
   };
@@ -1174,7 +1159,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // level (a), no retry: never alters `parsed` either.
     if (parsed.workout?.phases?.length) {
       const requirePerformance = requiresPerformanceContent(ctx, isAutonomous);
-      const report = enforceExerciseTypePolicy(parsed.workout, body.task, requirePerformance);
+      // ctx.task, not body.task — this shadow-mode measurement must reflect
+      // the real entitlement, not whatever the client claimed, or a spoofed
+      // request would silently under-report its own violations.
+      const report = enforceExerciseTypePolicy(parsed.workout, ctx.task, requirePerformance);
       if (report.violations.length > 0) {
         console.warn(
           `[generate-smart-workout] exercise-type policy violations (shadow mode, not enforced): ` +
@@ -1192,11 +1180,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Fase 2 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md: activate the
     // count dimension measured above. Runs once, before fitWorkoutToBudget,
     // so time fitting operates on the already-cut set.
-    if (parsed.workout?.phases?.length && body.task.maxExercises != null) {
-      const cut = cutExerciseCount(parsed.workout, body.task.maxExercises);
+    if (parsed.workout?.phases?.length && ctx.task.maxExercises != null) {
+      const cut = cutExerciseCount(parsed.workout, ctx.task.maxExercises);
       if (cut.removedExercises > 0) {
         console.warn(
-          `[generate-smart-workout] cut to maxExercises=${body.task.maxExercises}: removed ${cut.removedExercises} exercise(s)` +
+          `[generate-smart-workout] cut to maxExercises=${ctx.task.maxExercises}: removed ${cut.removedExercises} exercise(s)` +
           (cut.removedBlocks.length ? `, dropped block(s) [${cut.removedBlocks.join(', ')}]` : ''),
         );
       }
@@ -1206,8 +1194,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Fase 3 of docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md: activate the
     // category dimension. Runs after the count cut, still before
     // fitWorkoutToBudget, so time fitting remains the single last step.
-    if (parsed.workout?.phases?.length && body.task.fitnessOnly) {
-      const filtered = enforceCategoryFilter(parsed.workout, body.task.fitnessOnly);
+    if (parsed.workout?.phases?.length && ctx.task.fitnessOnly) {
+      const filtered = enforceCategoryFilter(parsed.workout, ctx.task.fitnessOnly);
       if (filtered.report.removedExercises.length > 0 || filtered.report.forcedNonEmptyPhases.length > 0) {
         console.warn(
           `[generate-smart-workout] category filter (fitnessOnly): removed ${filtered.report.removedExercises.length} exercise(s)` +
@@ -1238,6 +1226,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       input_tokens:  data.usage?.prompt_tokens     ?? 0,
       output_tokens: data.usage?.completion_tokens ?? 0,
     };
+
+    // Cost instrumentation — pré-requisito da Fase 4.2 (franquia de IA do
+    // treinador) do plano de licenciamento. `origin` aqui usa os sinais já
+    // disponíveis nesta fase (isAutonomous / quem é o chamador); a Fase 4
+    // introduz `trainer_prescribed`/`autonomous_ai` como conceito formal a
+    // partir de workout_plans — este log não antecipa esse modelo, só regista
+    // o que já se sabe hoje. Uma linha JSON por chamada, para agregação
+    // posterior sem precisar de uma segunda passagem por este código.
+    console.log(JSON.stringify({
+      event:         'ai_generation_cost',
+      endpoint:      'generate-smart-workout',
+      task_type:     body.task.type,
+      client_id:     body.client.id,
+      caller_id:     caller.id,
+      origin:        isAutonomous ? 'autonomous_ai' : (isClientSelf ? 'client_self' : 'linked_trainer'),
+      input_tokens:  usage.input_tokens,
+      output_tokens: usage.output_tokens,
+    }));
+
     const context_snapshot = parsed.context_snapshot ?? {
       readinessScore: body.today.readinessScore,
       safetyStatus:   body.today.safetyStatus,

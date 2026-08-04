@@ -85,7 +85,7 @@ create index on public.plan_prices (plan_key, billing_cycle, currency, is_active
 | `ai_fitness` | annual | EUR | 9990 | 2 meses grátis |
 | `ai_performance` | monthly | EUR | 2499 | — |
 | `ai_performance` | annual | EUR | 24990 | 2 meses grátis |
-| `trial` | monthly | EUR | 0 | 14 dias |
+| `trial` | monthly | EUR | 0 | 21 dias |
 | `pro` | monthly | EUR | 4900 | — |
 | `pro` | annual | EUR | 49000 | 2 meses grátis |
 | `elite` | monthly | EUR | 9900 | — |
