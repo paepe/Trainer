@@ -71,7 +71,7 @@ Derivados de `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` e `PROFILE.md` §Quality Direct
 | 0 | Spike: módulo partilhado em `api/` | 1,2 | ✅ Concluída — sucesso | 2026-08-04 |
 | 1 | Núcleo de entitlements (fonte única) | 2,3 | ✅ Concluída — sucesso | 2026-08-04 |
 | 2 | Autoridade no servidor (3 gates de IA) | 4 | ✅ Concluída — sucesso | 2026-08-04 |
-| 3 | Cobertura de dados + guarda anti-regressão | 4, 6 | ⬜ Pendente | — |
+| 3 | Cobertura de dados + guarda anti-regressão | 4, 6 | ✅ Concluída — sucesso | 2026-08-04 |
 | 4 | Direito autónomo × patrocinado (comercial #1 — **decidida**) | 5 | ⬜ Pendente | — |
 | 4.1 | Decomposição de `checkin.full` e métricas — fecha comercial #1 em paralelo à Fase 4 | — | ⬜ Pendente | — |
 | 4.2 | Franquia de IA do treinador | — | ⛔ Bloqueada por medição | — |
@@ -158,25 +158,50 @@ Derivados de `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` e `PROFILE.md` §Quality Direct
 - ✅ **Prova de bundle para o import cross-directory novo** (`api/_lib/entitlements.ts` → `../../src/licensing/entitlements.ts`, nunca testado pela Fase 0): `vercel build` local + inspecção de `.vercel/output/functions/api/generate-smart-workout.func/` — `src/licensing/entitlements.js` presente no bundle, `api/_lib/entitlements.js` importa dele correctamente, `resolveAuthoritativeTaskGates`/`isSessionsPerWeekCapReached`/`resolveUserEntitlements` presentes no ficheiro compilado
 - ✅ `_lib/auth.js` confirmado presente em **todos os 7** bundles de função (`billing-portal`, `generate-smart-workout`, `send-invitation`, `generate-workout`, `send-notification`, `create-checkout-session`, `translate-exercise-content`)
 - ✅ `vercel deploy` (preview, nunca produção) — `readyState: "READY"`, `dpl_HqHb5UQLD3SGM5hMbswwiKFo2PhU`
-- ⚠️ **Não testado, mesma limitação da Fase 0:** chamada HTTP autenticada de ponta a ponta — a preview está atrás de Vercel Deployment Protection (SSO); não contornado, por ser configuração de segurança fora do escopo autorizado. A prova de bundle cobre "o código está lá e está correcto"; falta apenas "e responde certo em runtime servido", que exigiria ou o bypass (não feito) ou teste a partir de um contexto já autenticado na equipa (fora desta sessão)
 
 **Rollback:** feature flag de ambiente que reverte para o comportamento anterior sem redeploy — **não implementado nesta fase**; o `body.task` continua a ser lido e logado, mas a reversão real hoje é `git revert`, não uma flag em runtime. Registado como divergência do plano original, não como pendência oculta.
 
+#### 2.1 A chamada HTTP de ponta a ponta — feita, e encontrou um bug real que a prova de bundle não pegou
+
+A limitação "não testado" acima foi fechada, com o project lead autenticado no navegador (SSO do Vercel, sem eu tocar em configuração de segurança) e credenciais de conta de teste digitadas por ele — nunca por mim.
+
+**A primeira chamada real quebrou.** `POST /api/generate-smart-workout` → `500 FUNCTION_INVOCATION_FAILED`. `vercel logs` revelou a causa:
+
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/api/_lib/auth'
+imported from /var/task/api/generate-smart-workout.js
+```
+
+**Causa raiz:** este projecto tem `"type": "module"` em `package.json` — Node ESM nativo exige extensão explícita (`.js`) em specifiers de import relativos. `tsc` com `moduleResolution: "bundler"` não acusa isso (assume que um bundler resolve); `tsx` em dev local resolve automaticamente; nenhum dos dois reflecte o `node` puro que a Vercel executa em runtime. **A prova de bundle da Fase 0/2 confirmou que os ficheiros estavam fisicamente presentes e que o `import` os referenciava — nunca confirmou que o resolvedor de módulos do Node aceitaria a referência sem extensão.** Os 7 handlers migrados tinham o mesmo defeito; `billing-portal.ts` (dado como sucesso na Fase 0) nunca tinha sido chamado de verdade.
+
+**Corrigido:** extensão `.js` adicionada a todos os imports relativos em `api/*.ts` e `api/_lib/*.ts` (11 ocorrências, 8 ficheiros), incluindo um segundo defeito da mesma classe (`'../../src/types'` → `'../../src/types/index.js'`: import de directório também não resolve em Node ESM nativo). `tsc`/`vitest` re-verificados (mesmo resultado limpo — o que confirma que essas checagens *nunca teriam detectado isto*). Commit `f24e376`, push, novo deploy automático via integração git.
+
+**Resultado da chamada real, após o fix:** `200 OK`. Verificado ao vivo, com conta de teste FREE (`andre.lima@client.test`):
+- `fitnessOnly` correctamente resolvido `true` — todos os exercícios da resposta são `category: "fitness"` ou `"mobility"`, nenhum `"performance"`
+- Log de instrumentação (`ai_generation_cost`) disparou com `client_id`/`caller_id` correctos e `input_tokens: 2268` — batendo exactamente com `usage.input_tokens` da resposta
+- **Achado não-bug, confirmado contra a BD:** a resposta trouxe 15 exercícios, não 6. Investigado: `andre.lima` foi criado em 2026-08-01, `current_period_end: 2026-08-22` — dentro da janela de boas-vindas de 21 dias. `resolveEffectivePlanKey` eleva `free → ai_fitness` nesse período (mesma função usada no cliente); `ai_fitness` tem `exercise_type=0` (fitness-only, igual ao FREE — por isso bateu) e `exercises_per_session=null` (ilimitado — por isso não cortou). Comportamento correcto, não gap
+
+**O que ainda não foi provado ao vivo:** o corte para 6 exercícios de uma conta FREE **fora** da janela de boas-vindas (nenhuma conta `@client.test` está fora dela hoje) e o bloqueio 403 de `sessions_per_week`. Ambos têm cobertura unitária directa em `api/_lib/entitlements.test.ts` (6/6, incluindo o cenário exacto de bypass com `maxExercises: 999`); forçar o cenário ao vivo exigiria alterar `current_period_end` de uma conta de teste na BD — escrita em produção, ainda que sobre dado de teste, não feita sem perguntar primeiro.
+
 ---
 
-### Fase 3 — Cobertura de dados e guarda anti-regressão ⬜
+### Fase 3 — Cobertura de dados e guarda anti-regressão ✅ Concluída (2026-08-04)
 
 **Objectivo:** eliminar a classe de defeito "linha em falta" — origem da regressão `trial → pro` e do bloqueio do treinador PRO.
 
 **Esforço:** ~4h · **Depende de:** Fase 1
 
-- [ ] Semear as linhas em falta para `pro`/`elite`: `checkin.full`, `progress.fitness_advanced`, `progress.performance` (corrige o bloqueio confirmado em auditoria §3.5.1). Estas mesmas keys são decompostas na Fase 4.1 — não é trabalho perdido: a Fase 4.1 assume compatibilidade retroactiva com o que for semeado aqui
-- [ ] Decidir e **registar explicitamente** as linhas `workout.*`/`trainer_plan.days_per_week` para `pro`/`elite` (hoje ilimitado por acidente de omissão)
-- [ ] Adicionar `ai.workout_generation` à `FEATURE_ACCESS_MATRIX.md` (existe em produção, ausente da matriz)
-- [ ] Criar teste de completude: falha se existir combinação `feature_key × plan_key` aplicável sem linha, usando `plan_definitions.audience` para determinar aplicabilidade
-- [ ] Integrar esse teste no CI
+- [x] Semeadas as 14 linhas em falta para `pro`/`elite` (`checkin.full`, `progress.fitness_advanced`, `progress.performance`, `workout.exercises_per_session`, `workout.exercise_type`, `workout.sessions_per_week`, `trainer_plan.days_per_week` × 2 planos) — **primeira escrita de dados desta sessão**, `INSERT ... ON CONFLICT DO NOTHING` com `RETURNING`, confirmado: 73 → 87 linhas. Corrige o bloqueio real de auditoria §3.5.1
+- [x] `workout.*`/`trainer_plan.days_per_week` para `pro`/`elite` registados explicitamente como `allowed:true, limit_value:null` — decisão: continuam ilimitados (essas keys não se aplicam à conta do próprio treinador, per investigação da Fase 2), mas agora por linha explícita, não por omissão acidental
+- [x] `ai.workout_generation` adicionado à `FEATURE_ACCESS_MATRIX.md` §2.1 e §4
+- [x] Teste de completude: `src/licensing/completeness.ts` (`findMissingPermissions`, pura) + `FEATURE_AUDIENCE`, o mapa de aplicabilidade **derivado do código real que lê cada feature_key** (grep de cada `useFeatureAccess`/`useFeatureAccessMap`, não suposição) — `src/licensing/completeness.test.ts`, 6/6, incluindo teste que reproduz a regressão real `trial`/`pro` de `checkin.full`
+- [x] "Integrar no CI" — **nota honesta:** este repositório não tem `.github/workflows` nem qualquer pipeline de CI configurado. Criado `scripts/check-feature-permissions-completeness.mjs` + `npm run check:feature-permissions`, que lê `plan_definitions`/`feature_permissions` reais via REST e chama o mesmo verificador testado. É o que existe para chamar automaticamente quando um pipeline real existir — não finjo uma integração que não há
 
-**Critério de aceitação:** teste de completude verde; treinador PRO/ELITE acede Check-in Completo e progresso avançado no próprio uso; nenhuma entitlement resolvida por omissão.
+**Critério de aceitação — resultado real:**
+- ✅ `npm run check:feature-permissions` contra a base de dados real (`sevenseeds.trainer`): `OK — 6 planos, 87 linhas, nenhuma lacuna`
+- ✅ `npx vitest run`: 264/264 relevantes (258 da Fase 0-2 + 6 novos); `tsc --noEmit` limpo
+- ✅ Treinador PRO/ELITE já acede Check-in Completo e progresso avançado no próprio uso — dado real confirmado, não só código
+- ✅ Nenhuma entitlement aplicável resolvida por omissão — as únicas ausências restantes na tabela são por desenho (audiência não aplicável), verificado pelo mesmo script
 
 ---
 
@@ -390,7 +415,8 @@ Após a Fase 4 o cap aplica-se só à geração autónoma; após a Fase 5 a dife
 |---|---|---|---|
 | 0 | 2026-08-04 | **Sucesso — import directo, sem codegen.** `api/_lib/auth.ts` criado; `billing-portal.ts` migrado; deploy preview READY; `_lib/auth.js` confirmado presente no bundle da função por inspecção directa do output de `vercel build`. | Deploy `dpl_A7L8bHmN5iHMuemGtxMKdyPSE3Wx`; `.vercel/output/functions/api/billing-portal.func/api/_lib/auth.js` (artefacto local, não commitado — gitignored) |
 | 1 | 2026-08-04 | **Sucesso.** `src/licensing/entitlements.ts` criado (núcleo puro); `useFeatureAccess.ts` refactorado para delegar; fail-open dos caps numéricos invertido. 30 testes novos, 252 pré-existentes intactos, zero erros de tipo. | `src/licensing/entitlements.test.ts` (30/30); `npx vitest run` (252/252 relevantes); `npx tsc --noEmit` limpo |
-| 2 | 2026-08-04 | **Sucesso.** `api/_lib/entitlements.ts` criado; `generate-smart-workout.ts` deriva os 3 gates de IA do servidor, não do cliente; `send-invitation.ts` consome o mesmo resolvedor; 7/7 handlers migrados para `_lib/auth`; instrumentação de custo adicionada. Import cross-directory `api/ → src/` confirmado no bundle real. Rollback por feature flag **não implementado** — divergência registada, não pendência oculta. | `api/_lib/entitlements.test.ts` (6/6); `npx vitest run` (258/258 relevantes); `_lib/auth.js`/`src/licensing/entitlements.js` presentes nos 7 bundles (`vercel build` local); deploy `dpl_HqHb5UQLD3SGM5hMbswwiKFo2PhU` READY |
+| 2 | 2026-08-04 | **Sucesso, com um bug real encontrado e corrigido no caminho.** `api/_lib/entitlements.ts` criado; `generate-smart-workout.ts` deriva os 3 gates de IA do servidor, não do cliente; `send-invitation.ts` consome o mesmo resolvedor; 7/7 handlers migrados para `_lib/auth`; instrumentação de custo adicionada. A primeira chamada HTTP real (project lead autenticado, credenciais nunca digitadas por mim) devolveu 500 `ERR_MODULE_NOT_FOUND` — imports relativos sem extensão `.js`, que nem `tsc` nem a prova de bundle da Fase 0 detectam sob Node ESM nativo. Corrigido (`f24e376`), redeploy, 200 confirmado ao vivo com conta FREE real, incluindo a elevação `free→ai_fitness` a funcionar correctamente. Rollback por feature flag **não implementado** — divergência registada, não pendência oculta. | `api/_lib/entitlements.test.ts` (6/6); `npx vitest run` (258/258 relevantes); 7 bundles confirmados; `vercel logs` do 500 e do 200 pós-fix; log `ai_generation_cost` real com tokens a bater com a resposta |
+| 3 | 2026-08-04 | **Sucesso.** 14 linhas semeadas em `feature_permissions` (73→87, primeira escrita de dados da sessão); `ai.workout_generation` documentado; teste de completude com mapa de audiência derivado do código real, não suposto. | `src/licensing/completeness.test.ts` (6/6); `npm run check:feature-permissions` contra a BD real — "6 planos, 87 linhas, nenhuma lacuna"; `npx vitest run` (264/264 relevantes) |
 
 ---
 
