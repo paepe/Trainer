@@ -37,6 +37,14 @@ export const FEATURE_AUDIENCE: Record<FeatureKey, Audience | 'both'> = {
   'trainer_plan.days_per_week':     'client',
   'progress.fitness_advanced':      'both',
   'progress.performance':           'both',
+  // Fase 4.1 — mesmos leitores que checkin.full/progress.fitness_advanced
+  // (CheckInProntidaoScreen.tsx, PerformanceDashboardScreen.tsx): alcançáveis
+  // por aluno e por treinador no próprio uso.
+  'checkin.full_capture':           'both',
+  'checkin.voice_input':            'both',
+  'ai.checkin_interpretation':      'both',
+  'progress.client_raw_data':       'both',
+  'progress.coach_operational':     'both',
 };
 
 export interface PlanDefinitionRow { plan_key: string; audience: Audience; is_active?: boolean }

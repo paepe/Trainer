@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   resolveEffectivePlanKey, toEntitlements, DEFAULTS, ALL_FEATURE_KEYS, resolveWorkoutOrigin,
+  resolveSponsoredAccess,
 } from './entitlements';
 import type { FeaturePermission, Subscription, PlanKey } from '../types';
 
@@ -239,5 +240,19 @@ describe('resolveWorkoutOrigin', () => {
 
   it('classifica como trainer_prescribed quando o criador difere do destinatário', () => {
     expect(resolveWorkoutOrigin({ created_by: 'trainer-1', assigned_to: 'client-1' })).toBe('trainer_prescribed');
+  });
+});
+
+describe('resolveSponsoredAccess', () => {
+  it('concede execução, captura de check-in e progresso operacional quando há vínculo activo', () => {
+    expect(resolveSponsoredAccess(true)).toEqual({
+      executionFull: true, checkinFullCapture: true, progressOperational: true,
+    });
+  });
+
+  it('nega tudo sem vínculo activo', () => {
+    expect(resolveSponsoredAccess(false)).toEqual({
+      executionFull: false, checkinFullCapture: false, progressOperational: false,
+    });
   });
 });

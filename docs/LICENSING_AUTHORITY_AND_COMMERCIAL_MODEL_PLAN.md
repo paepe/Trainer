@@ -73,7 +73,7 @@ Derivados de `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` e `PROFILE.md` §Quality Direct
 | 2 | Autoridade no servidor (3 gates de IA) | 4 | ✅ Concluída — sucesso | 2026-08-04 |
 | 3 | Cobertura de dados + guarda anti-regressão | 4, 6 | ✅ Concluída — sucesso | 2026-08-04 |
 | 4 | Direito autónomo × patrocinado (comercial #1 — **decidida**) | 5 | ✅ Concluída — verificação parcial ao vivo (ver §Fase 4) | 2026-08-04 |
-| 4.1 | Decomposição de `checkin.full` e métricas — fecha comercial #1 em paralelo à Fase 4 | — | ⬜ Pendente | — |
+| 4.1 | Decomposição de `checkin.full` e métricas — fecha comercial #1 em paralelo à Fase 4 | — | ✅ Concluída — sucesso | 2026-08-04 |
 | 4.2 | Franquia de IA do treinador | — | ⛔ Bloqueada por medição | — |
 | 5 | Fitness×Performance por planeamento (comercial #2 — **decidida**) | — | ⬜ Pendente | — |
 | 6 | Faixas de clientes e tiers de treinador (comercial #3 — **decidida**) | — | ⬜ Pendente | — |
@@ -249,7 +249,7 @@ Este é o caso literal de *"temos funções disponíveis e não as alcançamos p
 
 ---
 
-#### Fase 4.1 — Decomposição de `checkin.full` e das métricas ⬜
+#### Fase 4.1 — Decomposição de `checkin.full` e das métricas ✅ Concluída (2026-08-04)
 
 **Depende de:** Fase 1 · **Independente da Fase 4** — não usa o discriminador `origin`, corre em paralelo. Fase 4 fecha a metade de *execução de treino* da decisão #1; esta fase fecha a metade de *dados/check-in*. As duas precisam de estar concluídas para a decisão #1 valer por inteiro.
 
@@ -257,20 +257,20 @@ Este é o caso literal de *"temos funções disponíveis e não as alcançamos p
 
 **Custo real confirmado [V]:** `api/parse-voice.ts` chama DeepSeek para estruturar o check-in por voz (`CheckInVoice.tsx:57`). Hoje o acesso à voz é governado exclusivamente por `checkin.full` (`CheckInProntidaoScreen.tsx:60-61` → `CheckInHub.tsx:36`). Tornar `checkin.full` patrocinado **sem decompor** abriria transcrição paga a todo aluno vinculado — a decomposição não é refinamento, é pré-requisito.
 
-- [ ] Decompor `checkin.full` em:
-  - `checkin.full_capture` — formulário estruturado (**patrocinado**, custo marginal baixo)
-  - `checkin.voice_input` — transcrição por voz (**condicional**: franquia do treinador ou plano do aluno)
-  - `ai.checkin_interpretation` — leitura narrativa por IA (**condicional**)
-  - `ai.checkin_adjustment` — ajuste automático do treino (**condicional**, já existe como key)
-- [ ] Decompor as métricas em:
-  - `progress.client_raw_data` — dados brutos do aluno (**patrocinado**)
-  - `progress.coach_operational` — aderência, frequência, carga, volume, tendências determinísticas (**patrocinado**)
-  - `progress.fitness_advanced` · `progress.performance` · `ai.advanced_analysis` (**pagas**, inalteradas)
-- [ ] Introduzir o eixo patrocinado: `trainer_sponsored.execution_full`, `trainer_sponsored.checkin_full_capture`, `trainer_sponsored.progress_operational`
-- [ ] Migração compatível: `checkin.full` mantém-se a resolver para `full_capture + voice_input` até a UI migrar — **nenhum utilizador perde capacidade durante a transição**
-- [ ] Todas as métricas patrocinadas devem ser **determinísticas** (calculadas em SQL/cliente, sem inferência) — critério objectivo de fronteira de custo
+- [x] `checkin.full` decomposto em `checkin.full_capture` (patrocinável), `checkin.voice_input` (nunca patrocinável — `api/parse-voice.ts` chama DeepSeek de verdade), `ai.checkin_interpretation` (nunca patrocinável, reservada); `ai.checkin_adjustment` já existia
+- [x] Métricas decompostas em `progress.client_raw_data`/`progress.coach_operational` (patrocináveis, determinísticas) — `progress.fitness_advanced`/`progress.performance`/`ai.advanced_analysis` inalteradas
+- [x] Eixo patrocinado **não modelado como `feature_permissions` por plano** — decisão de arquitectura registada em `resolveSponsoredAccess` (`src/licensing/entitlements.ts`): o patrocínio varia por `hasActiveTrainerLink` (o mesmo `mode === 'client-with-trainer'` já calculado em `CheckInProntidaoScreen.tsx`), não por `plan_key` — modelá-lo como linha por plano estaria semanticamente errado, já que o vínculo concede o mesmo a FREE/AI FITNESS/AI PERFORMANCE
+- [x] Migração compatível cumprida **por substituição directa, não por fórmula de resolução**: `checkin.full` deixou de ser lido (zero ocorrências fora do catálogo, confirmado por grep); `checkin.full_capture`/`checkin.voice_input` foram semeados com os mesmos valores que `checkin.full` tinha por plano — ninguém perde capacidade
+- [x] `progress.client_raw_data`/`progress.coach_operational` semeados `true` nos 6 planos (nunca foram gateados na UI — mesma disciplina de `scores.basic`: DEFAULT restritivo, dado real permissivo)
+
+**Correcção ao escopo, registada:** a mudança de comportamento real desta fase estava só em `CheckInProntidaoScreen.tsx` — hoje um aluno FREE vinculado a um treinador tinha `checkin.full=false` (do próprio plano) e nada olhava para o vínculo. `fullCheckinAllowed` passa a ser `própria conta OR patrocínio`; `voiceAllowed` fica de fora do patrocínio (só a conta própria). `PerformanceDashboardScreen.tsx` não precisou de mudança de código — `progress.client_raw_data`/`coach_operational` nunca estiveram gateados ali, então não há nada a desbloquear por patrocínio hoje; as keys existem prontas para se algo vier a gatear essa informação no futuro.
 
 **Critério de aceitação:** nenhuma chamada de IA é executada sob entitlement exclusivamente patrocinado; treinador acompanha o aluno com dados completos sem consumir inferência.
+
+**Resultado real:**
+- ✅ `npm run check:feature-permissions` contra a BD real: 30 lacunas detectadas antes de semear (5 keys × 6 planos — prova de que a guarda funciona), zero depois — "6 planos, 117 linhas, nenhuma lacuna"
+- ✅ `npx vitest run`: 268/268 relevantes (266 + 2 novos para `resolveSponsoredAccess`); `tsc --noEmit` limpo
+- ✅ `checkin.full` confirmado sem nenhum leitor fora do catálogo (grep)
 
 ---
 
@@ -422,6 +422,7 @@ Após a Fase 4 o cap aplica-se só à geração autónoma; após a Fase 5 a dife
 | 2 | 2026-08-04 | **Sucesso, com um bug real encontrado e corrigido no caminho.** `api/_lib/entitlements.ts` criado; `generate-smart-workout.ts` deriva os 3 gates de IA do servidor, não do cliente; `send-invitation.ts` consome o mesmo resolvedor; 7/7 handlers migrados para `_lib/auth`; instrumentação de custo adicionada. A primeira chamada HTTP real (project lead autenticado, credenciais nunca digitadas por mim) devolveu 500 `ERR_MODULE_NOT_FOUND` — imports relativos sem extensão `.js`, que nem `tsc` nem a prova de bundle da Fase 0 detectam sob Node ESM nativo. Corrigido (`f24e376`), redeploy, 200 confirmado ao vivo com conta FREE real, incluindo a elevação `free→ai_fitness` a funcionar correctamente. Rollback por feature flag **não implementado** — divergência registada, não pendência oculta. | `api/_lib/entitlements.test.ts` (6/6); `npx vitest run` (258/258 relevantes); 7 bundles confirmados; `vercel logs` do 500 e do 200 pós-fix; log `ai_generation_cost` real com tokens a bater com a resposta |
 | 3 | 2026-08-04 | **Sucesso.** 14 linhas semeadas em `feature_permissions` (73→87, primeira escrita de dados da sessão); `ai.workout_generation` documentado; teste de completude com mapa de audiência derivado do código real, não suposto. | `src/licensing/completeness.test.ts` (6/6); `npm run check:feature-permissions` contra a BD real — "6 planos, 87 linhas, nenhuma lacuna"; `npx vitest run` (264/264 relevantes) |
 | 4 | 2026-08-04 | **Sucesso, com correcção ao plano no caminho.** Investigação mostrou que `generate-smart-workout.ts` nunca lida com conteúdo prescrito — a query de `trainerPlans` já filtra `source='manual'`, então o bug era filtrar/bloquear no cliente algo já sabido ser prescrito, não falta de um discriminador de servidor. Removida a filtragem por tipo de exercício e o cap de dias em `StartWorkoutScreen.tsx`; `resolveWorkoutOrigin` formalizado no núcleo para reuso futuro (Fase 5.1). Decisão #4 aplicada (cap do AI FITNESS removido). Verificação ao vivo parcial: página carrega sem crash, mas nenhuma conta de teste tinha dado qualificado (>1 plano prescrito ou exercício `performance`) para exercer o cenário exacto — os dados disponíveis mudaram de estado durante os próprios testes (auto-expire/auto-heal pré-existente). | `npx vitest run` (266/266 relevantes); `tsc --noEmit` limpo; deploy READY, carregamento ao vivo confirmado sem erro; cenário exacto não reproduzido ao vivo por falta de dado de teste qualificado |
+| 4.1 | 2026-08-04 | **Sucesso.** 5 keys novas (`checkin.full_capture`, `checkin.voice_input`, `ai.checkin_interpretation`, `progress.client_raw_data`, `progress.coach_operational`), 30 linhas semeadas (73+14+30=117), espelhando `checkin.full` por plano — zero perda de capacidade. `resolveSponsoredAccess` modela o patrocínio por vínculo activo, não por plano — decisão de arquitectura explícita, não fica em `feature_permissions`. Único código realmente alterado: `CheckInProntidaoScreen.tsx` — hoje um FREE vinculado tinha `checkin.full=false` e nada olhava para o vínculo; passa a `própria conta OR patrocínio`, com voz sempre de fora do patrocínio. | `npm run check:feature-permissions`: 30 lacunas antes de semear, 0 depois ("117 linhas"); `npx vitest run` (268/268 relevantes); `tsc --noEmit` limpo; grep confirma zero leitores de `checkin.full` fora do catálogo |
 
 ---
 

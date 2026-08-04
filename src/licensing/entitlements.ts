@@ -86,6 +86,11 @@ const FEATURE_KEY_SET: Record<FeatureKey, true> = {
   'trainer_plan.days_per_week':    true,
   'progress.fitness_advanced':     true,
   'progress.performance':          true,
+  'checkin.full_capture':          true,
+  'checkin.voice_input':           true,
+  'ai.checkin_interpretation':     true,
+  'progress.client_raw_data':      true,
+  'progress.coach_operational':    true,
 };
 
 export const ALL_FEATURE_KEYS = Object.keys(FEATURE_KEY_SET) as FeatureKey[];
@@ -126,10 +131,20 @@ export const DEFAULTS: Record<FeatureKey, Grant> = {
   'workout.sessions_per_week':     { allowed: true,  limitValue: 1 },    // free: cap mais restritivo configurado
   'workout.exercises_per_session': { allowed: true,  limitValue: 6 },    // free
   'workout.exercise_type':         { allowed: true,  limitValue: 0 },    // free (0 = fitness only)
-  'checkin.full':                  { allowed: false, limitValue: null },
+  'checkin.full':                  { allowed: false, limitValue: null },  // legacy, ver types/feature-permissions.ts
   'trainer_plan.days_per_week':    { allowed: true,  limitValue: 1 },    // free
   'progress.fitness_advanced':     { allowed: false, limitValue: null },
   'progress.performance':          { allowed: false, limitValue: null },
+  // Fase 4.1 — mesma disciplina fail-closed que scores.basic: DEFAULT é
+  // restritivo mesmo que, uma vez semeadas, estas keys resolvam para true em
+  // todos os planos reais (dados operacionais/brutos nunca foram gateados
+  // na UI). O DEFAULT protege um plan_key hipotético sem seed, não descreve
+  // o comportamento actual.
+  'checkin.full_capture':          { allowed: false, limitValue: null },
+  'checkin.voice_input':           { allowed: false, limitValue: null },
+  'ai.checkin_interpretation':     { allowed: false, limitValue: null },
+  'progress.client_raw_data':      { allowed: false, limitValue: null },
+  'progress.coach_operational':    { allowed: false, limitValue: null },
 };
 
 /** Sem assinatura de todo — nada é concedido, nem os defaults de "plano desconhecido". */
@@ -185,4 +200,40 @@ export type WorkoutOrigin = 'trainer_prescribed' | 'autonomous_ai';
  */
 export function resolveWorkoutOrigin(plan: { created_by: string; assigned_to: string }): WorkoutOrigin {
   return plan.created_by === plan.assigned_to ? 'autonomous_ai' : 'trainer_prescribed';
+}
+
+// ─── Direito patrocinado — Fase 4.1 ─────────────────────────────────────────
+
+export interface SponsoredAccess {
+  executionFull:      boolean;
+  checkinFullCapture:  boolean;
+  progressOperational: boolean;
+}
+
+/**
+ * O que um vínculo activo com um treinador concede ao aluno, independente
+ * do `plan_key` do próprio aluno — decisão comercial de 2026-08-04
+ * (docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md §Fase 4/4.1):
+ * "execução integral + captura de check-in + métricas operacionais
+ * determinísticas; não cobre automação nem inferência".
+ *
+ * Nota de modelagem: isto NÃO é uma linha em `feature_permissions` — não
+ * varia por plan_key, varia por `hasActiveTrainerLink`. Modelá-lo como
+ * feature_key com uma linha por plano estaria semanticamente errado (o
+ * vínculo concede o mesmo patrocínio a um aluno FREE, AI FITNESS ou AI
+ * PERFORMANCE). Todas as três chaves resolvem para o mesmo booleano por
+ * desenho — mantidas separadas no tipo (não um único `sponsored: boolean`)
+ * porque a decisão as trata como direitos distintos, mesmo coincidindo hoje.
+ *
+ * O que fica de fora por desenho (nunca patrocinado, sempre pago pelo plano
+ * do aluno ou pela franquia do treinador — Fase 4.2): `checkin.voice_input`,
+ * `ai.checkin_interpretation`, `ai.checkin_adjustment`, `progress.fitness_advanced`,
+ * `progress.performance`, `ai.advanced_analysis`.
+ */
+export function resolveSponsoredAccess(hasActiveTrainerLink: boolean): SponsoredAccess {
+  return {
+    executionFull:       hasActiveTrainerLink,
+    checkinFullCapture:  hasActiveTrainerLink,
+    progressOperational: hasActiveTrainerLink,
+  };
 }

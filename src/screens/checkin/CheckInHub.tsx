@@ -17,7 +17,8 @@ interface CheckInHubProps {
   streak?:            number;
   lastCheckin?:       string;
   freeSession?:       boolean; // Free Training Session: only the Detailed check-in is offered
-  fullCheckinAllowed?: boolean; // plan gate: false = Quick only (free plan clients)
+  fullCheckinAllowed?: boolean; // checkin.full_capture (sponsorable) — false = Quick only
+  voiceAllowed?:       boolean; // checkin.voice_input (never sponsored — real AI cost) — false hides Voice regardless of fullCheckinAllowed
 }
 
 const OPTIONS: { key: Variant; icon: string; time: string; badge?: true }[] = [
@@ -26,16 +27,21 @@ const OPTIONS: { key: Variant; icon: string; time: string; badge?: true }[] = [
   { key: 'detailed',icon: 'list',  time: '~5 min'  },
 ];
 
-export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, onUpgrade, streak, lastCheckin, freeSession, fullCheckinAllowed = true }: CheckInHubProps) {
+export function CheckInHub({ dark, primary, accent, userName, isClient, onSelect, onBack, onUpgrade, streak, lastCheckin, freeSession, fullCheckinAllowed = true, voiceAllowed = true }: CheckInHubProps) {
   const { t: tr } = useTranslation();
   // Free Training Session mandates the Complete (Detailed) check-in as the sole,
   // authoritative input — Quick and Voice are withheld to maximise data quality.
-  // Plan gate: free-plan clients see only Quick check-in (no Detailed or Voice).
+  // Plan gate: free-plan clients see only Quick check-in when fullCheckinAllowed
+  // is false. Voice is independently gated by voiceAllowed — a client whose
+  // full capture is granted only via trainer sponsorship (Fase 4.1) still
+  // doesn't get Voice, which has a real AI transcription cost.
   const options = freeSession
     ? OPTIONS.filter(o => o.key === 'detailed')
-    : !fullCheckinAllowed
-      ? OPTIONS.filter(o => o.key === 'quick')
-      : OPTIONS;
+    : OPTIONS.filter(o => {
+        if (o.key === 'voice')    return voiceAllowed;
+        if (o.key === 'detailed') return fullCheckinAllowed;
+        return true; // quick is always available
+      });
   const greeting = () => {
     const h = new Date().getHours();
     return h < 12 ? tr('checkin.hub.greet.morning') : h < 18 ? tr('checkin.hub.greet.afternoon') : tr('checkin.hub.greet.evening');
