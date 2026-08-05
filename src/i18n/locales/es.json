@@ -2646,6 +2646,45 @@
           "Hasta 3 clientes tras el trial"
         ]
       },
+      "pro_5": {
+        "name": "Pro 5",
+        "tag": "Empieza tu trabajo",
+        "blurb": "Convierte tu método en planes que la IA escribe por ti.",
+        "features": [
+          "Hasta 5 clientes",
+          "Motor de metodología con IA",
+          "Insights de adherencia y clientes"
+        ],
+        "comingSoon": [
+          "Espacio de estudio con tu marca"
+        ]
+      },
+      "pro_15": {
+        "name": "Pro 15",
+        "tag": "Haz crecer tu trabajo",
+        "blurb": "Convierte tu método en planes que la IA escribe por ti.",
+        "features": [
+          "Hasta 15 clientes",
+          "Motor de metodología con IA",
+          "Insights de adherencia y clientes"
+        ],
+        "comingSoon": [
+          "Espacio de estudio con tu marca"
+        ]
+      },
+      "pro_30": {
+        "name": "Pro 30",
+        "tag": "Lleva tu trabajo",
+        "blurb": "Convierte tu método en planes que la IA escribe por ti.",
+        "features": [
+          "Hasta 30 clientes",
+          "Motor de metodología con IA",
+          "Insights de adherencia y clientes"
+        ],
+        "comingSoon": [
+          "Espacio de estudio con tu marca"
+        ]
+      },
       "pro": {
         "name": "Pro",
         "tag": "Lleva tu trabajo",

@@ -2646,6 +2646,45 @@
           "Até 3 alunos após o trial"
         ]
       },
+      "pro_5": {
+        "name": "Pro 5",
+        "tag": "Comece seu trabalho",
+        "blurb": "Transforme seu método em planos que a IA escreve por você.",
+        "features": [
+          "Até 5 alunos",
+          "Motor de metodologia com IA",
+          "Insights de adesão e de alunos"
+        ],
+        "comingSoon": [
+          "Espaço de estúdio com sua marca"
+        ]
+      },
+      "pro_15": {
+        "name": "Pro 15",
+        "tag": "Cresça seu trabalho",
+        "blurb": "Transforme seu método em planos que a IA escreve por você.",
+        "features": [
+          "Até 15 alunos",
+          "Motor de metodologia com IA",
+          "Insights de adesão e de alunos"
+        ],
+        "comingSoon": [
+          "Espaço de estúdio com sua marca"
+        ]
+      },
+      "pro_30": {
+        "name": "Pro 30",
+        "tag": "Toque seu trabalho",
+        "blurb": "Transforme seu método em planos que a IA escreve por você.",
+        "features": [
+          "Até 30 alunos",
+          "Motor de metodologia com IA",
+          "Insights de adesão e de alunos"
+        ],
+        "comingSoon": [
+          "Espaço de estúdio com sua marca"
+        ]
+      },
       "pro": {
         "name": "Pro",
         "tag": "Toque seu trabalho",

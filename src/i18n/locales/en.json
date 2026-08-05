@@ -2646,6 +2646,45 @@
           "Up to 3 clients after trial"
         ]
       },
+      "pro_5": {
+        "name": "Pro 5",
+        "tag": "Start your practice",
+        "blurb": "Turn your method into plans the AI writes for you.",
+        "features": [
+          "Up to 5 clients",
+          "AI methodology engine",
+          "Adherence & client insights"
+        ],
+        "comingSoon": [
+          "Branded studio space"
+        ]
+      },
+      "pro_15": {
+        "name": "Pro 15",
+        "tag": "Grow your practice",
+        "blurb": "Turn your method into plans the AI writes for you.",
+        "features": [
+          "Up to 15 clients",
+          "AI methodology engine",
+          "Adherence & client insights"
+        ],
+        "comingSoon": [
+          "Branded studio space"
+        ]
+      },
+      "pro_30": {
+        "name": "Pro 30",
+        "tag": "Run your practice",
+        "blurb": "Turn your method into plans the AI writes for you.",
+        "features": [
+          "Up to 30 clients",
+          "AI methodology engine",
+          "Adherence & client insights"
+        ],
+        "comingSoon": [
+          "Branded studio space"
+        ]
+      },
       "pro": {
         "name": "Pro",
         "tag": "Run your practice",

@@ -31,7 +31,7 @@ export interface Profile {
 /** Shared navigation function — eliminates implicit `any` on nav payloads */
 export type NavFn = (screen: string, payload?: Record<string, unknown>) => void;
 
-export type PlanKey = 'free' | 'ai_fitness' | 'ai_performance' | 'trial' | 'pro' | 'elite';
+export type PlanKey = 'free' | 'ai_fitness' | 'ai_performance' | 'trial' | 'pro' | 'pro_5' | 'pro_15' | 'pro_30' | 'elite';
 
 export interface Subscription {
   plan_key:           PlanKey;

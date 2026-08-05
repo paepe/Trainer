@@ -2646,6 +2646,45 @@
           "Bis zu 3 Kunden nach dem Trial"
         ]
       },
+      "pro_5": {
+        "name": "Pro 5",
+        "tag": "Deine Praxis starten",
+        "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
+        "features": [
+          "Bis zu 5 Kunden",
+          "KI-Methoden-Engine",
+          "Adhärenz- & Kunden-Insights"
+        ],
+        "comingSoon": [
+          "Studio-Bereich mit deiner Marke"
+        ]
+      },
+      "pro_15": {
+        "name": "Pro 15",
+        "tag": "Deine Praxis wachsen lassen",
+        "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
+        "features": [
+          "Bis zu 15 Kunden",
+          "KI-Methoden-Engine",
+          "Adhärenz- & Kunden-Insights"
+        ],
+        "comingSoon": [
+          "Studio-Bereich mit deiner Marke"
+        ]
+      },
+      "pro_30": {
+        "name": "Pro 30",
+        "tag": "Deine Praxis führen",
+        "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
+        "features": [
+          "Bis zu 30 Kunden",
+          "KI-Methoden-Engine",
+          "Adhärenz- & Kunden-Insights"
+        ],
+        "comingSoon": [
+          "Studio-Bereich mit deiner Marke"
+        ]
+      },
       "pro": {
         "name": "Pro",
         "tag": "Deine Praxis führen",
