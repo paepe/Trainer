@@ -8,88 +8,14 @@
 // See: policies/references/Trainer 2.0/trainer-invitation-flow-plan-20260607.md
 
 import { randomUUID } from 'crypto';
-// ── Inlined auth helpers (Vercel's Node.js function builder does not trace
-// relative imports outside this file into the deployed bundle — confirmed in
-// production; every api/* file must be self-contained, see generate-smart-workout.ts) ──
-const TRAINER_ROLES = [
-  'trainer', 'studio_trainer', 'studio_admin',
-  'internal_trainer', 'technical_coordinator', 'studio_manager',
-] as const;
-
-function authSupabaseUrl(): string {
-  return process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-}
-function authServiceKey(): string {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-}
-function authAnonKey(): string {
-  return process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
-}
-function authServiceHeaders(): Record<string, string> {
-  const key = authServiceKey();
-  return { apikey: key, Authorization: `Bearer ${key}` };
-}
-
-interface AuthedUser { id: string; email: string | null }
-
-async function verifyRequestUser(req: { headers?: Record<string, string | string[] | undefined> }): Promise<AuthedUser | null> {
-  const raw = req.headers?.authorization ?? req.headers?.Authorization;
-  const header = Array.isArray(raw) ? raw[0] : raw;
-  if (!header?.startsWith('Bearer ')) return null;
-  const jwt = header.slice('Bearer '.length).trim();
-  if (!jwt) return null;
-
-  const url = authSupabaseUrl();
-  const key = authAnonKey();
-  if (!url || !key) {
-    console.error('[auth] SUPABASE_URL / SUPABASE_ANON_KEY not set — cannot verify callers');
-    return null;
-  }
-
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, {
-      headers: { apikey: key, Authorization: `Bearer ${jwt}` },
-    });
-    if (!res.ok) return null;
-    const user = await res.json() as { id?: string; email?: string };
-    if (!user?.id) return null;
-    return { id: user.id, email: user.email ?? null };
-  } catch (err) {
-    console.error('[auth] JWT verification failed:', (err as Error)?.message);
-    return null;
-  }
-}
-
-async function isTrainerRole(userId: string): Promise<boolean> {
-  try {
-    const res = await fetch(
-      `${authSupabaseUrl()}/rest/v1/profiles?select=role&id=eq.${encodeURIComponent(userId)}&limit=1`,
-      { headers: authServiceHeaders() },
-    );
-    if (!res.ok) return false;
-    const rows = await res.json() as { role?: string }[];
-    const role = rows[0]?.role;
-    return !!role && (TRAINER_ROLES as readonly string[]).includes(role);
-  } catch {
-    return false;
-  }
-}
-
-async function hasActiveLink(userA: string, userB: string): Promise<boolean> {
-  const a = encodeURIComponent(userA);
-  const b = encodeURIComponent(userB);
-  try {
-    const res = await fetch(
-      `${authSupabaseUrl()}/rest/v1/trainer_clients?select=id&status=eq.active&or=(and(trainer_id.eq.${a},client_id.eq.${b}),and(trainer_id.eq.${b},client_id.eq.${a}))&limit=1`,
-      { headers: authServiceHeaders() },
-    );
-    if (!res.ok) return false;
-    const rows = await res.json() as { id: string }[];
-    return rows.length > 0;
-  } catch {
-    return false;
-  }
-}
+// Auth + entitlements now come from shared api/_lib modules — Fase 0/2 of
+// docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md. This handler used
+// to be the one place in the codebase with the correct pattern (resolve the
+// caller's real plan server-side, never trust the client) — written inline
+// here and never reused elsewhere. It's now a consumer of the same
+// resolver every other handler uses, not the lone exemplar.
+import { verifyRequestUser, isTrainerRole, authSupabaseUrl, authServiceHeaders } from './_lib/auth.js';
+import { resolveUserEntitlements } from './_lib/entitlements.js';
 
 const INVITE_TTL_DAYS = 7;
 
@@ -110,67 +36,30 @@ export default async function handler(req: any, res: any) {
     return res.status(403).json({ error: 'Only trainers can send invitations' });
   }
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL         || '';
-  const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-  const appUrl      = process.env.VITE_API_URL              || '';
-  if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not set' });
-
-  const restHeaders = {
-    'Content-Type': 'application/json',
-    apikey:         serviceKey,
-    Authorization:  `Bearer ${serviceKey}`,
-  };
+  const supabaseUrl = authSupabaseUrl();
+  const appUrl       = process.env.VITE_API_URL || '';
+  const restHeaders  = { 'Content-Type': 'application/json', ...authServiceHeaders() };
+  if (!authServiceHeaders().apikey) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not set' });
 
   try {
-    // ── 0. Plan limit guard — resolve trainer's real plan_key from DB (never trust client) ──
-    // During trial window the effectivePlanKey is 'pro' (50 clients). After expiry it reverts
-    // to 'trial' (3 clients). We resolve this server-side by checking current_period_end.
-    const [subRes, permCountData] = await Promise.all([
-      fetch(
-        `${supabaseUrl}/rest/v1/subscriptions?select=plan_key,current_period_end&user_id=eq.${encodeURIComponent(trainerId)}&limit=1`,
-        { headers: restHeaders },
-      ),
+    // ── 0. Plan limit guard — resolve trainer's real entitlements from DB
+    // (never trust client). resolveUserEntitlements handles window elevation
+    // (trial→pro, free→ai_fitness) the same way client-side code does — one
+    // implementation now, not two (Fase 1/2 of
+    // docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md).
+    const [entitlements, countRes] = await Promise.all([
+      resolveUserEntitlements(trainerId),
       fetch(
         `${supabaseUrl}/rest/v1/trainer_clients?select=id&trainer_id=eq.${encodeURIComponent(trainerId)}&status=eq.active`,
         { headers: restHeaders },
       ),
     ]);
 
-    // Resolve effective plan key server-side (mirrors useEffectivePlanKey logic)
-    let resolvedPlanKey = 'trial';
-    if (subRes.ok) {
-      const subRows = await subRes.json() as { plan_key: string; current_period_end: string | null }[];
-      const sub = subRows[0];
-      if (sub) {
-        const isInWindow = sub.current_period_end && new Date(sub.current_period_end) > new Date();
-        if (sub.plan_key === 'trial' && isInWindow) {
-          resolvedPlanKey = 'pro';   // trial window active → PRO limits
-        } else if (sub.plan_key === 'free' && isInWindow) {
-          resolvedPlanKey = 'ai_fitness'; // welcome window active → ai_fitness limits
-        } else {
-          resolvedPlanKey = sub.plan_key;
-        }
-      }
-    }
-
-    const [permRes, countRes] = await Promise.all([
-      fetch(
-        `${supabaseUrl}/rest/v1/feature_permissions?select=allowed,limit_value&feature_key=eq.clients.limit&plan_key=eq.${encodeURIComponent(resolvedPlanKey)}`,
-        { headers: restHeaders },
-      ),
-      Promise.resolve(permCountData),
-    ]);
-
-    if (permRes.ok && countRes.ok) {
-      const [permRows, activeRows] = await Promise.all([permRes.json(), countRes.json()]) as [
-        { allowed: boolean; limit_value: number | null }[],
-        { id: string }[],
-      ];
-      const perm = permRows[0];
-      if (perm && perm.allowed && perm.limit_value !== null) {
-        if (activeRows.length >= perm.limit_value) {
-          return res.status(403).json({ error: 'client_limit_reached', limit: perm.limit_value });
-        }
+    const clientsLimit = entitlements['clients.limit'];
+    if (clientsLimit.allowed && clientsLimit.limitValue !== null && countRes.ok) {
+      const activeRows = await countRes.json() as { id: string }[];
+      if (activeRows.length >= clientsLimit.limitValue) {
+        return res.status(403).json({ error: 'client_limit_reached', limit: clientsLimit.limitValue });
       }
     }
 

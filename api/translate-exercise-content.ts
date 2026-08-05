@@ -42,46 +42,12 @@ const LOCALE_TO_LANG: Record<SupportedLocale, string> = {
 const MAX_ITEMS      = 300;
 const MAX_TEXT_CHARS = 300;
 
-// ── Inlined auth helpers — see generate-smart-workout.ts for why these are
-// duplicated instead of imported ──
-function authSupabaseUrl(): string {
-  return process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-}
-function authServiceKey(): string {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-}
-function authAnonKey(): string {
-  return process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
-}
-function authServiceHeaders(): Record<string, string> {
-  const key = authServiceKey();
-  return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
-}
-
-async function verifyRequestUser(req: { headers?: Record<string, string | string[] | undefined> }): Promise<boolean> {
-  const raw = req.headers?.authorization ?? req.headers?.Authorization;
-  const header = Array.isArray(raw) ? raw[0] : raw;
-  if (!header?.startsWith('Bearer ')) return false;
-  const jwt = header.slice('Bearer '.length).trim();
-  if (!jwt) return false;
-
-  const url = authSupabaseUrl();
-  const key = authAnonKey();
-  if (!url || !key) {
-    console.error('[auth] SUPABASE_URL / SUPABASE_ANON_KEY not set — cannot verify callers');
-    return false;
-  }
-
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, {
-      headers: { apikey: key, Authorization: `Bearer ${jwt}` },
-    });
-    return res.ok;
-  } catch (err) {
-    console.error('[auth] JWT verification failed:', (err as Error)?.message);
-    return false;
-  }
-}
+// Auth helpers moved to api/_lib/auth — Fase 2 of
+// docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md. This file's local
+// authServiceHeaders() used to bundle 'Content-Type': 'application/json' in
+// automatically; _lib/auth's version doesn't (most callers are GET), so the
+// one POST call site below (storeTranslations) now sets it explicitly.
+import { verifyRequestUser, authSupabaseUrl, authServiceHeaders } from './_lib/auth.js';
 
 interface CacheRow {
   source_text:     string;
@@ -125,7 +91,7 @@ async function storeTranslations(rows: CacheRow[]): Promise<void> {
     `?on_conflict=source_text,source_locale,target_locale`,
     {
       method: 'POST',
-      headers: { ...authServiceHeaders(), Prefer: 'resolution=ignore-duplicates' },
+      headers: { ...authServiceHeaders(), 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates' },
       body: JSON.stringify(rows),
     },
   );

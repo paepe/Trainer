@@ -1,42 +1,10 @@
-// ── Inlined auth helpers (Vercel's Node.js function builder does not trace
-// relative imports outside this file into the deployed bundle — confirmed in
-// production; every api/* file must be self-contained, see generate-smart-workout.ts) ──
-function authSupabaseUrl(): string {
-  return process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-}
-function authAnonKey(): string {
-  return process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
-}
-
-interface AuthedUser { id: string; email: string | null }
-
-async function verifyRequestUser(req: { headers?: Record<string, string | string[] | undefined> }): Promise<AuthedUser | null> {
-  const raw = req.headers?.authorization ?? req.headers?.Authorization;
-  const header = Array.isArray(raw) ? raw[0] : raw;
-  if (!header?.startsWith('Bearer ')) return null;
-  const jwt = header.slice('Bearer '.length).trim();
-  if (!jwt) return null;
-
-  const url = authSupabaseUrl();
-  const key = authAnonKey();
-  if (!url || !key) {
-    console.error('[auth] SUPABASE_URL / SUPABASE_ANON_KEY not set — cannot verify callers');
-    return null;
-  }
-
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, {
-      headers: { apikey: key, Authorization: `Bearer ${jwt}` },
-    });
-    if (!res.ok) return null;
-    const user = await res.json() as { id?: string; email?: string };
-    if (!user?.id) return null;
-    return { id: user.id, email: user.email ?? null };
-  } catch (err) {
-    console.error('[auth] JWT verification failed:', (err as Error)?.message);
-    return null;
-  }
-}
+// Auth helpers moved to api/_lib/auth — Fase 2 of
+// docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md. Cross-file relative
+// imports inside api/ are traced into the deployed bundle by Vercel's
+// function builder (confirmed via build-output inspection, Fase 0/2 of the
+// same plan); the "self-contained" premise this file used to carry is
+// disproven.
+import { verifyRequestUser } from './_lib/auth.js';
 
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.

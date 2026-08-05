@@ -6,6 +6,7 @@ import type { RiskClassification } from '../../types/profile-v2';
 import { computeSafetyGate } from './safetyGate';
 import { useLatestCheckin } from '../../hooks/useLatestCheckin';
 import { useFeatureAccess, useEffectivePlanKey } from '../../hooks/useFeatureAccess';
+import { resolveSponsoredAccess } from '../../licensing/entitlements';
 import { supabase } from '../../supabase';
 import { notify }   from '../../lib/notify';
 
@@ -57,8 +58,17 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
   // Trainers viewing a client always get full check-in (override=true)
   const isTrainerContext   = !!clientUserId;
   const effectivePlanKey   = useEffectivePlanKey(user.subscription ?? null);
-  const checkinFullAccess  = useFeatureAccess(effectivePlanKey, 'checkin.full', isTrainerContext);
-  const fullCheckinAllowed = checkinFullAccess.allowed;
+  // Fase 4.1 (docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md): captura
+  // completa é patrocinável pelo vínculo com o treinador — voz não é (custo
+  // de IA real, api/parse-voice.ts). checkin.full (legacy) deixa de ser lido
+  // aqui; full_capture/voice_input assumem, sem perda de capacidade para
+  // quem já tinha checkin.full=true (ambas foram semeadas com os mesmos
+  // valores — Fase 4.1).
+  const fullCaptureAccess  = useFeatureAccess(effectivePlanKey, 'checkin.full_capture', isTrainerContext);
+  const voiceInputAccess   = useFeatureAccess(effectivePlanKey, 'checkin.voice_input',  isTrainerContext);
+  const sponsored          = resolveSponsoredAccess(mode === 'client-with-trainer');
+  const fullCheckinAllowed = fullCaptureAccess.allowed || sponsored.checkinFullCapture;
+  const voiceAllowed       = voiceInputAccess.allowed; // nunca patrocinado — sempre pago pelo plano do próprio aluno
   const [stage, setStage]         = React.useState<Stage>('hub');
   const [result, setResult]       = React.useState<SafetyGateResult | null>(null);
   const [risk,   setRisk]         = React.useState<RiskClassification | null>(null);
@@ -129,6 +139,7 @@ export function CheckInProntidaoScreen({ nav, t, dark, user, userName, clientUse
           lastCheckin={last.lastCheckin}
           freeSession={freeSession}
           fullCheckinAllowed={fullCheckinAllowed}
+          voiceAllowed={voiceAllowed}
         />
       );
 

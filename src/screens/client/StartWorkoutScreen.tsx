@@ -6,14 +6,14 @@ import { Icon, AvatarImage, ScreenTitle, SectionLabel } from '../../components';
 import { Spinner } from '../../ui';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn, Subscription } from '../../types';
-import type { ExerciseCategory } from '../../types/workout';
 import type { Json } from '../../types/supabase';
 import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGeneration';
 import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
-import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext } from '../../ai/buildAIContext';
+import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext, buildStatsContext } from '../../ai/buildAIContext';
 import type { TrainerContext, TaskContext } from '../../ai/types';
 import { useFeatureAccessMap, useEffectivePlanKey } from '../../hooks/useFeatureAccess';
-import { useExerciseClassification } from '../../hooks/useExerciseClassification';
+import { useM5Data } from './performance/perf-engines';
+import { handleHighTrainingLoad } from '../../lib/events';
 import { computeCyclePhases } from './CycleScreen';
 import { autoExpirePlans }   from '../../lib/autoExpirePlans';
 import { translateMuscleGroup } from '../../lib/translateMuscleGroup';
@@ -27,6 +27,7 @@ import { estimateSessionMinutes } from '../../lib/sessionBudget';
 import { generateFallbackPlan as generateLocalFallbackPlan } from '../../lib/fallbackWorkoutGenerator';
 import type { ContraindicationRegion } from '../../data/fallbackExerciseLibrary';
 import { notifyLinkedTrainer } from '../../lib/notify';
+import { startOfWeek } from '../../licensing/entitlements';
 import aiPlanIcon from '../../assets/ai-plan-icon.png';
 
 // Primary text colour over this screen's plan/exercise list surfaces — repeated
@@ -126,8 +127,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const aiAccessMap = useFeatureAccessMap(
     effectivePlanKey,
     ['ai.workout_generation', 'ai.checkin_adjustment', 'ai.advanced_analysis',
-     'workout.sessions_per_week', 'workout.exercises_per_session', 'workout.exercise_type',
-     'trainer_plan.days_per_week'],
+     'workout.sessions_per_week', 'workout.exercises_per_session'],
     isTrainerView,
   );
   // ai.workout_generation gates whether the AI creates the workout at all.
@@ -140,10 +140,17 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const aiAdvancedAllowed   = aiAccessMap['ai.advanced_analysis']?.allowed     ?? false;
   const sessionsPerWeekCap  = aiAccessMap['workout.sessions_per_week']?.limitValue  ?? null; // null = unlimited
   const exercisesPerSession = aiAccessMap['workout.exercises_per_session']?.limitValue ?? null;
-  // workout.exercise_type: limit_value 0 = fitness only, null = all
-  const fitnessOnlyWorkout  = (aiAccessMap['workout.exercise_type']?.limitValue ?? null) === 0;
-  // trainer_plan.days_per_week: max plans the client can execute per week (null = unlimited)
-  const trainerPlanDaysCap  = aiAccessMap['trainer_plan.days_per_week']?.limitValue ?? null;
+  // workout.exercise_type retired as a commercial gate (Fase 5, docs/
+  // LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md) — category exclusion is
+  // no longer sold as a tier differentiator. Authoritative resolution
+  // (api/_lib/entitlements.ts resolveAuthoritativeTaskGates) already hardcodes
+  // this false server-side; mirrored here so the local (non-AI) fallback
+  // generator never diverges from what the server would return.
+  const fitnessOnlyWorkout  = false;
+  // Real training-load signal (Fase 5.1) — same computation PerformanceDashboardScreen
+  // already uses (perf-engines.ts computeTrainingLoad), now also feeding generation
+  // instead of only being displayed after the fact.
+  const m5 = useM5Data(user?.id ?? null);
   const [genState, setGenState] = React.useState<GenState>({ phase: 'idle' });
   const [planSource, setPlanSource] = React.useState<string | null>(null);
   const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
@@ -151,7 +158,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [trainerPlans, setTrainerPlans] = React.useState<PlanCard[]>([]);
-  const [trainerPlanLocked, setTrainerPlanLocked] = React.useState(false);
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
@@ -177,19 +183,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     goal:           string | null;
   }>({ readinessScore: null, painRegions: [], safetyStatus: 'clear', aiLedBlocked: false, minutes: null, goal: null });
 
-  // Flatten all trainer plan exercises for classification
-  const allTrainerExercises = React.useMemo(
-    () => trainerPlans.flatMap(p => p.exercises.map(e => ({
-      id:                e.id,
-      name:              e.exercise_name,
-      muscle_group:      e.muscle_group ?? '',
-      exercise_category: (e.exercise_category as ExerciseCategory | null) ?? null,
-    }))),
-    [trainerPlans],
-  );
-  const { classificationMap } = useExerciseClassification(
-    fitnessOnlyWorkout && !isTrainerView ? allTrainerExercises : [],
-  );
   // Translates exercise names on the plan-card preview for this client's own
   // locale — every row now carries its own name_source_locale (AI-generated,
   // catalog, or hand-typed, D7), grouped and translated only where it
@@ -215,32 +208,31 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     trainerPlans.flatMap(p => p.exercises.map(e => e.notes)),
   );
 
-  // When fitnessOnlyWorkout: filter performance exercises from trainer plans
-  // Plans that end up with 0 exercises are removed entirely (avoid empty plan cards)
-  const filteredTrainerPlans = React.useMemo(() => {
-    if (!fitnessOnlyWorkout || isTrainerView) return trainerPlans;
-    return trainerPlans
-      .map(p => ({
-        ...p,
-        exercises: p.exercises.filter(e => {
-          const cat = classificationMap[e.id] ?? (e.exercise_category as string | null) ?? null;
-          return cat !== 'performance';
-        }),
-      }))
-      .filter(p => p.exercises.length > 0);
-  }, [trainerPlans, fitnessOnlyWorkout, isTrainerView, classificationMap]);
+  // Trainer-prescribed plans are never filtered or gated by the client's own
+  // plan tier — Fase 4 of docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md
+  // (decisão comercial #1): the query that populates trainerPlans already
+  // scopes to source='manual' (prescribed), so everything here is, by
+  // construction, trainer_prescribed — the client's autonomous-generation
+  // gates (fitnessOnlyWorkout, trainer_plan.days_per_week) never applied to
+  // this content in the first place; they were being applied here by
+  // mistake, not by design.
+  const hasTrainerPlans = trainerPlans.length > 0;
 
-  const filteredCount = React.useMemo(() => {
-    if (!fitnessOnlyWorkout || isTrainerView) return 0;
-    return trainerPlans.reduce((acc, p) => {
-      return acc + p.exercises.filter(e => {
-        const cat = classificationMap[e.id] ?? (e.exercise_category as string | null) ?? null;
-        return cat === 'performance';
-      }).length;
-    }, 0);
-  }, [trainerPlans, fitnessOnlyWorkout, isTrainerView, classificationMap]);
-
-  const hasTrainerPlans = filteredTrainerPlans.length > 0;
+  // Fase 5.1: the AI has no authority to alter a trainer-prescribed program —
+  // when accumulated load is high and a prescribed session is pending, alert
+  // the trainer instead of silently adjusting (mirrors the autonomous path,
+  // where this same signal feeds generation directly via gatedStatsCtx below).
+  // handleHighTrainingLoad dedupes against existing open alerts server-side;
+  // this ref only avoids firing the check redundantly within one mount.
+  const trainingLoadAlertFiredRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!hasTrainerPlans || !linkedTrainerId || !user?.id || !m5.data || trainingLoadAlertFiredRef.current) return;
+    const { trainingForm, trainingStrain } = m5.data.scores;
+    if (trainingForm.score < 40 || trainingStrain.score >= 70) {
+      trainingLoadAlertFiredRef.current = true;
+      void handleHighTrainingLoad(user.id, linkedTrainerId, trainingForm.score, trainingStrain.score);
+    }
+  }, [hasTrainerPlans, linkedTrainerId, user?.id, m5.data]);
 
   // Derived accessors — single point of truth from discriminated union
   const loading         = genState.phase === 'loading';
@@ -536,13 +528,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const sessions = sessionsRes.status === 'fulfilled' ? (sessionsRes.value.data ?? []) : [];
 
         // ── Weekly session cap (workout.sessions_per_week gate) ────────────────
-        // Count sessions started this calendar week (Monday–Sunday).
+        // Count sessions started this calendar week (Monday–Sunday). Same
+        // enforcement now runs server-side in generate-smart-workout.ts
+        // (Fase 2, docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md) —
+        // this client-side check is UX (fail fast, no round trip), not the
+        // authority; startOfWeek is the one shared implementation of the
+        // week-boundary rule.
         if (sessionsPerWeekCap !== null) {
-          const now = new Date();
-          const dayOfWeek = (now.getDay() + 6) % 7; // 0=Mon … 6=Sun
-          const weekStart = new Date(now);
-          weekStart.setHours(0, 0, 0, 0);
-          weekStart.setDate(now.getDate() - dayOfWeek);
+          const weekStart = startOfWeek();
           const weekCount = sessions.filter((s: any) =>
             new Date(s.started_at) >= weekStart
           ).length;
@@ -560,12 +553,18 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const avgReadiness = checkinHist.length
           ? Math.round(checkinHist.reduce((s, c) => s + (c.readiness_score ?? 0), 0) / checkinHist.length) : 60;
         const completed = sessions.filter((s: any) => s.status === 'completed').length;
-        const statsCtx = {
+        // Real stats, not placeholders (Fase 5.1 achado: this was hardcoded —
+        // progressionReadiness/fatigueRisk/avgRPELast3/workoutStreak/
+        // painEvents14d were constant for every user, always — buildStatsContext
+        // already existed for this exact purpose and was simply never called
+        // here). Falls back to the same neutral placeholders only if m5 data
+        // never resolved (e.g. fetch error) — generation must never block on it.
+        const statsCtx = m5.data ? buildStatsContext(m5.data) : {
           adherenceRate: sessions.length > 0 ? completed / sessions.length : 0,
           workoutStreak: 0, sessionsLast30d: sessions.length,
           avgEnergy7d: avgEnergy, avgReadiness7d: avgReadiness, avgRPELast3: 0,
           painEvents14d: 0, painRecurrenceAlert: false,
-          predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70 },
+          predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70, acuteLoad: 50, trainingForm: 60, trainingStrain: 20 },
         };
 
         // 5. TrainerContext — Coach DNA if linked, else DEFAULT_AI_TRAINER + client prefs.
@@ -617,6 +616,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             painRecurrence:       10,
             sessionCompletion:    70,
             planFit:              70,
+            acuteLoad:            50,
+            trainingForm:         60,
+            trainingStrain:       20,
           },
         };
 
@@ -730,14 +732,17 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   }, []);
 
   React.useEffect(() => {
-    if (aiPermsLoading || fetchFiredRef.current) return;
+    // Also wait for m5 (real training-load stats, Fase 5.1) — both fetches run
+    // in parallel from mount, so this rarely adds real latency, but it means
+    // generation never fires against the fake-placeholder branch by a race.
+    if (aiPermsLoading || m5.loading || fetchFiredRef.current) return;
     fetchFiredRef.current = true;
     const fetch = async () => {
       try { await fetchPlan(); } catch { /* caught internally */ }
     };
     void fetch();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aiPermsLoading]);
+  }, [aiPermsLoading, m5.loading]);
 
   // Live: a new plan sent by the trainer while this screen is open
   React.useEffect(() => {
@@ -896,7 +901,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             </div>
             <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.55)' : 'rgba(14,26,43,.5)', marginTop: 2 }}>
               {hasTrainerPlans ? (
-                <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{filteredTrainerPlans.length === 1 ? tr('client.workout.planCount_one', { count: filteredTrainerPlans.length }) : tr('client.workout.planCount_other', { count: filteredTrainerPlans.length })}</>
+                <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{trainerPlans.length === 1 ? tr('client.workout.planCount_one', { count: trainerPlans.length }) : tr('client.workout.planCount_other', { count: trainerPlans.length })}</>
 
               ) : (
                 <>{activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || tr('client.workout.gymFallback')}</>
@@ -911,30 +916,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         <div style={{ padding: '0 22px 14px' }}>
           <SectionLabel dark={dark}>{tr('client.workout.yourPlans')}</SectionLabel>
 
-          {/* Filtered performance exercises notice */}
-          {fitnessOnlyWorkout && filteredCount > 0 && (
-            <div style={{
-              marginBottom: 10, padding: '10px 12px', borderRadius: 10,
-              background: `${t.primary}0d`, border: `1px solid ${t.primary}2a`,
-              display: 'flex', alignItems: 'flex-start', gap: 8,
-            }}>
-              <span style={{ fontSize: 13, flexShrink: 0 }}>ℹ️</span>
-              <div style={{ fontSize: 11, color: textSec(dark), lineHeight: 1.5 }}>
-                {tr('client.trainerPlan.exercisesFiltered', { count: filteredCount })}
-              </div>
-            </div>
-          )}
-
           <div style={{ borderRadius: 14, overflow: 'hidden', border: `1px solid ${t.primary}33` }}>
-            {filteredTrainerPlans.map((p, i) => {
+            {trainerPlans.map((p, i) => {
               const isOpen = expandedPlan === p.id;
               const meta = STATUS_META[p.status] ?? STATUS_META.sent!;
               const dateLabel = p.sentAt
                 ? new Date(p.sentAt).toLocaleDateString(i18n.language || 'en-US', { month: 'short', day: 'numeric' })
                 : tr('client.workout.plan');
               const startLabel = p.status === 'sent' ? tr('client.workout.startLabel') : tr('client.workout.resumeLabel');
-              // Plan is locked when plan index exceeds the weekly cap (0-based: cap=1 → only index 0 is free)
-              const isPlanLocked = trainerPlanDaysCap !== null && i >= trainerPlanDaysCap;
               return (
                 <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${t.primary}22` : undefined }}>
 
@@ -1043,18 +1032,18 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                           </button>
                         )}
                         <button
-                          onClick={() => isPlanLocked ? setTrainerPlanLocked(true) : startPlan(p)}
+                          onClick={() => startPlan(p)}
                           data-testid="start-plan-btn"
                           style={{
                             flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
-                            background: isPlanLocked ? 'rgba(255,255,255,.12)' : t.primary,
-                            color: isPlanLocked ? 'rgba(255,255,255,.4)' : '#0E1A2B',
+                            background: t.primary,
+                            color: '#0E1A2B',
                             fontSize: 12, fontWeight: 700,
                             cursor: 'pointer', fontFamily: 'inherit',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                           }}
                         >
-                          {isPlanLocked ? '🔒' : ''}{startLabel}
+                          {startLabel}
                         </button>
                       </div>
                     </div>
@@ -1217,32 +1206,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               </div>
             )}
 
-            {/* Performance teaser — visible on FREE and AI Fitness; not shown to trainers or AI Performance clients */}
-            {fitnessOnlyWorkout && !isTrainerView && (
-              <div style={{
-                marginTop: 12, padding: '12px 14px', borderRadius: 12,
-                background: `${t.primary}0d`, border: `1px solid ${t.primary}33`,
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-              }}>
-                <span style={{ fontSize: 14, flexShrink: 0 }}>🔒</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11.5, color: textSec(dark), lineHeight: 1.5, marginBottom: 6 }}>
-                    {tr('client.workout.performanceTeaser')}
-                  </div>
-                  <button
-                    onClick={() => nav('plans', { source: 'performance_teaser' })}
-                    style={{
-                      fontSize: 11, fontWeight: 700, color: t.primary,
-                      background: 'none', border: `1px solid ${t.primary}`,
-                      borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-                      letterSpacing: '.04em', fontFamily: 'inherit',
-                    }}
-                  >
-                    {tr('client.workout.performanceTeaserCta')}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -1323,48 +1286,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         </div>
       )}
 
-      {/* Trainer plan locked — days_per_week cap reached */}
-      {trainerPlanLocked && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 24,
-        }}>
-          <div style={{
-            background: 'var(--navy)', borderRadius: 18, padding: '28px 24px',
-            maxWidth: 340, width: '100%', border: '1px solid rgba(255,255,255,.1)',
-          }}>
-            <div style={{ fontSize: 24, textAlign: 'center', marginBottom: 12 }}>🔒</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 8, textAlign: 'center' }}>
-              {tr('client.trainerPlan.dayLocked')}
-            </div>
-            <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,.6)', lineHeight: 1.55, textAlign: 'center', marginBottom: 20 }}>
-              {tr('client.trainerPlan.dayLockedNote', { plan: effectivePlanKey ?? user.plan_key ?? 'free', n: trainerPlanDaysCap ?? 1 })}
-            </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setTrainerPlanLocked(false)}
-                style={{
-                  flex: 1, padding: '12px 0', borderRadius: 10, fontFamily: 'inherit',
-                  background: 'rgba(255,255,255,.08)', color: 'rgba(255,255,255,.6)',
-                  border: '1px solid rgba(255,255,255,.12)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                }}
-              >
-                {tr('client.workout.cancelLabel')}
-              </button>
-              <button
-                onClick={() => { setTrainerPlanLocked(false); nav('plans', { source: 'manage' }); }}
-                style={{
-                  flex: 1, padding: '12px 0', borderRadius: 10, fontFamily: 'inherit',
-                  background: t.primary, color: '#0E1A2B',
-                  border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                }}
-              >
-                {tr('client.trainerPlan.dayLockedCta')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

@@ -12,11 +12,20 @@ export type FeatureKey =
   // Client plan gates (v2)
   | 'workout.sessions_per_week'      // limit_value = max sessions/week (null = unlimited)
   | 'workout.exercises_per_session'  // limit_value = max exercises (null = unlimited)
-  | 'workout.exercise_type'          // limit_value: 0 = fitness only, null = all
-  | 'checkin.full'                   // full check-in form (vs. quick only)
+  | 'workout.exercise_type'          // legacy — retired as a commercial gate (Fase 5); kept, not read, category exclusion is no longer sold as a tier differentiator
+  | 'checkin.full'                   // legacy — decomposed below (Fase 4.1); kept, not read, per migração compatível
   | 'trainer_plan.days_per_week'     // limit_value = max trainer plan days (null = all)
   | 'progress.fitness_advanced'      // advanced fitness metrics in progress tab
-  | 'progress.performance';          // performance metrics (ATL/CTL/TSB etc.)
+  | 'progress.performance'           // performance metrics (ATL/CTL/TSB etc.)
+  // Fase 4.1 — decomposição de checkin.full e das métricas
+  // (docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md): separa dados e
+  // execução (patrocináveis pelo vínculo com o treinador) de automação e
+  // inteligência variável (nunca patrocinada — sempre paga por quem chama a IA).
+  | 'checkin.full_capture'           // formulário estruturado completo (Quick + Detailed) — patrocinável
+  | 'checkin.voice_input'            // transcrição por voz (api/parse-voice.ts, custo de IA) — nunca patrocinável
+  | 'ai.checkin_interpretation'      // leitura narrativa por IA do check-in — nunca patrocinável
+  | 'progress.client_raw_data'       // dados brutos do aluno — patrocinável, determinístico
+  | 'progress.coach_operational';    // aderência/frequência/carga/volume — patrocinável, determinístico
 
 export interface FeaturePermission {
   feature_key:  FeatureKey;

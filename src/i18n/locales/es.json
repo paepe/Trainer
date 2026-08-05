@@ -1184,17 +1184,7 @@
       "aiLockedFree": "La calibración diaria por check-in está disponible desde el plan AI Fitness.",
       "aiLockedFreeNote": "Tu plan ya es generado por IA, pero aún no se adapta a tu energía, sueño o fatiga de hoy. Actualiza para calibrarlo con tu check-in diario.",
       "limitWeekly": "Alcanzaste el límite de {{n}} sesión/semana del plan Free.",
-      "limitWeeklyCta": "Actualiza a AI Fitness — 7 sesiones/semana",
-      "limitType": "Los ejercicios de Rendimiento requieren el plan AI Performance.",
-      "limitTypeCta": "Actualiza para desbloquear el entrenamiento de rendimiento",
-      "performanceTeaser": "Entrenamiento de Rendimiento — velocidad, potencia y métricas de resistencia (ATL/CTL/TSB) — disponible en el plan AI Performance.",
-      "performanceTeaserCta": "Disponible en AI Performance — Ver planes"
-    },
-    "trainerPlan": {
-      "dayLocked": "Día de entrenamiento bloqueado",
-      "dayLockedNote": "Tu plan {{plan}} permite {{n}} día(s)/semana del plan del entrenador. Actualiza para desbloquear más días.",
-      "dayLockedCta": "Ver planes",
-      "exercisesFiltered": "{{count}} ejercicio(s) de rendimiento de este plan del entrenador no están incluidos en tu plan."
+      "limitWeeklyCta": "Actualiza a AI Fitness — sesiones ilimitadas"
     },
     "mode": {
       "finishWorkout": "Finalizar Entrenamiento",
@@ -2589,6 +2579,7 @@
     "annual": "Anual · ahorra 17%",
     "bestFit": "Encaja contigo",
     "currentPlan": "Plan actual",
+    "proBandLabel": "¿Cuántos clientes acompañas?",
     "monthsFree": "2 meses gratis",
     "perMo": "/mes",
     "billedAnnually": " · facturación anual",
@@ -2654,6 +2645,45 @@
           "Creador de planes con IA",
           "Motor Coach DNA de metodología",
           "Hasta 3 clientes tras el trial"
+        ]
+      },
+      "pro_5": {
+        "name": "Pro 5",
+        "tag": "Empieza tu trabajo",
+        "blurb": "Convierte tu método en planes que la IA escribe por ti.",
+        "features": [
+          "Hasta 5 clientes",
+          "Motor de metodología con IA",
+          "Insights de adherencia y clientes"
+        ],
+        "comingSoon": [
+          "Espacio de estudio con tu marca"
+        ]
+      },
+      "pro_15": {
+        "name": "Pro 15",
+        "tag": "Haz crecer tu trabajo",
+        "blurb": "Convierte tu método en planes que la IA escribe por ti.",
+        "features": [
+          "Hasta 15 clientes",
+          "Motor de metodología con IA",
+          "Insights de adherencia y clientes"
+        ],
+        "comingSoon": [
+          "Espacio de estudio con tu marca"
+        ]
+      },
+      "pro_30": {
+        "name": "Pro 30",
+        "tag": "Lleva tu trabajo",
+        "blurb": "Convierte tu método en planes que la IA escribe por ti.",
+        "features": [
+          "Hasta 30 clientes",
+          "Motor de metodología con IA",
+          "Insights de adherencia y clientes"
+        ],
+        "comingSoon": [
+          "Espacio de estudio con tu marca"
         ]
       },
       "pro": {

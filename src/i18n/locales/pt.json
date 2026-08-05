@@ -1184,17 +1184,7 @@
       "aiLockedFree": "A calibragem diária por check-in está disponível a partir do plano AI Fitness.",
       "aiLockedFreeNote": "Seu plano já é gerado por IA, mas ainda não se adapta à sua energia, sono ou fadiga do dia. Faça upgrade para calibrá-lo pelo seu check-in diário.",
       "limitWeekly": "Atingiu o limite de {{n}} sessão/semana do plano Free.",
-      "limitWeeklyCta": "Actualize para AI Fitness — 7 sessões/semana",
-      "limitType": "Exercícios de Desempenho requerem o plano AI Performance.",
-      "limitTypeCta": "Actualize para desbloquear o treino de desempenho",
-      "performanceTeaser": "Treino de Desempenho — velocidade, potência e métricas de resistência (ATL/CTL/TSB) — disponível no plano AI Performance.",
-      "performanceTeaserCta": "Disponível no AI Performance — Ver planos"
-    },
-    "trainerPlan": {
-      "dayLocked": "Dia de treino bloqueado",
-      "dayLockedNote": "O seu plano {{plan}} permite {{n}} dia(s)/semana do plano do treinador. Actualize para desbloquear mais dias.",
-      "dayLockedCta": "Ver planos",
-      "exercisesFiltered": "{{count}} exercício(s) de desempenho deste plano do treinador não estão incluídos no seu plano."
+      "limitWeeklyCta": "Actualize para AI Fitness — sessões ilimitadas"
     },
     "mode": {
       "finishWorkout": "Finalizar Treino",
@@ -2589,6 +2579,7 @@
     "annual": "Anual · economize 17%",
     "bestFit": "Combina com você",
     "currentPlan": "Plano atual",
+    "proBandLabel": "Quantos alunos você acompanha?",
     "monthsFree": "2 meses grátis",
     "perMo": "/mês",
     "billedAnnually": " · cobrança anual",
@@ -2654,6 +2645,45 @@
           "Construtor de planos com IA",
           "Motor Coach DNA de metodologia",
           "Até 3 alunos após o trial"
+        ]
+      },
+      "pro_5": {
+        "name": "Pro 5",
+        "tag": "Comece seu trabalho",
+        "blurb": "Transforme seu método em planos que a IA escreve por você.",
+        "features": [
+          "Até 5 alunos",
+          "Motor de metodologia com IA",
+          "Insights de adesão e de alunos"
+        ],
+        "comingSoon": [
+          "Espaço de estúdio com sua marca"
+        ]
+      },
+      "pro_15": {
+        "name": "Pro 15",
+        "tag": "Cresça seu trabalho",
+        "blurb": "Transforme seu método em planos que a IA escreve por você.",
+        "features": [
+          "Até 15 alunos",
+          "Motor de metodologia com IA",
+          "Insights de adesão e de alunos"
+        ],
+        "comingSoon": [
+          "Espaço de estúdio com sua marca"
+        ]
+      },
+      "pro_30": {
+        "name": "Pro 30",
+        "tag": "Toque seu trabalho",
+        "blurb": "Transforme seu método em planos que a IA escreve por você.",
+        "features": [
+          "Até 30 alunos",
+          "Motor de metodologia com IA",
+          "Insights de adesão e de alunos"
+        ],
+        "comingSoon": [
+          "Espaço de estúdio com sua marca"
         ]
       },
       "pro": {

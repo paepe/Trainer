@@ -1184,17 +1184,7 @@
       "aiLockedFree": "Tägliche Check-in-Kalibrierung ist ab dem AI Fitness-Plan verfügbar.",
       "aiLockedFreeNote": "Dein Plan wird bereits von der KI erstellt, passt sich aber noch nicht an deine heutige Energie, deinen Schlaf oder deine Erschöpfung an. Upgrade, um ihn an deinen täglichen Check-in zu kalibrieren.",
       "limitWeekly": "Du hast das Limit von {{n}} Einheit/Woche im Free-Plan erreicht.",
-      "limitWeeklyCta": "Upgrade auf AI Fitness — 7 Einheiten/Woche",
-      "limitType": "Performance-Übungen erfordern den AI Performance-Plan.",
-      "limitTypeCta": "Upgrade, um Performance-Training freizuschalten",
-      "performanceTeaser": "Performance-Training — Geschwindigkeit, Kraft & Ausdauer-Metriken (ATL/CTL/TSB) — ist im AI Performance-Plan verfügbar.",
-      "performanceTeaserCta": "Verfügbar im AI Performance — Pläne ansehen"
-    },
-    "trainerPlan": {
-      "dayLocked": "Trainingstag gesperrt",
-      "dayLockedNote": "Dein {{plan}}-Plan erlaubt {{n}} Trainertag(e)/Woche. Upgrade, um mehr Tage freizuschalten.",
-      "dayLockedCta": "Pläne ansehen",
-      "exercisesFiltered": "{{count}} Performance-Übung(en) aus diesem Trainingsplan sind in deinem Plan nicht enthalten."
+      "limitWeeklyCta": "Upgrade auf AI Fitness — unbegrenzte Einheiten"
     },
     "mode": {
       "finishWorkout": "Training beenden",
@@ -2589,6 +2579,7 @@
     "annual": "Jährlich · 17% sparen",
     "bestFit": "Passt zu dir",
     "currentPlan": "Aktueller Plan",
+    "proBandLabel": "Wie viele Kunden betreust du?",
     "monthsFree": "2 Monate gratis",
     "perMo": "/Mon.",
     "billedAnnually": " · jährliche Abrechnung",
@@ -2654,6 +2645,45 @@
           "KI-Planbaukasten",
           "Coach DNA Methoden-Engine",
           "Bis zu 3 Kunden nach dem Trial"
+        ]
+      },
+      "pro_5": {
+        "name": "Pro 5",
+        "tag": "Deine Praxis starten",
+        "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
+        "features": [
+          "Bis zu 5 Kunden",
+          "KI-Methoden-Engine",
+          "Adhärenz- & Kunden-Insights"
+        ],
+        "comingSoon": [
+          "Studio-Bereich mit deiner Marke"
+        ]
+      },
+      "pro_15": {
+        "name": "Pro 15",
+        "tag": "Deine Praxis wachsen lassen",
+        "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
+        "features": [
+          "Bis zu 15 Kunden",
+          "KI-Methoden-Engine",
+          "Adhärenz- & Kunden-Insights"
+        ],
+        "comingSoon": [
+          "Studio-Bereich mit deiner Marke"
+        ]
+      },
+      "pro_30": {
+        "name": "Pro 30",
+        "tag": "Deine Praxis führen",
+        "blurb": "Mach aus deiner Methode Pläne, die die KI für dich schreibt.",
+        "features": [
+          "Bis zu 30 Kunden",
+          "KI-Methoden-Engine",
+          "Adhärenz- & Kunden-Insights"
+        ],
+        "comingSoon": [
+          "Studio-Bereich mit deiner Marke"
         ]
       },
       "pro": {

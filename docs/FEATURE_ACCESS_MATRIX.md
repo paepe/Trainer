@@ -33,28 +33,31 @@ feature_permissions (Supabase)
 
 ### 2.1 Matriz de Acesso
 
-| Funcionalidade | FREE | AI FITNESS | AI PERFORMANCE |
-|---|:---:|:---:|:---:|
-| **Sessões / semana (IA)** | 1 | 7 | Ilimitado |
-| **Exercícios por sessão (IA)** | 2 | Sem limite (tempo disponível) | Sem limite |
-| **Tipo de exercícios** | Fitness apenas | Fitness apenas | Fitness + Desempenho |
-| **Plano do treinador — dias activos** | 1 dia | 3 dias / semana | Todos os dias |
-| **Plano do treinador — tipo exercícios** | Fitness apenas | Fitness apenas | Fitness + Desempenho |
-| **Check-in Rápido** | ✅ | ✅ | ✅ |
-| **Check-in Completo** | ❌ | ✅ | ✅ |
-| **Progresso — métricas básicas** | ✅ | ✅ | ✅ |
-| **Progresso — métricas fitness avançadas** | ❌ bloqueado | ✅ | ✅ |
-| **Progresso — métricas de desempenho** | ❌ bloqueado | ❌ bloqueado | ✅ |
-| **AI Score — básico** (4 scores) | ✅ | ✅ | ✅ |
-| **AI Score — avançado** (8 scores) | ❌ bloqueado | ❌ bloqueado | ✅ |
-| **AI Checkin Adjustment** | ❌ | ✅ | ✅ |
-| **AI Advanced Analysis** | ❌ | ❌ | ✅ |
-| **Convite de treinador** | ✅ (limitado ao plano) | ✅ (limitado ao plano) | ✅ |
-| **CTA de upgrade** | ✅ ao exceder limite | ✅ ao tentar desempenho | — |
+**Nota 2026-08-04:** coluna Descrição adicionada; valor de "Exercícios por sessão (IA)" para FREE corrigido de 2 para 6, alinhando com a correcção já feita em §4 (2026-08-03).
+
+| Funcionalidade | Descrição | FREE | AI FITNESS | AI PERFORMANCE |
+|---|---|:---:|:---:|:---:|
+| **Geração de treino por IA** | Se a IA cria o treino de todo — o gate mais fundamental do fluxo; existe em produção (`ai.workout_generation`, `true` nos 6 planos) mas nunca tinha sido documentado aqui até 2026-08-04 (Fase 3, `docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`) | ✅ | ✅ | ✅ |
+| **Sessões / semana (IA)** | Quantas sessões de treino a IA gera automaticamente por semana | 1 | 7 | Ilimitado |
+| **Exercícios por sessão (IA)** | Nº máximo de exercícios que a IA inclui em cada sessão gerada | 6 | Sem limite (tempo disponível) | Sem limite |
+| **Tipo de exercícios** | Se a IA pode prescrever exercícios de Desempenho (velocidade, potência, resistência) além de Fitness | Fitness apenas | Fitness apenas | Fitness + Desempenho |
+| **Plano do treinador — dias activos** | Quantos dias/semana do plano criado pelo treinador o aluno consegue efectivamente treinar; nos restantes vê CTA de upgrade | 1 dia | 3 dias / semana | Todos os dias |
+| **Plano do treinador — tipo exercícios** | Se os exercícios de Desempenho do plano do treinador chegam ao aluno, ou são filtrados para Fitness apenas | Fitness apenas | Fitness apenas | Fitness + Desempenho |
+| **Check-in Rápido** | Registo de prontidão por toque único, sem perguntas detalhadas | ✅ | ✅ | ✅ |
+| **Check-in Completo** | Formulário detalhado (voz/texto) que alimenta o AI Checkin Adjustment | ❌ | ✅ | ✅ |
+| **Progresso — métricas básicas** | Treinos concluídos, sequência e indicadores essenciais no ecrã de Progresso | ✅ | ✅ | ✅ |
+| **Progresso — métricas fitness avançadas** | Evolução física detalhada (força, volume, tendências) | ❌ bloqueado | ✅ | ✅ |
+| **Progresso — métricas de desempenho** | Métricas atléticas (ATL/CTL/TSB — carga aguda/crónica e forma) | ❌ bloqueado | ❌ bloqueado | ✅ |
+| **AI Score — básico** (4 scores) | Pontuações de IA sobre prontidão/risco, versão reduzida | ✅ | ✅ | ✅ |
+| **AI Score — avançado** (8 scores) | Versão completa das pontuações de IA, maior granularidade | ❌ bloqueado | ❌ bloqueado | ✅ |
+| **AI Checkin Adjustment** | Ajusta o treino do dia consoante energia, dor e sono reportados no check-in | ❌ | ✅ | ✅ |
+| **AI Advanced Analysis** | Análise preditiva aprofundada de carga e recuperação sobre o histórico do aluno | ❌ | ❌ | ✅ |
+| **Convite de treinador** | Permite ao aluno vincular-se a um treinador e receber o respectivo plano | ✅ (limitado ao plano) | ✅ (limitado ao plano) | ✅ |
+| **CTA de upgrade** | Botão/mensagem de actualização mostrado ao aluno ao atingir um limite do plano | ✅ ao exceder limite | ✅ ao tentar desempenho | — |
 
 ### 2.2 Regras de Negócio — FREE
 
-1. **Sessão única semanal:** A IA gera no máximo 1 sessão com 2 exercícios fitness por semana.
+1. **Sessão única semanal:** A IA gera no máximo 1 sessão com 6 exercícios fitness por semana.
 2. **Plano do treinador:** Se vinculado a um treinador, pode receber plano para 1 dos dias disponíveis. Nos dias restantes, ao tentar treinar, aparece mensagem de limitação + botão **Actualizar conta**.
 3. **Check-in:** Apenas Check-in Rápido disponível.
 4. **Progresso:** Todas as abas visíveis, mas métricas fitness avançadas e de desempenho bloqueadas.
@@ -81,18 +84,22 @@ feature_permissions (Supabase)
 
 ### 3.1 Matriz de Acesso
 
-| Funcionalidade | TRIAL | PRO | ELITE |
-|---|:---:|:---:|:---:|
-| **Clientes activos (limite)** | 3 | 50 | Ilimitado |
-| **Coach DNA** | ❌ | ✅ | ✅ |
-| **Studio Branding** | ❌ | ✅ | ✅ |
-| **Marketplace — listagem** | ❌ | ❌ | ✅ |
-| **Marketplace — revenue share** | ❌ | ❌ | ✅ |
-| **AI Score — básico** (4 scores) | ✅ | ✅ | ✅ |
-| **AI Score — avançado** (8 scores) | ❌ | ✅ | ✅ |
-| **AI Checkin Adjustment** | ❌ | ✅ | ✅ |
-| **AI Advanced Analysis** | ❌ | ✅ | ✅ |
-| **Vista do dashboard do cliente** | ✅ (override completo) | ✅ (override completo) | ✅ (override completo) |
+**Correção 2026-08-04:** Studio Branding e Marketplace estavam documentados como "✅" para PRO/ELITE, mas nunca tiveram UI implementada — permanecem com badge "Em breve" em `PlansScreen.tsx` (confirmado por captura de ecrã da produção). Consistente com §4, que já documentava `studio.branding`/`marketplace.*` como "UI pendente".
+
+**Correção 2026-08-05 (Fase 6):** PRO deixou de ser um degrau único (50 clientes) — passou a 3 faixas seleccionáveis (PRO 5/15/30), com preço próprio cada, renderizadas num único card com selector na UI (`PlansScreen.tsx`). ELITE inalterado.
+
+| Funcionalidade | Descrição | TRIAL | PRO (5 / 15 / 30) | ELITE |
+|---|---|:---:|:---:|:---:|
+| **Clientes activos (limite)** | Nº máximo de alunos que o treinador pode gerir em simultâneo na conta | 3 | 5 / 15 / 30 (à escolha) | Ilimitado |
+| **Coach DNA** | Motor que codifica a metodologia própria do treinador (estrutura de blocos, princípios) para a IA gerar planos alinhados ao seu método | ❌ | ✅ | ✅ |
+| **Studio Branding** | Marca própria (logo/cores) no espaço/app voltado ao aluno | ❌ | 🔜 (UI pendente) | 🔜 (UI pendente) |
+| **Marketplace — listagem** | Perfil do treinador visível no marketplace do TrAIner para novos alunos o encontrarem | ❌ | ❌ | 🔜 (UI pendente) |
+| **Marketplace — revenue share** | Participação de 15% na receita de alunos captados via marketplace | ❌ | ❌ | 🔜 (UI pendente) |
+| **AI Score — básico** (4 scores) | Pontuações de IA sobre prontidão/risco de cada aluno, versão reduzida, na perspectiva do dashboard do treinador | ✅ | ✅ | ✅ |
+| **AI Score — avançado** (8 scores) | Versão completa das pontuações de IA por aluno, no dashboard do treinador | ❌ | ✅ | ✅ |
+| **AI Checkin Adjustment** | O motor de IA do treinador ajusta os planos gerados consoante o check-in dos alunos | ❌ | ✅ | ✅ |
+| **AI Advanced Analysis** | Análises preditivas avançadas sobre os alunos geridos pelo treinador | ❌ | ✅ | ✅ |
+| **Vista do dashboard do cliente** | Ao abrir o dashboard de um aluno, o treinador vê sempre todos os dados — o gating é do plano do aluno, não do seu próprio | ✅ (override completo) | ✅ (override completo) | ✅ (override completo) |
 
 > **Nota override:** Um treinador que acede ao dashboard de um cliente vê sempre todos os scores e métricas, independentemente do seu próprio plano. O gating é aplicado pelo plano do **cliente**, não do treinador. Implementado via `isTrainerOverride = !!selectedClient` em `PerformanceDashboardScreen.tsx`.
 
@@ -106,48 +113,53 @@ O limite `clients.limit` é validado em dois pontos:
 
 ## 4. Feature Keys na Base de Dados
 
-**Última actualização:** 2026-08-03 — valor real de `workout.exercises_per_session`/FREE corrigido (era documentado como 2, a coluna `feature_permissions.limit_value` já estava em 6 desde 2026-06-17; ver `docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md` Fase 6). Fases 0–8 originais concluídas em 2026-06-18.
+**Última actualização:** 2026-08-04 (Fase 3 de `docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`) — adicionado `ai.workout_generation` (existia em produção, nunca documentado); semeadas as linhas de `pro`/`elite` que faltavam para `checkin.full`, `progress.fitness_advanced`, `progress.performance`, `workout.*` e `trainer_plan.days_per_week` (87 linhas ao todo agora; verificado sem lacunas por `npm run check:feature-permissions`, que corre contra a tabela real via `src/licensing/completeness.ts`). Anteriormente: 2026-08-03 — valor real de `workout.exercises_per_session`/FREE corrigido (era documentado como 2, a coluna `feature_permissions.limit_value` já estava em 6 desde 2026-06-17; ver `docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_PLAN.md` Fase 6). Fases 0–8 originais concluídas em 2026-06-18.
 
 | feature_key | Tipo | Usado em | **Configurado** | **Aplicado?** |
 | --- | --- | --- | --- | --- |
+| `ai.workout_generation` | boolean | StartWorkoutScreen (gate mais fundamental — se a IA gera o treino de todo) | ✅ `true` nos 6 planos | ✅ autoridade de servidor (Fase 2, `api/_lib/entitlements.ts`), confirmado com chamada real após a correcção do bug de import ESM (§Fase 2 do plano de licenciamento) |
 | `scores.basic` | boolean | PerformanceDashboardScreen | ✅ | ✅ |
-| `scores.advanced` | boolean | PerformanceDashboardScreen | ✅ (legacy; substituído pelos gates granulares abaixo) | ✅ |
+| `scores.advanced` | boolean | (legacy — sem leitor na UI; `progress.fitness_advanced`/`progress.performance` substituem) | ✅ (histórico, todos os planos) | — (código morto) |
 | `ai.checkin_adjustment` | boolean | StartWorkoutScreen | ✅ | ✅ |
 | `ai.advanced_analysis` | boolean | StartWorkoutScreen | ✅ | ✅ |
 | `coach_dna` | boolean | CoachDNAScreen | ✅ | ✅ |
-| `clients.limit` | integer cap | TrainerDashboardScreen + api/send-invitation.ts | ✅ TRIAL=3, PRO=50, ELITE=∞ | ✅ (frontend + backend, ver §3) |
+| `clients.limit` | integer cap | TrainerDashboardScreen + api/send-invitation.ts | ✅ TRIAL=3, **PRO 5/15/30** (substituiu o degrau único de 50 — Fase 6, 2026-08-05), ELITE=∞ | ✅ (frontend + backend, ver §3) |
 | `studio.branding` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
 | `marketplace.listing` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
 | `marketplace.revenue_share` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
-| `checkin.full` | boolean | CheckInProntidaoScreen → CheckInHub | ✅ | ✅ |
-| `workout.sessions_per_week` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=1, AI Fitness=7, AI Performance=∞ | não auditado por este plano |
-| `workout.exercises_per_session` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=**6** (não 2 — corrigido 2026-08-03), resto=∞ | ✅ caminho de IA (Fase 2, `cutExerciseCount`, medido 0 violações); ✅ fallback local (Fase 0 do plano de continuidade) |
-| `workout.exercise_type` | integer encoded | StartWorkoutScreen (geração IA) | ✅ 0=fitness only, null=all | ✅ caminho de IA (Fase 3, `enforceCategoryFilter`, medido 0/3 vazamentos); ✅ fallback local (Fase 2.5, `category` em vez de `intensity`) |
-| `trainer_plan.days_per_week` | integer cap | StartWorkoutScreen (plano do treinador) | ✅ FREE=1, AI Fitness=3, AI Performance=∞ | não auditado por este plano |
-| `progress.fitness_advanced` | boolean | PerformanceDashboardScreen | ✅ | ✅ |
-| `progress.performance` | boolean | PerformanceDashboardScreen | ✅ | ✅ |
+| `checkin.full` | boolean | CheckInProntidaoScreen → CheckInHub (alcançável por aluno e por treinador no próprio uso) | ✅ inclui PRO/ELITE desde 2026-08-04 (corrige auditoria §3.5.1) | ✅ |
+| `workout.sessions_per_week` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=1, AI Fitness=7, AI Performance=∞; PRO/ELITE=∞ (explícito desde 2026-08-04, key não se aplica à conta do treinador) | ✅ servidor (Fase 2 do plano de licenciamento, `api/_lib/entitlements.ts`, confirmado com chamada real) |
+| `workout.exercises_per_session` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=**6** (não 2 — corrigido 2026-08-03), resto=∞ | ✅ caminho de IA (Fase 2, `cutExerciseCount`, medido 0 violações); ✅ fallback local (Fase 0 do plano de continuidade); ✅ autoridade de servidor (Fase 2 do plano de licenciamento) |
+| `workout.exercise_type` | integer encoded | ~~StartWorkoutScreen (geração IA)~~ **legado, não lido** | 🔜 retirado como gate comercial (Fase 5 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`, 2026-08-05) — categoria de exercício deixa de ser diferenciador de preço; keys/linhas mantidas no catálogo, sem leitor | — `enforceCategoryFilter` é no-op permanente por construção (`fitnessOnly` resolvido a `false` na fonte única, `api/_lib/entitlements.ts`), não por omissão |
+| `trainer_plan.days_per_week` | integer cap | ~~StartWorkoutScreen (plano do treinador)~~ **legado, não lido** | 🔜 retirado (Fase 4 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`, 2026-08-04) — plano prescrito nunca é filtrado pelo tier do próprio aluno; keys/linhas mantidas no catálogo, sem leitor | — RLS de `workout_sessions` continuava sem validar plano na escrita (auditoria §3.3), mas ficou sem função depois da key deixar de ser lida — não por correcção da RLS |
+| `progress.fitness_advanced` | boolean | PerformanceDashboardScreen (alcançável por aluno e por treinador no próprio uso) | ✅ inclui PRO/ELITE desde 2026-08-04 (corrige auditoria §3.5.1) | ✅ |
+| `progress.performance` | boolean | PerformanceDashboardScreen (alcançável por aluno e por treinador no próprio uso) | ✅ inclui PRO/ELITE desde 2026-08-04 (corrige auditoria §3.5.1) | ✅ |
 
-**Nota:** `useEffectivePlanKey` eleva automaticamente `free → ai_fitness` (welcome window 21 dias) e `trial → pro` (trial window 21 dias) — todos os gates acima respeitam esta elevação.
+**Nota:** `useEffectivePlanKey` eleva automaticamente `free → ai_fitness` (welcome window 21 dias) e `trial → pro` (trial window 21 dias) — todos os gates acima respeitam esta elevação. Confirmado ao vivo em 2026-08-04: uma conta FREE dentro da janela de boas-vindas recebe correctamente os limites de `ai_fitness` (ver `docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md` §2.1).
+
+**Guarda anti-regressão:** `npm run check:feature-permissions` (script `scripts/check-feature-permissions-completeness.mjs`, lógica pura testada em `src/licensing/completeness.test.ts`) falha se qualquer combinação feature_key × plan_key aplicável não tiver linha em `feature_permissions` — é o que teria acusado a regressão `trial → pro` antes de chegar a produção.
 
 **Sobre a coluna "Aplicado?":** até 2026-08-03 esta tabela só documentava se um valor estava *configurado* em `feature_permissions`, não se o caminho de geração da IA de fato o *respeitava* — foi exatamente essa lacuna que permitiu `workout.exercises_per_session`/FREE ficar documentado como 2 (nunca aplicado nesse valor, nem antes nem depois da mudança para 6) e `workout.exercise_type` ficar sem validação server-side por meses (`docs/LICENSE_EXERCISE_TYPE_ENFORCEMENT_FINDINGS_20260803.md`). "✅" nesta coluna significa validado com medição ao vivo em produção, não presunção de que o código faz o que o nome sugere.
 
 ---
 
-## 5. Feature Keys Implementadas (Fases 0–8)
+## 5. Feature Keys Implementadas (Fases 0–8) — ⚠️ ARQUIVO HISTÓRICO
+
+> **Higiene documental, 2026-08-05 (Fase 7 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`):** esta secção é a proposta original de 2026-06-17, escrita **antes** da implementação — daí o título "Implementadas" contradizer o corpo do texto ("são necessárias", "seed proposto"). Todas as keys abaixo foram implementadas há muito e o estado real, verificado ao vivo, está em **§4 acima** — é essa a fonte de verdade, não esta secção. Mantida apenas como registo histórico do desenho original; **não editar como se fosse estado actual.** Duas divergências entre o proposto aqui e o implementado, para quem consultar este histórico: `workout.exercise_type` foi implementado como `integer encoded` (`limit_value`), não como `string enum` como proposto aqui; e foi **retirado como gate comercial na Fase 5** (2026-08-05) — deixou de ser diferenciador de preço.
 
 Para implementar as regras dos planos de cliente definidas nesta sessão, são necessárias as seguintes feature keys novas:
 
-| feature_key | Tipo | Descrição |
+| feature_key | Tipo (proposto aqui, 2026-06-17) | Descrição |
 |---|---|---|
 | `workout.sessions_per_week` | integer cap | Máximo de sessões semanais geradas pela IA (1, 7, null=∞) |
 | `workout.exercises_per_session` | integer cap | Máximo de exercícios por sessão IA (2, null=∞) |
-| `workout.exercise_type` | string enum | Tipo permitido: `'fitness'` ou `'all'` |
+| `workout.exercise_type` | string enum *(implementado como `integer encoded` — ver nota acima)* | Tipo permitido: `'fitness'` ou `'all'` |
 | `checkin.full` | boolean | Acesso ao Check-in Completo |
 | `trainer_plan.days_per_week` | integer cap | Dias do plano do treinador activos por semana (1, 3, null=∞) |
 | `progress.fitness_advanced` | boolean | Métricas fitness avançadas no Progresso |
 | `progress.performance` | boolean | Métricas de desempenho no Progresso (ATL/CTL/TSB etc.) |
 
-### Seed proposto (clientes)
+### Seed proposto (clientes) — histórico, valores de 2026-06-17, não o estado actual (ver §4)
 
 ```sql
 -- workout.sessions_per_week
@@ -225,10 +237,10 @@ Para implementar as regras dos planos de cliente definidas nesta sessão, são n
 | Localização | Tipo | Risco |
 |---|---|---|
 | `PerformanceDashboardScreen.tsx:658-668` | `ADVANCED_SCORE_CODES` hardcoded como Set de strings | Baixo — lista de scores, não planos; isolada no componente |
-| `StartWorkoutScreen.tsx:465-473` | `gatedStatsCtx` com valores numéricos (50, 20, 10, 70) para scores truncados | Médio — valores arbitrários que substituem scores reais; sem impacto funcional mas difícil de manter |
+| ~~`StartWorkoutScreen.tsx:465-473`~~ **Corrigido 2026-08-05 (Fase 5.1)** | ~~`gatedStatsCtx` com valores numéricos (50, 20, 10, 70) para scores truncados~~ Substituído por `buildStatsContext(m5)` — dado real, não constante | Era **médio, com impacto funcional real** (não "sem impacto" como avaliado aqui originalmente) — era a razão de a IA nunca reagir à carga que ela própria prescrevia. Ver Fase 5.1 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md` |
 | `App.tsx:77,80` | Defaults de preferências UI (sessionHistoryLimit: 50, etc.) | Nenhum — são preferências de UI, não feature gates |
 
-**Conclusão:** Zero hardcoded plan_key checks. Todo o gating é data-driven. Os 3 pontos acima são isoláveis e não bloqueiam a implementação da nova matriz.
+**Conclusão:** Zero hardcoded plan_key checks. Todo o gating é data-driven. Dos 3 pontos acima, o de `StartWorkoutScreen.tsx` já foi corrigido (Fase 5.1); os outros dois seguem isolados e sem impacto.
 
 ---
 

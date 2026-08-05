@@ -201,6 +201,9 @@ export function buildStatsContext(m5: M5Data): StatsContext {
       painRecurrence:       m5.scores.painRecurrence.score,
       sessionCompletion:    m5.scores.sessionCompletion.score,
       planFit:              m5.scores.planFit.score,
+      acuteLoad:            m5.scores.acuteLoad.score,
+      trainingForm:         m5.scores.trainingForm.score,
+      trainingStrain:       m5.scores.trainingStrain.score,
     },
   };
 }

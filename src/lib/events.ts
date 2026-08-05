@@ -96,3 +96,53 @@ export async function handlePainReport(
     void emitEvent(userId, 'alert_created', 'trainer_alert', alertId);
   }
 }
+
+// Called when a client with a linked trainer is about to execute a
+// trainer-prescribed session (StartWorkoutScreen.tsx, docs/
+// LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md Fase 5.1). The AI has no
+// authority to alter a prescribed program — unlike the autonomous path,
+// where the same trainingForm/trainingStrain signal feeds generation
+// directly (api/generate-smart-workout.ts) and the AI self-regulates. Here
+// the signal becomes an alert instead of a silent adjustment.
+// Deduplicated: does nothing if an open/acknowledged alert of this type
+// already exists for the client — this signal is a continuous state (checked
+// on every screen load), not a discrete event like a pain report.
+export async function handleHighTrainingLoad(
+  userId: string,
+  trainerId: string,
+  trainingFormScore: number,
+  trainingStrainScore: number,
+): Promise<void> {
+  const { data: existing } = await supabase
+    .from('trainer_alerts')
+    .select('id')
+    .eq('client_id', userId)
+    .eq('alert_type', 'high_training_load')
+    .in('status', ['open', 'acknowledged'])
+    .maybeSingle();
+
+  if (existing) return;
+
+  const alertParams = { training_form: trainingFormScore, training_strain: trainingStrainScore };
+
+  const { data: alert, error: alertErr } = await supabase
+    .from('trainer_alerts')
+    .insert({
+      trainer_id:   trainerId,
+      client_id:    userId,
+      alert_type:   'high_training_load',
+      severity:     trainingFormScore < 25 || trainingStrainScore >= 80 ? 'high' : 'medium',
+      title:        'Accumulated training load is high',
+      body:         `Training form ${trainingFormScore}/100, strain ${trainingStrainScore}/100 — the client's next prescribed session may need a volume/intensity adjustment.`,
+      template_key: 'high_training_load_alert',
+      params:       alertParams as unknown as Json,
+      status:       'open',
+    })
+    .select('id')
+    .single();
+
+  if (alertErr) { console.error('[events] training load alert insert error:', alertErr); return; }
+
+  const alertId = (alert as { id: string } | null)?.id ?? null;
+  if (alertId) void emitEvent(userId, 'alert_created', 'trainer_alert', alertId);
+}

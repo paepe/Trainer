@@ -1,24 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import type { FeatureKey, FeatureAccess, FeaturePermission, PlanKey, Subscription } from '../types';
-import { useWelcomeWindow } from './useWelcomeWindow';
-import { useTrialWindow } from './useTrialWindow';
+import { resolveEffectivePlanKey as resolveEffectivePlanKeyCore, toEntitlements } from '../licensing/entitlements';
 
 /**
  * Resolves the effective plan key for feature gating, accounting for
  * welcome window (free clients) and trial window (trainer trial).
  * During an active window, grants the elevated tier's permissions.
+ *
+ * Thin wrapper — the actual rule lives in src/licensing/entitlements.ts
+ * (Fase 1, docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md), the same
+ * module the server will use from Fase 2 onward. This function no longer
+ * has its own copy of the elevation logic.
  */
 export function useEffectivePlanKey(subscription: Subscription | null): PlanKey | undefined {
-  const welcomeWindow = useWelcomeWindow(subscription);
-  const trialWindow   = useTrialWindow(subscription);
-
-  if (!subscription) return undefined;
-
-  if (welcomeWindow.state === 'active' || welcomeWindow.state === 'expiring') return 'ai_fitness';
-  if (trialWindow.state   === 'active' || trialWindow.state   === 'expiring') return 'pro';
-
-  return subscription.plan_key;
+  return resolveEffectivePlanKeyCore(subscription);
 }
 
 // In-memory cache keyed by plan_key. Avoids redundant network calls within
@@ -72,7 +68,7 @@ export function useFeatureAccess(
     }
 
     if (!planKey) {
-      setAccess({ allowed: false, limitValue: null, loading: false });
+      setAccess(toEntitlements([], undefined)[feature]);
       return;
     }
 
@@ -80,12 +76,7 @@ export function useFeatureAccess(
 
     fetchPermissions(planKey).then(permissions => {
       if (cancelled) return;
-      const row = permissions.find(p => p.feature_key === feature);
-      setAccess({
-        allowed:    row?.allowed ?? false,
-        limitValue: row?.limit_value ?? null,
-        loading:    false,
-      });
+      setAccess(toEntitlements(permissions, planKey as PlanKey)[feature]);
     });
 
     return () => { cancelled = true; };
@@ -118,9 +109,8 @@ export function useFeatureAccessMap(
     }
 
     if (!planKey) {
-      setAccessMap(Object.fromEntries(
-        features.map(f => [f, { allowed: false, limitValue: null, loading: false }])
-      ));
+      const denied = toEntitlements([], undefined);
+      setAccessMap(Object.fromEntries(features.map(f => [f, denied[f]])));
       return;
     }
 
@@ -128,16 +118,8 @@ export function useFeatureAccessMap(
 
     fetchPermissions(planKey).then(permissions => {
       if (cancelled) return;
-      const map: Record<string, FeatureAccess> = {};
-      for (const f of features) {
-        const row = permissions.find(p => p.feature_key === f);
-        map[f] = {
-          allowed:    row?.allowed ?? false,
-          limitValue: row?.limit_value ?? null,
-          loading:    false,
-        };
-      }
-      setAccessMap(map);
+      const ents = toEntitlements(permissions, planKey as PlanKey);
+      setAccessMap(Object.fromEntries(features.map(f => [f, ents[f]])));
     });
 
     return () => { cancelled = true; };
