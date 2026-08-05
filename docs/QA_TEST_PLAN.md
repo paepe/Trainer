@@ -238,7 +238,7 @@ WHERE trainer_id = '<trainer_id>' AND status = 'active';
 
 ---
 
-### TC-09 — Trainer em trial window pode convidar até 50 clientes
+### TC-09 — Trainer em trial window pode convidar até 30 clientes
 
 **Pré-condição:** Conta `trainer_trial` com trial window activa.
 
@@ -250,7 +250,8 @@ WHERE trainer_id = '<trainer_id>' AND status = 'active';
 
 **Resultado esperado:**
 - Botão de convite activo
-- Limite efectivo é 50 (PRO), não 3 (TRIAL)
+- Convites permitidos até ao 30.º cliente; o 31.º é bloqueado pelo backend
+- Limite efectivo é 30 (PRO legado), não 3 (TRIAL bruto)
 - Não aparece mensagem de limite atingido com 3 clientes
 
 **Pass / Fail:** ___  

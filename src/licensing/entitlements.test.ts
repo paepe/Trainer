@@ -142,7 +142,7 @@ const PRODUCTION_SNAPSHOT: FeaturePermission[] = [
   { feature_key: 'checkin.full', plan_key: 'free', allowed: false, limit_value: null },
   { feature_key: 'checkin.full', plan_key: 'trial', allowed: true, limit_value: null },
   { feature_key: 'clients.limit', plan_key: 'elite', allowed: true, limit_value: null },
-  { feature_key: 'clients.limit', plan_key: 'pro', allowed: true, limit_value: 50 },
+  { feature_key: 'clients.limit', plan_key: 'pro', allowed: true, limit_value: 30 },
   { feature_key: 'clients.limit', plan_key: 'trial', allowed: true, limit_value: 3 },
   { feature_key: 'coach_dna', plan_key: 'elite', allowed: true, limit_value: null },
   { feature_key: 'coach_dna', plan_key: 'pro', allowed: true, limit_value: null },
@@ -167,7 +167,7 @@ describe('toEntitlements — matriz contra o snapshot real de produção', () =>
     ['free',           'checkin.full', false, null],
     ['pro',            'coach_dna', true, null],
     ['trial',          'coach_dna', false, null],
-    ['pro',            'clients.limit', true, 50],
+    ['pro',            'clients.limit', true, 30],
     ['trial',          'clients.limit', true, 3],
     ['elite',          'clients.limit', true, null],
   ])('%s.%s → allowed=%s, limitValue=%s', (planKey, feature, allowed, limitValue) => {
@@ -204,7 +204,7 @@ const COMPLETE_FIXTURE: FeaturePermission[] = [
   { feature_key: 'progress.fitness_advanced', plan_key: 'pro', allowed: true, limit_value: null },
   { feature_key: 'progress.performance', plan_key: 'pro', allowed: true, limit_value: null },
   { feature_key: 'coach_dna', plan_key: 'pro', allowed: true, limit_value: null },
-  { feature_key: 'clients.limit', plan_key: 'pro', allowed: true, limit_value: 50 },
+  { feature_key: 'clients.limit', plan_key: 'pro', allowed: true, limit_value: 30 },
 ];
 
 describe('regressão: trial elevado a pro nunca perde capacidade face a trial bruto', () => {

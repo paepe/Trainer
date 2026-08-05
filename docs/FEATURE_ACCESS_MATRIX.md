@@ -88,6 +88,8 @@ feature_permissions (Supabase)
 
 **Correção 2026-08-05 (Fase 6):** PRO deixou de ser um degrau único (50 clientes) — passou a 3 faixas seleccionáveis (PRO 5/15/30), com preço próprio cada, renderizadas num único card com selector na UI (`PlansScreen.tsx`). ELITE inalterado.
 
+**Correção 2026-08-05 (pós-Fase 6):** o `pro` legado, usado como entitlement efectivo durante a janela de 21 dias do TRIAL, foi alinhado a **30 clientes**. Assim, o TRIAL não excede a maior faixa PRO comercial; ELITE continua o único nível ilimitado.
+
 | Funcionalidade | Descrição | TRIAL | PRO (5 / 15 / 30) | ELITE |
 |---|---|:---:|:---:|:---:|
 | **Clientes activos (limite)** | Nº máximo de alunos que o treinador pode gerir em simultâneo na conta | 3 | 5 / 15 / 30 (à escolha) | Ilimitado |
