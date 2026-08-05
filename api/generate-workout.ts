@@ -6,6 +6,7 @@
 // disproven.
 import { verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
+import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.
@@ -460,6 +461,8 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
         `~${Math.round(totalMinutesOf(exercises))} min`,
       );
     }
+
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat', inputTokens: data.usage?.prompt_tokens, outputTokens: data.usage?.completion_tokens });
 
     res.status(200).json({
       exercises,

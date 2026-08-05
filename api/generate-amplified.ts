@@ -9,6 +9,7 @@ import {
   hasPersistedAIAdaptationConsent,
   verifyRequestUser,
 } from './_lib/auth.js';
+import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 const SYSTEM_PROMPT = `You are an expert sports science AI for a personal training platform called TrAIner.
 You receive a structured profile of a fitness client in JSON and must generate:
@@ -178,6 +179,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!match) throw new Error('AI returned unexpected format');
 
     const result = JSON.parse(match[0]);
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat', inputTokens: data.usage?.prompt_tokens, outputTokens: data.usage?.completion_tokens });
     res.status(200).json(result);
   } catch (err: unknown) {
     if ((err as Error)?.name === 'AbortError') {

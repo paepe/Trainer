@@ -52,6 +52,7 @@ export const MAX_CONCURRENT_PROVIDER_CALLS = 8;
 // automatically; _lib/auth's version doesn't (most callers are GET), so the
 // one POST call site below (storeTranslations) now sets it explicitly.
 import { verifyRequestUser, authSupabaseUrl, authServiceHeaders } from './_lib/auth.js';
+import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 interface CacheRow {
   source_text:     string;
@@ -251,6 +252,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const cached = await fetchCached(texts, sourceLocale, targetLocale);
   const missing = texts.filter(t => !cached.has(t));
   const fresh = await translateMissing(missing, sourceLocale, targetLocale as SupportedLocale);
+
+  if (missing.length > 0) {
+    await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat' });
+  }
 
   // Awaited, not fire-and-forget: a serverless function's process can be
   // frozen right after the response is sent, so a detached write here would

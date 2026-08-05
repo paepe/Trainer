@@ -10,6 +10,7 @@
 
 import { hasPersistedAIAdaptationConsent, isTrainerRole, verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
+import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 const SYSTEM_PROMPT = `You clean up raw speech-to-text transcripts that contain "stutter echo" —
 repeated/overlapping fragments from an on-device recognizer re-emitting the same phrase
@@ -129,6 +130,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const parsed  = JSON.parse(match[0]) as { cleaned?: string };
     const cleaned = parsed.cleaned?.trim();
+
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat', inputTokens: data.usage?.prompt_tokens, outputTokens: data.usage?.completion_tokens });
 
     return res.status(200).json({ cleaned: cleaned || transcript });
 

@@ -156,14 +156,14 @@ Resposta ao utilizador
 
 **Proposta registrada:** [contrato de dados de telemetria](AI_TELEMETRY_DATA_CONTRACT.md) e migração revisável `supabase/sql-archive/supabase-ai-telemetry-20260805.sql`; retenção bruta proposta de 90 dias, HMAC por ator e escrita exclusivamente server-side. Ainda não aplicada.
 
-- [ ] Criar tabela de eventos de uso de IA com RLS administrativa e política de retenção definida na Fase 0.
+- [x] Criar tabela de eventos de uso de IA com RLS administrativa e retenção bruta de 90 dias; aplicada e auditada em produção em 2026-08-05.
 - [ ] Usar `request_id`/chave de operação única, gerada ou validada pelo servidor, para retries não duplicarem custo nem eventos.
 - [ ] Registrar sucesso, falha do provedor e rejeição pós-auth/pré-provedor sem prompt, transcrição, resposta ou dado de saúde.
 - [ ] Para tráfego anônimo, usar somente métricas agregadas/amostradas da camada pré-auth; não criar um evento persistente por tentativa que permita encher a tabela.
 - [ ] Registrar contadores do provedor quando disponíveis; quando indisponíveis, marcar estimativa e método — nunca fabricar precisão.
 - [ ] Calcular custo a partir de modelo, tokens/unidades, provedor, moeda e versão temporal do preço.
 - [ ] Criar agregados diários por plano, endpoint e assinante; evitar consultas analíticas pesadas em tabelas transacionais.
-- [ ] Instrumentar os oito endpoints; substituir o log isolado de `generate-smart-workout` pelo mesmo pipeline ou mantê-lo apenas como log operacional correlacionado.
+- [x] Instrumentar emissão de sucesso minimizada nos oito endpoints; `generate-smart-workout` passa a usar o mesmo pipeline, ainda com telemetria feature-flagged desligada.
 - [ ] Executar período de observação aprovado sem bloqueio automático e medir percentis de uso, concorrência, erros e custo por plano.
 - [ ] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor.
 - [ ] Garantir que falha de telemetria não duplica a chamada de IA nem expõe conteúdo em fallback de log.

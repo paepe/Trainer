@@ -12,6 +12,7 @@
 // Model: Haiku-equivalent (fast, cheap — simple classification task).
 
 import { isTrainerRole, verifyRequestUser } from './_lib/auth.js';
+import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 const SYSTEM_PROMPT = `You are a sports science expert. Classify each exercise into exactly one category:
 
@@ -131,6 +132,8 @@ Expected output format:
         typeof c.category === 'string' &&
         VALID_CATEGORIES.has(c.category),
     );
+
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat', inputTokens: data.usage?.prompt_tokens, outputTokens: data.usage?.completion_tokens });
 
     return res.status(200).json({ classifications });
 

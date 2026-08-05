@@ -5,6 +5,7 @@
 
 import { verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
+import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 const SYSTEM_PROMPT = `You are a structured data extractor for a fitness app.
 The user has spoken a free-form daily check-in. Extract the following fields if mentioned.
@@ -117,6 +118,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat', inputTokens: data.usage?.prompt_tokens, outputTokens: data.usage?.completion_tokens });
     res.status(200).json({ extracted });
   } catch (err: unknown) {
     if ((err as Error)?.name === 'AbortError') {

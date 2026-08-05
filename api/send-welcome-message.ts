@@ -20,6 +20,7 @@ import {
   completeAIOperation,
   releaseAIOperation,
 } from './_lib/aiOperationIdempotency.js';
+import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 const PROMPT_CHAR_BUDGET = 600; // mirrors the Step12 free-text textarea max length
 
@@ -241,6 +242,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     await completeAIOperation(operationKey);
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat' });
 
     return res.status(200).json({ ok: true });
 
