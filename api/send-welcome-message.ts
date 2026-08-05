@@ -182,6 +182,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const timeout = setTimeout(() => ctrl.abort(), 28_000);
 
     let messageText = '';
+    let inputTokens: number | undefined;
+    let outputTokens: number | undefined;
     try {
       const aiRes = await fetch('https://api.deepseek.com/chat/completions', {
         method:  'POST',
@@ -210,7 +212,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const data = await aiRes.json() as {
         choices?: { message?: { content?: string } }[];
         error?:   { message?: string };
+        usage?:   { prompt_tokens?: number; completion_tokens?: number };
       };
+      inputTokens = data.usage?.prompt_tokens;
+      outputTokens = data.usage?.completion_tokens;
       if (!aiRes.ok) throw new Error(data.error?.message ?? 'DeepSeek request failed');
 
       const raw   = data.choices?.[0]?.message?.content?.trim() ?? '{}';
@@ -261,12 +266,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!logRes.ok) {
       console.error('[send-welcome-message] notification_log insert failed:', logRes.status);
       await releaseAIOperation(operationKey);
-      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'degraded', httpStatus: 502, rejectionCode: 'delivery_persist_failed', provider: 'deepseek', model: 'deepseek-chat' });
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'degraded', httpStatus: 502, rejectionCode: 'delivery_persist_failed', provider: 'deepseek', model: 'deepseek-chat', inputTokens, outputTokens });
       return res.status(502).json({ error: 'Welcome delivery could not be persisted' });
     }
 
     await completeAIOperation(operationKey);
-    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat' });
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat', inputTokens, outputTokens });
 
     return res.status(200).json({ ok: true });
 

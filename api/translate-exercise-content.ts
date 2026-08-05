@@ -108,26 +108,28 @@ async function storeTranslations(rows: CacheRow[]): Promise<void> {
 interface TranslationResult {
   translations: Map<string, string>;
   providerFailures: number;
+  inputTokens: number;
+  outputTokens: number;
 }
 
 async function translateMissing(
   texts: string[], sourceLocale: SupportedLocale, targetLocale: SupportedLocale,
 ): Promise<TranslationResult> {
   const result = new Map<string, string>();
-  if (texts.length === 0) return { translations: result, providerFailures: 0 };
+  if (texts.length === 0) return { translations: result, providerFailures: 0, inputTokens: 0, outputTokens: 0 };
 
   // Same locale on both sides — identity, no model call needed (docs/
   // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, Fase 3 checklist).
   if (sourceLocale === targetLocale) {
     for (const t of texts) result.set(t, t);
-    return { translations: result, providerFailures: 0 };
+    return { translations: result, providerFailures: 0, inputTokens: 0, outputTokens: 0 };
   }
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     console.error('[translate-exercise-content] DEEPSEEK_API_KEY not set — returning source text unchanged');
     for (const t of texts) result.set(t, t);
-    return { translations: result, providerFailures: 1 };
+    return { translations: result, providerFailures: 1, inputTokens: 0, outputTokens: 0 };
   }
 
   const sourceLang = LOCALE_TO_LANG[sourceLocale];
@@ -161,6 +163,8 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
   // provider fan-out of a single cache miss.
   let nextIndex = 0;
   let providerFailures = 0;
+  let inputTokens = 0;
+  let outputTokens = 0;
   const worker = async () => {
     while (nextIndex < texts.length) {
       const original = texts[nextIndex++];
@@ -190,7 +194,12 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
         });
 
         if (!response.ok) throw new Error(`DeepSeek ${response.status}`);
-        const data = await response.json() as { choices?: { message?: { content?: string } }[] };
+        const data = await response.json() as {
+          choices?: { message?: { content?: string } }[];
+          usage?: { prompt_tokens?: number; completion_tokens?: number };
+        };
+        inputTokens += data.usage?.prompt_tokens ?? 0;
+        outputTokens += data.usage?.completion_tokens ?? 0;
         const translated = data.choices?.[0]?.message?.content?.trim();
         result.set(original, translated || original);
       } catch (err) {
@@ -208,7 +217,7 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
     () => worker(),
   ));
 
-  return { translations: result, providerFailures };
+  return { translations: result, providerFailures, inputTokens, outputTokens };
 }
 
 interface VercelRequest  { method?: string; body?: { items?: { text?: string }[]; sourceLocale?: string; targetLocale?: string }; headers?: Record<string, string | string[] | undefined> }
@@ -277,6 +286,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       rejectionCode: translation.providerFailures > 0 ? 'provider_partial_failure' : undefined,
       provider: 'deepseek',
       model: 'deepseek-chat',
+      inputTokens: translation.inputTokens,
+      outputTokens: translation.outputTokens,
     });
   }
 

@@ -180,6 +180,8 @@ Resposta ao utilizador
 
 **Telemetria de falha (2026-08-05):** todos os oito endpoints agora registram resultado minimizado de falha/degradação: os seis fluxos críticos e welcome usam `provider_failed` para timeout, erro ou resposta inválida do provedor; tradução registra `degraded/provider_partial_failure` quando preserva o texto original após falha parcial. Falha de persistência da welcome é registrada como `degraded/delivery_persist_failed`.
 
+**Uso do provedor (2026-08-05):** todos os oito endpoints passam para a telemetria `prompt_tokens` e `completion_tokens` quando a resposta do provedor os disponibiliza; tradução soma as chamadas isoladas do lote. Ausência do contador continua registrada como precisão indisponível, sem estimativa inventada.
+
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.
