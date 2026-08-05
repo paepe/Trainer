@@ -18,6 +18,7 @@ import {
   resolveUserEntitlements, countSessionsThisWeek, isSessionsPerWeekCapReached,
   resolveAuthoritativeTaskGates,
 } from './_lib/entitlements.js';
+import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 // ─── Inlined types (from src/ai/types.ts + src/types/coach-dna.ts) ────────────
 
@@ -1236,6 +1237,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       input_tokens:  data.usage?.prompt_tokens     ?? 0,
       output_tokens: data.usage?.completion_tokens ?? 0,
     };
+
+    await emitAIUsageEvent({
+      actorId: caller.id,
+      endpoint: 'generate-smart-workout',
+      outcome: 'succeeded',
+      httpStatus: 200,
+      provider: 'deepseek',
+      model: 'deepseek-chat',
+      inputTokens: usage.input_tokens,
+      outputTokens: usage.output_tokens,
+    });
 
     // Cost instrumentation — pré-requisito da Fase 4.2 (franquia de IA do
     // treinador) do plano de licenciamento. `origin` aqui usa os sinais já
