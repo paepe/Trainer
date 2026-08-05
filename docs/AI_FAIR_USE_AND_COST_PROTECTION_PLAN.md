@@ -1,7 +1,7 @@
 # TrAIner — Plano de Uso Justo, Proteção de Custo e Prevenção de Abuso de IA
 
 **Estado:** Fases 0–1 em execução; Fase 2 activada em observação controlada — enforcement permanece bloqueado até haver evidência de uso real e aprovação específica
-**Última atualização:** 2026-08-05 — smoke autenticado de geração e telemetria confirmado em produção
+**Última atualização:** 2026-08-05 — catálogo de custo e agregados aplicados; correção da dimensão de plano publicada em produção
 **Proprietário:** Product / Engineering / Privacy
 **Escopo:** todos os endpoints server-side com custo de IA — recursos de AI FITNESS/AI PERFORMANCE, operações do TRAINER e automações internas/onboarding
 
@@ -161,8 +161,8 @@ Resposta ao utilizador
 - [x] Registrar sucesso, falha do provedor e rejeição pós-auth/pré-provedor sem prompt, transcrição, resposta ou dado de saúde.
 - [ ] Para tráfego anônimo, usar somente métricas agregadas/amostradas da camada pré-auth; não criar um evento persistente por tentativa que permita encher a tabela.
 - [x] Registrar contadores do provedor quando disponíveis; quando indisponíveis, marcar método como `unavailable` — nunca fabricar precisão.
-- [ ] Calcular custo a partir de modelo, tokens/unidades, provedor, moeda e versão temporal do preço.
-- [ ] Criar agregados diários por plano, endpoint e assinante; evitar consultas analíticas pesadas em tabelas transacionais.
+- [x] Calcular custo a partir de modelo, tokens/unidades, provedor, moeda e versão temporal do preço; para `deepseek-chat`, o cálculo conservador usa preço de cache miss e declara a qualidade da estimativa.
+- [x] Criar agregados diários por plano e endpoint, além de agregado diário administrativo por ator HMAC; evitar consultas analíticas pesadas em tabelas transacionais.
 - [x] Instrumentar emissão de sucesso minimizada nos oito endpoints; a emissão é feature-flagged e está activa em produção desde 2026-08-05.
 - [ ] Executar período de observação aprovado sem bloqueio automático e medir percentis de uso, concorrência, erros e custo por plano.
 - [ ] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor.
@@ -187,6 +187,10 @@ Resposta ao utilizador
 **Evidência de deploy (2026-08-05):** a instrumentação de rejeições e a correção de compilação associada foram publicadas nos commits `c6ab6a1` e `1fe8911`. O deploy de produção `dpl_86LSA6vM3hcJz2nQqthTWmz7GFKq` ficou `Ready` e recebeu o alias `https://trainer-lake.vercel.app`. A validação funcional autenticada e o período de observação continuam pendentes; não foram simuladas credenciais nem gerado tráfego artificial.
 
 **Smoke autenticado (2026-08-05):** uma geração normal iniciada pela conta cliente em produção retornou plano personalizado e gravou o evento minimizado `succeeded` no banco: `generate-smart-workout`, HTTP `200`, `2.318` tokens de entrada, `1.655` de saída e `3.973` no total. A consulta omitiu identificadores de ator. O primeiro smoke revelou que o cliente abortava aos 28s antes de uma resposta válida do servidor; `SMART_WORKOUT_CLIENT_TIMEOUT_MS` passou a 40s para preservar a margem de transporte sobre o timeout do fornecedor no backend. A correção foi publicada no deploy `dpl_DqanNunMcbudkihVSf7He6DjvwHZ`.
+
+**Custo e agregação (2026-08-05):** a migração `supabase-ai-telemetry-cost-and-aggregate-20260805.sql` foi aplicada em produção. Ela mantém um catálogo temporal e administrativo de preço, com a referência oficial da DeepSeek, e dois agregados diários: por plano/endpoint/resultado e por ator HMAC/endpoint/plano. `ai_usage_events` e o catálogo permanecem sob RLS, sem acesso público. O custo atual é explicitamente conservador (`cache_miss`) porque o provedor não retorna a separação de tokens de cache; não se afirma precisão que não existe.
+
+**Correção da dimensão de plano (2026-08-05):** o smoke posterior confirmou uma geração válida (`4.267` tokens), mas expôs que o resolvedor server-side retornava somente os grants e descartava o `planKey`; por isso, o evento ficou com plano nulo. A correção preserva o plano efetivo, resolvido exclusivamente no backend, junto aos entitlements e foi publicada no deploy `dpl_2YLPAUxxYvDFQmxqtsDNUBZg6iMc`. A próxima geração normal deve confirmar a gravação de `plan_key`; os eventos históricos não são reclassificados por inferência.
 
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
@@ -256,7 +260,7 @@ Resposta ao utilizador
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; todos exigem `Content-Type: application/json`; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e rejeita `items` inválido/excessivo antes do provedor, e as duas rotas de geração rejeitam payload acima de 128 mil caracteres. Welcome usa idempotência atómica HMAC activa em produção. CORS de chamadas autenticadas foi validado em produção. Restam validação uniforme de schema e a camada pré-auth de rajada. |
-| 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-05 | Tabela, RLS, view diária e retenção de 90 dias aplicadas e auditadas; emissão minimizada de sucesso nos 8 endpoints está activa em produção. A primeira amostra autenticada e a medição de período de observação permanecem pendentes. |
+| 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-05 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço e agregados diários foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. Smoke autenticado confirmou geração e tokens; a confirmação ao vivo do novo `plan_key` e o período de observação permanecem pendentes. |
 | 3 — Termos e comunicação | 🟨 Em rascunho interno | 2026-08-05 | Política de Uso Justo redigida para revisão; nenhum Termo, marketing ou texto público foi alterado. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
