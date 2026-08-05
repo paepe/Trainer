@@ -239,7 +239,7 @@ Resposta ao utilizador
 | Fase | Estado | Data | Evidência / decisão |
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
-| 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e rejeita `items` inválido/excessivo antes do provedor, welcome usa idempotência atómica HMAC activa em produção. CORS de chamadas autenticadas foi validado em produção. Restam validação uniforme de schema/Content-Type e a camada pré-auth de rajada. |
+| 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e rejeita `items` inválido/excessivo antes do provedor, e as duas rotas de geração rejeitam payload acima de 128 mil caracteres. Welcome usa idempotência atómica HMAC activa em produção. CORS de chamadas autenticadas foi validado em produção. Restam validação uniforme de schema/Content-Type e a camada pré-auth de rajada. |
 | 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-05 | Tabela, RLS, view diária e retenção de 90 dias aplicadas e auditadas; emissão minimizada de sucesso nos 8 endpoints está activa em produção. A primeira amostra autenticada e a medição de período de observação permanecem pendentes. |
 | 3 — Termos e comunicação | 🟨 Em rascunho interno | 2026-08-05 | Política de Uso Justo redigida para revisão; nenhum Termo, marketing ou texto público foi alterado. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |

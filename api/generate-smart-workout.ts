@@ -1012,6 +1012,19 @@ const MAX_TOKENS: Record<string, number> = {
   daily_insight:       512,
 };
 
+// The client context is intentionally rich, but no legitimate workout request
+// should approach Vercel's multi-megabyte parser limit. Bound it before any
+// entitlement, database or provider work so an authenticated caller cannot
+// turn arbitrary JSON into prompt volume or backend load.
+export const MAX_SMART_WORKOUT_REQUEST_CHARS = 128_000;
+export function isSmartWorkoutRequestWithinLimit(value: unknown): boolean {
+  try {
+    return JSON.stringify(value).length <= MAX_SMART_WORKOUT_REQUEST_CHARS;
+  } catch {
+    return false;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS — required for Capacitor WebView and for local dev, where the client
   // (Vite, one origin) and this function (api-server.mjs, another port) are
@@ -1033,6 +1046,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const body = req.body;
+  if (!isSmartWorkoutRequestWithinLimit(body)) {
+    return res.status(413).json({ error: 'Request exceeds maximum size' });
+  }
   if (!body?.trainer || !body?.client || !body?.today || !body?.task) {
     return res.status(400).json({ error: 'trainer, client, today, and task are required' });
   }

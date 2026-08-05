@@ -253,6 +253,18 @@ interface PhaseGuidance {
   [key: string]: string;
 }
 
+// Legacy generation receives a smaller context than the smart endpoint, but
+// it still must be bounded before constructing the prompt or querying any
+// backend authority. This is deliberately below the platform parser limit.
+export const MAX_WORKOUT_REQUEST_CHARS = 128_000;
+export function isWorkoutRequestWithinLimit(value: unknown): boolean {
+  try {
+    return JSON.stringify(value).length <= MAX_WORKOUT_REQUEST_CHARS;
+  } catch {
+    return false;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS — required for Capacitor WebView
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -266,6 +278,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
+  }
+
+  if (!isWorkoutRequestWithinLimit(req.body)) {
+    return res.status(413).json({ error: 'Request exceeds maximum size' });
   }
 
   // Generation costs money — only authenticated users may invoke the LLM.
