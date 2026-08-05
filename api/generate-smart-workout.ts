@@ -1195,7 +1195,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error?:   { message?: string };
     };
     try {
-      data = await response.json();
+      data = await response.json() as typeof data;
     } catch {
       throw new ProviderResponseError(response.status, 'invalid_json_response');
     }
