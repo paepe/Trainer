@@ -1,7 +1,7 @@
 # TrAIner — Plano de Uso Justo, Proteção de Custo e Prevenção de Abuso de IA
 
 **Estado:** Fases 0–1 em execução; Fase 2 activada em observação controlada — enforcement permanece bloqueado até haver evidência de uso real e aprovação específica
-**Última atualização:** 2026-08-05 — revisão lógica e inventário estático
+**Última atualização:** 2026-08-05 — telemetria de rejeições pós-auth instrumentada e validada
 **Proprietário:** Product / Engineering / Privacy
 **Escopo:** todos os endpoints server-side com custo de IA — recursos de AI FITNESS/AI PERFORMANCE, operações do TRAINER e automações internas/onboarding
 
@@ -158,9 +158,9 @@ Resposta ao utilizador
 
 - [x] Criar tabela de eventos de uso de IA com RLS administrativa e retenção bruta de 90 dias; aplicada e auditada em produção em 2026-08-05.
 - [ ] Usar `request_id`/chave de operação única, gerada ou validada pelo servidor, para retries não duplicarem custo nem eventos.
-- [ ] Registrar sucesso, falha do provedor e rejeição pós-auth/pré-provedor sem prompt, transcrição, resposta ou dado de saúde.
+- [x] Registrar sucesso, falha do provedor e rejeição pós-auth/pré-provedor sem prompt, transcrição, resposta ou dado de saúde.
 - [ ] Para tráfego anônimo, usar somente métricas agregadas/amostradas da camada pré-auth; não criar um evento persistente por tentativa que permita encher a tabela.
-- [ ] Registrar contadores do provedor quando disponíveis; quando indisponíveis, marcar estimativa e método — nunca fabricar precisão.
+- [x] Registrar contadores do provedor quando disponíveis; quando indisponíveis, marcar método como `unavailable` — nunca fabricar precisão.
 - [ ] Calcular custo a partir de modelo, tokens/unidades, provedor, moeda e versão temporal do preço.
 - [ ] Criar agregados diários por plano, endpoint e assinante; evitar consultas analíticas pesadas em tabelas transacionais.
 - [x] Instrumentar emissão de sucesso minimizada nos oito endpoints; a emissão é feature-flagged e está activa em produção desde 2026-08-05.
@@ -181,6 +181,8 @@ Resposta ao utilizador
 **Telemetria de falha (2026-08-05):** todos os oito endpoints agora registram resultado minimizado de falha/degradação: os seis fluxos críticos e welcome usam `provider_failed` para timeout, erro ou resposta inválida do provedor; tradução registra `degraded/provider_partial_failure` quando preserva o texto original após falha parcial. Falha de persistência da welcome é registrada como `degraded/delivery_persist_failed`.
 
 **Uso do provedor (2026-08-05):** todos os oito endpoints passam para a telemetria `prompt_tokens` e `completion_tokens` quando a resposta do provedor os disponibiliza; tradução soma as chamadas isoladas do lote. Ausência do contador continua registrada como precisão indisponível, sem estimativa inventada.
+
+**Rejeições pós-auth (2026-08-05):** os oito endpoints registram de forma minimizada rejeições que já têm identidade autenticada e ainda não chamaram o provedor (Content-Type, payload/tamanho, consentimento, papel, entitlement, vínculo e teto de sessões, conforme aplicável). Tentativas anônimas continuam sem evento persistente por tentativa. A validação automática cobre os oito handlers (89 testes) e o contrato do coletor, incluindo minimização e falha de escrita sem retry.
 
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 

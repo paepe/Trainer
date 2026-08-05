@@ -64,20 +64,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
-  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
+  if (!hasJsonContentType(req)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
+    return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
 
   const entitlements = await resolveUserEntitlements(caller.id);
   if (!entitlements['checkin.voice_input'].allowed || !entitlements['ai.checkin_interpretation'].allowed) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'rejected', httpStatus: 403, rejectionCode: 'entitlement_denied' });
     res.status(403).json({ error: 'Voice check-in interpretation is not available for this account' });
     return;
   }
 
   const transcript = req.body?.transcript?.trim();
   if (!transcript) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
     res.status(400).json({ error: 'transcript required' });
     return;
   }
   if (transcript.length > 4_000) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     res.status(413).json({ error: 'transcript exceeds maximum length' });
     return;
   }

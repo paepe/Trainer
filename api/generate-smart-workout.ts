@@ -1050,11 +1050,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ('ai-coach' autonomous sessions are always initiated by the client's device.)
   const caller = await verifyRequestUser(req);
   if (!caller) return res.status(401).json({ error: 'Unauthorized' });
-  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
+  if (!hasJsonContentType(req)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
+    return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
   if (!isSmartWorkoutRequestWithinLimit(body)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: 'Request exceeds maximum size' });
   }
   if (!body?.trainer || !body?.client || !body?.today || !body?.task) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
     return res.status(400).json({ error: 'trainer, client, today, and task are required' });
   }
   const isClientSelf = caller.id === body.client.id;
@@ -1062,6 +1067,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     && body.trainer.id !== 'ai-coach'
     && await hasActiveLink(caller.id, body.client.id);
   if (!isClientSelf && !isLinkedTrainer) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 403, rejectionCode: 'relationship_denied' });
     return res.status(403).json({ error: 'Caller is not the client or their linked trainer' });
   }
 
@@ -1076,6 +1082,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const sessionsThisWeek = await countSessionsThisWeek(body.client.id);
   if (isSessionsPerWeekCapReached(clientEntitlements, sessionsThisWeek)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 403, rejectionCode: 'sessions_cap_reached' });
     return res.status(403).json({
       error: 'sessions_per_week_limit_reached',
       limit: clientEntitlements['workout.sessions_per_week'].limitValue,

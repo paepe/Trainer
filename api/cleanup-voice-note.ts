@@ -56,39 +56,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!caller) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
+  if (!hasJsonContentType(req)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
+    return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
 
   const transcript = req.body?.transcript?.trim();
   if (!transcript) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
     return res.status(400).json({ error: 'transcript required' });
   }
 
   const purpose = req.body?.purpose;
   if (!purpose || !['checkin', 'coach_dna', 'trainer_workout_note', 'onboarding'].includes(purpose)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_purpose' });
     return res.status(400).json({ error: 'valid cleanup purpose required' });
   }
   if (transcript.length > 4_000) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: 'transcript exceeds maximum length' });
   }
 
   // Onboarding can contain health, medication, and other sensitive free text.
   // The server verifies persisted consent rather than trusting the client state.
   if (purpose === 'onboarding' && !await hasPersistedAIAdaptationConsent(caller.id)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 403, rejectionCode: 'consent_denied' });
     return res.status(403).json({ error: 'AI adaptation consent required' });
   }
   if (purpose === 'checkin') {
     const entitlements = await resolveUserEntitlements(caller.id);
     if (!entitlements['checkin.voice_input'].allowed) {
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 403, rejectionCode: 'entitlement_denied' });
       return res.status(403).json({ error: 'Voice check-in is not available for this account' });
     }
   }
   if (purpose === 'coach_dna' || purpose === 'trainer_workout_note') {
     if (!await isTrainerRole(caller.id)) {
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 403, rejectionCode: 'role_denied' });
       return res.status(403).json({ error: 'Trainer role required' });
     }
     if (purpose === 'coach_dna') {
       const entitlements = await resolveUserEntitlements(caller.id);
       if (!entitlements.coach_dna.allowed) {
+        await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 403, rejectionCode: 'entitlement_denied' });
         return res.status(403).json({ error: 'Coach DNA is not available for this account' });
       }
     }

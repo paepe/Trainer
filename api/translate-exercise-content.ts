@@ -243,10 +243,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const authed = await verifyRequestUser(req);
   if (!authed) return res.status(401).json({ error: 'Unauthorized' });
-  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
+  if (!hasJsonContentType(req)) {
+    await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
+    return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
 
   const targetLocale = req.body?.targetLocale;
   if (!targetLocale || !(SUPPORTED_LOCALES as readonly string[]).includes(targetLocale)) {
+    await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_locale' });
     return res.status(400).json({ error: `targetLocale must be one of ${SUPPORTED_LOCALES.join(', ')}` });
   }
   // Default 'pt' preserves the original assumption for callers that predate
@@ -259,9 +263,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const rawItems = req.body?.items;
   if (!Array.isArray(rawItems)) {
+    await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
     return res.status(400).json({ error: 'items array required' });
   }
   if (rawItems.length > MAX_ITEMS) {
+    await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: `Maximum ${MAX_ITEMS} items per call` });
   }
   const texts = Array.from(new Set(

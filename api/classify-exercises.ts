@@ -48,14 +48,22 @@ export default async function handler(req: any, res: any) {
 
   const caller = await verifyRequestUser(req);
   if (!caller) return res.status(401).json({ error: 'Unauthorized' });
-  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
-  if (!await isTrainerRole(caller.id)) return res.status(403).json({ error: 'Trainer role required' });
+  if (!hasJsonContentType(req)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
+    return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
+  if (!await isTrainerRole(caller.id)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 403, rejectionCode: 'role_denied' });
+    return res.status(403).json({ error: 'Trainer role required' });
+  }
 
   const { exercises } = req.body || {};
   if (!Array.isArray(exercises) || exercises.length === 0) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
     return res.status(400).json({ error: 'exercises array required' });
   }
   if (exercises.length > MAX_BATCH) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 400, rejectionCode: 'batch_limit_exceeded' });
     return res.status(400).json({ error: `Maximum ${MAX_BATCH} exercises per call` });
   }
   const validExercises = exercises.every((exercise: unknown) => {
@@ -65,7 +73,10 @@ export default async function handler(req: any, res: any) {
       && typeof value.name === 'string' && value.name.trim().length > 0 && value.name.length <= MAX_NAME_CHARS
       && typeof value.muscle_group === 'string' && value.muscle_group.length <= MAX_MUSCLE_GROUP_CHARS;
   });
-  if (!validExercises) return res.status(400).json({ error: 'invalid exercise input' });
+  if (!validExercises) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
+    return res.status(400).json({ error: 'invalid exercise input' });
+  }
 
   const apiKey  = process.env.DEEPSEEK_API_KEY || '';
   if (!apiKey) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not set' });

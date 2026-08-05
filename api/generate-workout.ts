@@ -287,15 +287,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   if (!hasJsonContentType(req)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     res.status(415).json({ error: 'Content-Type must be application/json' });
     return;
   }
   if (!isWorkoutRequestWithinLimit(req.body)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: 'Request exceeds maximum size' });
   }
 
   const entitlements = await resolveUserEntitlements(caller.id);
   if (!entitlements['ai.workout_generation'].allowed) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'rejected', httpStatus: 403, rejectionCode: 'entitlement_denied' });
     res.status(403).json({ error: 'AI workout generation is not available for this account' });
     return;
   }

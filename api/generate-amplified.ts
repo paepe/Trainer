@@ -134,17 +134,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   if (!hasJsonContentType(req)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     res.status(415).json({ error: 'Content-Type must be application/json' });
     return;
   }
 
   if (!await hasPersistedAIAdaptationConsent(caller.id)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'rejected', httpStatus: 403, rejectionCode: 'consent_denied' });
     res.status(403).json({ error: 'AI adaptation consent required' });
     return;
   }
 
   const profileData = await loadCallerProfile(caller.id);
   if (!profileData) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'rejected', httpStatus: 404, rejectionCode: 'profile_missing' });
     res.status(404).json({ error: 'Persisted profile not found' });
     return;
   }

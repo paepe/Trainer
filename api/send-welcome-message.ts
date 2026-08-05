@@ -77,14 +77,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!caller) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
+  if (!hasJsonContentType(req)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
+    return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
 
   const trainerId = req.body?.trainerId;
   if (!trainerId || trainerId.length > 128) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
     return res.status(400).json({ error: 'trainerId required' });
   }
   const studentId = caller.id;
   if (!await hasActiveLink(studentId, trainerId)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'rejected', httpStatus: 403, rejectionCode: 'relationship_denied' });
     return res.status(403).json({ error: 'No active trainer/client link' });
   }
 

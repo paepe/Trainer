@@ -1,6 +1,6 @@
 # AI Telemetry Data Contract
 
-**Status:** Fase 2 proposal — not deployed
+**Status:** Fase 2 activated in production on 2026-08-05; observation-only, with no automatic enforcement
 
 ## Purpose
 
@@ -8,7 +8,7 @@ Measure AI cost and anomalous operational use without storing prompts, transcrip
 
 ## Event schema
 
-One event is emitted after an authenticated request reaches its terminal outcome.
+One event is emitted after an authenticated request reaches a terminal outcome. This covers provider-backed success/failure and post-auth, pre-provider rejection. Anonymous attempts do not create persistent per-attempt events.
 
 | Field | Meaning | Privacy rule |
 |---|---|---|
@@ -38,4 +38,3 @@ Telemetry is best-effort and never retries the AI call. A telemetry write failur
 ## Cost method
 
 `provider_usage` means the provider supplied token counts. `unavailable` means token/cost data was not supplied. No price is inferred until a versioned price catalogue is approved.
-
