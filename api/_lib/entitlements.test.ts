@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { resolveAuthoritativeTaskGates, isSessionsPerWeekCapReached } from './entitlements';
+import { describe, it, expect, vi } from 'vitest';
+import { resolveAuthoritativeTaskGates, isSessionsPerWeekCapReached, resolveUserEntitlements } from './entitlements';
 import { toEntitlements, DEFAULTS } from '../../src/licensing/entitlements';
 import type { FeaturePermission } from '../../src/types';
 
@@ -64,5 +64,21 @@ describe('isSessionsPerWeekCapReached', () => {
   it('nunca bloqueia quando o cap é null (ilimitado)', () => {
     expect(isSessionsPerWeekCapReached(performanceEntitlements, 0)).toBe(false);
     expect(isSessionsPerWeekCapReached(performanceEntitlements, 999)).toBe(false);
+  });
+});
+
+describe('resolveUserEntitlements', () => {
+  it('preserves the authoritative effective plan alongside the grants for server telemetry', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify([{
+        plan_key: 'free', status: 'active', billing_cycle: null, current_period_end: null,
+      }]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(FREE_ROWS), { status: 200 }));
+
+    const resolved = await resolveUserEntitlements('client-id');
+
+    expect(resolved.planKey).toBe('free');
+    expect(resolved['workout.exercises_per_session'].limitValue).toBe(6);
+    fetchSpy.mockRestore();
   });
 });

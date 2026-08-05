@@ -12,7 +12,7 @@
 // verify with the same build-output-bundle-inspection technique before
 // trusting it.
 import { resolveEffectivePlanKey, toEntitlements, startOfWeek, type Entitlements } from '../../src/licensing/entitlements.js';
-import type { FeaturePermission, Subscription } from '../../src/types/index.js';
+import type { FeaturePermission, PlanKey, Subscription } from '../../src/types/index.js';
 import { authSupabaseUrl, authServiceHeaders } from './auth.js';
 
 /**
@@ -24,7 +24,15 @@ import { authSupabaseUrl, authServiceHeaders } from './auth.js';
  * Fails closed: any fetch failure here denies everything (same posture as
  * a genuinely missing subscription), never falls back to "assume allowed".
  */
-export async function resolveUserEntitlements(userId: string): Promise<Entitlements> {
+/**
+ * Entitlements plus the server-resolved effective plan used to produce them.
+ * Keeping the plan alongside the grants prevents telemetry from inferring a
+ * commercial tier from client input or from a separate, potentially divergent,
+ * lookup.
+ */
+export type ResolvedUserEntitlements = Entitlements & { planKey: PlanKey | undefined };
+
+export async function resolveUserEntitlements(userId: string): Promise<ResolvedUserEntitlements> {
   let subscription: Subscription | null = null;
   try {
     const subRes = await fetch(
@@ -42,7 +50,7 @@ export async function resolveUserEntitlements(userId: string): Promise<Entitleme
   }
 
   const planKey = resolveEffectivePlanKey(subscription);
-  if (!planKey) return toEntitlements([], undefined);
+  if (!planKey) return { ...toEntitlements([], undefined), planKey: undefined };
 
   let rows: FeaturePermission[] = [];
   try {
@@ -61,7 +69,7 @@ export async function resolveUserEntitlements(userId: string): Promise<Entitleme
 
   // rows=[] on failure still resolves correctly: toEntitlements falls back
   // to DEFAULTS per key (fail-closed), not to "allowed".
-  return toEntitlements(rows, planKey);
+  return { ...toEntitlements(rows, planKey), planKey };
 }
 
 /**
