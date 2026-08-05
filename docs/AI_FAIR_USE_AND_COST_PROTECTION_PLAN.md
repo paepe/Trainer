@@ -172,6 +172,8 @@ Resposta ao utilizador
 
 **Nota de verificação (2026-08-05):** uma tentativa de smoke test pelo navegador foi interrompida antes de qualquer chamada porque a aba disponível apresentava a tela de login. A consulta de produção confirmou `0` eventos totais e `0` eventos recentes; portanto, não houve geração nem escrita de telemetria indevida. Permanece pendente uma chamada normal por uma sessão autenticada já existente, sem o agente inserir credenciais.
 
+**Correcção de privacidade (2026-08-05):** o log técnico de custo de `generate-smart-workout` deixou de incluir `client_id` e `caller_id` brutos. A análise por ator permanece exclusivamente no evento minimizado com HMAC.
+
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.

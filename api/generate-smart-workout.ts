@@ -1265,19 +1265,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       outputTokens: usage.output_tokens,
     });
 
-    // Cost instrumentation — pré-requisito da Fase 4.2 (franquia de IA do
-    // treinador) do plano de licenciamento. `origin` aqui usa os sinais já
-    // disponíveis nesta fase (isAutonomous / quem é o chamador); a Fase 4
-    // introduz `trainer_prescribed`/`autonomous_ai` como conceito formal a
-    // partir de workout_plans — este log não antecipa esse modelo, só regista
-    // o que já se sabe hoje. Uma linha JSON por chamada, para agregação
-    // posterior sem precisar de uma segunda passagem por este código.
+    // Cost instrumentation carries only aggregate dimensions. Actor-level
+    // observability is handled by the HMAC-based telemetry event above; raw
+    // client/caller identifiers must never enter application logs.
     console.log(JSON.stringify({
       event:         'ai_generation_cost',
       endpoint:      'generate-smart-workout',
       task_type:     body.task.type,
-      client_id:     body.client.id,
-      caller_id:     caller.id,
       origin:        isAutonomous ? 'autonomous_ai' : (isClientSelf ? 'client_self' : 'linked_trainer'),
       input_tokens:  usage.input_tokens,
       output_tokens: usage.output_tokens,
