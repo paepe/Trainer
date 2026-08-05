@@ -1,9 +1,9 @@
 # TrAIner — Plano de Uso Justo, Proteção de Custo e Prevenção de Abuso de IA
 
-**Estado:** Planejado — nenhuma fase autorizada para implementação
-**Última atualização:** 2026-08-05
+**Estado:** Fase 0 em auditoria documental — nenhuma implementação autorizada
+**Última atualização:** 2026-08-05 — revisão lógica e inventário estático
 **Proprietário:** Product / Engineering / Privacy
-**Escopo:** AI FITNESS, AI PERFORMANCE e endpoints de IA usados por TRAINER
+**Escopo:** todos os endpoints server-side com custo de IA — recursos de AI FITNESS/AI PERFORMANCE, operações do TRAINER e automações internas/onboarding
 
 ---
 
@@ -26,29 +26,41 @@ O produto não exibirá contador de uso para clientes AI FITNESS/AI PERFORMANCE.
 
 ## 2. Estado inicial verificado
 
-| Controle | Estado |
-|---|---|
-| Limite FREE de sessão autónoma | Implementado no servidor: 1/semana |
-| Autorização de entitlement na geração smart | Implementada no servidor |
-| Registro de tokens de `generate-smart-workout` | Parcial: log estruturado `ai_generation_cost` |
-| Telemetria persistida e agregável por assinante | Ausente |
-| Rate limit por usuário/IP | Ausente |
-| Alertas de consumo anormal | Ausentes |
-| Política de uso justo / Termos | Ausente do repositório |
-| `api/parse-voice` | Prioridade crítica: sem autenticação e sem rate limit próprios verificados |
+| Endpoint com custo de IA | Autenticação própria | Autorização de função/entitlement | Limite de payload | Telemetria de custo |
+|---|:---:|:---:|:---:|:---:|
+| `generate-smart-workout` | ✅ | ✅ entitlement do aluno + vínculo | Parcial | Log de tokens |
+| `generate-workout` | ✅ | ⚠️ sem gate explícito de `ai.workout_generation` | Parcial | Ausente |
+| `translate-exercise-content` | ✅ | ⚠️ autenticado, sem gate comercial específico | ✅ 300 itens × 300 caracteres | Ausente |
+| `parse-voice` | ❌ | ❌ | ❌ | Ausente |
+| `cleanup-voice-note` | ❌ | ❌ | ❌ | Ausente |
+| `generate-amplified` | ❌ | ❌; recebe perfil potencialmente sensível | ❌ | Ausente |
+| `classify-exercises` | ❌ | ❌; deve ser operação de TRAINER | Parcial: 50 itens, sem teto por campo | Ausente |
+| `send-welcome-message` | ❌ | ❌; usa service role com IDs fornecidos pelo cliente | ❌ | Ausente |
+
+**Controles transversais verificados:** limite FREE de 1 sessão autónoma/semana e autoridade de entitlement existem em `generate-smart-workout`; rate limiting, agregação por assinante, alertas e Política de Uso Justo não existem. O tratamento amigável de erro de rate limit no cliente não constitui proteção server-side.
+
+**Prioridade corrigida:** a exposição imediata não se limita a `parse-voice`. `generate-amplified` e os dois endpoints de voz tratam conteúdo potencialmente sensível; `send-welcome-message` combina custo de IA e service role. Os cinco endpoints sem autenticação própria entram na Fase 1.
+
+**Achado de privacidade:** `parse-voice` registra hoje a transcrição integral em `console.warn` quando a extração resulta vazia. Esse log contém potencial dado de saúde e deve ser removido na Fase 1; a correção não pode esperar a telemetria da Fase 2.
 
 ---
 
 ## 3. Arquitetura alvo
 
 ```text
-Request autenticado
+Request
         |
         v
-Resolver de identidade + entitlement
+Limite de transporte (método, Content-Type e tamanho bruto)
         |
         v
-Rate limit de rajada (usuário + IP pseudonimizado + endpoint)
+Proteção pré-auth de rajada por sinal de rede pseudonimizado
+        |
+        v
+Identidade autenticada + autorização de papel, vínculo e entitlement
+        |
+        v
+Rate limit atômico por ator + endpoint
         |
         +-- bloqueado: 429 temporário, sem chamada ao provedor de IA
         |
@@ -66,7 +78,13 @@ Resposta ao utilizador
 
 **Autoridade:** backend. O cliente pode exibir mensagens de estado, mas nunca decide limite, custo, suspensão ou entitlement.
 
-**Dados mínimos de telemetria:** `actor_id`, `subject_id` quando distinto, `plan_key_effective`, `endpoint`, `origin`, timestamp, tokens de entrada/saída quando disponíveis, custo estimado, resultado HTTP e identificador técnico de correlação. Endereços IP devem ser pseudonimizados com hash rotativo; prompts, áudio e transcrições são proibidos nessa tabela.
+**Duas camadas:** uma proteção pré-auth, curta e ampla, evita que tráfego anônimo force consultas de autenticação; após autenticar, o limite por ator/endpoint aplica a política de uso justo. A camada pré-auth pode desacelerar uma origem de rede, mas nunca justificar suspensão de conta. O servidor não deve interpretar nem registrar conteúdo sensível antes de autenticar — antes disso, apenas método, cabeçalhos e tamanho bruto.
+
+**Dados mínimos de telemetria:** `actor_id`, `subject_id` quando distinto e estritamente necessário, `plan_key_effective`, `endpoint`, `origin`, timestamp, tokens de entrada/saída quando disponíveis, custo estimado, resultado HTTP, latência, modelo/provedor e identificador idempotente de correlação. Prompts, áudio, transcrições, respostas do modelo e dados de saúde são proibidos nessa tabela.
+
+**Sinal de rede:** não persistir IP bruto. Se aprovado na avaliação de privacidade, usar HMAC com segredo server-side e época de rotação explícita; hash simples ou “hash rotativo” sem gestão de chave não é suficiente. IP nunca pode ser o único fundamento para bloquear contas em redes partilhadas.
+
+**Continuidade:** falha do controle de custo não deve interromper treino iniciado. Geração de treino degrada para o gerador local seguro; voz degrada para check-in manual; operações não críticas retornam indisponibilidade temporária. Não fazer fail-open para uma chamada paga quando a autoridade de proteção estiver indisponível.
 
 ---
 
@@ -74,90 +92,113 @@ Resposta ao utilizador
 
 ### Fase 0 — Baseline, decisões e modelo de ameaça
 
-**Objetivo:** transformar “uso justo” em política mensurável, sem impor quota comercial.
+**Objetivo:** fechar o inventário, classificar risco e aprovar o desenho antes de escrever código ou dados.
 
-- [ ] Inventariar todos os endpoints que chamam provedores de IA, o provedor, custo variável, autenticação atual e identidade cobrada.
-- [ ] Confirmar os fluxos com custo: geração de treino, voz, interpretação, ajustes, análises e traduções.
-- [ ] Definir limites de rajada iniciais por endpoint, usuário e IP pseudonimizado; documentar a justificativa de UX e custo.
-- [ ] Definir sinais de abuso: chamadas concorrentes, repetição idêntica, volume inviável para uso humano e padrões distribuídos por IP/conta.
-- [ ] Definir política de resposta: `429` temporário, retry seguro, escalonamento operacional e suspensão manual excepcional.
-- [ ] Definir retenção, acesso e descarte da telemetria conforme minimização e GDPR.
-- [ ] Obter aprovação explícita de Product, Privacy e Engineering para os valores iniciais.
+- [x] Inventariar estaticamente os oito endpoints que chamam o provedor de IA, autenticação, autorização, payload e telemetria — revisão de 2026-08-05 registrada no §2.
+- [ ] Confirmar em execução os oito fluxos e identificar a pessoa/entidade que deve ser cobrada em cada um.
+- [ ] Distinguir funções comerciais (`voice`, geração, análise) de operações internas (`classify`, tradução, welcome), aplicando autorização por papel e propósito.
+- [ ] Mapear os propósitos distintos de `cleanup-voice-note` (check-in, onboarding do aluno e Coach DNA) antes de associá-lo a um único entitlement.
+- [ ] Definir limites duros de payload e concorrência a partir da UX real de cada fluxo.
+- [ ] Definir sinais de abuso: chamadas concorrentes, repetição idêntica, volume inviável para uso humano e padrões distribuídos por conta/rede.
+- [ ] Aprovar modelo de telemetria, idempotência, cálculo de custo, retenção, RLS e descarte conforme minimização e GDPR.
+- [ ] Definir HMAC/rotação do sinal de rede ou decidir formalmente não usá-lo.
+- [ ] Definir política de degradação por endpoint e resposta a indisponibilidade da proteção.
+- [ ] Obter aprovação explícita de Product, Privacy e Engineering para o desenho; thresholds de enforcement permanecem provisórios até a Fase 2 medir uso real.
 
-**Critério de aceite:** tabela de endpoints, modelo de dados, thresholds iniciais, resposta a incidentes e retenção aprovados; nenhum valor escolhido apenas por intuição.
+**Critério de aceite:** inventário validado em execução, identidade cobrada, autorização, modelo de dados, retenção, degradação e ameaças aprovados. Nenhum threshold definitivo é escolhido antes da telemetria.
 
 ### Fase 1 — Fechar exposição imediata dos endpoints de IA
 
 **Objetivo:** garantir que cada chamada com custo tenha identidade autenticada, autorização e limites de payload antes de alcançar o provedor.
 
-- [ ] Migrar `api/parse-voice` para a autenticação compartilhada de `api/_lib/auth.ts`.
-- [ ] Verificar entitlement próprio antes de voz, interpretação, ajuste ou análise; patrocínio nunca autoriza inferência paga.
-- [ ] Validar tamanho máximo de texto/transcrição, formato, timeout e concorrência por request.
-- [ ] Aplicar o mesmo padrão aos demais endpoints de IA que não o consumam integralmente.
-- [ ] Testar: anônimo recebe `401`; entitlement negado recebe resposta de produto apropriada; payload inválido não chega ao provedor.
-- [ ] Testar regressão de privacidade: nenhum dado sensível entra em logs de erro.
+- [ ] Migrar `parse-voice`, `cleanup-voice-note`, `generate-amplified`, `classify-exercises` e `send-welcome-message` para `api/_lib/auth.ts`.
+- [ ] Atualizar os cinco chamadores para enviar o token; não aceitar identidade declarada apenas no body.
+- [ ] Em `parse-voice`, validar `checkin.voice_input` do próprio aluno; patrocínio do TRAINER nunca autoriza inferência paga.
+- [ ] Em `cleanup-voice-note`, introduzir propósito fechado e validar papel, fluxo e entitlement/consentimento correspondentes; não assumir que todo uso é check-in.
+- [ ] Em `generate-amplified`, vincular o perfil ao próprio caller e exigir consentimento de IA aplicável.
+- [ ] Em `classify-exercises`, exigir papel TRAINER e validar tamanho de cada campo, além do lote de 50.
+- [ ] Em `send-welcome-message`, validar que o caller é o aluno destinatário ou TRAINER autorizado e que existe vínculo/convite aceito; nunca confiar apenas em `studentId`/`trainerId`.
+- [ ] Tornar `send-welcome-message` idempotente por aceite de convite para impedir replays que gerem custo e notificações duplicadas.
+- [ ] Em `generate-workout`, aplicar autorização comercial equivalente ao caminho smart ou documentar por que é uma operação interna coberta.
+- [ ] Validar método, `Content-Type`, esquema, tamanho máximo do body/campos, timeout e concorrência por request em todos os endpoints.
+- [ ] Aplicar proteção pré-auth emergencial, ampla e conservadora, nos cinco endpoints hoje anônimos; a política pós-auth calibrada continua na Fase 4.
+- [ ] Adotar resposta uniforme: `401` anônimo, `403` sem papel/entitlement/vínculo, `400/413` payload inválido/excessivo.
+- [ ] Testar que rejeições ocorrem antes de Supabase service role ou provedor de IA.
+- [ ] Remover o log da transcrição integral de `parse-voice` e testar que nenhum dado sensível entra em logs de erro.
 
-**Critério de aceite:** nenhum endpoint de custo fica acessível anonimamente ou com payload ilimitado; cobertura de testes positiva e negativa para cada endpoint.
+**Critério de aceite:** nenhum endpoint de custo fica acessível anonimamente, confia em IDs do body como autoridade ou aceita payload ilimitado; testes positivos, negativos e de vínculo cobrem os oito endpoints.
 
-### Fase 2 — Rate limiting server-side sem quota comercial
+### Fase 2 — Telemetria persistida, medição e custo por assinante
 
-**Objetivo:** bloquear automação e rajadas antes do custo, preservando uso humano normal.
-
-- [ ] Implementar mecanismo compartilhado de rate limit server-side, atômico e resistente a múltiplas instâncias.
-- [ ] Preferir armazenamento durável/atômico no backend; não usar memória local de função serverless como autoridade.
-- [ ] Aplicar janelas de rajada por `actor_id`, endpoint e IP pseudonimizado, com limites independentes por operação.
-- [ ] Retornar `429` com `Retry-After` e mensagem UX localizada, sem revelar thresholds internos.
-- [ ] Prever allowlist operacional temporária, auditada e com expiração automática.
-- [ ] Implementar limpeza/TTL dos buckets e testes de concorrência.
-- [ ] Validar que o rate limit não bloqueia o registo, a execução offline ou uma sessão de treino já iniciada.
-
-**Critério de aceite:** chamadas excedentes não alcançam o provedor; concorrência não permite bypass; uso normal de AI FITNESS/PERFORMANCE permanece sem contador e sem cap comercial.
-
-### Fase 3 — Telemetria persistida e custo por assinante
-
-**Objetivo:** medir custo real sem registrar conteúdo sensível.
+**Objetivo:** medir custo e comportamento normal antes de calibrar enforcement, sem registrar conteúdo sensível.
 
 - [ ] Criar tabela de eventos de uso de IA com RLS administrativa e política de retenção definida na Fase 0.
-- [ ] Registrar evento após cada chamada, inclusive falha do provedor e bloqueio por rate limit, sem prompt/transcrição.
-- [ ] Calcular custo estimado a partir de modelo, tokens, provedor e versão de preço registrados no evento.
+- [ ] Usar `request_id`/chave de operação única, gerada ou validada pelo servidor, para retries não duplicarem custo nem eventos.
+- [ ] Registrar sucesso, falha do provedor e rejeição pós-auth/pré-provedor sem prompt, transcrição, resposta ou dado de saúde.
+- [ ] Para tráfego anônimo, usar somente métricas agregadas/amostradas da camada pré-auth; não criar um evento persistente por tentativa que permita encher a tabela.
+- [ ] Registrar contadores do provedor quando disponíveis; quando indisponíveis, marcar estimativa e método — nunca fabricar precisão.
+- [ ] Calcular custo a partir de modelo, tokens/unidades, provedor, moeda e versão temporal do preço.
 - [ ] Criar agregados diários por plano, endpoint e assinante; evitar consultas analíticas pesadas em tabelas transacionais.
-- [ ] Instrumentar `parse-voice`, interpretação, ajustes e análises — hoje só a geração smart possui log de tokens.
-- [ ] Testar RLS, minimização de campos, retenção e consistência em retries.
+- [ ] Instrumentar os oito endpoints; substituir o log isolado de `generate-smart-workout` pelo mesmo pipeline ou mantê-lo apenas como log operacional correlacionado.
+- [ ] Executar período de observação aprovado sem bloqueio automático e medir percentis de uso, concorrência, erros e custo por plano.
+- [ ] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor.
+- [ ] Garantir que falha de telemetria não duplica a chamada de IA nem expõe conteúdo em fallback de log.
 
-**Critério de aceite:** custo médio por assinante/plano e por endpoint é mensurável; nenhuma telemetria contém dados de saúde ou conteúdo de IA.
+**Critério de aceite:** custo e distribuição de uso por plano/endpoint são mensuráveis com qualidade declarada; retries não duplicam eventos; nenhuma telemetria contém conteúdo ou dados de saúde.
 
-### Fase 4 — Anomalia, alertas e contenção operacional
+### Fase 3 — Política de Uso Justo, Termos e comunicação
 
-**Objetivo:** detectar consumo economicamente anormal e responder com proporcionalidade.
-
-- [ ] Definir baseline por plano, endpoint e coorte após período mínimo de medição.
-- [ ] Criar regras de alerta para picos, alta taxa de erro, consumo por IP/conta e repetição automatizada.
-- [ ] Entregar alertas a canal operacional com identificador pseudonimizado e contexto mínimo.
-- [ ] Implementar contenção progressiva: rate limit temporário → revisão manual → suspensão documentada em caso de abuso confirmado.
-- [ ] Criar runbook de investigação, reversão e comunicação ao cliente.
-- [ ] Testar alertas com eventos sintéticos sem tocar em dados reais de saúde.
-
-**Critério de aceite:** um padrão anormal dispara alerta verificável e pode ser contido sem interromper uso humano legítimo.
-
-### Fase 5 — Política comercial, Termos e comunicação
-
-**Objetivo:** alinhar promessa pública, contrato e operação.
+**Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.
 
 - [ ] Redigir Política de Uso Justo com exemplos de uso pessoal normal e abuso, sem converter o plano em quota visível.
 - [ ] Inserir a cláusula aprovada nos Termos, com revisão jurídica e de privacidade.
 - [ ] Manter “Ilimitado” no marketing de AI FITNESS e AI PERFORMANCE.
-- [ ] Criar texto UX para `429` e bloqueio temporário, com canal de suporte e sem expor critérios antiabuso.
-- [ ] Atualizar matriz de licenças para declarar “ilimitado sujeito à Política de Uso Justo”, somente após Termos publicados.
-- [ ] Registrar decisão sobre uso por TRAINER em nome de aluno e eventual franquia de IA do TRAINER.
+- [ ] Criar textos UX localizados para `429`, degradação e contenção temporária, com canal de suporte.
+- [ ] Não publicar thresholds internos ou mecanismos que facilitem evasão.
+- [ ] Atualizar a matriz de licenças para “ilimitado sujeito à Política de Uso Justo” somente após publicação dos Termos.
+- [ ] Registrar política de consumo iniciado por TRAINER em nome de aluno e relação com eventual franquia de IA do TRAINER.
 
-**Critério de aceite:** marketing, Termos, UX e comportamento técnico dizem a mesma coisa; nenhuma promessa excede o enforcement real.
+**Critério de aceite:** Termos, Política, marketing, matriz e UX descrevem a mesma oferta antes do enforcement da Fase 4.
+
+### Fase 4 — Rate limiting server-side sem quota comercial
+
+**Objetivo:** bloquear automação e rajadas antes do custo, com thresholds calibrados pela Fase 2.
+
+- [ ] Implementar mecanismo compartilhado, server-side, atômico e resistente a múltiplas instâncias; memória local de função serverless não é autoridade.
+- [ ] Implementar duas camadas: rajada pré-auth por sinal de rede pseudonimizado e limite pós-auth por ator + endpoint.
+- [ ] Sinal de rede é defesa adicional e nunca fundamento isolado para sanção de conta; acomodar NAT, redes corporativas e famílias.
+- [ ] Executar primeiro em modo sombra, comparar falsos positivos e obter aprovação antes de bloquear.
+- [ ] Aplicar janelas de rajada e concorrência independentes por operação; não reutilizar um número global.
+- [ ] Retornar `429` com `Retry-After` e mensagem localizada, sem revelar thresholds internos.
+- [ ] Prever exceção operacional temporária, auditada, com motivo, aprovador e expiração automática.
+- [ ] Implementar TTL/limpeza dos buckets e testes de concorrência, relógio, múltiplas instâncias e indisponibilidade.
+- [ ] Em falha do limitador, aplicar a degradação aprovada: treino local seguro, check-in manual ou indisponibilidade não crítica; não chamar o provedor em fail-open.
+- [ ] Validar que execução offline, registo de sets e sessão já iniciada nunca dependem do limitador.
+
+**Critério de aceite:** excedentes não alcançam o provedor; concorrência não permite bypass; modo sombra demonstrou baixa taxa de falso positivo; uso humano normal permanece sem contador e sem cap comercial.
+
+### Fase 5 — Anomalia, alertas e contenção operacional
+
+**Objetivo:** detectar consumo economicamente anormal e responder com proporcionalidade.
+
+- [ ] Definir baseline por plano, endpoint e coorte a partir da Fase 2.
+- [ ] Criar regras de alerta para picos, alta taxa de erro, consumo por conta/rede e repetição automatizada.
+- [ ] Entregar alertas a canal operacional com identificador pseudonimizado e contexto mínimo; validar DPA e acesso do destino.
+- [ ] Implementar contenção progressiva: rate limit temporário → revisão manual → suspensão documentada em abuso confirmado.
+- [ ] Exigir revisão humana antes de suspensão prolongada ou encerramento de conta.
+- [ ] Criar runbook de investigação, reversão, comunicação ao cliente e preservação mínima de evidência.
+- [ ] Testar alertas e contenção com eventos sintéticos, sem dados reais de saúde.
+
+**Critério de aceite:** padrão anormal dispara alerta verificável, contenção é reversível e auditável, e nenhum usuário é suspenso apenas por IP ou decisão opaca.
 
 ### Fase 6 — Verificação de produção e governança contínua
 
 **Objetivo:** provar operação segura e manter o plano vivo.
 
 - [ ] Executar smoke tests autenticados nos endpoints protegidos, sem digitar credenciais pelo agente.
-- [ ] Validar ao vivo uma chamada normal, uma rejeição de rate limit e a criação do evento minimizado.
+- [ ] Validar ao vivo uma chamada normal, uma rejeição de rate limit, uma degradação segura e a criação do evento minimizado.
+- [ ] Confirmar que nenhuma chamada rejeitada ou degradada alcançou o provedor.
+- [ ] Confirmar que não há prompt, transcrição, resposta ou dado de saúde em eventos, logs e alertas.
 - [ ] Revisar custos, falsos positivos e suporte após período acordado de observação.
 - [ ] Ajustar thresholds somente com evidência de telemetria, registrando decisão e impacto.
 - [ ] Atualizar este documento ao concluir cada fase: data, alterações, testes, evidência e pendências.
@@ -171,27 +212,41 @@ Resposta ao utilizador
 
 | Fase | Estado | Data | Evidência / decisão |
 |---|---|---|---|
-| 0 — Baseline e ameaça | ⬜ Não iniciada | — | — |
+| 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | ⬜ Não iniciada | — | — |
-| 2 — Rate limiting | ⬜ Não iniciada | — | — |
-| 3 — Telemetria persistida | ⬜ Não iniciada | — | — |
-| 4 — Alertas e contenção | ⬜ Não iniciada | — | — |
-| 5 — Termos e comunicação | ⬜ Não iniciada | — | — |
+| 2 — Telemetria persistida | ⬜ Não iniciada | — | — |
+| 3 — Termos e comunicação | ⬜ Não iniciada | — | — |
+| 4 — Rate limiting | ⬜ Não iniciada | — | — |
+| 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
 | 6 — Produção e governança | ⬜ Não iniciada | — | — |
 
 ### Regra de atualização
 
-Ao fechar uma fase, atualizar o checklist correspondente e esta tabela no mesmo commit. O registro deve conter: endpoints afetados, decisão de threshold, testes executados, evidência de produção, impacto em privacidade e qualquer divergência remanescente. Nenhuma fase é marcada como concluída somente por código escrito.
+Ao fechar uma fase, atualizar o checklist correspondente e esta tabela no mesmo commit. O registro deve conter: endpoints afetados, identidade e autorização aplicadas, decisão de threshold, testes executados, evidência de produção, impacto em privacidade e qualquer divergência remanescente. Nenhuma fase é marcada como concluída somente por código escrito. Achados documentais podem marcar uma fase como “em auditoria”, mas não como concluída.
 
 ---
 
 ## 6. Dependências e decisões que exigem autorização
 
-1. Thresholds iniciais de rajada e tempo de bloqueio por endpoint.
-2. Mecanismo de armazenamento atômico de rate limit e política de TTL.
-3. Retenção dos eventos de custo e quem pode consultá-los.
-4. Destino dos alertas e responsável operacional.
-5. Texto final dos Termos e revisão jurídica.
-6. Política para consumo de IA iniciado por TRAINER em nome de aluno.
+### Ordem e gates
+
+1. Fase 0 precede qualquer implementação.
+2. Fase 1 precede telemetria e qualquer período de observação — não se mede produção deixando endpoints anônimos expostos.
+3. Fase 2 precede thresholds definitivos e modo sombra do rate limit.
+4. Fase 3 pode começar após a aprovação da Fase 0 e correr em paralelo às Fases 1–2; não depende de thresholds técnicos porque não publica números. Deve estar publicada antes do enforcement pós-auth de uso justo da Fase 4. Proteções pré-auth contra tráfego anônimo são controles de segurança e entram já na Fase 1.
+5. Fase 5 depende da telemetria da Fase 2 e do enforcement da Fase 4.
+6. Fase 6 fecha o plano somente após evidência real das Fases 1–5.
+
+### Decisões
+
+1. Identidade cobrada e autorização exigida por endpoint.
+2. Limites máximos de payload e política de degradação por fluxo.
+3. Modelo de evento, idempotência, retenção e quem pode consultar custos.
+4. Uso ou não de sinal de rede; HMAC, rotação e retenção se aprovado.
+5. Thresholds de rajada/concorrência e tempo de contenção por endpoint, calibrados pela Fase 2.
+6. Armazenamento atômico do rate limit, TTL e comportamento em indisponibilidade.
+7. Destino dos alertas, DPA aplicável e responsável operacional.
+8. Texto final dos Termos e revisão jurídica/privacidade.
+9. Política para consumo de IA iniciado por TRAINER em nome de aluno.
 
 Nenhuma escrita de BD de produção, alteração de termos, integração de alerta externo ou bloqueio automático será executado sem autorização específica.
