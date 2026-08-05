@@ -1103,7 +1103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const sessionsThisWeek = await countSessionsThisWeek(body.client.id);
   if (isSessionsPerWeekCapReached(clientEntitlements, sessionsThisWeek)) {
-    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 403, rejectionCode: 'sessions_cap_reached' });
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 403, rejectionCode: 'sessions_cap_reached', planKey: clientEntitlements.planKey });
     return res.status(403).json({
       error: 'sessions_per_week_limit_reached',
       limit: clientEntitlements['workout.sessions_per_week'].limitValue,
@@ -1291,6 +1291,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       httpStatus: 200,
       provider: 'deepseek',
       model: 'deepseek-chat',
+      planKey: clientEntitlements.planKey,
       inputTokens: usage.input_tokens,
       outputTokens: usage.output_tokens,
     });
@@ -1328,11 +1329,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }));
     if (diagnostic.kind === 'timeout') {
       console.warn('[generate-smart-workout] timed out');
-      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 504, rejectionCode, provider: 'deepseek', model: 'deepseek-chat' });
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 504, rejectionCode, provider: 'deepseek', model: 'deepseek-chat', planKey: clientEntitlements.planKey });
       return res.status(504).json({ error: 'Generation timed out' });
     }
     console.error('[generate-smart-workout] provider request failed');
-    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 500, rejectionCode, provider: 'deepseek', model: 'deepseek-chat' });
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 500, rejectionCode, provider: 'deepseek', model: 'deepseek-chat', planKey: clientEntitlements.planKey });
     return res.status(500).json({ error: 'generation failed' });
   } finally {
     clearTimeout(timeout);

@@ -17,6 +17,8 @@ export interface AIUsageEvent {
   rejectionCode?: string;
   provider?: string;
   model?: string;
+  /** Authoritative effective plan, resolved server-side; never client supplied. */
+  planKey?: string;
   inputTokens?: number;
   outputTokens?: number;
 }
@@ -53,6 +55,7 @@ export async function emitAIUsageEvent(event: AIUsageEvent): Promise<void> {
         outcome: event.outcome,
         http_status: event.httpStatus,
         rejection_code: event.rejectionCode ?? null,
+        plan_key: event.planKey ?? null,
         provider: event.provider ?? null,
         model: event.model ?? null,
         input_tokens: inputTokens ?? null,

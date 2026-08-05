@@ -47,6 +47,7 @@ describe('AI usage telemetry', () => {
       outcome: 'rejected',
       http_status: 403,
       rejection_code: 'entitlement_denied',
+      plan_key: null,
       cost_method: 'unavailable',
     });
     expect(payload.actor_hash).toMatch(/^[a-f0-9]{64}$/);
