@@ -43,7 +43,11 @@ interface VercelRequest  {
   headers?: Record<string, string | string[] | undefined>;
   body?: Record<string, unknown>;
 }
-interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
+interface VercelResponse {
+  setHeader?(name: string, value: string): void;
+  status(c: number): VercelResponse;
+  json(b: unknown): VercelResponse;
+}
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -111,6 +115,13 @@ async function loadCallerProfile(userId: string): Promise<UnknownRecord | null> 
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader?.('Access-Control-Allow-Origin', '*');
+  res.setHeader?.('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader?.('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.status(200).json({ ok: true });
+    return;
+  }
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;

@@ -29,7 +29,11 @@ interface VercelRequest  {
   headers?: Record<string, string | string[] | undefined>;
   body?: { trainerId?: string };
 }
-interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
+interface VercelResponse {
+  setHeader?(name: string, value: string): void;
+  status(c: number): VercelResponse;
+  json(b: unknown): VercelResponse;
+}
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -59,6 +63,12 @@ function langName(code: string | null | undefined): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader?.('Access-Control-Allow-Origin', '*');
+  res.setHeader?.('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader?.('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.status(200).json({ ok: true });
+  }
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
