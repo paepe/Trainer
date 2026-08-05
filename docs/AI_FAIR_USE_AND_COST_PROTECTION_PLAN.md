@@ -137,7 +137,7 @@ Resposta ao utilizador
 - [x] Em `classify-exercises`, exigir papel TRAINER e validar tamanho de cada campo, além do lote de 50.
 - [x] Em `send-welcome-message`, derivar o aluno do JWT e exigir vínculo activo com o TRAINER; não confiar em `studentId`/`trainerId` declarados no body.
 - [x] Substituir a chamada interna sem credencial por persistência server-side directa em `notification_log`; a operação só confirma sucesso após a escrita ser aceite.
-- [ ] Ativar a idempotência atómica de `send-welcome-message`: a implementação e a migração revisável estão em `api/_lib/aiOperationIdempotency.ts` e `supabase/sql-archive/supabase-ai-operation-idempotency-20260805.sql`, feature-flagged e **não aplicadas** até confirmação explícita de SQL/segredo.
+- [x] Ativar a idempotência atómica de `send-welcome-message`: migração aplicada e verificada no Supabase em 2026-08-05; `AI_OPERATION_IDEMPOTENCY_HMAC_SECRET` e `AI_OPERATION_IDEMPOTENCY_ENABLED=true` configurados na Vercel Production, com RPCs restritas a `service_role`.
 - [x] Em `generate-workout`, aplicar `ai.workout_generation` resolvido server-side, equivalente ao caminho smart.
 - [ ] Validar método, `Content-Type`, esquema, tamanho máximo do body/campos, timeout e concorrência por request em todos os endpoints.
 - [x] Limitar fan-out interno: `translate-exercise-content` preserva tradução isolada por item, mas usa pool máximo de 8 chamadas ao provedor por request.
@@ -148,7 +148,7 @@ Resposta ao utilizador
 
 **Critério de aceite:** nenhum endpoint de custo fica acessível anonimamente, confia em IDs do body como autoridade ou aceita payload ilimitado; testes positivos, negativos e de vínculo cobrem os oito endpoints.
 
-**Nota de transição (2026-08-05):** `send-welcome-message` já bloqueia replays sequenciais consultando a mensagem persistida antes de gerar. Para concorrência, o código preparado reserva uma chave HMAC numa tabela de claims antes de chamar o provedor, completa-a só depois de persistir a notificação e liberta-a em falha. A garantia será ativada apenas com a migração SQL, `AI_OPERATION_IDEMPOTENCY_HMAC_SECRET` e `AI_OPERATION_IDEMPOTENCY_ENABLED=true`, após confirmação explícita antes de qualquer alteração em produção.
+**Nota de verificação (2026-08-05):** `send-welcome-message` bloqueia replays sequenciais consultando a mensagem persistida antes de gerar. Para concorrência, reserva uma chave HMAC numa tabela de claims antes de chamar o provedor, completa-a só depois de persistir a notificação e liberta-a em falha. A ativação foi confirmada com deploy Vercel Ready, variáveis de produção presentes, endpoint anônimo retornando `401`, zero claims residuais e permissões de RPC exclusivas de `service_role`.
 
 ### Fase 2 — Telemetria persistida, medição e custo por assinante
 
