@@ -75,7 +75,8 @@ Derivados de `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` e `PROFILE.md` §Quality Direct
 | 4 | Direito autónomo × patrocinado (comercial #1 — **decidida**) | 5 | ✅ Concluída — verificação parcial ao vivo (ver §Fase 4) | 2026-08-04 |
 | 4.1 | Decomposição de `checkin.full` e métricas — fecha comercial #1 em paralelo à Fase 4 | — | ✅ Concluída — sucesso | 2026-08-04 |
 | 4.2 | Franquia de IA do treinador | — | ⛔ Bloqueada por medição | — |
-| 5 | Fitness×Performance por planeamento (comercial #2 — **decidida**) | — | ⬜ Pendente | — |
+| 5 | Fitness×Performance por planeamento (comercial #2 — **decidida**) | — | 🟡 Em curso — 5.1 concluída, itens 1/2/3/6/7 pendentes | — |
+| 5.1 | Carga real como input da geração (achado, não só correcção) | — | ✅ Concluída — sucesso, 1 ramo não verificado ao vivo | 2026-08-05 |
 | 6 | Faixas de clientes e tiers de treinador (comercial #3 — **decidida**) | — | ⬜ Pendente | — |
 | 7 | Higiene documental + artefacto executivo | — | ⬜ Pendente | — |
 
@@ -288,7 +289,7 @@ Este é o caso literal de *"temos funções disponíveis e não as alcançamos p
 
 ---
 
-### Fase 5 — Fitness × Performance por planeamento ⬜ *(decisão comercial #2 — decidida)*
+### Fase 5 — Fitness × Performance por planeamento 🟡 Em curso *(decisão comercial #2 — decidida)*
 
 **Objectivo:** parar de diferenciar tiers por catálogo de movimentos — tecnicamente frágil e degrada a prescrição.
 
@@ -297,16 +298,16 @@ Este é o caso literal de *"temos funções disponíveis e não as alcançamos p
 - [ ] Aposentar `workout.exercise_type` como diferenciador comercial (mantém-se, se necessário, como preferência clínica/segurança — nunca como gate de preço)
 - [ ] Deslocar o diferencial do AI PERFORMANCE para o sistema de planeamento e análise: periodização, gestão de carga, prontidão, planeamento de pico
 - [ ] Remover `enforceCategoryFilter` do caminho de licenciamento (ou reduzi-lo a filtro de segurança), **e o seu espelho** em `fallbackWorkoutGenerator.ts` — uma regra, um lugar
-- [ ] Implementar o modelo de carga **nativo de força** — volume load ponderado por RPE (decisão #2, D2). Dados já existentes: RPE 100%, carga 96%
-- [ ] Não implementar ATL/CTL/TSB no modelo TrainingPeaks — deriva de endurance e exige duração × intensidade, que não temos
+- [x] ~~Implementar o modelo de carga nativo de força~~ **Já existe — achado da 5.1, ver abaixo.** `computeTrainingLoad` (`perf-engines.ts:245`) já calcula um modelo EWMA estilo ATL/CTL/TSB a partir de `load_kg × reps_done` real, gating `ai_performance`; nunca chegou à geração antes da 5.1
+- [x] ~~Não implementar ATL/CTL/TSB~~ **Premissa da auditoria estava errada, não verificada contra o código real.** A objecção ("exige duração × intensidade, que não temos") não se aplica à implementação existente, que usa volume (kg×reps), não duração — corrigido no registo de decisões (§5)
 - [ ] Corrigir a captura de `workout_sessions.duration_minutes` (hoje 1/233) — falha de registo que desbloqueia sRPE numa fase futura
 - [ ] Alinhar a copy do AI PERFORMANCE ao que o modelo entrega de facto
 
 **Critério de aceitação:** nenhum gate de preço decide sobre categoria de exercício; a promessa do AI PERFORMANCE é sustentada por métrica calculável com os dados existentes.
 
-#### 5.1 A métrica de carga é input da geração, não só output do dashboard [correcção — 2026-08-04]
+#### 5.1 A métrica de carga é input da geração, não só output do dashboard ✅ Concluída (2026-08-05) [correcção — 2026-08-04]
 
-**Achado:** o canal para a IA se autorregular já existe — `stats.predictiveScores.fatigueRisk` é enviado ao prompt (`generate-smart-workout.ts:957`) — mas o valor nunca é calculado. É constante para todo utilizador, sempre:
+**Achado original:** o canal para a IA se autorregular já existe — `stats.predictiveScores.fatigueRisk` é enviado ao prompt (`generate-smart-workout.ts:957`) — mas o valor nunca é calculado. É constante para todo utilizador, sempre:
 
 ```
 StartWorkoutScreen.tsx:568  predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70 }
@@ -314,14 +315,24 @@ StartWorkoutScreen.tsx:568  predictiveScores: { progressionReadiness: 50, fatigu
 
 `gatedStatsCtx` (linha 612) finge decidir se o AI PERFORMANCE recebe scores reais, mas os dois ramos do `if` devolvem os mesmos números fixos — `statsCtx` nunca teve um score real para gatear. Já constava como risco de baixo impacto em `FEATURE_ACCESS_MATRIX.md` §7 ("valores arbitrários... sem impacto funcional"); tem impacto funcional, sim: **é a razão pela qual a IA não evita a carga que ela própria prescreveu.**
 
-Sem esta correcção, a Fase 5 constrói um dashboard que informa o aluno de um problema que a própria IA causou e nunca soube que estava a causar — exactamente a inconsistência apontada pelo project lead.
+**Segundo achado, durante a execução:** não era só `predictiveScores` — `avgRPELast3`, `workoutStreak`, `painEvents14d` e `painRecurrenceAlert` também eram constantes, sempre, no mesmo objecto. E existia uma função real e correcta para calcular tudo isto — `buildStatsContext(m5)` em `src/ai/buildAIContext.ts:178`, alimentada por `useM5Data()` — com **zero chamadores** em todo o código. `StartWorkoutScreen.tsx` já importava as outras 4 funções desse módulo (`buildClientContext`, `buildTodayContext`, `buildLibraryContext`, `resolveTrainerContext`), nunca esta.
 
-- [ ] Substituir `predictiveScores.fatigueRisk`/`progressionReadiness` fixos por cálculo real a partir do volume load 7d/28d e deriva de RPE (D2), **antes** da geração — não só para leitura no dashboard
-- [ ] Sessão **autónoma** (`origin = autonomous_ai`): a IA recebe o valor real e ajusta a próxima sessão (reduz volume/intensidade) pelo mesmo mecanismo já usado por `ai.checkin_adjustment` — hoje reactivo a auto-relato diário, passa a reagir também a carga acumulada real
-- [ ] Sessão **prescrita** (`origin = trainer_prescribed`): a IA **não** tem autoridade para alterar o programa do treinador. O mesmo sinal de carga alta vira alerta accionável ao treinador, reaproveitando `trainer_alerts`/`InboxScreen.tsx` (infra já existente) — nunca ajuste silencioso
-- [ ] Reescrever a mensagem ao aluno: deixa de ser aviso passivo ("sua carga está alta, considere reduzir") e passa a ser transparência de uma redução que a IA já aplicou — nunca a IA a reportar, sem agir, um problema que ela própria gerou
+**Terceiro achado:** o "modelo de carga nativo de força" que o item 4 da Fase 5 pedia para implementar **já existia**: `computeTrainingLoad` (`perf-engines.ts:245`) — ATL/CTL/TSB por EWMA sobre `load_kg × reps_done`, monotonia e strain (Foster 1998), alimentando `scores.acuteLoad/trainingForm/trainingStrain`, já exibidos no `PerformanceDashboardScreen`. A rejeição de ATL/CTL/TSB no plano original não tinha sido verificada contra o código real.
 
-**Critério de aceitação (adicional):** nenhuma sessão autónoma é gerada com `fatigueRisk` fixo; um pico de carga em sessão autónoma resulta em ajuste automático na sessão seguinte, medido; um pico em programa prescrito gera alerta ao treinador, nunca mensagem passiva ao aluno.
+Sem esta correcção, a Fase 5 construiria um dashboard que informa o aluno de um problema que a própria IA causou e nunca soube que estava a causar — exactamente a inconsistência apontada pelo project lead.
+
+- [x] Substituir `predictiveScores`/`avgRPELast3`/`workoutStreak`/`painEvents14d` fixos por `buildStatsContext(m5)` real, **antes** da geração — reuso puro, zero cálculo novo (`StartWorkoutScreen.tsx`); gate por `ai.advanced_analysis` preservado (placebo apenas para quem já não tinha acesso a scores reais)
+- [x] `acuteLoad`/`trainingForm`/`trainingStrain` (o modelo de carga já real) adicionados a `StatsContext` (`src/ai/types.ts`, `api/generate-smart-workout.ts`) e ao prompt, com regra explícita: carga acumulada alta → reduzir volume/intensidade e dizê-lo como ajuste já feito, não aviso passivo
+- [x] Sessão **autónoma**: confirmado que este endpoint nunca lida com conteúdo prescrito (achado da Fase 4) — logo toda chamada a `generate-smart-workout.ts` é, por construção, autónoma; a IA já tinha instrução para adaptar por `fatigueRisk`, bastava dar-lhe o dado real. Nenhum mecanismo novo de ajuste foi necessário — consequência directa do fio ligado, não código novo
+- [x] Sessão **prescrita**: `handleHighTrainingLoad` (`src/lib/events.ts`) criado seguindo o padrão exacto de `handlePainReport` — `trainer_alerts` deduplicado (`alert_type='high_training_load'`, só insere se não houver um aberto), disparado em `StartWorkoutScreen.tsx` quando há plano de treinador pendente e `trainingForm<40` ou `trainingStrain>=70`
+- [x] Mensagem ao aluno: a regra do prompt pede explicitamente "say so plainly... as something you already adjusted", não aviso para o aluno agir
+
+**Resultado real:**
+- ✅ `npx tsc --noEmit` limpo; `npx vitest run` — 268/268 relevantes (mesmas suites da Fase 4.1, nenhuma quebrada)
+- ✅ **Verificado ao vivo** (2026-08-05), `https://trainer-8esb3t50l-paulo-eduardo-peress-projects.vercel.app`, conta `tiago.moreira@client.test` (AI PERFORMANCE real, não elevação): check-in + geração autónoma via AI produziram o seguinte `coachNote`/adaptações, textual, na resposta real do modelo: *"Reduced total volume by ~15% to account for accumulated fatigue from recent training. Lowered conditioning intensity to a moderate pace to manage fatigue risk."* — prova directa de que `trainingForm`/`trainingStrain` reais chegaram ao prompt e a IA agiu exactamente conforme a regra nova, não um valor fixo
+- ⚠️ **Não verificado ao vivo:** o ramo de alerta ao treinador (`handleHighTrainingLoad`) para sessão prescrita — nenhuma conta de teste tinha, simultaneamente, um plano de treinador pendente e `trainingForm`/`trainingStrain` no limiar; validado apenas por leitura de código (mesmo padrão testado de `handlePainReport`) e `tsc`/`vitest`, não por execução real
+
+**Critério de aceitação (adicional):** nenhuma sessão autónoma é gerada com `fatigueRisk` fixo ✅; um pico de carga em sessão autónoma resulta em ajuste automático na sessão seguinte, medido ✅ (ver acima); um pico em programa prescrito gera alerta ao treinador, nunca mensagem passiva ao aluno — implementado, não verificado ao vivo (ver acima).
 
 ---
 
@@ -424,6 +435,7 @@ Após a Fase 4 o cap aplica-se só à geração autónoma; após a Fase 5 a dife
 | 3 | 2026-08-04 | **Sucesso.** 14 linhas semeadas em `feature_permissions` (73→87, primeira escrita de dados da sessão); `ai.workout_generation` documentado; teste de completude com mapa de audiência derivado do código real, não suposto. | `src/licensing/completeness.test.ts` (6/6); `npm run check:feature-permissions` contra a BD real — "6 planos, 87 linhas, nenhuma lacuna"; `npx vitest run` (264/264 relevantes) |
 | 4 | 2026-08-04 | **Sucesso, com correcção ao plano no caminho.** Investigação mostrou que `generate-smart-workout.ts` nunca lida com conteúdo prescrito — a query de `trainerPlans` já filtra `source='manual'`, então o bug era filtrar/bloquear no cliente algo já sabido ser prescrito, não falta de um discriminador de servidor. Removida a filtragem por tipo de exercício e o cap de dias em `StartWorkoutScreen.tsx`; `resolveWorkoutOrigin` formalizado no núcleo para reuso futuro (Fase 5.1). Decisão #4 aplicada (cap do AI FITNESS removido). Verificação ao vivo parcial: página carrega sem crash, mas nenhuma conta de teste tinha dado qualificado (>1 plano prescrito ou exercício `performance`) para exercer o cenário exacto — os dados disponíveis mudaram de estado durante os próprios testes (auto-expire/auto-heal pré-existente). | `npx vitest run` (266/266 relevantes); `tsc --noEmit` limpo; deploy READY, carregamento ao vivo confirmado sem erro; cenário exacto não reproduzido ao vivo por falta de dado de teste qualificado |
 | 4.1 | 2026-08-04 | **Sucesso, com verificação ao vivo completa (sem ressalva).** 5 keys novas (`checkin.full_capture`, `checkin.voice_input`, `ai.checkin_interpretation`, `progress.client_raw_data`, `progress.coach_operational`), 30 linhas semeadas (73+14+30=117), espelhando `checkin.full` por plano — zero perda de capacidade. `resolveSponsoredAccess` modela o patrocínio por vínculo activo, não por plano — decisão de arquitectura explícita, não fica em `feature_permissions`. Único código realmente alterado: `CheckInProntidaoScreen.tsx` — hoje um FREE vinculado tinha `checkin.full=false` e nada olhava para o vínculo; passa a `própria conta OR patrocínio`, com voz sempre de fora do patrocínio. Todas as contas free+vinculadas disponíveis (`andre.lima`, `goncalo.fonseca` e 2 contas reais) estavam dentro da janela free→ai_fitness, o que mascararia o teste; com autorização explícita, `subscriptions.current_period_end` do André foi expirado temporariamente (1 dia no passado) e restaurado ao valor exacto de origem imediatamente após a captura da evidência. | `npm run check:feature-permissions`: 30 lacunas antes de semear, 0 depois ("117 linhas"); `npx vitest run` (268/268 relevantes); `tsc --noEmit` limpo; grep confirma zero leitores de `checkin.full` fora do catálogo; **ao vivo** em `trainer-r1dyzjfh3-...vercel.app` com `andre.lima@client.test` fora da janela: Detailed check-in visível, Voice ausente |
+| 5.1 | 2026-08-05 | **Sucesso, três achados encadeados, não uma correcção simples.** (1) `predictiveScores` fixo era sintoma de um problema maior: `avgRPELast3`/`workoutStreak`/`painEvents14d`/`painRecurrenceAlert` também eram constantes, sempre. (2) `buildStatsContext(m5)` já existia, correcto, com zero chamadores — reuso directo em vez de novo código. (3) O "modelo de carga nativo de força" que o item 4 da Fase 5 pedia para construir já existia (`computeTrainingLoad`, ATL/CTL/TSB por EWMA sobre kg×reps, sem duração) — a rejeição de ATL/CTL/TSB no plano original partiu de premissa não verificada contra o código. Autónomo: nenhum código novo — este endpoint nunca lida com prescrito (achado da Fase 4), a IA já tinha a regra de adaptar por `fatigueRisk`, só faltava o dado real. Prescrito: `handleHighTrainingLoad` novo, mesmo padrão de `handlePainReport`, deduplicado. | `tsc --noEmit` limpo; `npx vitest run` 268/268; **ao vivo** em `trainer-8esb3t50l-...vercel.app`, `tiago.moreira@client.test` (AI PERFORMANCE real): geração autónoma real devolveu coachNote citando "accumulated fatigue from recent training" e reduziu volume ~15% — prova directa do sinal real chegando ao prompt e sendo accionado; ramo de alerta ao treinador (sessão prescrita) não verificado ao vivo por falta de conta de teste no limiar exacto |
 
 ---
 
