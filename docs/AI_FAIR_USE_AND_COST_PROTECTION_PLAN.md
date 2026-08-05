@@ -235,7 +235,7 @@ Resposta ao utilizador
 | Fase | Estado | Data | Evidência / decisão |
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
-| 1 — Exposição imediata | ⬜ Não iniciada | — | — |
+| 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8, welcome usa idempotência atómica HMAC activa em produção. Restam validação uniforme de schema/Content-Type e a camada pré-auth de rajada. |
 | 2 — Telemetria persistida | ⬜ Não iniciada | — | — |
 | 3 — Termos e comunicação | ⬜ Não iniciada | — | — |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
