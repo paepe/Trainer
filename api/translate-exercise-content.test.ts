@@ -134,6 +134,25 @@ describe('POST /api/translate-exercise-content', () => {
     expect(res._status).toBe(400);
   });
 
+  it('rejects a non-array items payload before any provider call', async () => {
+    const res = mockRes();
+    await handler(mockReq({ items: 'not-an-array', targetLocale: 'en' }), res as never);
+
+    expect(res._status).toBe(400);
+    expect((fetch as ReturnType<typeof vi.fn>).mock.calls.some(([url]) => String(url).includes('api.deepseek.com'))).toBe(false);
+  });
+
+  it('rejects an oversized items payload instead of silently truncating it', async () => {
+    const res = mockRes();
+    await handler(
+      mockReq({ items: Array.from({ length: 301 }, (_, index) => ({ text: `Exercise ${index}` })), targetLocale: 'en' }),
+      res as never,
+    );
+
+    expect(res._status).toBe(413);
+    expect((fetch as ReturnType<typeof vi.fn>).mock.calls.some(([url]) => String(url).includes('api.deepseek.com'))).toBe(false);
+  });
+
   it('rejects a request with no Authorization header', async () => {
     const res = mockRes();
     await handler(

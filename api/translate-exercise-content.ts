@@ -240,12 +240,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? rawSourceLocale as SupportedLocale
     : 'pt';
 
-  const rawItems = req.body?.items ?? [];
+  const rawItems = req.body?.items;
+  if (!Array.isArray(rawItems)) {
+    return res.status(400).json({ error: 'items array required' });
+  }
+  if (rawItems.length > MAX_ITEMS) {
+    return res.status(413).json({ error: `Maximum ${MAX_ITEMS} items per call` });
+  }
   const texts = Array.from(new Set(
     rawItems
       .map(i => i?.text?.trim())
       .filter((t): t is string => !!t && t.length <= MAX_TEXT_CHARS),
-  )).slice(0, MAX_ITEMS);
+  ));
 
   if (texts.length === 0) return res.status(200).json({ translations: {} });
 
