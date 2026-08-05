@@ -20,6 +20,27 @@ import {
 } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
+type ProviderFailureKind = 'timeout' | 'http_error' | 'non_json_response' | 'invalid_json_response' | 'network_or_runtime';
+
+class ProviderResponseError extends Error {
+  constructor(
+    readonly status: number,
+    readonly kind: Exclude<ProviderFailureKind, 'timeout' | 'network_or_runtime'>,
+  ) {
+    super(`Provider response: ${kind}`);
+  }
+}
+
+/**
+ * Produces an operationally useful, privacy-safe failure classification.
+ * Never return a provider error body, prompt, response, or user context.
+ */
+export function classifyProviderFailure(error: unknown): { kind: ProviderFailureKind; httpStatus?: number } {
+  if ((error as Error | undefined)?.name === 'AbortError') return { kind: 'timeout' };
+  if (error instanceof ProviderResponseError) return { kind: error.kind, httpStatus: error.status };
+  return { kind: 'network_or_runtime' };
+}
+
 // ─── Inlined types (from src/ai/types.ts + src/types/coach-dna.ts) ────────────
 
 type CoachArchetype = 'performance' | 'technician' | 'motivator' | 'guide' | 'drill' | 'movement';
@@ -1165,18 +1186,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const contentType = response.headers.get('content-type') ?? '';
     if (!contentType.includes('application/json')) {
-      const text = await response.text().catch(() => '(unreadable body)');
-      throw new Error(`DeepSeek returned non-JSON (${response.status}): ${text.slice(0, 200)}`);
+      throw new ProviderResponseError(response.status, 'non_json_response');
     }
 
-    const data = await response.json() as {
+    let data: {
       choices?: { message?: { content?: string } }[];
       usage?:   { prompt_tokens?: number; completion_tokens?: number };
       error?:   { message?: string };
     };
+    try {
+      data = await response.json();
+    } catch {
+      throw new ProviderResponseError(response.status, 'invalid_json_response');
+    }
 
     if (!response.ok) {
-      throw new Error(data.error?.message ?? 'DeepSeek request failed');
+      throw new ProviderResponseError(response.status, 'http_error');
     }
 
     const raw   = data.choices?.[0]?.message?.content?.trim() ?? '{}';
@@ -1291,13 +1316,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ...parsed, usage, context_snapshot });
 
   } catch (err: unknown) {
-    if ((err as Error)?.name === 'AbortError') {
+    const diagnostic = classifyProviderFailure(err);
+    const rejectionCode = diagnostic.httpStatus
+      ? `provider_http_${diagnostic.httpStatus}`
+      : `provider_${diagnostic.kind}`;
+    console.error(JSON.stringify({
+      event: 'ai_provider_failure',
+      endpoint: 'generate-smart-workout',
+      failure_kind: diagnostic.kind,
+      provider_http_status: diagnostic.httpStatus ?? null,
+    }));
+    if (diagnostic.kind === 'timeout') {
       console.warn('[generate-smart-workout] timed out');
-      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 504, provider: 'deepseek', model: 'deepseek-chat' });
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 504, rejectionCode, provider: 'deepseek', model: 'deepseek-chat' });
       return res.status(504).json({ error: 'Generation timed out' });
     }
     console.error('[generate-smart-workout] provider request failed');
-    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 500, provider: 'deepseek', model: 'deepseek-chat' });
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 500, rejectionCode, provider: 'deepseek', model: 'deepseek-chat' });
     return res.status(500).json({ error: 'generation failed' });
   } finally {
     clearTimeout(timeout);
