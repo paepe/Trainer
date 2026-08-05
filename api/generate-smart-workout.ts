@@ -19,6 +19,7 @@ import {
   resolveAuthoritativeTaskGates,
 } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
+import { claimAIRequest, completeAIRequest, releaseAIOperation } from './_lib/aiOperationIdempotency.js';
 
 type ProviderFailureKind = 'timeout' | 'http_error' | 'non_json_response' | 'invalid_json_response' | 'network_or_runtime';
 
@@ -39,6 +40,13 @@ export function classifyProviderFailure(error: unknown): { kind: ProviderFailure
   if ((error as Error | undefined)?.name === 'AbortError') return { kind: 'timeout' };
   if (error instanceof ProviderResponseError) return { kind: error.kind, httpStatus: error.status };
   return { kind: 'network_or_runtime' };
+}
+
+const IDEMPOTENCY_TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** Client-generated UUID used only to correlate a transport retry of one request. */
+export function isValidIdempotencyToken(value: unknown): value is string {
+  return typeof value === 'string' && IDEMPOTENCY_TOKEN_PATTERN.test(value);
 }
 
 // ─── Inlined types (from src/ai/types.ts + src/types/coach-dna.ts) ────────────
@@ -1146,6 +1154,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(blockResponse);
   }
 
+  const idempotencyHeader = req.headers?.['idempotency-key'];
+  const retryToken = Array.isArray(idempotencyHeader) ? undefined : idempotencyHeader;
+  if (retryToken != null && !isValidIdempotencyToken(retryToken)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_idempotency_key', planKey: clientEntitlements.planKey });
+    return res.status(400).json({ error: 'Invalid Idempotency-Key' });
+  }
+
+  const requestClaim = await claimAIRequest('smart_workout_generation', caller.id, retryToken);
+  if (requestClaim.state === 'completed') {
+    return res.status(200).json(requestClaim.response);
+  }
+  if (requestClaim.state === 'in_progress') {
+    return res.status(409).json({ error: 'Generation already in progress. Please retry shortly.' });
+  }
+  if (requestClaim.state === 'unavailable') {
+    // A retry guard outage must not fail open into a second paid provider call.
+    return res.status(503).json({ error: 'Generation protection is temporarily unavailable. Please retry shortly.' });
+  }
+  let requestClaimKey = requestClaim.key;
+
   const ctx: AIContext = {
     ...body,
     // Overrides the client-supplied task gates with the server-resolved
@@ -1284,6 +1312,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       output_tokens: data.usage?.completion_tokens ?? 0,
     };
 
+    const responsePayload = { ...parsed, usage, context_snapshot: parsed.context_snapshot ?? {
+      readinessScore: body.today.readinessScore,
+      safetyStatus:   body.today.safetyStatus,
+      adaptations:    [],
+    } };
+    const completed = await completeAIRequest(requestClaimKey, responsePayload);
+    if (requestClaimKey && !completed) {
+      console.error('[generate-smart-workout] idempotency completion failed');
+      return res.status(503).json({ error: 'Generation result is being safely finalized. Please retry shortly.' });
+    }
+    requestClaimKey = undefined;
+
     await emitAIUsageEvent({
       actorId: caller.id,
       endpoint: 'generate-smart-workout',
@@ -1308,13 +1348,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       output_tokens: usage.output_tokens,
     }));
 
-    const context_snapshot = parsed.context_snapshot ?? {
-      readinessScore: body.today.readinessScore,
-      safetyStatus:   body.today.safetyStatus,
-      adaptations:    [],
-    };
-
-    return res.status(200).json({ ...parsed, usage, context_snapshot });
+    return res.status(200).json(responsePayload);
 
   } catch (err: unknown) {
     const diagnostic = classifyProviderFailure(err);
@@ -1337,5 +1371,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'generation failed' });
   } finally {
     clearTimeout(timeout);
+    await releaseAIOperation(requestClaimKey);
   }
 }

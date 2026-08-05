@@ -37,6 +37,19 @@ describe('requestSmartWorkout — client deadline', () => {
   it('leaves transport margin beyond the 28-second server provider deadline', () => {
     expect(SMART_WORKOUT_CLIENT_TIMEOUT_MS).toBeGreaterThan(28_000);
   });
+
+  it('sends a UUID idempotency key with the authenticated request', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'application/json' },
+      json: async () => smartWorkoutResponse([{ phase: 'warmup', exercises: [{ name: 'Jog' }] }]),
+    }));
+
+    await requestSmartWorkout(MINIMAL_REQUEST);
+
+    const headers = (fetch as ReturnType<typeof vi.fn>).mock.calls[0]?.[1]?.headers as Record<string, string>;
+    expect(headers['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/i);
+  });
 });
 
 describe('requestSmartWorkout — phase survives the phases[] → flat-list flattening', () => {

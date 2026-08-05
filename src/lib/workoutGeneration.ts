@@ -80,6 +80,11 @@ export function resolveWorkoutApiBase(): string {
 // abort a valid server response immediately before it arrives.
 export const SMART_WORKOUT_CLIENT_TIMEOUT_MS = 40_000;
 
+/** One UUID is generated per user-initiated request and retained for its transport retry. */
+export function createSmartWorkoutIdempotencyKey(): string {
+  return globalThis.crypto.randomUUID();
+}
+
 // ── Legacy endpoint (kept as fallback) ────────────────────────────────────────
 
 export async function requestWorkoutPlan({
@@ -174,11 +179,12 @@ export async function requestSmartWorkout(
 ): Promise<SmartWorkoutResult> {
   const ctrl    = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), SMART_WORKOUT_CLIENT_TIMEOUT_MS);
+  const idempotencyKey = createSmartWorkoutIdempotencyKey();
 
   try {
     const response = await fetch(`${resolveWorkoutApiBase()}/api/generate-smart-workout`, {
       method:  'POST',
-      headers: await authHeaders(),
+      headers: { ...(await authHeaders()), 'Idempotency-Key': idempotencyKey },
       body:    JSON.stringify(request),
       signal:  ctrl.signal,
     });
