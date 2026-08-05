@@ -1,7 +1,7 @@
 # TrAIner — Plano de Uso Justo, Proteção de Custo e Prevenção de Abuso de IA
 
 **Estado:** Fases 0–1 em execução; Fase 2 activada em observação controlada — enforcement permanece bloqueado até haver evidência de uso real e aprovação específica
-**Última atualização:** 2026-08-05 — telemetria de rejeições pós-auth instrumentada e validada
+**Última atualização:** 2026-08-05 — smoke autenticado de geração e telemetria confirmado em produção
 **Proprietário:** Product / Engineering / Privacy
 **Escopo:** todos os endpoints server-side com custo de IA — recursos de AI FITNESS/AI PERFORMANCE, operações do TRAINER e automações internas/onboarding
 
@@ -185,6 +185,8 @@ Resposta ao utilizador
 **Rejeições pós-auth (2026-08-05):** os oito endpoints registram de forma minimizada rejeições que já têm identidade autenticada e ainda não chamaram o provedor (Content-Type, payload/tamanho, consentimento, papel, entitlement, vínculo e teto de sessões, conforme aplicável). Tentativas anônimas continuam sem evento persistente por tentativa. A validação automática cobre os oito handlers (89 testes) e o contrato do coletor, incluindo minimização e falha de escrita sem retry.
 
 **Evidência de deploy (2026-08-05):** a instrumentação de rejeições e a correção de compilação associada foram publicadas nos commits `c6ab6a1` e `1fe8911`. O deploy de produção `dpl_86LSA6vM3hcJz2nQqthTWmz7GFKq` ficou `Ready` e recebeu o alias `https://trainer-lake.vercel.app`. A validação funcional autenticada e o período de observação continuam pendentes; não foram simuladas credenciais nem gerado tráfego artificial.
+
+**Smoke autenticado (2026-08-05):** uma geração normal iniciada pela conta cliente em produção retornou plano personalizado e gravou o evento minimizado `succeeded` no banco: `generate-smart-workout`, HTTP `200`, `2.318` tokens de entrada, `1.655` de saída e `3.973` no total. A consulta omitiu identificadores de ator. O primeiro smoke revelou que o cliente abortava aos 28s antes de uma resposta válida do servidor; `SMART_WORKOUT_CLIENT_TIMEOUT_MS` passou a 40s para preservar a margem de transporte sobre o timeout do fornecedor no backend. A correção foi publicada no deploy `dpl_DqanNunMcbudkihVSf7He6DjvwHZ`.
 
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
