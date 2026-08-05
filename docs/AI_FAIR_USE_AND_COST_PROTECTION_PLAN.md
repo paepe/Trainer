@@ -184,6 +184,8 @@ Resposta ao utilizador
 
 **Rejeições pós-auth (2026-08-05):** os oito endpoints registram de forma minimizada rejeições que já têm identidade autenticada e ainda não chamaram o provedor (Content-Type, payload/tamanho, consentimento, papel, entitlement, vínculo e teto de sessões, conforme aplicável). Tentativas anônimas continuam sem evento persistente por tentativa. A validação automática cobre os oito handlers (89 testes) e o contrato do coletor, incluindo minimização e falha de escrita sem retry.
 
+**Evidência de deploy (2026-08-05):** a instrumentação de rejeições e a correção de compilação associada foram publicadas nos commits `c6ab6a1` e `1fe8911`. O deploy de produção `dpl_86LSA6vM3hcJz2nQqthTWmz7GFKq` ficou `Ready` e recebeu o alias `https://trainer-lake.vercel.app`. A validação funcional autenticada e o período de observação continuam pendentes; não foram simuladas credenciais nem gerado tráfego artificial.
+
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.
