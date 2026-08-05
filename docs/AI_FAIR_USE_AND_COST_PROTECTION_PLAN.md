@@ -176,6 +176,8 @@ Resposta ao utilizador
 
 **Correcção de privacidade (2026-08-05):** logs de falha dos endpoints de IA e do cache de tradução passaram a registrar somente categoria e status técnico; não registram corpo de resposta, mensagem de erro do provedor, conteúdo de IA ou identificadores brutos.
 
+**Correcção de privacidade (2026-08-05):** logs de enforcement do treino inteligente passaram a registrar somente contagens; listas de exercícios derivadas da resposta da IA não são mais escritas em log.
+
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.

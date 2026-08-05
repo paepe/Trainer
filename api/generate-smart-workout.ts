@@ -1193,8 +1193,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (report.violations.length > 0) {
         console.warn(
           `[generate-smart-workout] exercise-type policy violations (shadow mode, not enforced): ` +
-          `${report.violations.length} violation(s) of ${report.totalExercises} exercise(s) — ` +
-          JSON.stringify(report.violations),
+          `${report.violations.length} violation(s) of ${report.totalExercises} exercise(s)`,
         );
       }
       if (report.missingCategoryCount > 0) {
@@ -1226,8 +1225,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (filtered.report.removedExercises.length > 0 || filtered.report.forcedNonEmptyPhases.length > 0) {
         console.warn(
           `[generate-smart-workout] category filter (fitnessOnly): removed ${filtered.report.removedExercises.length} exercise(s)` +
-          (filtered.report.forcedNonEmptyPhases.length ? `, forced non-empty in [${filtered.report.forcedNonEmptyPhases.join(', ')}] (all exercises were performance)` : '') +
-          ` — ${JSON.stringify(filtered.report.removedExercises)}`,
+          (filtered.report.forcedNonEmptyPhases.length ? `, forced non-empty in ${filtered.report.forcedNonEmptyPhases.length} phase(s)` : ''),
         );
       }
       parsed.workout = filtered.workout;
