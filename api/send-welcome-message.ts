@@ -9,13 +9,20 @@
 // The final text is generated server-side (DeepSeek) because only the server knows the
 // recipient's stored language (profiles.language) — the canonical-template/client-render
 // pattern used by notify() doesn't fit free-form, AI-authored content.
-// Delivered through the existing notify() -> notification_log -> InboxScreen channel as
-// pre-rendered text (no templateKey/params).
-// Requires: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DEEPSEEK_API_KEY, VITE_API_URL in env.
+// Delivered directly into notification_log / InboxScreen as pre-rendered text
+// (no templateKey/params). This avoids an unauthenticated server-to-server
+// call to the user-scoped send-notification endpoint.
+// Requires: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DEEPSEEK_API_KEY in env.
+
+import { authServiceHeaders, authSupabaseUrl, hasActiveLink, verifyRequestUser } from './_lib/auth.js';
 
 const PROMPT_CHAR_BUDGET = 600; // mirrors the Step12 free-text textarea max length
 
-interface VercelRequest  { method?: string; body?: { studentId?: string; trainerId?: string } }
+interface VercelRequest  {
+  method?: string;
+  headers?: Record<string, string | string[] | undefined>;
+  body?: { trainerId?: string };
+}
 interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
 
 declare const process: { env: Record<string, string | undefined> };
@@ -50,15 +57,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { studentId, trainerId } = req.body || {};
-  if (!studentId || !trainerId) {
-    return res.status(400).json({ error: 'studentId and trainerId required' });
+  const caller = await verifyRequestUser(req);
+  if (!caller) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL         || '';
+  const trainerId = req.body?.trainerId;
+  if (!trainerId || trainerId.length > 128) {
+    return res.status(400).json({ error: 'trainerId required' });
+  }
+  const studentId = caller.id;
+  if (!await hasActiveLink(studentId, trainerId)) {
+    return res.status(403).json({ error: 'No active trainer/client link' });
+  }
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL         || authSupabaseUrl();
   const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const apiKey      = process.env.DEEPSEEK_API_KEY          || '';
-  const apiBase     = process.env.VITE_API_URL              || '';
   if (!serviceKey) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not set' });
   if (!apiKey)     return res.status(500).json({ error: 'DEEPSEEK_API_KEY not set' });
 
@@ -69,6 +84,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   };
 
   try {
+    // Avoid an expensive generation for the normal retry path. The remaining
+    // concurrent-retry race is tracked for the transactional unique-key work.
+    const existingRes = await fetch(
+      `${supabaseUrl}/rest/v1/notification_log?select=id&to_user_id=eq.${encodeURIComponent(studentId)}&from_user_id=eq.${encodeURIComponent(trainerId)}&type=eq.trainer_welcome_message&entity_type=eq.trainer_welcome_message&entity_id=eq.${encodeURIComponent(trainerId)}&limit=1`,
+      { headers: authServiceHeaders() },
+    );
+    if (existingRes.ok) {
+      const rows = await existingRes.json() as { id: string }[];
+      if (rows.length > 0) return res.status(200).json({ ok: true, duplicate: true });
+    } else {
+      return res.status(503).json({ error: 'Welcome delivery status unavailable' });
+    }
+
     const [studentRes, prefsRes, trainerRes, dnaRes] = await Promise.all([
       fetch(`${supabaseUrl}/rest/v1/profiles?select=id,name&id=eq.${studentId}`,           { headers: restHeaders }),
       fetch(`${supabaseUrl}/rest/v1/preferences?select=user_id,language&user_id=eq.${studentId}`, { headers: restHeaders }),
@@ -172,22 +200,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(502).json({ error: 'AI returned an empty welcome message' });
     }
 
-    // ── Deliver via the existing notify -> notification_log -> InboxScreen channel ──
+    // ── Persist before acknowledging success ───────────────────────────────────
     const title = trainerName
       ? `${trainerName}`
       : 'Welcome to TrAIner';
 
-    await fetch(`${apiBase}/api/send-notification`, {
+    const logRes = await fetch(`${supabaseUrl}/rest/v1/notification_log`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...restHeaders, Prefer: 'return=minimal' },
       body: JSON.stringify({
-        userId:     studentId,
+        to_user_id: studentId,
+        from_user_id: trainerId,
         title,
         body:       messageText,
         type:       'trainer_welcome_message',
-        fromUserId: trainerId,
+        entity_type: 'trainer_welcome_message',
+        entity_id: trainerId,
       }),
     });
+    if (!logRes.ok) {
+      console.error('[send-welcome-message] notification_log insert failed:', logRes.status);
+      return res.status(502).json({ error: 'Welcome delivery could not be persisted' });
+    }
 
     return res.status(200).json({ ok: true });
 

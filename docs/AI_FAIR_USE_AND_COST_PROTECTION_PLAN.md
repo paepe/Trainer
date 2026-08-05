@@ -128,15 +128,15 @@ Resposta ao utilizador
 
 **Objetivo:** garantir que cada chamada com custo tenha identidade autenticada, autorização e limites de payload antes de alcançar o provedor.
 
-- [ ] Migrar `parse-voice`, `cleanup-voice-note`, `generate-amplified`, `classify-exercises` e `send-welcome-message` para `api/_lib/auth.ts`.
+- [x] Migrar `parse-voice`, `cleanup-voice-note`, `generate-amplified`, `classify-exercises` e `send-welcome-message` para `api/_lib/auth.ts`.
 - [ ] Atualizar os cinco chamadores para enviar o token; não aceitar identidade declarada apenas no body.
 - [x] Em `parse-voice`, validar `checkin.voice_input` **e** `ai.checkin_interpretation` da própria conta; patrocínio do TRAINER nunca autoriza inferência paga.
 - [x] Em `cleanup-voice-note`, introduzir propósito fechado e validar papel, fluxo e entitlement/consentimento correspondentes; não assumir que todo uso é check-in.
 - [ ] Em `generate-amplified`, vincular o perfil ao próprio caller e exigir consentimento de IA aplicável.
 - [x] Aplicar D0.1 aos fluxos de onboarding e Perfil Ampliado: fallback local pré-consentimento, `401/403` antes do provedor, leitura de consentimento/perfil persistidos e minimização de texto livre/dados sensíveis.
 - [x] Em `classify-exercises`, exigir papel TRAINER e validar tamanho de cada campo, além do lote de 50.
-- [ ] Em `send-welcome-message`, validar que o caller é o aluno destinatário ou TRAINER autorizado e que existe vínculo/convite aceito; nunca confiar apenas em `studentId`/`trainerId`.
-- [ ] Substituir a chamada interna sem credencial por uma capacidade server-to-server restrita ou escrita transacional autorizada no outbox de notificações; exigir confirmação de entrega antes de concluir a operação.
+- [x] Em `send-welcome-message`, derivar o aluno do JWT e exigir vínculo activo com o TRAINER; não confiar em `studentId`/`trainerId` declarados no body.
+- [x] Substituir a chamada interna sem credencial por persistência server-side directa em `notification_log`; a operação só confirma sucesso após a escrita ser aceite.
 - [ ] Tornar `send-welcome-message` idempotente por aceite de convite: só gravar o marcador de conclusão após a mensagem ser persistida/encaminhada com sucesso, para impedir custo duplicado e perda silenciosa de entrega.
 - [x] Em `generate-workout`, aplicar `ai.workout_generation` resolvido server-side, equivalente ao caminho smart.
 - [ ] Validar método, `Content-Type`, esquema, tamanho máximo do body/campos, timeout e concorrência por request em todos os endpoints.
@@ -147,6 +147,8 @@ Resposta ao utilizador
 - [x] Remover o log da transcrição integral de `parse-voice`; rejeições de identidade, entitlement e tamanho são avaliadas antes do provedor.
 
 **Critério de aceite:** nenhum endpoint de custo fica acessível anonimamente, confia em IDs do body como autoridade ou aceita payload ilimitado; testes positivos, negativos e de vínculo cobrem os oito endpoints.
+
+**Nota de transição (2026-08-05):** `send-welcome-message` já bloqueia replays sequenciais consultando a mensagem persistida antes de gerar. A garantia contra dois requests concorrentes exige uma chave de operação única com índice/constraint e escrita atómica; permanece pendente de migração SQL revisada e confirmação explícita antes de qualquer alteração em produção.
 
 ### Fase 2 — Telemetria persistida, medição e custo por assinante
 

@@ -7,6 +7,7 @@ import { supabase } from '../../supabase';
 import { notify } from '../../lib/notify';
 import { invalidateTrainerLinkCache } from '../../hooks/useTrainerLink';
 import { friendlyError } from '../../lib/friendlyError';
+import { authHeaders } from '../../lib/authHeaders';
 import type { NavFn } from '../../types';
 import type { AuthError } from '@supabase/supabase-js';
 
@@ -54,12 +55,13 @@ const isNative =
 const API_BASE = isNative ? (import.meta.env.VITE_API_URL ?? '') : '';
 
 /** Fire-and-forget: server generates a localized welcome note (motto + free text or AI summary). */
-function sendWelcomeMessage(studentId: string, trainerId: string) {
-  fetch(`${API_BASE}/api/send-welcome-message`, {
+async function sendWelcomeMessage(trainerId: string) {
+  const response = await fetch(`${API_BASE}/api/send-welcome-message`, {
     method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ studentId, trainerId }),
-  }).catch(err => console.error('[sendWelcomeMessage] failed:', err));
+    headers: await authHeaders(),
+    body:    JSON.stringify({ trainerId }),
+  });
+  if (!response.ok) throw new Error('welcome message request failed');
 }
 
 function Wrap({ children }: { children: React.ReactNode }) {
@@ -135,7 +137,7 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signIn, sign
             undefined,
             { type: 'invitation_accepted', templateKey: 'invitation_accepted', params: { clientName } }
           );
-          sendWelcomeMessage(userId, row.trainer_id);
+          void sendWelcomeMessage(row.trainer_id).catch(err => console.error('[sendWelcomeMessage] failed:', err));
         }
         return;
       case 'already_linked_elsewhere':
