@@ -15,6 +15,11 @@
 // Requires: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DEEPSEEK_API_KEY in env.
 
 import { authServiceHeaders, authSupabaseUrl, hasActiveLink, verifyRequestUser } from './_lib/auth.js';
+import {
+  claimAIOperation,
+  completeAIOperation,
+  releaseAIOperation,
+} from './_lib/aiOperationIdempotency.js';
 
 const PROMPT_CHAR_BUDGET = 600; // mirrors the Step12 free-text textarea max length
 
@@ -82,6 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     apikey:         serviceKey,
     Authorization:  `Bearer ${serviceKey}`,
   };
+  let operationKey: string | undefined;
 
   try {
     // Avoid an expensive generation for the normal retry path. The remaining
@@ -96,6 +102,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       return res.status(503).json({ error: 'Welcome delivery status unavailable' });
     }
+
+    const claim = await claimAIOperation('trainer_welcome_message', [studentId, trainerId]);
+    if (claim.state === 'unavailable') {
+      return res.status(503).json({ error: 'Welcome delivery protection unavailable' });
+    }
+    if (claim.state === 'duplicate') {
+      return res.status(200).json({ ok: true, duplicate: true });
+    }
+    operationKey = claim.key;
 
     const [studentRes, prefsRes, trainerRes, dnaRes] = await Promise.all([
       fetch(`${supabaseUrl}/rest/v1/profiles?select=id,name&id=eq.${studentId}`,           { headers: restHeaders }),
@@ -197,6 +212,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!messageText) {
+      await releaseAIOperation(operationKey);
       return res.status(502).json({ error: 'AI returned an empty welcome message' });
     }
 
@@ -220,12 +236,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     if (!logRes.ok) {
       console.error('[send-welcome-message] notification_log insert failed:', logRes.status);
+      await releaseAIOperation(operationKey);
       return res.status(502).json({ error: 'Welcome delivery could not be persisted' });
     }
+
+    await completeAIOperation(operationKey);
 
     return res.status(200).json({ ok: true });
 
   } catch (err: unknown) {
+    await releaseAIOperation(operationKey);
     if ((err as Error)?.name === 'AbortError') {
       console.warn('[send-welcome-message] timed out');
       return res.status(504).json({ error: 'Generation timed out' });
