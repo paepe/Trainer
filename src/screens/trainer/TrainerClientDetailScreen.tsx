@@ -165,7 +165,10 @@ interface WorkoutSession {
   started_at?:                  string | null;
   created_at?:                  string | null;
   completed_at?:                string | null;
-  duration_minutes?:            number | null;
+  // duration_minutes is a dead column (1/233 rows populated, docs/
+  // LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md Fase 5) — the
+  // completion path (workoutSyncQueue.ts) writes total_duration_min instead.
+  total_duration_min?:          number | null;
   performance_score?:           number | null;
   status?:                      string | null;
   workout_session_exercises?:   SessionExercise[];
@@ -319,7 +322,7 @@ export function TrainerClientDetailScreen({
     if (showSpinner) setLoading(true);
     void autoExpirePlans(clientId, 'trainer', planExpiryDays);
     const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes, feedbackRes, grantsRes] = await Promise.all([
-      supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,duration_minutes,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(dashboardLimit),
+      supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,total_duration_min,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,duration_seconds,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,consent,completed_at').eq('user_id', clientId).maybeSingle(),
       supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,pain_intensity,sleep_quality,available_minutes,training_location,input_source,variant,quick_data,detailed_data').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(7),
@@ -922,7 +925,7 @@ export function TrainerClientDetailScreen({
                             <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark) }}>{dateLabel}</div>
                             <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
                               {exCount} exercise{exCount !== 1 ? 's' : ''}
-                              {session?.duration_minutes ? ` · ${session.duration_minutes} min` : ''}
+                              {session?.total_duration_min ? ` · ${session.total_duration_min} min` : ''}
                               {session?.performance_score != null ? ` · score ${session.performance_score}%` : ''}
                               {!session && p.trainer_notes ? ` · ${p.trainer_notes.slice(0, 30)}${p.trainer_notes.length > 30 ? '…' : ''}` : ''}
                               {linkedSessions.length > 1 ? ` · ${linkedSessions.length} sessions` : ''}
@@ -1011,7 +1014,7 @@ export function TrainerClientDetailScreen({
                               <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark) }}>{date}</div>
                               <div style={{ fontSize: 11, color: textSec(dark), marginTop: 1 }}>
                                 {exs.length > 0 ? `${exs.length} exercise${exs.length !== 1 ? 's' : ''}` : 'No exercise data'}
-                                {s.duration_minutes ? ` · ${s.duration_minutes} min` : ''}
+                                {s.total_duration_min ? ` · ${s.total_duration_min} min` : ''}
                               </div>
                               {renderPostWorkoutFeedback(s, feedbackBySession[s.id], dark, tr)}
                             </div>

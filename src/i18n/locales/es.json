@@ -1184,11 +1184,7 @@
       "aiLockedFree": "La calibración diaria por check-in está disponible desde el plan AI Fitness.",
       "aiLockedFreeNote": "Tu plan ya es generado por IA, pero aún no se adapta a tu energía, sueño o fatiga de hoy. Actualiza para calibrarlo con tu check-in diario.",
       "limitWeekly": "Alcanzaste el límite de {{n}} sesión/semana del plan Free.",
-      "limitWeeklyCta": "Actualiza a AI Fitness — sesiones ilimitadas",
-      "limitType": "Los ejercicios de Rendimiento requieren el plan AI Performance.",
-      "limitTypeCta": "Actualiza para desbloquear el entrenamiento de rendimiento",
-      "performanceTeaser": "Entrenamiento de Rendimiento — velocidad, potencia y métricas de resistencia (ATL/CTL/TSB) — disponible en el plan AI Performance.",
-      "performanceTeaserCta": "Disponible en AI Performance — Ver planes"
+      "limitWeeklyCta": "Actualiza a AI Fitness — sesiones ilimitadas"
     },
     "mode": {
       "finishWorkout": "Finalizar Entrenamiento",

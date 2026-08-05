@@ -12,7 +12,7 @@ export type FeatureKey =
   // Client plan gates (v2)
   | 'workout.sessions_per_week'      // limit_value = max sessions/week (null = unlimited)
   | 'workout.exercises_per_session'  // limit_value = max exercises (null = unlimited)
-  | 'workout.exercise_type'          // limit_value: 0 = fitness only, null = all
+  | 'workout.exercise_type'          // legacy — retired as a commercial gate (Fase 5); kept, not read, category exclusion is no longer sold as a tier differentiator
   | 'checkin.full'                   // legacy — decomposed below (Fase 4.1); kept, not read, per migração compatível
   | 'trainer_plan.days_per_week'     // limit_value = max trainer plan days (null = all)
   | 'progress.fitness_advanced'      // advanced fitness metrics in progress tab

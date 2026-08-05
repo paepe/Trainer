@@ -127,7 +127,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const aiAccessMap = useFeatureAccessMap(
     effectivePlanKey,
     ['ai.workout_generation', 'ai.checkin_adjustment', 'ai.advanced_analysis',
-     'workout.sessions_per_week', 'workout.exercises_per_session', 'workout.exercise_type'],
+     'workout.sessions_per_week', 'workout.exercises_per_session'],
     isTrainerView,
   );
   // ai.workout_generation gates whether the AI creates the workout at all.
@@ -140,8 +140,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const aiAdvancedAllowed   = aiAccessMap['ai.advanced_analysis']?.allowed     ?? false;
   const sessionsPerWeekCap  = aiAccessMap['workout.sessions_per_week']?.limitValue  ?? null; // null = unlimited
   const exercisesPerSession = aiAccessMap['workout.exercises_per_session']?.limitValue ?? null;
-  // workout.exercise_type: limit_value 0 = fitness only, null = all
-  const fitnessOnlyWorkout  = (aiAccessMap['workout.exercise_type']?.limitValue ?? null) === 0;
+  // workout.exercise_type retired as a commercial gate (Fase 5, docs/
+  // LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md) — category exclusion is
+  // no longer sold as a tier differentiator. Authoritative resolution
+  // (api/_lib/entitlements.ts resolveAuthoritativeTaskGates) already hardcodes
+  // this false server-side; mirrored here so the local (non-AI) fallback
+  // generator never diverges from what the server would return.
+  const fitnessOnlyWorkout  = false;
   // Real training-load signal (Fase 5.1) — same computation PerformanceDashboardScreen
   // already uses (perf-engines.ts computeTrainingLoad), now also feeding generation
   // instead of only being displayed after the fact.
@@ -1201,32 +1206,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               </div>
             )}
 
-            {/* Performance teaser — visible on FREE and AI Fitness; not shown to trainers or AI Performance clients */}
-            {fitnessOnlyWorkout && !isTrainerView && (
-              <div style={{
-                marginTop: 12, padding: '12px 14px', borderRadius: 12,
-                background: `${t.primary}0d`, border: `1px solid ${t.primary}33`,
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-              }}>
-                <span style={{ fontSize: 14, flexShrink: 0 }}>🔒</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11.5, color: textSec(dark), lineHeight: 1.5, marginBottom: 6 }}>
-                    {tr('client.workout.performanceTeaser')}
-                  </div>
-                  <button
-                    onClick={() => nav('plans', { source: 'performance_teaser' })}
-                    style={{
-                      fontSize: 11, fontWeight: 700, color: t.primary,
-                      background: 'none', border: `1px solid ${t.primary}`,
-                      borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-                      letterSpacing: '.04em', fontFamily: 'inherit',
-                    }}
-                  >
-                    {tr('client.workout.performanceTeaserCta')}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

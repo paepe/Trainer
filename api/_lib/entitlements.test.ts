@@ -20,22 +20,21 @@ const AI_PERFORMANCE_ROWS: FeaturePermission[] = [
 const performanceEntitlements = toEntitlements(AI_PERFORMANCE_ROWS, 'ai_performance');
 
 describe('resolveAuthoritativeTaskGates — o teste de bypass', () => {
-  it('ignora um cliente FREE que se auto-declara ilimitado e sem filtro de tipo', () => {
+  it('ignora um cliente FREE que se auto-declara ilimitado — fitnessOnly é sempre false (Fase 5: retirado como gate comercial)', () => {
     const resolved = resolveAuthoritativeTaskGates(freeEntitlements, {
       maxExercises: 999,
       fitnessOnly:  false,
     });
     expect(resolved.maxExercises).toBe(6);
-    expect(resolved.fitnessOnly).toBe(true);
-    expect(resolved.divergences).toHaveLength(2);
+    expect(resolved.fitnessOnly).toBe(false);
+    expect(resolved.divergences).toHaveLength(1);
     expect(resolved.divergences[0]).toMatch(/maxExercises/);
-    expect(resolved.divergences[1]).toMatch(/fitnessOnly/);
   });
 
   it('não gera divergência quando o cliente pede exactamente o que tem direito', () => {
     const resolved = resolveAuthoritativeTaskGates(freeEntitlements, {
       maxExercises: 6,
-      fitnessOnly:  true,
+      fitnessOnly:  false,
     });
     expect(resolved.divergences).toEqual([]);
   });
@@ -47,11 +46,11 @@ describe('resolveAuthoritativeTaskGates — o teste de bypass', () => {
     expect(resolved.divergences).toHaveLength(2); // cliente pediu 3/true, direito real é ilimitado/false
   });
 
-  it('um plan_key desconhecido (sem linhas) cai nos DEFAULTS fail-closed, não em ilimitado', () => {
+  it('um plan_key desconhecido (sem linhas) cai nos DEFAULTS fail-closed para maxExercises; fitnessOnly é sempre false (retirado, Fase 5)', () => {
     const emptyEntitlements = toEntitlements([], 'pro');
     const resolved = resolveAuthoritativeTaskGates(emptyEntitlements, { maxExercises: 999, fitnessOnly: false });
     expect(resolved.maxExercises).toBe(DEFAULTS['workout.exercises_per_session'].limitValue);
-    expect(resolved.fitnessOnly).toBe(true); // DEFAULTS['workout.exercise_type'].limitValue === 0
+    expect(resolved.fitnessOnly).toBe(false);
   });
 });
 

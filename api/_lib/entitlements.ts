@@ -127,7 +127,12 @@ export function resolveAuthoritativeTaskGates(
   requested: RequestedTaskGates,
 ): ResolvedTaskGates {
   const maxExercises = entitlements['workout.exercises_per_session'].limitValue ?? undefined;
-  const fitnessOnly  = entitlements['workout.exercise_type'].limitValue === 0;
+  // workout.exercise_type retired as a commercial gate (Fase 5, docs/
+  // LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md) — category exclusion is
+  // no longer sold as a tier differentiator. `entitlements['workout.exercise_type']`
+  // is intentionally not read here anymore; enforceCategoryFilter (generate-
+  // smart-workout.ts) is a permanent no-op as a result, by design, not by omission.
+  const fitnessOnly = false;
 
   const divergences: string[] = [];
   if ((requested.maxExercises ?? null) !== (maxExercises ?? null)) {
