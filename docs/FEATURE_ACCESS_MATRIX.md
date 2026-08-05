@@ -103,6 +103,20 @@ feature_permissions (Supabase)
 | **AI Advanced Analysis** | Análises preditivas avançadas sobre os alunos geridos pelo treinador | ❌ | ✅ | ✅ |
 | **Vista do dashboard do cliente** | Ao abrir o dashboard de um aluno, o treinador vê sempre todos os dados — o gating é do plano do aluno, não do seu próprio | ✅ (override completo) | ✅ (override completo) | ✅ (override completo) |
 
+> **Escopo da matriz TRAINER:** as capacidades acima descrevem o que a conta TRAINER pode utilizar no seu próprio contexto. Elas não são automaticamente transferidas para o aluno vinculado.
+
+#### Direitos patrocinados ao aluno vinculado
+
+Um vínculo activo com TRAINER patrocina apenas capacidades determinísticas, sem custo de inferência. A licença do TRAINER não patrocina voz nem recursos de IA ao aluno FREE.
+
+| Recurso para aluno FREE vinculado | Disponível | Descrição |
+|---|:---:|---|
+| Check-in manual detalhado | ✅ | Captura estruturada completa, além do check-in rápido. |
+| Dados operacionais para o TRAINER | ✅ | Dados brutos e operacionais de aderência, frequência, carga e volume. |
+| Check-in por voz | ❌ | Requer `checkin.voice_input` da licença do próprio aluno. |
+| Interpretação de check-in por IA | ❌ | Requer `ai.checkin_interpretation` da licença do próprio aluno. |
+| Ajuste de plano por IA | ❌ | Requer `ai.checkin_adjustment` da licença do próprio aluno. |
+
 > **Nota override:** Um treinador que acede ao dashboard de um cliente vê sempre todos os scores e métricas, independentemente do seu próprio plano. O gating é aplicado pelo plano do **cliente**, não do treinador. Implementado via `isTrainerOverride = !!selectedClient` em `PerformanceDashboardScreen.tsx`.
 
 ### 3.2 Enforcement — Limite de Clientes

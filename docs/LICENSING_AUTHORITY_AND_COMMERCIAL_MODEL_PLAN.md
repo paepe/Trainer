@@ -267,6 +267,8 @@ Este é o caso literal de *"temos funções disponíveis e não as alcançamos p
 
 **Correcção ao escopo, registada:** a mudança de comportamento real desta fase estava só em `CheckInProntidaoScreen.tsx` — hoje um aluno FREE vinculado a um treinador tinha `checkin.full=false` (do próprio plano) e nada olhava para o vínculo. `fullCheckinAllowed` passa a ser `própria conta OR patrocínio`; `voiceAllowed` fica de fora do patrocínio (só a conta própria). `PerformanceDashboardScreen.tsx` não precisou de mudança de código — `progress.client_raw_data`/`coach_operational` nunca estiveram gateados ali, então não há nada a desbloquear por patrocínio hoje; as keys existem prontas para se algo vier a gatear essa informação no futuro.
 
+**Regra de comunicação comercial:** matrizes de licença devem separar “capacidade da conta TRAINER no próprio contexto” de “direito patrocinado ao aluno”. A primeira pode incluir check-in detalhado, voz e IA conforme o entitlement da conta; a segunda limita-se a captura manual detalhada e dados operacionais. Voz, interpretação e ajuste por IA nunca são prometidos como benefício transferido ao aluno FREE.
+
 **Critério de aceitação:** nenhuma chamada de IA é executada sob entitlement exclusivamente patrocinado; treinador acompanha o aluno com dados completos sem consumir inferência.
 
 **Resultado real:**
