@@ -23,6 +23,9 @@ interface Props {
 
 type BillingCycle = 'monthly' | 'annual';
 type AudienceMode = 'client' | 'trainer';
+type ProBand = 'pro_5' | 'pro_15' | 'pro_30';
+const PRO_BANDS: ProBand[] = ['pro_5', 'pro_15', 'pro_30'];
+const isProBand = (id: string): id is ProBand => (PRO_BANDS as string[]).includes(id);
 
 const TRAINER_PRIMARY = TRAINER_BRAND.primary;
 const TRAINER_DEEP    = TRAINER_BRAND.primaryDeep;
@@ -63,6 +66,13 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
   );
   const [confirming, setConfirming] = React.useState(false);
   const [confirmErr, setConfirmErr] = React.useState('');
+  // The 3 PRO client-count tiers (Fase 6) render as one card with a segmented
+  // selector instead of 3 near-identical cards — the repetition itself was
+  // the problem flagged, not the tiers. Defaults to whichever band the
+  // trainer is actually on, else the middle tier.
+  const [proBand, setProBand] = React.useState<ProBand>(
+    currentPlanKey && isProBand(currentPlanKey) ? currentPlanKey : 'pro_15'
+  );
 
   React.useEffect(() => { setSelected(null); setConfirmErr(''); }, [audienceMode]);
 
@@ -178,26 +188,38 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {plans.map((plan, i) => {
-            const cents     = billing === 'annual' ? plan.annual_cents  : plan.monthly_cents;
+            // The 3 PRO bands render once, as a single card anchored at
+            // pro_5's position (its sort_order puts it right after Trial) —
+            // pro_15/pro_30 are absorbed into it, not rendered separately.
+            if (plan.id === 'pro_15' || plan.id === 'pro_30') return null;
+            const isMergedPro = plan.id === 'pro_5';
+            const displayPlan = isMergedPro ? (plans.find(p => p.id === proBand) ?? plan) : plan;
+            const effectiveId = isMergedPro ? proBand : plan.id;
+
+            const cents     = billing === 'annual' ? displayPlan.annual_cents  : displayPlan.monthly_cents;
             const free      = cents === 0;
-            const isSel     = selected === plan.id;
-            const isCurrent = currentPlanKey === plan.id;
+            const isSel     = selected === effectiveId;
+            const isCurrent = currentPlanKey === effectiveId;
             // Onboarding recommendation may point at the welcome/trial-elevated
             // tier (nudge toward what they're already tasting) — deliberately
             // independent of isCurrent so the two badges can land on different
             // cards (e.g. "Current" on Free, "Best fit" on AI Fitness).
             const recommended = isManage
               ? isCurrent
-              : effectivePlanKey ? effectivePlanKey === plan.id : i === 1;
+              : effectivePlanKey ? effectivePlanKey === effectiveId : i === 1;
 
-            const name     = tr(`plans.text.${plan.id}.name`);
-            const tag      = tr(`plans.text.${plan.id}.tag`);
-            const blurb    = tr(`plans.text.${plan.id}.blurb`);
-            const features    = tr(`plans.text.${plan.id}.features`, { returnObjects: true }) as string[];
-            const comingSoon  = tr(`plans.text.${plan.id}.comingSoon`, { returnObjects: true, defaultValue: [] }) as string[];
-            const note        = tr(`plans.text.${plan.id}.note`, { defaultValue: '' });
+            // Merged PRO card keeps a stable name/tag/blurb (reused from the
+            // legacy 'pro' i18n entry — generic across bands, not duplicated)
+            // while it's being reconfigured; only the client-count feature
+            // line and price move as the segmented selector changes.
+            const name     = isMergedPro ? tr('plans.text.pro.name') : tr(`plans.text.${plan.id}.name`);
+            const tag      = isMergedPro ? tr('plans.text.pro.tag')  : tr(`plans.text.${plan.id}.tag`);
+            const blurb    = isMergedPro ? tr('plans.text.pro.blurb') : tr(`plans.text.${plan.id}.blurb`);
+            const features    = tr(`plans.text.${displayPlan.id}.features`, { returnObjects: true }) as string[];
+            const comingSoon  = tr(`plans.text.${displayPlan.id}.comingSoon`, { returnObjects: true, defaultValue: [] }) as string[];
+            const note        = tr(`plans.text.${displayPlan.id}.note`, { defaultValue: '' });
 
-            const priceLabel = billing === 'annual' ? plan.annual_label : plan.monthly_label;
+            const priceLabel = billing === 'annual' ? displayPlan.annual_label : displayPlan.monthly_label;
 
             const ctaLabel = isCurrent
               ? tr('plans.alreadyOnPlan')
@@ -208,7 +230,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
             return (
               <button
                 key={plan.id}
-                onClick={() => setSelected(plan.id)}
+                onClick={() => setSelected(effectiveId)}
                 style={{
                   position: 'relative', width: '100%', textAlign: 'left',
                   padding: '16px 16px 15px', borderRadius: 16,
@@ -270,6 +292,34 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                     {isSel && <Icon name="check" size={12} color={T.navy} stroke={2.6}/>}
                   </div>
                 </div>
+
+                {isMergedPro && (
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, color: T.textSec, marginBottom: 6 }}>
+                      {tr('plans.proBandLabel')}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {PRO_BANDS.map(band => {
+                        const on = proBand === band;
+                        const n = band === 'pro_5' ? 5 : band === 'pro_15' ? 15 : 30;
+                        return (
+                          <button
+                            key={band}
+                            onClick={e => { e.stopPropagation(); setProBand(band); setSelected(band); }}
+                            style={{
+                              flex: 1, padding: '8px 0', borderRadius: 10, border: `1.5px solid ${on ? accent : T.border}`,
+                              background: on ? accent : 'transparent', color: on ? T.navy : T.textSec,
+                              fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 13, cursor: 'pointer',
+                              transition: 'all .14s ease',
+                            }}
+                          >
+                            {n}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '13px 0 11px', flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 26, letterSpacing: '-0.02em' }}>
