@@ -18,7 +18,7 @@ function mockRes() {
 function request(body: Record<string, unknown>, authenticated = true) {
   return {
     method: 'POST', body,
-    headers: authenticated ? { authorization: 'Bearer test-jwt' } : {},
+    headers: authenticated ? { authorization: 'Bearer test-jwt', 'content-type': 'application/json' } : {},
   } as never;
 }
 

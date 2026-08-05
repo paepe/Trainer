@@ -3,7 +3,7 @@
 // Output: { extracted: Partial<CheckInDetailed> }
 // Uses DeepSeek to parse free-form voice check-in into structured fields.
 
-import { verifyRequestUser } from './_lib/auth.js';
+import { hasJsonContentType, verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
@@ -64,6 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
 
   const entitlements = await resolveUserEntitlements(caller.id);
   if (!entitlements['checkin.voice_input'].allowed || !entitlements['ai.checkin_interpretation'].allowed) {

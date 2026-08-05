@@ -51,7 +51,7 @@ export const MAX_CONCURRENT_PROVIDER_CALLS = 8;
 // authServiceHeaders() used to bundle 'Content-Type': 'application/json' in
 // automatically; _lib/auth's version doesn't (most callers are GET), so the
 // one POST call site below (storeTranslations) now sets it explicitly.
-import { verifyRequestUser, authSupabaseUrl, authServiceHeaders } from './_lib/auth.js';
+import { verifyRequestUser, authSupabaseUrl, authServiceHeaders, hasJsonContentType } from './_lib/auth.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 interface CacheRow {
@@ -227,6 +227,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const authed = await verifyRequestUser(req);
   if (!authed) return res.status(401).json({ error: 'Unauthorized' });
+  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
 
   const targetLocale = req.body?.targetLocale;
   if (!targetLocale || !(SUPPORTED_LOCALES as readonly string[]).includes(targetLocale)) {

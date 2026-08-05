@@ -8,7 +8,7 @@
 // speaker actually meant — without inventing content. Used as a pre-save pass
 // for free-text voice notes (client onboarding wizard, coach-dna free prompt).
 
-import { hasPersistedAIAdaptationConsent, isTrainerRole, verifyRequestUser } from './_lib/auth.js';
+import { hasJsonContentType, hasPersistedAIAdaptationConsent, isTrainerRole, verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
@@ -56,6 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!caller) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
 
   const transcript = req.body?.transcript?.trim();
   if (!transcript) {

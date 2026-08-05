@@ -6,6 +6,7 @@
 import {
   authServiceHeaders,
   authSupabaseUrl,
+  hasJsonContentType,
   hasPersistedAIAdaptationConsent,
   verifyRequestUser,
 } from './_lib/auth.js';
@@ -130,6 +131,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const caller = await verifyRequestUser(req);
   if (!caller) {
     res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  if (!hasJsonContentType(req)) {
+    res.status(415).json({ error: 'Content-Type must be application/json' });
     return;
   }
 

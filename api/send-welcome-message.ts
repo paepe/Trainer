@@ -14,7 +14,7 @@
 // call to the user-scoped send-notification endpoint.
 // Requires: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DEEPSEEK_API_KEY in env.
 
-import { authServiceHeaders, authSupabaseUrl, hasActiveLink, verifyRequestUser } from './_lib/auth.js';
+import { authServiceHeaders, authSupabaseUrl, hasActiveLink, hasJsonContentType, verifyRequestUser } from './_lib/auth.js';
 import {
   claimAIOperation,
   completeAIOperation,
@@ -77,6 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!caller) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
 
   const trainerId = req.body?.trainerId;
   if (!trainerId || trainerId.length > 128) {

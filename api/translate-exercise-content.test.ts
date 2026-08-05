@@ -29,7 +29,7 @@ function mockRes() {
 }
 
 function mockReq(body: unknown) {
-  return { method: 'POST', headers: { authorization: 'Bearer test-jwt' }, body } as never;
+  return { method: 'POST', headers: { authorization: 'Bearer test-jwt', 'content-type': 'application/json' }, body } as never;
 }
 
 // Mock DeepSeek: echoes a per-text translation keyed off the outgoing user

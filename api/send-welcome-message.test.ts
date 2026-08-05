@@ -35,7 +35,7 @@ describe('POST /api/send-welcome-message', () => {
     const res = mockRes();
 
     await handler({
-      method: 'POST', headers: { authorization: 'Bearer test-jwt' }, body: { trainerId: 'trainer-1' },
+      method: 'POST', headers: { authorization: 'Bearer test-jwt', 'content-type': 'application/json' }, body: { trainerId: 'trainer-1' },
     }, res as never);
 
     expect(res._status).toBe(403);
@@ -52,7 +52,7 @@ describe('POST /api/send-welcome-message', () => {
     const res = mockRes();
 
     await handler({
-      method: 'POST', headers: { authorization: 'Bearer test-jwt' }, body: { trainerId: 'trainer-1' },
+      method: 'POST', headers: { authorization: 'Bearer test-jwt', 'content-type': 'application/json' }, body: { trainerId: 'trainer-1' },
     }, res as never);
 
     expect(res._status).toBe(200);
@@ -72,7 +72,7 @@ describe('POST /api/send-welcome-message', () => {
     const res = mockRes();
 
     await handler({
-      method: 'POST', headers: { authorization: 'Bearer test-jwt' }, body: { trainerId: 'trainer-1' },
+      method: 'POST', headers: { authorization: 'Bearer test-jwt', 'content-type': 'application/json' }, body: { trainerId: 'trainer-1' },
     }, res as never);
 
     expect(res._status).toBe(503);

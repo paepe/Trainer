@@ -33,7 +33,7 @@ describe('POST /api/parse-voice', () => {
     const res = mockRes();
 
     await handler({
-      method: 'POST', headers: { authorization: 'Bearer test-jwt' },
+      method: 'POST', headers: { authorization: 'Bearer test-jwt', 'content-type': 'application/json' },
       body: { transcript: 'I feel good today' },
     }, res as never);
 

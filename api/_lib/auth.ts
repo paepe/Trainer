@@ -27,6 +27,13 @@ export function authServiceHeaders(): Record<string, string> {
 
 export interface AuthedUser { id: string; email: string | null }
 
+/** Accept JSON with an optional charset; never infer an API payload format. */
+export function hasJsonContentType(req: { headers?: Record<string, string | string[] | undefined> }): boolean {
+  const raw = req.headers?.['content-type'] ?? req.headers?.['Content-Type'];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return typeof value === 'string' && value.toLowerCase().startsWith('application/json');
+}
+
 export async function verifyRequestUser(req: { headers?: Record<string, string | string[] | undefined> }): Promise<AuthedUser | null> {
   const raw = req.headers?.authorization ?? req.headers?.Authorization;
   const header = Array.isArray(raw) ? raw[0] : raw;

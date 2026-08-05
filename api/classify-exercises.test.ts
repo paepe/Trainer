@@ -32,7 +32,7 @@ describe('POST /api/classify-exercises', () => {
     const res = mockRes();
 
     await handler({
-      method: 'POST', headers: { authorization: 'Bearer test-jwt' },
+      method: 'POST', headers: { authorization: 'Bearer test-jwt', 'content-type': 'application/json' },
       body: { exercises: [{ id: 'exercise-1', name: 'Squat', muscle_group: 'Legs' }] },
     }, res);
 
@@ -49,7 +49,7 @@ describe('POST /api/classify-exercises', () => {
     const res = mockRes();
 
     await handler({
-      method: 'POST', headers: { authorization: 'Bearer test-jwt' },
+      method: 'POST', headers: { authorization: 'Bearer test-jwt', 'content-type': 'application/json' },
       body: { exercises: [{ id: 'exercise-1', name: 'x'.repeat(201), muscle_group: 'Legs' }] },
     }, res);
 

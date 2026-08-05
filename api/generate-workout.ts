@@ -4,7 +4,7 @@
 // function builder (confirmed via build-output inspection, Fase 0/2 of the
 // same plan); the "self-contained" premise this file used to carry is
 // disproven.
-import { verifyRequestUser } from './_lib/auth.js';
+import { hasJsonContentType, verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
@@ -280,15 +280,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  if (!isWorkoutRequestWithinLimit(req.body)) {
-    return res.status(413).json({ error: 'Request exceeds maximum size' });
-  }
-
   // Generation costs money — only authenticated users may invoke the LLM.
   const caller = await verifyRequestUser(req);
   if (!caller) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
+  }
+  if (!hasJsonContentType(req)) {
+    res.status(415).json({ error: 'Content-Type must be application/json' });
+    return;
+  }
+  if (!isWorkoutRequestWithinLimit(req.body)) {
+    return res.status(413).json({ error: 'Request exceeds maximum size' });
   }
 
   const entitlements = await resolveUserEntitlements(caller.id);

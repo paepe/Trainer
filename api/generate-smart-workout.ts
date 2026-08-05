@@ -13,7 +13,7 @@
 // carry ("does not trace relative imports"). This was the first of the 3 AI
 // gates without server-side authority; see resolveAuthoritativeTaskGates
 // below for where the fix actually happens.
-import { verifyRequestUser, hasActiveLink } from './_lib/auth.js';
+import { hasJsonContentType, verifyRequestUser, hasActiveLink } from './_lib/auth.js';
 import {
   resolveUserEntitlements, countSessionsThisWeek, isSessionsPerWeekCapReached,
   resolveAuthoritativeTaskGates,
@@ -1046,17 +1046,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const body = req.body;
+  // Caller must be the client themself, or a trainer actively linked to them.
+  // ('ai-coach' autonomous sessions are always initiated by the client's device.)
+  const caller = await verifyRequestUser(req);
+  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
   if (!isSmartWorkoutRequestWithinLimit(body)) {
     return res.status(413).json({ error: 'Request exceeds maximum size' });
   }
   if (!body?.trainer || !body?.client || !body?.today || !body?.task) {
     return res.status(400).json({ error: 'trainer, client, today, and task are required' });
   }
-
-  // Caller must be the client themself, or a trainer actively linked to them.
-  // ('ai-coach' autonomous sessions are always initiated by the client's device.)
-  const caller = await verifyRequestUser(req);
-  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
   const isClientSelf = caller.id === body.client.id;
   const isLinkedTrainer = caller.id === body.trainer.id
     && body.trainer.id !== 'ai-coach'

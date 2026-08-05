@@ -11,7 +11,7 @@
 // Batch limit: 50 exercises per call (enforced server-side).
 // Model: Haiku-equivalent (fast, cheap — simple classification task).
 
-import { isTrainerRole, verifyRequestUser } from './_lib/auth.js';
+import { hasJsonContentType, isTrainerRole, verifyRequestUser } from './_lib/auth.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 
 const SYSTEM_PROMPT = `You are a sports science expert. Classify each exercise into exactly one category:
@@ -48,6 +48,7 @@ export default async function handler(req: any, res: any) {
 
   const caller = await verifyRequestUser(req);
   if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+  if (!hasJsonContentType(req)) return res.status(415).json({ error: 'Content-Type must be application/json' });
   if (!await isTrainerRole(caller.id)) return res.status(403).json({ error: 'Trainer role required' });
 
   const { exercises } = req.body || {};
