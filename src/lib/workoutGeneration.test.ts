@@ -9,7 +9,7 @@ vi.mock('../supabase', () => ({
   supabase: { auth: { getSession: () => Promise.resolve({ data: { session: null } }) } },
 }));
 
-import { requestSmartWorkout } from './workoutGeneration';
+import { requestSmartWorkout, SMART_WORKOUT_CLIENT_TIMEOUT_MS } from './workoutGeneration';
 import type { SmartWorkoutRequest } from '../ai/types';
 
 function smartWorkoutResponse(phases: Array<{ phase: string; exercises: Array<{ name: string; category?: string }> }>) {
@@ -32,6 +32,12 @@ function smartWorkoutResponse(phases: Array<{ phase: string; exercises: Array<{ 
 }
 
 const MINIMAL_REQUEST = {} as SmartWorkoutRequest;
+
+describe('requestSmartWorkout — client deadline', () => {
+  it('leaves transport margin beyond the 28-second server provider deadline', () => {
+    expect(SMART_WORKOUT_CLIENT_TIMEOUT_MS).toBeGreaterThan(28_000);
+  });
+});
 
 describe('requestSmartWorkout — phase survives the phases[] → flat-list flattening', () => {
   beforeEach(() => { vi.stubGlobal('fetch', vi.fn()); });

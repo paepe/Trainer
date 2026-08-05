@@ -75,6 +75,11 @@ export function resolveWorkoutApiBase(): string {
   );
 }
 
+// The server allows the provider up to 28s. The browser timer must include
+// auth/header construction and network transit as well, otherwise it can
+// abort a valid server response immediately before it arrives.
+export const SMART_WORKOUT_CLIENT_TIMEOUT_MS = 40_000;
+
 // ── Legacy endpoint (kept as fallback) ────────────────────────────────────────
 
 export async function requestWorkoutPlan({
@@ -168,7 +173,7 @@ export async function requestSmartWorkout(
   request: SmartWorkoutRequest,
 ): Promise<SmartWorkoutResult> {
   const ctrl    = new AbortController();
-  const timeout = setTimeout(() => ctrl.abort(), 28_000);
+  const timeout = setTimeout(() => ctrl.abort(), SMART_WORKOUT_CLIENT_TIMEOUT_MS);
 
   try {
     const response = await fetch(`${resolveWorkoutApiBase()}/api/generate-smart-workout`, {
