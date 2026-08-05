@@ -3,6 +3,9 @@
 // Output: { extracted: Partial<CheckInDetailed> }
 // Uses DeepSeek to parse free-form voice check-in into structured fields.
 
+import { verifyRequestUser } from './_lib/auth.js';
+import { resolveUserEntitlements } from './_lib/entitlements.js';
+
 const SYSTEM_PROMPT = `You are a structured data extractor for a fitness app.
 The user has spoken a free-form daily check-in. Extract the following fields if mentioned.
 Return ONLY valid JSON. No markdown, no explanation, no extra keys.
@@ -30,7 +33,11 @@ Rules:
 - If only minutes given (e.g. "30 minutes"): available_minutes = 30
 - "at home" → location_today: "home"; "the gym" → "gym"`;
 
-interface VercelRequest  { method?: string; body?: { transcript?: string } }
+interface VercelRequest  {
+  method?: string;
+  headers?: Record<string, string | string[] | undefined>;
+  body?: { transcript?: string };
+}
 interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
 
 declare const process: { env: Record<string, string | undefined> };
@@ -41,9 +48,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  const caller = await verifyRequestUser(req);
+  if (!caller) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const entitlements = await resolveUserEntitlements(caller.id);
+  if (!entitlements['checkin.voice_input'].allowed || !entitlements['ai.checkin_interpretation'].allowed) {
+    res.status(403).json({ error: 'Voice check-in interpretation is not available for this account' });
+    return;
+  }
+
   const transcript = req.body?.transcript?.trim();
   if (!transcript) {
     res.status(400).json({ error: 'transcript required' });
+    return;
+  }
+  if (transcript.length > 4_000) {
+    res.status(413).json({ error: 'transcript exceeds maximum length' });
     return;
   }
 
@@ -89,7 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const extracted = match ? JSON.parse(match[0]) : {};
 
     if (Object.keys(extracted).length === 0) {
-      console.warn('[parse-voice] extracted empty — transcript may be too ambiguous:', transcript);
+      console.warn('[parse-voice] extracted empty');
       res.status(422).json({ error: 'Could not extract health data from the transcript. Try speaking more clearly.' });
       return;
     }

@@ -41,6 +41,10 @@ const LOCALE_TO_LANG: Record<SupportedLocale, string> = {
 // the remainder through cache-miss translation on every load.
 const MAX_ITEMS      = 300;
 const MAX_TEXT_CHARS = 300;
+// Individual translation requests preserve measured translation quality, but
+// a cache miss must never turn one user request into hundreds of simultaneous
+// paid provider calls.
+export const MAX_CONCURRENT_PROVIDER_CALLS = 8;
 
 // Auth helpers moved to api/_lib/auth — Fase 2 of
 // docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md. This file's local
@@ -147,17 +151,23 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
   // never showed this failure in the same testing (docs/
   // SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md, Open Finding). The shared cache
   // means this only costs N calls the first time each phrase is seen, ever.
-  await Promise.all(texts.map(async original => {
-    try {
-      const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            { role: 'system', content: system },
-            { role: 'user', content: original },
-          ],
+  // The bounded worker pool preserves that isolation while limiting the real
+  // provider fan-out of a single cache miss.
+  let nextIndex = 0;
+  const worker = async () => {
+    while (nextIndex < texts.length) {
+      const original = texts[nextIndex++];
+      if (!original) continue;
+      try {
+        const response = await fetch('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: system },
+              { role: 'user', content: original },
+            ],
           // 0, not a small positive value — measured live to matter for this
           // failure mode: identical requests at temperature 0.2 sometimes
           // returned the source text completely untranslated for a short
@@ -167,23 +177,28 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
           // found: 0/10 fully untranslated, but translation quality still
           // varies run to run) — see docs/SESSION_STRUCTURE_IMPLEMENTATION_PLAN.md,
           // Open Finding.
-          temperature: 0,
-          max_tokens: 120,
-        }),
-      });
+            temperature: 0,
+            max_tokens: 120,
+          }),
+        });
 
-      if (!response.ok) throw new Error(`DeepSeek ${response.status}`);
-      const data = await response.json() as { choices?: { message?: { content?: string } }[] };
-      const translated = data.choices?.[0]?.message?.content?.trim();
-      result.set(original, translated || original);
-    } catch (err) {
-      // Resilient fallback (§6.3) — a translation failure must never block
-      // the client from seeing their workout; fall back to the raw source
-      // text for this item only, not the whole request.
-      console.error('[translate-exercise-content] DeepSeek call failed:', (err as Error)?.message);
-      result.set(original, original);
+        if (!response.ok) throw new Error(`DeepSeek ${response.status}`);
+        const data = await response.json() as { choices?: { message?: { content?: string } }[] };
+        const translated = data.choices?.[0]?.message?.content?.trim();
+        result.set(original, translated || original);
+      } catch (err) {
+        // Resilient fallback (§6.3) — a translation failure must never block
+        // the client from seeing their workout; fall back to the raw source
+        // text for this item only, not the whole request.
+        console.error('[translate-exercise-content] DeepSeek call failed:', (err as Error)?.message);
+        result.set(original, original);
+      }
     }
-  }));
+  };
+  await Promise.all(Array.from(
+    { length: Math.min(MAX_CONCURRENT_PROVIDER_CALLS, texts.length) },
+    () => worker(),
+  ));
 
   return result;
 }

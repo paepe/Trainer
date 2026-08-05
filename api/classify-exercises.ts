@@ -11,6 +11,8 @@
 // Batch limit: 50 exercises per call (enforced server-side).
 // Model: Haiku-equivalent (fast, cheap — simple classification task).
 
+import { isTrainerRole, verifyRequestUser } from './_lib/auth.js';
+
 const SYSTEM_PROMPT = `You are a sports science expert. Classify each exercise into exactly one category:
 
 - fitness: general strength, hypertrophy, endurance, flexibility, mobility, and health-oriented exercises
@@ -33,9 +35,15 @@ type Classification = { id: string; category: Category };
 
 const VALID_CATEGORIES = new Set<string>(['fitness', 'performance', 'mobility']);
 const MAX_BATCH = 50;
+const MAX_NAME_CHARS = 200;
+const MAX_MUSCLE_GROUP_CHARS = 80;
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const caller = await verifyRequestUser(req);
+  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+  if (!await isTrainerRole(caller.id)) return res.status(403).json({ error: 'Trainer role required' });
 
   const { exercises } = req.body || {};
   if (!Array.isArray(exercises) || exercises.length === 0) {
@@ -44,6 +52,14 @@ export default async function handler(req: any, res: any) {
   if (exercises.length > MAX_BATCH) {
     return res.status(400).json({ error: `Maximum ${MAX_BATCH} exercises per call` });
   }
+  const validExercises = exercises.every((exercise: unknown) => {
+    if (!exercise || typeof exercise !== 'object') return false;
+    const value = exercise as Partial<ExerciseInput>;
+    return typeof value.id === 'string' && value.id.length > 0 && value.id.length <= 128
+      && typeof value.name === 'string' && value.name.trim().length > 0 && value.name.length <= MAX_NAME_CHARS
+      && typeof value.muscle_group === 'string' && value.muscle_group.length <= MAX_MUSCLE_GROUP_CHARS;
+  });
+  if (!validExercises) return res.status(400).json({ error: 'invalid exercise input' });
 
   const apiKey  = process.env.DEEPSEEK_API_KEY || '';
   if (!apiKey) return res.status(500).json({ error: 'DEEPSEEK_API_KEY not set' });

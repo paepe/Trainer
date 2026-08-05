@@ -8,7 +8,8 @@
 // speaker actually meant — without inventing content. Used as a pre-save pass
 // for free-text voice notes (client onboarding wizard, coach-dna free prompt).
 
-import { hasPersistedAIAdaptationConsent, verifyRequestUser } from './_lib/auth.js';
+import { hasPersistedAIAdaptationConsent, isTrainerRole, verifyRequestUser } from './_lib/auth.js';
+import { resolveUserEntitlements } from './_lib/entitlements.js';
 
 const SYSTEM_PROMPT = `You clean up raw speech-to-text transcripts that contain "stutter echo" —
 repeated/overlapping fragments from an on-device recognizer re-emitting the same phrase
@@ -62,6 +63,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // The server verifies persisted consent rather than trusting the client state.
   if (purpose === 'onboarding' && !await hasPersistedAIAdaptationConsent(caller.id)) {
     return res.status(403).json({ error: 'AI adaptation consent required' });
+  }
+  if (purpose === 'checkin') {
+    const entitlements = await resolveUserEntitlements(caller.id);
+    if (!entitlements['checkin.voice_input'].allowed) {
+      return res.status(403).json({ error: 'Voice check-in is not available for this account' });
+    }
+  }
+  if (purpose === 'coach_dna' || purpose === 'trainer_workout_note') {
+    if (!await isTrainerRole(caller.id)) {
+      return res.status(403).json({ error: 'Trainer role required' });
+    }
+    if (purpose === 'coach_dna') {
+      const entitlements = await resolveUserEntitlements(caller.id);
+      if (!entitlements.coach_dna.allowed) {
+        return res.status(403).json({ error: 'Coach DNA is not available for this account' });
+      }
+    }
   }
 
   const apiKey = process.env.DEEPSEEK_API_KEY;

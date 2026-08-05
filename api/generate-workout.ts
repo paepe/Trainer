@@ -5,6 +5,7 @@
 // same plan); the "self-contained" premise this file used to carry is
 // disproven.
 import { verifyRequestUser } from './_lib/auth.js';
+import { resolveUserEntitlements } from './_lib/entitlements.js';
 
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.
@@ -270,6 +271,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const caller = await verifyRequestUser(req);
   if (!caller) {
     res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const entitlements = await resolveUserEntitlements(caller.id);
+  if (!entitlements['ai.workout_generation'].allowed) {
+    res.status(403).json({ error: 'AI workout generation is not available for this account' });
     return;
   }
 

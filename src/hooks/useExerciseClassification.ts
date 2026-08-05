@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import type { ExerciseCategory } from '../types/workout';
 import { resolveWorkoutApiBase } from '../lib/workoutGeneration';
+import { authHeaders } from '../lib/authHeaders';
 
 export type ClassificationMap = Record<string, ExerciseCategory | null>;
 
@@ -78,7 +79,7 @@ export function useExerciseClassification(
 
           const response = await fetch(`${resolveWorkoutApiBase()}/api/classify-exercises`, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await authHeaders(),
             body:    JSON.stringify({ exercises: chunk }),
           });
 

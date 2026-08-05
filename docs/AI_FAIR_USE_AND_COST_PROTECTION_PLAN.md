@@ -130,21 +130,21 @@ Resposta ao utilizador
 
 - [ ] Migrar `parse-voice`, `cleanup-voice-note`, `generate-amplified`, `classify-exercises` e `send-welcome-message` para `api/_lib/auth.ts`.
 - [ ] Atualizar os cinco chamadores para enviar o token; não aceitar identidade declarada apenas no body.
-- [ ] Em `parse-voice`, validar `checkin.voice_input` do próprio aluno; patrocínio do TRAINER nunca autoriza inferência paga.
-- [ ] Em `cleanup-voice-note`, introduzir propósito fechado e validar papel, fluxo e entitlement/consentimento correspondentes; não assumir que todo uso é check-in.
+- [x] Em `parse-voice`, validar `checkin.voice_input` **e** `ai.checkin_interpretation` da própria conta; patrocínio do TRAINER nunca autoriza inferência paga.
+- [x] Em `cleanup-voice-note`, introduzir propósito fechado e validar papel, fluxo e entitlement/consentimento correspondentes; não assumir que todo uso é check-in.
 - [ ] Em `generate-amplified`, vincular o perfil ao próprio caller e exigir consentimento de IA aplicável.
 - [x] Aplicar D0.1 aos fluxos de onboarding e Perfil Ampliado: fallback local pré-consentimento, `401/403` antes do provedor, leitura de consentimento/perfil persistidos e minimização de texto livre/dados sensíveis.
-- [ ] Em `classify-exercises`, exigir papel TRAINER e validar tamanho de cada campo, além do lote de 50.
+- [x] Em `classify-exercises`, exigir papel TRAINER e validar tamanho de cada campo, além do lote de 50.
 - [ ] Em `send-welcome-message`, validar que o caller é o aluno destinatário ou TRAINER autorizado e que existe vínculo/convite aceito; nunca confiar apenas em `studentId`/`trainerId`.
 - [ ] Substituir a chamada interna sem credencial por uma capacidade server-to-server restrita ou escrita transacional autorizada no outbox de notificações; exigir confirmação de entrega antes de concluir a operação.
 - [ ] Tornar `send-welcome-message` idempotente por aceite de convite: só gravar o marcador de conclusão após a mensagem ser persistida/encaminhada com sucesso, para impedir custo duplicado e perda silenciosa de entrega.
-- [ ] Em `generate-workout`, aplicar autorização comercial equivalente ao caminho smart ou documentar por que é uma operação interna coberta.
+- [x] Em `generate-workout`, aplicar `ai.workout_generation` resolvido server-side, equivalente ao caminho smart.
 - [ ] Validar método, `Content-Type`, esquema, tamanho máximo do body/campos, timeout e concorrência por request em todos os endpoints.
-- [ ] Limitar fan-out interno: `translate-exercise-content` não pode disparar uma chamada por item sem teto de concorrência, batching ou deduplicação server-side.
+- [x] Limitar fan-out interno: `translate-exercise-content` preserva tradução isolada por item, mas usa pool máximo de 8 chamadas ao provedor por request.
 - [ ] Aplicar proteção pré-auth emergencial, ampla e conservadora, nos cinco endpoints hoje anônimos; a política pós-auth calibrada continua na Fase 4.
 - [ ] Adotar resposta uniforme: `401` anônimo, `403` sem papel/entitlement/vínculo, `400/413` payload inválido/excessivo.
 - [ ] Testar que rejeições ocorrem antes de Supabase service role ou provedor de IA.
-- [ ] Remover o log da transcrição integral de `parse-voice` e testar que nenhum dado sensível entra em logs de erro.
+- [x] Remover o log da transcrição integral de `parse-voice`; rejeições de identidade, entitlement e tamanho são avaliadas antes do provedor.
 
 **Critério de aceite:** nenhum endpoint de custo fica acessível anonimamente, confia em IDs do body como autoridade ou aceita payload ilimitado; testes positivos, negativos e de vínculo cobrem os oito endpoints.
 

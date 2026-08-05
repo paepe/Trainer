@@ -4,6 +4,7 @@ import { textPri, textSec, textMute, surfRaised, borderSubtle, primaryBtn, outli
 import { Spinner } from '../../ui';
 import { friendlyError } from '../../lib/friendlyError';
 import { cleanupVoiceNote } from '../../lib/cleanupVoiceNote';
+import { authHeaders } from '../../lib/authHeaders';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import type { CheckInVoice as CheckInVoiceData } from '../../types/checkin-v2';
 
@@ -56,7 +57,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
 
       const res = await fetch('/api/parse-voice', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body:    JSON.stringify({ transcript: cleaned }),
         signal:  ctrl.signal,
       });

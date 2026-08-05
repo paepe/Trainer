@@ -277,4 +277,34 @@ describe('POST /api/translate-exercise-content', () => {
       translations: { 'Corrida Leve': 'Corrida Leve', 'Agachamento Livre': 'Sentadilla Libre' },
     });
   });
+
+  it('caps concurrent provider calls during a large cache miss', async () => {
+    let active = 0;
+    let maxActive = 0;
+    (fetch as ReturnType<typeof vi.fn>).mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'user-1' }) } as Response;
+      if (url.includes('exercise_content_translations')) return { ok: true, json: async () => ([]) } as Response;
+      if (url.includes('api.deepseek.com')) {
+        active += 1;
+        maxActive = Math.max(maxActive, active);
+        const text = JSON.parse((init!.body as string)).messages[1].content as string;
+        await new Promise(resolve => setTimeout(resolve, 5));
+        active -= 1;
+        return { ok: true, json: async () => ({ choices: [{ message: { content: `${text} translated` } }] }) } as Response;
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const res = mockRes();
+    await handler(
+      mockReq({
+        items: Array.from({ length: 20 }, (_, index) => ({ text: `Exercise ${index}` })),
+        targetLocale: 'en',
+      }),
+      res as never,
+    );
+
+    expect(res._status).toBe(200);
+    expect(maxActive).toBeLessThanOrEqual(8);
+  });
 });
