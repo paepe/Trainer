@@ -81,7 +81,7 @@ async function fetchCached(
     // like a genuine cache miss, with no visible signal that the cache was
     // never actually consulted. Logged, not thrown — §6.3, a lookup failure
     // must fall through to live translation, not block the response.
-    console.error('[translate-exercise-content] cache read failed:', res.status, await res.text().catch(() => ''));
+    console.error('[translate-exercise-content] cache read failed:', res.status);
     return result;
   }
   const rows = await res.json() as CacheRow[];
@@ -101,7 +101,7 @@ async function storeTranslations(rows: CacheRow[]): Promise<void> {
     },
   );
   if (!res.ok) {
-    console.error('[translate-exercise-content] cache write failed:', await res.text().catch(() => ''));
+    console.error('[translate-exercise-content] cache write failed:', res.status);
   }
 }
 
@@ -191,7 +191,7 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
         // Resilient fallback (§6.3) — a translation failure must never block
         // the client from seeing their workout; fall back to the raw source
         // text for this item only, not the whole request.
-        console.error('[translate-exercise-content] DeepSeek call failed:', (err as Error)?.message);
+        console.error('[translate-exercise-content] DeepSeek call failed');
         result.set(original, original);
       }
     }

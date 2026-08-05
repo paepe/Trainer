@@ -136,8 +136,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('[parse-voice] timed out');
       res.status(504).json({ error: 'Parsing timed out' });
     } else {
-      console.error('[parse-voice]', err);
-      res.status(500).json({ error: err instanceof Error ? err.message : 'parse failed' });
+    console.error('[parse-voice] provider request failed');
+    res.status(500).json({ error: 'parse failed' });
     }
   } finally {
     clearTimeout(timeout);

@@ -263,7 +263,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('[send-welcome-message] timed out');
       return res.status(504).json({ error: 'Generation timed out' });
     }
-    console.error('[send-welcome-message]', err);
-    return res.status(500).json({ error: err instanceof Error ? err.message : 'failed to send welcome message' });
+    console.error('[send-welcome-message] request failed');
+    return res.status(500).json({ error: 'failed to send welcome message' });
   }
 }

@@ -203,8 +203,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('[generate-amplified] timed out');
       res.status(504).json({ error: 'Generation timed out' });
     } else {
-      console.error('[generate-amplified]', err);
-      res.status(500).json({ error: err instanceof Error ? err.message : 'generation failed' });
+      console.error('[generate-amplified] provider request failed');
+      res.status(500).json({ error: 'generation failed' });
     }
   } finally {
     clearTimeout(timeout);

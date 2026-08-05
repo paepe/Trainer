@@ -1090,7 +1090,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // regardless of what the client claimed.
     console.warn(
       `[generate-smart-workout] client task diverges from server entitlements ` +
-      `(client=${body.client.id}, caller=${caller.id}): ${resolvedGates.divergences.join('; ')}`,
+      `(${resolvedGates.divergences.join('; ')})`,
     );
   }
 
@@ -1290,8 +1290,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('[generate-smart-workout] timed out');
       return res.status(504).json({ error: 'Generation timed out' });
     }
-    console.error('[generate-smart-workout]', err);
-    return res.status(500).json({ error: err instanceof Error ? err.message : 'generation failed' });
+    console.error('[generate-smart-workout] provider request failed');
+    return res.status(500).json({ error: 'generation failed' });
   } finally {
     clearTimeout(timeout);
   }

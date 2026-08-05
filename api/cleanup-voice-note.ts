@@ -152,8 +152,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('[cleanup-voice-note] timed out');
       return res.status(504).json({ error: 'Cleanup timed out' });
     }
-    console.error('[cleanup-voice-note]', err);
-    return res.status(500).json({ error: err instanceof Error ? err.message : 'cleanup failed' });
+    console.error('[cleanup-voice-note] provider request failed');
+    return res.status(500).json({ error: 'cleanup failed' });
   } finally {
     clearTimeout(timeout);
   }

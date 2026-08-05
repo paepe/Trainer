@@ -503,8 +503,8 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
       console.warn('[generate-workout] timed out');
       res.status(504).json({ error: 'Workout generation timed out' });
     } else {
-      console.error('[generate-workout]', err);
-      res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to generate workout' });
+      console.error('[generate-workout] provider request failed');
+      res.status(500).json({ error: 'Failed to generate workout' });
     }
   } finally {
     clearTimeout(timeout);
