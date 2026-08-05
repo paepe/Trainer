@@ -1,7 +1,7 @@
 # Plano — Autoridade de Licenciamento e Modelo Comercial
 
 **Data:** 2026-08-04
-**Estado:** Fases 0–7 concluídas (2026-08-05). Único item em aberto: verificação ao vivo do cenário multi-plano da Fase 4 (deferida por decisão do utilizador — dado de teste indisponível, não pendência de código). Ver `docs/LICENSING_EXECUTIVE_SUMMARY.docx` para a síntese executiva.
+**Estado:** Fases 0–7 concluídas (2026-08-05). A verificação ao vivo do cenário multi-plano da Fase 4 foi concluída em 2026-08-05. Ver `docs/LICENSING_EXECUTIVE_SUMMARY.docx` para a síntese executiva.
 **Base:** `docs/BILLING_FEATURE_MODEL_AUDIT_20260804.md` (auditoria técnica) + `ANALISE_COMERCIAL_FEATURE_ACCESS_MATRIX_TRAINER_20260804.md` (visão comercial)
 **Governança:** `policies/references/PROFILE.md` · `policies/references/EXECUTIVE_TECHNOLOGY_DIRECTIVE.md`
 
@@ -72,7 +72,7 @@ Derivados de `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` e `PROFILE.md` §Quality Direct
 | 1 | Núcleo de entitlements (fonte única) | 2,3 | ✅ Concluída — sucesso | 2026-08-04 |
 | 2 | Autoridade no servidor (3 gates de IA) | 4 | ✅ Concluída — sucesso | 2026-08-04 |
 | 3 | Cobertura de dados + guarda anti-regressão | 4, 6 | ✅ Concluída — sucesso | 2026-08-04 |
-| 4 | Direito autónomo × patrocinado (comercial #1 — **decidida**) | 5 | ✅ Concluída — verificação parcial ao vivo (ver §Fase 4) | 2026-08-04 |
+| 4 | Direito autónomo × patrocinado (comercial #1 — **decidida**) | 5 | ✅ Concluída — verificada ao vivo (ver §Fase 4) | 2026-08-05 |
 | 4.1 | Decomposição de `checkin.full` e métricas — fecha comercial #1 em paralelo à Fase 4 | — | ✅ Concluída — sucesso | 2026-08-04 |
 | 4.2 | Franquia de IA do treinador | — | ⛔ Bloqueada por medição | — |
 | 5 | Fitness×Performance por planeamento (comercial #2 — **decidida**) | — | ✅ Concluída — 1 ramo não verificado ao vivo (ver §Fase 5) | 2026-08-05 |
@@ -247,7 +247,7 @@ Este é o caso literal de *"temos funções disponíveis e não as alcançamos p
 - ✅ `npx vitest run`: 266/266 relevantes (264 + 2 novos para `resolveWorkoutOrigin`)
 - ✅ Deploy real (`vercel build` → push → CI do Vercel) `READY`; página carrega sem crash, confirmado ao vivo (`andre.lima@client.test`, FREE)
 - ⚠️ **Não foi possível exercer ao vivo o cenário exacto** (plano prescrito com >1 dia, ou com exercício `performance`, sendo executado sem filtro/bloqueio): nenhuma conta `@client.test` tem hoje mais de 1 plano prescrito activo ou exercícios de categoria `performance` num plano prescrito. O único plano prescrito de `andre.lima` mudou de estado **durante os próprios testes desta sessão** — `autoExpirePlans`/auto-heal (lógica pré-existente, não tocada por esta fase) corre a cada abertura do ecrã e cancelou/completou os planos de teste disponíveis. Forçar o cenário exigiria criar novo dado de teste (mais escrita em produção) — não feito sem perguntar primeiro. A mudança é puramente subtractiva (remoção de filtros client-side), risco mais baixo do que a autoridade de servidor da Fase 2, mas a ressalva fica registada, não escondida.
-- ✅ **Evidência de dados reais posterior (2026-08-05):** com autorização explícita, foram criados para `andre.lima@client.test` (FREE, vínculo activo com `carlos.silva@trainer.test`) dois planos `manual`/`sent` contemporâneos: um contendo `Box Jump` com `exercise_category='performance'`, outro `Barbell Back Squat` com `exercise_category='fitness'`. Consulta directa em produção confirmou as duas linhas accionáveis. `tsc --noEmit` e `vitest run` passaram (301/301). A observação visual autenticada de `StartWorkoutScreen` continua pendente: o browser interno disponibilizado nesta sessão não expôs uma sessão/tabs utilizáveis, portanto esta evidência prova a pré-condição real e a integridade do caminho de dados, não o rendering autenticado.
+- ✅ **Verificação ao vivo concluída (2026-08-05):** com autorização explícita, foram criados para `andre.lima@client.test` (FREE, vínculo activo com `carlos.silva@trainer.test`) dois planos `manual`/`sent` contemporâneos: um contendo `Box Jump` com `exercise_category='performance'`, outro `Barbell Back Squat` com `exercise_category='fitness'`. Consulta directa em produção confirmou as duas linhas accionáveis; `tsc --noEmit` e `vitest run` passaram (301/301). No `StartWorkoutScreen` autenticado, a UI mostrou **"2 plans waiting"** para Carlos, ambos os planos simultaneamente, sem cadeado/filtro. Ao expandir o primeiro, `Box Jump` foi exibido e o botão **Start** estava disponível; iniciá-lo abriu `WorkoutModeScreen` com `Box Jump` e o controlo **Log Set** activo. Isto prova o cenário exacto: aluno FREE vinculado executa integralmente um plano prescrito com exercício `performance`, sem o tier próprio filtrar ou bloquear. Os dois planos de QA foram removidos depois do teste; consulta final confirmou `0` registos com a tag `[QA Fase 4]`.
 
 ---
 

@@ -10,7 +10,7 @@ Você está a continuar o trabalho de arquitectura de licenciamento e modelo com
 
 ## Estado actual
 
-Fases 0–7 concluídas (2026-08-05). **Único item em aberto:** a Fase 4 (direito autónomo × patrocinado — plano prescrito pelo treinador deixa de ser filtrado pelo tier do próprio aluno) tem a correcção implementada, testada e publicada, mas nunca foi observada ao vivo no cenário exacto — nenhuma conta de teste tinha (a) mais de um plano prescrito activo em simultâneo, ou (b) um plano prescrito com exercício de categoria `performance` atribuído a um aluno fora do AI PERFORMANCE. Isto é uma pendência de verificação, não uma pendência de código (risco baixo: é remoção de restrição, não regra nova). Antes de fazer mais nada, pergunte ao utilizador se quer fechar isto (provavelmente vai pedir para fabricar dado de teste com autorização, como fizemos noutras fases).
+Fases 0–7 concluídas (2026-08-05). A verificação ao vivo da Fase 4 (direito autónomo × patrocinado) foi concluída: `andre.lima@client.test` (FREE, vínculo activo) recebeu dois planos prescritos simultâneos, incluindo `Box Jump` classificado `performance`; a UI exibiu ambos sem filtro/bloqueio e iniciou o plano com sucesso em `WorkoutModeScreen`. Os dados de QA foram removidos após a prova. Consulte o plano para a evidência completa; não reabra esta pendência.
 
 ## O padrão de trabalho estabelecido — siga exactamente isto
 
