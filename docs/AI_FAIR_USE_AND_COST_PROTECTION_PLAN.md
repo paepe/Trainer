@@ -1,6 +1,6 @@
 # TrAIner — Plano de Uso Justo, Proteção de Custo e Prevenção de Abuso de IA
 
-**Estado:** Fase 0 em auditoria documental — nenhuma implementação autorizada
+**Estado:** Fases 0–1 em execução; Fase 2 activada em observação controlada — enforcement permanece bloqueado até haver evidência de uso real e aprovação específica
 **Última atualização:** 2026-08-05 — revisão lógica e inventário estático
 **Proprietário:** Product / Engineering / Privacy
 **Escopo:** todos os endpoints server-side com custo de IA — recursos de AI FITNESS/AI PERFORMANCE, operações do TRAINER e automações internas/onboarding
@@ -154,7 +154,7 @@ Resposta ao utilizador
 
 **Objetivo:** medir custo e comportamento normal antes de calibrar enforcement, sem registrar conteúdo sensível.
 
-**Proposta registrada:** [contrato de dados de telemetria](AI_TELEMETRY_DATA_CONTRACT.md) e migração revisável `supabase/sql-archive/supabase-ai-telemetry-20260805.sql`; retenção bruta proposta de 90 dias, HMAC por ator e escrita exclusivamente server-side. Ainda não aplicada.
+**Implementação activada:** [contrato de dados de telemetria](AI_TELEMETRY_DATA_CONTRACT.md) e migração revisável `supabase/sql-archive/supabase-ai-telemetry-20260805.sql`; retenção bruta de 90 dias, HMAC por ator e escrita exclusivamente server-side foram aplicados e auditados em produção em 2026-08-05. A flag `AI_USAGE_TELEMETRY_ENABLED=true` e o segredo HMAC estão configurados exclusivamente na Vercel Production.
 
 - [x] Criar tabela de eventos de uso de IA com RLS administrativa e retenção bruta de 90 dias; aplicada e auditada em produção em 2026-08-05.
 - [ ] Usar `request_id`/chave de operação única, gerada ou validada pelo servidor, para retries não duplicarem custo nem eventos.
@@ -163,12 +163,14 @@ Resposta ao utilizador
 - [ ] Registrar contadores do provedor quando disponíveis; quando indisponíveis, marcar estimativa e método — nunca fabricar precisão.
 - [ ] Calcular custo a partir de modelo, tokens/unidades, provedor, moeda e versão temporal do preço.
 - [ ] Criar agregados diários por plano, endpoint e assinante; evitar consultas analíticas pesadas em tabelas transacionais.
-- [x] Instrumentar emissão de sucesso minimizada nos oito endpoints; `generate-smart-workout` passa a usar o mesmo pipeline, ainda com telemetria feature-flagged desligada.
+- [x] Instrumentar emissão de sucesso minimizada nos oito endpoints; a emissão é feature-flagged e está activa em produção desde 2026-08-05.
 - [ ] Executar período de observação aprovado sem bloqueio automático e medir percentis de uso, concorrência, erros e custo por plano.
 - [ ] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor.
 - [ ] Garantir que falha de telemetria não duplica a chamada de IA nem expõe conteúdo em fallback de log.
 
 **Critério de aceite:** custo e distribuição de uso por plano/endpoint são mensuráveis com qualidade declarada; retries não duplicam eventos; nenhuma telemetria contém conteúdo ou dados de saúde.
+
+**Nota de verificação (2026-08-05):** uma tentativa de smoke test pelo navegador foi interrompida antes de qualquer chamada porque a aba disponível apresentava a tela de login. A consulta de produção confirmou `0` eventos totais e `0` eventos recentes; portanto, não houve geração nem escrita de telemetria indevida. Permanece pendente uma chamada normal por uma sessão autenticada já existente, sem o agente inserir credenciais.
 
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
@@ -238,7 +240,7 @@ Resposta ao utilizador
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8, welcome usa idempotência atómica HMAC activa em produção. Restam validação uniforme de schema/Content-Type e a camada pré-auth de rajada. |
-| 2 — Telemetria persistida | 🟨 Em desenho | 2026-08-05 | Contrato minimizado e migração de retenção de 90 dias preparados; pendentes de revisão/ativação antes de instrumentar endpoints. |
+| 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-05 | Tabela, RLS, view diária e retenção de 90 dias aplicadas e auditadas; emissão minimizada de sucesso nos 8 endpoints está activa em produção. A primeira amostra autenticada e a medição de período de observação permanecem pendentes. |
 | 3 — Termos e comunicação | ⬜ Não iniciada | — | — |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
