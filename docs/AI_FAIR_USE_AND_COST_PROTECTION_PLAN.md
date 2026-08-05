@@ -1,7 +1,7 @@
 # TrAIner — Plano de Uso Justo, Proteção de Custo e Prevenção de Abuso de IA
 
 **Estado:** Fases 0–1 em execução; Fase 2 activada em observação controlada — enforcement permanece bloqueado até haver evidência de uso real e aprovação específica
-**Última atualização:** 2026-08-05 — geração pós-deploy validou a dimensão de plano e o agregado diário em produção
+**Última atualização:** 2026-08-05 — idempotência de retries de treino inteligente validada em produção
 **Proprietário:** Product / Engineering / Privacy
 **Escopo:** todos os endpoints server-side com custo de IA — recursos de AI FITNESS/AI PERFORMANCE, operações do TRAINER e automações internas/onboarding
 
@@ -157,7 +157,7 @@ Resposta ao utilizador
 **Implementação activada:** [contrato de dados de telemetria](AI_TELEMETRY_DATA_CONTRACT.md) e migração revisável `supabase/sql-archive/supabase-ai-telemetry-20260805.sql`; retenção bruta de 90 dias, HMAC por ator e escrita exclusivamente server-side foram aplicados e auditados em produção em 2026-08-05. A flag `AI_USAGE_TELEMETRY_ENABLED=true` e o segredo HMAC estão configurados exclusivamente na Vercel Production.
 
 - [x] Criar tabela de eventos de uso de IA com RLS administrativa e retenção bruta de 90 dias; aplicada e auditada em produção em 2026-08-05.
-- [ ] Usar `request_id`/chave de operação única, gerada ou validada pelo servidor, para retries não duplicarem custo nem eventos.
+- [x] Usar `request_id`/chave de operação única, gerada ou validada pelo servidor, para retries não duplicarem custo nem eventos; UUID do cliente é HMAC-vinculado ao ator no backend e a resposta fica disponível somente por 10 minutos para o retry.
 - [x] Registrar sucesso, falha do provedor e rejeição pós-auth/pré-provedor sem prompt, transcrição, resposta ou dado de saúde.
 - [ ] Para tráfego anônimo, usar somente métricas agregadas/amostradas da camada pré-auth; não criar um evento persistente por tentativa que permita encher a tabela.
 - [x] Registrar contadores do provedor quando disponíveis; quando indisponíveis, marcar método como `unavailable` — nunca fabricar precisão.
@@ -191,6 +191,8 @@ Resposta ao utilizador
 **Custo e agregação (2026-08-05):** a migração `supabase-ai-telemetry-cost-and-aggregate-20260805.sql` foi aplicada em produção. Ela mantém um catálogo temporal e administrativo de preço, com a referência oficial da DeepSeek, e dois agregados diários: por plano/endpoint/resultado e por ator HMAC/endpoint/plano. `ai_usage_events` e o catálogo permanecem sob RLS, sem acesso público. O custo atual é explicitamente conservador (`cache_miss`) porque o provedor não retorna a separação de tokens de cache; não se afirma precisão que não existe.
 
 **Correção da dimensão de plano (2026-08-05):** o smoke posterior confirmou uma geração válida (`4.267` tokens), mas expôs que o resolvedor server-side retornava somente os grants e descartava o `planKey`; por isso, o evento ficou com plano nulo. A correção preserva o plano efetivo, resolvido exclusivamente no backend, junto aos entitlements e foi publicada no deploy `dpl_2YLPAUxxYvDFQmxqtsDNUBZg6iMc`. A geração pós-deploy confirmou a gravação de `plan_key=ai_fitness`: HTTP `200`, `2.318` tokens de entrada, `1.810` de saída e `4.128` no total. O agregado diário separou corretamente esse plano (`1` request, custo conservador de `831` micros USD). Eventos históricos não são reclassificados por inferência.
+
+**Idempotência de retries (2026-08-05):** a migração `supabase-ai-request-idempotency-20260805.sql` acrescentou resposta curta e expiração à tabela de claims HMAC já protegida por RLS. A aplicação gera um UUID por solicitação de treino e o backend o associa por HMAC ao ator autenticado; uma repetição recebe a resposta previamente concluída, sem nova chamada ao fornecedor. O smoke pós-deploy confirmou a geração normal e uma claim `smart_workout_generation` em estado `completed`, com resposta server-side presente e expiração de 10 minutos. A cobertura automatizada valida UUID, claim, resposta em cache e indisponibilidade fail-closed.
 
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
@@ -260,7 +262,7 @@ Resposta ao utilizador
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; todos exigem `Content-Type: application/json`; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e rejeita `items` inválido/excessivo antes do provedor, e as duas rotas de geração rejeitam payload acima de 128 mil caracteres. Welcome usa idempotência atómica HMAC activa em produção. CORS de chamadas autenticadas foi validado em produção. Restam validação uniforme de schema e a camada pré-auth de rajada. |
-| 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-05 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço e agregados diários foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. Smoke autenticado pós-deploy confirmou geração, tokens, `plan_key=ai_fitness` e o agregado diário por plano. Permanece o período de observação e a idempotência de retries. |
+| 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-05 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. Smoke autenticado pós-deploy confirmou geração, tokens, `plan_key=ai_fitness`, agregado diário por plano e claim concluída com cache de 10 minutos. Permanece o período de observação. |
 | 3 — Termos e comunicação | 🟨 Em rascunho interno | 2026-08-05 | Política de Uso Justo redigida para revisão; nenhum Termo, marketing ou texto público foi alterado. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
