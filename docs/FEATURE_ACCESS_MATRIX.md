@@ -86,9 +86,11 @@ feature_permissions (Supabase)
 
 **Correção 2026-08-04:** Studio Branding e Marketplace estavam documentados como "✅" para PRO/ELITE, mas nunca tiveram UI implementada — permanecem com badge "Em breve" em `PlansScreen.tsx` (confirmado por captura de ecrã da produção). Consistente com §4, que já documentava `studio.branding`/`marketplace.*` como "UI pendente".
 
-| Funcionalidade | Descrição | TRIAL | PRO | ELITE |
+**Correção 2026-08-05 (Fase 6):** PRO deixou de ser um degrau único (50 clientes) — passou a 3 faixas seleccionáveis (PRO 5/15/30), com preço próprio cada, renderizadas num único card com selector na UI (`PlansScreen.tsx`). ELITE inalterado.
+
+| Funcionalidade | Descrição | TRIAL | PRO (5 / 15 / 30) | ELITE |
 |---|---|:---:|:---:|:---:|
-| **Clientes activos (limite)** | Nº máximo de alunos que o treinador pode gerir em simultâneo na conta | 3 | 50 | Ilimitado |
+| **Clientes activos (limite)** | Nº máximo de alunos que o treinador pode gerir em simultâneo na conta | 3 | 5 / 15 / 30 (à escolha) | Ilimitado |
 | **Coach DNA** | Motor que codifica a metodologia própria do treinador (estrutura de blocos, princípios) para a IA gerar planos alinhados ao seu método | ❌ | ✅ | ✅ |
 | **Studio Branding** | Marca própria (logo/cores) no espaço/app voltado ao aluno | ❌ | 🔜 (UI pendente) | 🔜 (UI pendente) |
 | **Marketplace — listagem** | Perfil do treinador visível no marketplace do TrAIner para novos alunos o encontrarem | ❌ | ❌ | 🔜 (UI pendente) |
@@ -115,13 +117,13 @@ O limite `clients.limit` é validado em dois pontos:
 
 | feature_key | Tipo | Usado em | **Configurado** | **Aplicado?** |
 | --- | --- | --- | --- | --- |
-| `ai.workout_generation` | boolean | StartWorkoutScreen (gate mais fundamental — se a IA gera o treino de todo) | ✅ `true` nos 6 planos | não auditado por este plano |
+| `ai.workout_generation` | boolean | StartWorkoutScreen (gate mais fundamental — se a IA gera o treino de todo) | ✅ `true` nos 6 planos | ✅ autoridade de servidor (Fase 2, `api/_lib/entitlements.ts`), confirmado com chamada real após a correcção do bug de import ESM (§Fase 2 do plano de licenciamento) |
 | `scores.basic` | boolean | PerformanceDashboardScreen | ✅ | ✅ |
 | `scores.advanced` | boolean | (legacy — sem leitor na UI; `progress.fitness_advanced`/`progress.performance` substituem) | ✅ (histórico, todos os planos) | — (código morto) |
 | `ai.checkin_adjustment` | boolean | StartWorkoutScreen | ✅ | ✅ |
 | `ai.advanced_analysis` | boolean | StartWorkoutScreen | ✅ | ✅ |
 | `coach_dna` | boolean | CoachDNAScreen | ✅ | ✅ |
-| `clients.limit` | integer cap | TrainerDashboardScreen + api/send-invitation.ts | ✅ TRIAL=3, PRO=50, ELITE=∞ | ✅ (frontend + backend, ver §3) |
+| `clients.limit` | integer cap | TrainerDashboardScreen + api/send-invitation.ts | ✅ TRIAL=3, **PRO 5/15/30** (substituiu o degrau único de 50 — Fase 6, 2026-08-05), ELITE=∞ | ✅ (frontend + backend, ver §3) |
 | `studio.branding` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
 | `marketplace.listing` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
 | `marketplace.revenue_share` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
@@ -129,7 +131,7 @@ O limite `clients.limit` é validado em dois pontos:
 | `workout.sessions_per_week` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=1, AI Fitness=7, AI Performance=∞; PRO/ELITE=∞ (explícito desde 2026-08-04, key não se aplica à conta do treinador) | ✅ servidor (Fase 2 do plano de licenciamento, `api/_lib/entitlements.ts`, confirmado com chamada real) |
 | `workout.exercises_per_session` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=**6** (não 2 — corrigido 2026-08-03), resto=∞ | ✅ caminho de IA (Fase 2, `cutExerciseCount`, medido 0 violações); ✅ fallback local (Fase 0 do plano de continuidade); ✅ autoridade de servidor (Fase 2 do plano de licenciamento) |
 | `workout.exercise_type` | integer encoded | ~~StartWorkoutScreen (geração IA)~~ **legado, não lido** | 🔜 retirado como gate comercial (Fase 5 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`, 2026-08-05) — categoria de exercício deixa de ser diferenciador de preço; keys/linhas mantidas no catálogo, sem leitor | — `enforceCategoryFilter` é no-op permanente por construção (`fitnessOnly` resolvido a `false` na fonte única, `api/_lib/entitlements.ts`), não por omissão |
-| `trainer_plan.days_per_week` | integer cap | StartWorkoutScreen (plano do treinador) | ✅ FREE=1, AI Fitness=3, AI Performance=∞; PRO/ELITE=∞ (explícito desde 2026-08-04) | ❌ RLS de `workout_sessions` não valida plano na escrita (auditoria §3.3) — frontend-only; a Fase 4 do plano de licenciamento elimina a key por perda de uso em vez de corrigir a RLS |
+| `trainer_plan.days_per_week` | integer cap | ~~StartWorkoutScreen (plano do treinador)~~ **legado, não lido** | 🔜 retirado (Fase 4 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`, 2026-08-04) — plano prescrito nunca é filtrado pelo tier do próprio aluno; keys/linhas mantidas no catálogo, sem leitor | — RLS de `workout_sessions` continuava sem validar plano na escrita (auditoria §3.3), mas ficou sem função depois da key deixar de ser lida — não por correcção da RLS |
 | `progress.fitness_advanced` | boolean | PerformanceDashboardScreen (alcançável por aluno e por treinador no próprio uso) | ✅ inclui PRO/ELITE desde 2026-08-04 (corrige auditoria §3.5.1) | ✅ |
 | `progress.performance` | boolean | PerformanceDashboardScreen (alcançável por aluno e por treinador no próprio uso) | ✅ inclui PRO/ELITE desde 2026-08-04 (corrige auditoria §3.5.1) | ✅ |
 
@@ -141,21 +143,23 @@ O limite `clients.limit` é validado em dois pontos:
 
 ---
 
-## 5. Feature Keys Implementadas (Fases 0–8)
+## 5. Feature Keys Implementadas (Fases 0–8) — ⚠️ ARQUIVO HISTÓRICO
+
+> **Higiene documental, 2026-08-05 (Fase 7 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`):** esta secção é a proposta original de 2026-06-17, escrita **antes** da implementação — daí o título "Implementadas" contradizer o corpo do texto ("são necessárias", "seed proposto"). Todas as keys abaixo foram implementadas há muito e o estado real, verificado ao vivo, está em **§4 acima** — é essa a fonte de verdade, não esta secção. Mantida apenas como registo histórico do desenho original; **não editar como se fosse estado actual.** Duas divergências entre o proposto aqui e o implementado, para quem consultar este histórico: `workout.exercise_type` foi implementado como `integer encoded` (`limit_value`), não como `string enum` como proposto aqui; e foi **retirado como gate comercial na Fase 5** (2026-08-05) — deixou de ser diferenciador de preço.
 
 Para implementar as regras dos planos de cliente definidas nesta sessão, são necessárias as seguintes feature keys novas:
 
-| feature_key | Tipo | Descrição |
+| feature_key | Tipo (proposto aqui, 2026-06-17) | Descrição |
 |---|---|---|
 | `workout.sessions_per_week` | integer cap | Máximo de sessões semanais geradas pela IA (1, 7, null=∞) |
 | `workout.exercises_per_session` | integer cap | Máximo de exercícios por sessão IA (2, null=∞) |
-| `workout.exercise_type` | string enum | Tipo permitido: `'fitness'` ou `'all'` |
+| `workout.exercise_type` | string enum *(implementado como `integer encoded` — ver nota acima)* | Tipo permitido: `'fitness'` ou `'all'` |
 | `checkin.full` | boolean | Acesso ao Check-in Completo |
 | `trainer_plan.days_per_week` | integer cap | Dias do plano do treinador activos por semana (1, 3, null=∞) |
 | `progress.fitness_advanced` | boolean | Métricas fitness avançadas no Progresso |
 | `progress.performance` | boolean | Métricas de desempenho no Progresso (ATL/CTL/TSB etc.) |
 
-### Seed proposto (clientes)
+### Seed proposto (clientes) — histórico, valores de 2026-06-17, não o estado actual (ver §4)
 
 ```sql
 -- workout.sessions_per_week
@@ -233,10 +237,10 @@ Para implementar as regras dos planos de cliente definidas nesta sessão, são n
 | Localização | Tipo | Risco |
 |---|---|---|
 | `PerformanceDashboardScreen.tsx:658-668` | `ADVANCED_SCORE_CODES` hardcoded como Set de strings | Baixo — lista de scores, não planos; isolada no componente |
-| `StartWorkoutScreen.tsx:465-473` | `gatedStatsCtx` com valores numéricos (50, 20, 10, 70) para scores truncados | Médio — valores arbitrários que substituem scores reais; sem impacto funcional mas difícil de manter |
+| ~~`StartWorkoutScreen.tsx:465-473`~~ **Corrigido 2026-08-05 (Fase 5.1)** | ~~`gatedStatsCtx` com valores numéricos (50, 20, 10, 70) para scores truncados~~ Substituído por `buildStatsContext(m5)` — dado real, não constante | Era **médio, com impacto funcional real** (não "sem impacto" como avaliado aqui originalmente) — era a razão de a IA nunca reagir à carga que ela própria prescrevia. Ver Fase 5.1 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md` |
 | `App.tsx:77,80` | Defaults de preferências UI (sessionHistoryLimit: 50, etc.) | Nenhum — são preferências de UI, não feature gates |
 
-**Conclusão:** Zero hardcoded plan_key checks. Todo o gating é data-driven. Os 3 pontos acima são isoláveis e não bloqueiam a implementação da nova matriz.
+**Conclusão:** Zero hardcoded plan_key checks. Todo o gating é data-driven. Dos 3 pontos acima, o de `StartWorkoutScreen.tsx` já foi corrigido (Fase 5.1); os outros dois seguem isolados e sem impacto.
 
 ---
 

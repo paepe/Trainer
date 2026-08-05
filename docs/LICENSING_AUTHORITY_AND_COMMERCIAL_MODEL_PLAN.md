@@ -1,7 +1,7 @@
 # Plano — Autoridade de Licenciamento e Modelo Comercial
 
 **Data:** 2026-08-04
-**Estado:** Fases 0, 1 e 2 concluídas (sucesso) — os 3 gates de IA têm agora autoridade real no servidor. Fase 3 é a próxima.
+**Estado:** Fases 0–7 concluídas (2026-08-05). Único item em aberto: verificação ao vivo do cenário multi-plano da Fase 4 (deferida por decisão do utilizador — dado de teste indisponível, não pendência de código). Ver `docs/LICENSING_EXECUTIVE_SUMMARY.docx` para a síntese executiva.
 **Base:** `docs/BILLING_FEATURE_MODEL_AUDIT_20260804.md` (auditoria técnica) + `ANALISE_COMERCIAL_FEATURE_ACCESS_MATRIX_TRAINER_20260804.md` (visão comercial)
 **Governança:** `policies/references/PROFILE.md` · `policies/references/EXECUTIVE_TECHNOLOGY_DIRECTIVE.md`
 
@@ -78,7 +78,7 @@ Derivados de `EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` e `PROFILE.md` §Quality Direct
 | 5 | Fitness×Performance por planeamento (comercial #2 — **decidida**) | — | ✅ Concluída — 1 ramo não verificado ao vivo (ver §Fase 5) | 2026-08-05 |
 | 5.1 | Carga real como input da geração (achado, não só correcção) | — | ✅ Concluída — sucesso, 1 ramo não verificado ao vivo | 2026-08-05 |
 | 6 | Faixas de clientes e tiers de treinador (comercial #3 — **decidida**) | — | ✅ Concluída — sucesso, stripe_price_id adiado por decisão | 2026-08-05 |
-| 7 | Higiene documental + artefacto executivo | — | ⬜ Pendente | — |
+| 7 | Higiene documental + artefacto executivo | — | ✅ Concluída — sucesso | 2026-08-05 |
 
 **Legenda:** ⬜ Pendente · 🟡 Em curso · ✅ Concluída · ⛔ Bloqueada
 
@@ -368,15 +368,20 @@ Sem esta correcção, a Fase 5 construiria um dashboard que informa o aluno de u
 
 ---
 
-### Fase 7 — Higiene documental e artefacto executivo ⬜
+### Fase 7 — Higiene documental e artefacto executivo ✅ Concluída (2026-08-05)
 
 **Esforço:** ~3h
 
-- [ ] Corrigir as inconsistências confirmadas em auditoria §4: `workout.exercise_type` (`integer encoded` vs `string enum`), título "Implementadas" vs "seed proposto", nota de override ambígua, seed histórico com valor 2
-- [ ] Actualizar a coluna "Aplicado?" com o estado real pós-Fases 2-3
-- [ ] Corrigir `plan_prices.label` do trial (diz "14 dias"; a UI mostra 21 via i18n — dado morto)
-- [ ] Regenerar o `.docx` executivo **com render visual verificado** (instalar LibreOffice; converter para PDF e inspeccionar página a página). O artefacto anterior cortou as colunas AI PERFORMANCE e ELITE — as colunas de decisão
-- [ ] Fechar este plano com registo de medições reais
+- [x] Corrigidas as inconsistências de `FEATURE_ACCESS_MATRIX.md`: `workout.exercise_type` (marcado `integer encoded`, consistente com §4; §5 anotado com a divergência histórica); §5 rotulado explicitamente como **arquivo histórico** (a contradição "Implementadas"/"são necessárias"/"seed proposto" era porque essa secção é a proposta original de 2026-06-17, nunca actualizada após a implementação — resolvida apontando §4 como fonte de verdade, não reescrevendo prosa que ficaria stale de novo)
+- [x] Coluna "Aplicado?" actualizada: `ai.workout_generation` (estava "não auditado", é o gate central da Fase 2), `clients.limit` (PRO 50→5/15/30, Fase 6), `trainer_plan.days_per_week` (retirado, Fase 4 — nota antiga ainda dizia "a Fase 4 elimina" no futuro, já aconteceu)
+- [x] `plan_prices.label` do trial corrigido em produção: "14 dias" → "21 dias" (dado morto — a UI já mostrava 21 via i18n havia muito)
+- [x] `.docx` executivo regenerado **com render visual verificado** — LibreOffice instalado nesta sessão (não estava presente no ambiente), gerado com `docx` (npm) em **landscape** (o defeito anterior era portrait com tabelas de 4-5 colunas que não cabiam na largura — corrigido usando orientação landscape + tabelas mais enxutas, focadas em audiência executiva, não a matriz técnica completa), convertido para PDF e inspeccionado página a página (3 páginas, nenhuma coluna cortada). Ver `docs/LICENSING_EXECUTIVE_SUMMARY.docx`
+- [x] Plano fechado com registo de medições reais — ver Painel de Estado (§2) e Registo de Decisões (§5), actualizados ao longo de todas as fases, nunca só no fecho
+
+**Resultado real:**
+- ✅ `FEATURE_ACCESS_MATRIX.md` sem inconsistências pendentes da auditoria §4 (itens 1, 2, 3, 6 da tabela de status)
+- ✅ Dado de produção corrigido: `plan_prices` (trial, label)
+- ✅ `docs/LICENSING_EXECUTIVE_SUMMARY.docx` — 3 páginas, landscape, render verificado via `soffice --convert-to pdf` + `pdftoppm` + inspecção visual de cada página (não presumido)
 
 ---
 
