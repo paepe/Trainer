@@ -110,6 +110,7 @@ Expected output format:
     const data = await response.json() as {
       choices?: { message?: { content?: string } }[];
       error?:   { message?: string };
+      usage?:   { prompt_tokens?: number; completion_tokens?: number };
     };
 
     if (!response.ok) {

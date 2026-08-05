@@ -392,7 +392,7 @@ describe('enforceCategoryFilter (Fase 3, category filter active)', () => {
         { name: 'Box Jump', category: 'performance' },
       ] },
     ]);
-    const { workout, report } = enforceCategoryFilter(w, true);
+    const { workout, report } = enforceCategoryFilter(w!, true);
     const names = workout.phases[0]!.exercises.map(e => e.name);
     expect(names).toEqual(['Kettlebell Swing']);
     expect(report.removedExercises).toEqual([{ name: 'Box Jump', phase: 'conditioning', reason: 'category' }]);
@@ -402,7 +402,7 @@ describe('enforceCategoryFilter (Fase 3, category filter active)', () => {
     const w = workoutWith([
       { phase: 'conditioning', exercises: [{ name: 'Box Jump', category: 'performance' }] },
     ]);
-    const { workout, report } = enforceCategoryFilter(w, false);
+    const { workout, report } = enforceCategoryFilter(w!, false);
     expect(workout.phases[0]!.exercises).toHaveLength(1);
     expect(report.removedExercises).toEqual([]);
   });
@@ -414,7 +414,7 @@ describe('enforceCategoryFilter (Fase 3, category filter active)', () => {
         { name: 'Sprint', category: 'performance' },
       ] },
     ]);
-    const { workout, report } = enforceCategoryFilter(w, true);
+    const { workout, report } = enforceCategoryFilter(w!, true);
     expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Box Jump']);
     expect(report.forcedNonEmptyPhases).toEqual(['conditioning']);
     expect(report.removedExercises).toEqual([{ name: 'Sprint', phase: 'conditioning', reason: 'category' }]);
@@ -427,7 +427,7 @@ describe('enforceCategoryFilter (Fase 3, category filter active)', () => {
         { name: 'Kettlebell Swing' /* no category */ },
       ] },
     ]);
-    const { workout, report } = enforceCategoryFilter(w, true);
+    const { workout, report } = enforceCategoryFilter(w!, true);
     expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Kettlebell Swing']);
     expect(report.removedExercises).toEqual([{ name: '40m Sprint', phase: 'conditioning', reason: 'name-heuristic' }]);
   });
@@ -442,7 +442,7 @@ describe('enforceCategoryFilter (Fase 3, category filter active)', () => {
         { name: 'Sprint Intervals', category: 'fitness' },
       ] },
     ]);
-    const { workout, report } = enforceCategoryFilter(w, true);
+    const { workout, report } = enforceCategoryFilter(w!, true);
     expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Bicep Curl', 'Sprint Intervals']);
     expect(report.removedExercises).toEqual([]);
   });
@@ -459,7 +459,7 @@ describe('enforceCategoryFilter (Fase 3, category filter active)', () => {
         { name: '40m Sprint' /* no category */ },
       ] },
     ]);
-    const { workout, report } = enforceCategoryFilter(w, true);
+    const { workout, report } = enforceCategoryFilter(w!, true);
     expect(workout.phases[0]!.exercises.map(e => e.name)).toEqual(['Kettlebell Swing', 'Jumping Jacks']);
     expect(report.removedExercises).toEqual([{ name: '40m Sprint', phase: 'warmup', reason: 'name-heuristic' }]);
   });

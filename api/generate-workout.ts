@@ -421,7 +421,11 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
       throw new Error(`DeepSeek returned non-JSON (${response.status}): ${text.slice(0, 200)}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as {
+      choices?: { message?: { content?: string }; finish_reason?: string }[];
+      error?: { message?: string };
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
+    };
 
     if (!response.ok) {
       throw new Error(data.error?.message || 'DeepSeek request failed');
