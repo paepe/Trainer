@@ -26,22 +26,28 @@ O produto não exibirá contador de uso para clientes AI FITNESS/AI PERFORMANCE.
 
 ## 2. Estado inicial verificado
 
-| Endpoint com custo de IA | Autenticação própria | Autorização de função/entitlement | Limite de payload | Telemetria de custo |
+| Endpoint com custo de IA | Autenticação própria | Autorização de função/entitlement | Máx. de chamadas ao provedor por request | Telemetria de custo |
 |---|:---:|:---:|:---:|:---:|
-| `generate-smart-workout` | ✅ | ✅ entitlement do aluno + vínculo | Parcial | Log de tokens |
-| `generate-workout` | ✅ | ⚠️ sem gate explícito de `ai.workout_generation` | Parcial | Ausente |
-| `translate-exercise-content` | ✅ | ⚠️ autenticado, sem gate comercial específico | ✅ 300 itens × 300 caracteres | Ausente |
-| `parse-voice` | ❌ | ❌ | ❌ | Ausente |
-| `cleanup-voice-note` | ❌ | ❌ | ❌ | Ausente |
-| `generate-amplified` | ❌ | ❌; recebe perfil potencialmente sensível | ❌ | Ausente |
-| `classify-exercises` | ❌ | ❌; deve ser operação de TRAINER | Parcial: 50 itens, sem teto por campo | Ausente |
-| `send-welcome-message` | ❌ | ❌; usa service role com IDs fornecidos pelo cliente | ❌ | Ausente |
+| `generate-smart-workout` | ✅ | ✅ entitlement do aluno + vínculo | 1 | Log de tokens |
+| `generate-workout` | ✅ | ⚠️ sem gate explícito de `ai.workout_generation` | 1 | Ausente |
+| `translate-exercise-content` | ✅ | ⚠️ autenticado, sem gate comercial específico | **até 300 concorrentes** em cache miss | Ausente |
+| `parse-voice` | ❌ | ❌ | 1 | Ausente |
+| `cleanup-voice-note` | ❌ | ❌ | 1 | Ausente |
+| `generate-amplified` | ❌ | ❌; recebe perfil potencialmente sensível | 1 | Ausente |
+| `classify-exercises` | ❌ | ❌; deve ser operação de TRAINER | 1 | Ausente |
+| `send-welcome-message` | ❌ | ❌; usa service role com IDs fornecidos pelo cliente | 1 | Ausente |
 
 **Controles transversais verificados:** limite FREE de 1 sessão autónoma/semana e autoridade de entitlement existem em `generate-smart-workout`; rate limiting, agregação por assinante, alertas e Política de Uso Justo não existem. O tratamento amigável de erro de rate limit no cliente não constitui proteção server-side.
 
 **Prioridade corrigida:** a exposição imediata não se limita a `parse-voice`. `generate-amplified` e os dois endpoints de voz tratam conteúdo potencialmente sensível; `send-welcome-message` combina custo de IA e service role. Os cinco endpoints sem autenticação própria entram na Fase 1.
 
 **Achado de privacidade:** `parse-voice` registra hoje a transcrição integral em `console.warn` quando a extração resulta vazia. Esse log contém potencial dado de saúde e deve ser removido na Fase 1; a correção não pode esperar a telemetria da Fase 2.
+
+**Achado de fluxo/custo:** `translate-exercise-content` processa os itens ausentes com `Promise.all`; uma chamada autenticada de até 300 itens pode iniciar até 300 chamadas concorrentes ao provedor. O teto de payload não é um teto econômico. A Fase 1 deve limitar fan-out e a Fase 4 deve limitá-lo também por ator.
+
+**Achado de entrega:** `send-welcome-message` chama `send-notification` sem credencial e ignora a resposta. Como `send-notification` exige autenticação, a geração pode custar sem a mensagem ser entregue. A Fase 1 precisa de uma entrega interna autorizada, verificável e idempotente; não deve apenas adicionar um token do cliente a essa chamada.
+
+**Achado de consentimento:** `cleanup-voice-note` é usado no check-in, na filosofia do Coach DNA, em notas de plano do TRAINER e nos passos de objetivos, histórico de movimento, saúde declarada, comorbidades e fatores sensíveis do onboarding. Os três últimos podem ocorrer antes do passo de consentimento. Além disso, `generate-amplified` remove `sensitive_factors`/`body_rhythm`, mas ainda pode enviar saúde declarada e comorbidades ao provedor. A Fase 1 exige uma decisão explícita de consentimento e minimização antes de alterar esses fluxos.
 
 ---
 
@@ -96,9 +102,13 @@ Resposta ao utilizador
 
 - [x] Inventariar estaticamente os oito endpoints que chamam o provedor de IA, autenticação, autorização, payload e telemetria — revisão de 2026-08-05 registrada no §2.
 - [ ] Confirmar em execução os oito fluxos e identificar a pessoa/entidade que deve ser cobrada em cada um.
+- [x] Identificar fan-out econômico estático: `translate-exercise-content` pode disparar até 300 chamadas concorrentes em um único request de cache miss.
+- [x] Identificar dependência quebrada de entrega: `send-welcome-message` não autentica a chamada interna a `send-notification` e não valida seu resultado.
 - [ ] Distinguir funções comerciais (`voice`, geração, análise) de operações internas (`classify`, tradução, welcome), aplicando autorização por papel e propósito.
-- [ ] Mapear os propósitos distintos de `cleanup-voice-note` (check-in, onboarding do aluno e Coach DNA) antes de associá-lo a um único entitlement.
+- [x] Mapear os propósitos de `cleanup-voice-note`: check-in, Coach DNA, nota de plano do TRAINER e onboarding (objetivos, histórico de movimento, saúde declarada, comorbidades e fatores sensíveis).
+- [ ] Decidir o consentimento exigido para cada propósito e a minimização do payload de `generate-amplified`; não assumir que ausência de consentimento equivale a permissão.
 - [ ] Definir limites duros de payload e concorrência a partir da UX real de cada fluxo.
+- [ ] Definir teto de fan-out por request e estratégia de batching/fila para tradução; o teto deve limitar chamadas reais ao provedor, não apenas itens recebidos.
 - [ ] Definir sinais de abuso: chamadas concorrentes, repetição idêntica, volume inviável para uso humano e padrões distribuídos por conta/rede.
 - [ ] Aprovar modelo de telemetria, idempotência, cálculo de custo, retenção, RLS e descarte conforme minimização e GDPR.
 - [ ] Definir HMAC/rotação do sinal de rede ou decidir formalmente não usá-lo.
@@ -106,6 +116,12 @@ Resposta ao utilizador
 - [ ] Obter aprovação explícita de Product, Privacy e Engineering para o desenho; thresholds de enforcement permanecem provisórios até a Fase 2 medir uso real.
 
 **Critério de aceite:** inventário validado em execução, identidade cobrada, autorização, modelo de dados, retenção, degradação e ameaças aprovados. Nenhum threshold definitivo é escolhido antes da telemetria.
+
+### Decisão pendente D0.1 — processamento externo de dados de saúde por IA
+
+**Recomendação técnica e de privacidade:** regra **default-deny**. Antes de um consentimento `allow_ai_adaptation=true` já persistido, nenhum texto de onboarding é enviado ao provedor externo de IA; o reconhecimento de voz continua utilizável com o texto bruto local. Após consentimento, o backend aceita somente o propósito autorizado e um payload minimizado. `generate-amplified` deve receber apenas dados operacionais necessários, nunca texto livre clínico, transcrições, medicação, saúde emocional ou fatores/ciclo sensíveis brutos.
+
+Esta decisão preserva o onboarding e evita inferir consentimento a partir de ausência de dado. Ela é gate da Fase 1 para `cleanup-voice-note` e `generate-amplified`.
 
 ### Fase 1 — Fechar exposição imediata dos endpoints de IA
 
@@ -118,9 +134,11 @@ Resposta ao utilizador
 - [ ] Em `generate-amplified`, vincular o perfil ao próprio caller e exigir consentimento de IA aplicável.
 - [ ] Em `classify-exercises`, exigir papel TRAINER e validar tamanho de cada campo, além do lote de 50.
 - [ ] Em `send-welcome-message`, validar que o caller é o aluno destinatário ou TRAINER autorizado e que existe vínculo/convite aceito; nunca confiar apenas em `studentId`/`trainerId`.
-- [ ] Tornar `send-welcome-message` idempotente por aceite de convite para impedir replays que gerem custo e notificações duplicadas.
+- [ ] Substituir a chamada interna sem credencial por uma capacidade server-to-server restrita ou escrita transacional autorizada no outbox de notificações; exigir confirmação de entrega antes de concluir a operação.
+- [ ] Tornar `send-welcome-message` idempotente por aceite de convite: só gravar o marcador de conclusão após a mensagem ser persistida/encaminhada com sucesso, para impedir custo duplicado e perda silenciosa de entrega.
 - [ ] Em `generate-workout`, aplicar autorização comercial equivalente ao caminho smart ou documentar por que é uma operação interna coberta.
 - [ ] Validar método, `Content-Type`, esquema, tamanho máximo do body/campos, timeout e concorrência por request em todos os endpoints.
+- [ ] Limitar fan-out interno: `translate-exercise-content` não pode disparar uma chamada por item sem teto de concorrência, batching ou deduplicação server-side.
 - [ ] Aplicar proteção pré-auth emergencial, ampla e conservadora, nos cinco endpoints hoje anônimos; a política pós-auth calibrada continua na Fase 4.
 - [ ] Adotar resposta uniforme: `401` anônimo, `403` sem papel/entitlement/vínculo, `400/413` payload inválido/excessivo.
 - [ ] Testar que rejeições ocorrem antes de Supabase service role ou provedor de IA.
