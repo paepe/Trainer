@@ -105,24 +105,29 @@ async function storeTranslations(rows: CacheRow[]): Promise<void> {
   }
 }
 
+interface TranslationResult {
+  translations: Map<string, string>;
+  providerFailures: number;
+}
+
 async function translateMissing(
   texts: string[], sourceLocale: SupportedLocale, targetLocale: SupportedLocale,
-): Promise<Map<string, string>> {
+): Promise<TranslationResult> {
   const result = new Map<string, string>();
-  if (texts.length === 0) return result;
+  if (texts.length === 0) return { translations: result, providerFailures: 0 };
 
   // Same locale on both sides — identity, no model call needed (docs/
   // EXERCISE_NAME_LANGUAGE_PREFERENCE_PLAN.md, Fase 3 checklist).
   if (sourceLocale === targetLocale) {
     for (const t of texts) result.set(t, t);
-    return result;
+    return { translations: result, providerFailures: 0 };
   }
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     console.error('[translate-exercise-content] DEEPSEEK_API_KEY not set — returning source text unchanged');
     for (const t of texts) result.set(t, t);
-    return result;
+    return { translations: result, providerFailures: 1 };
   }
 
   const sourceLang = LOCALE_TO_LANG[sourceLocale];
@@ -155,6 +160,7 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
   // The bounded worker pool preserves that isolation while limiting the real
   // provider fan-out of a single cache miss.
   let nextIndex = 0;
+  let providerFailures = 0;
   const worker = async () => {
     while (nextIndex < texts.length) {
       const original = texts[nextIndex++];
@@ -192,6 +198,7 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
         // the client from seeing their workout; fall back to the raw source
         // text for this item only, not the whole request.
         console.error('[translate-exercise-content] DeepSeek call failed');
+        providerFailures += 1;
         result.set(original, original);
       }
     }
@@ -201,7 +208,7 @@ Respond with ONLY the result, nothing else — no quotes, no markdown.`;
     () => worker(),
   ));
 
-  return result;
+  return { translations: result, providerFailures };
 }
 
 interface VercelRequest  { method?: string; body?: { items?: { text?: string }[]; sourceLocale?: string; targetLocale?: string }; headers?: Record<string, string | string[] | undefined> }
@@ -258,10 +265,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const cached = await fetchCached(texts, sourceLocale, targetLocale);
   const missing = texts.filter(t => !cached.has(t));
-  const fresh = await translateMissing(missing, sourceLocale, targetLocale as SupportedLocale);
+  const translation = await translateMissing(missing, sourceLocale, targetLocale as SupportedLocale);
+  const fresh = translation.translations;
 
   if (missing.length > 0) {
-    await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'succeeded', httpStatus: 200, provider: 'deepseek', model: 'deepseek-chat' });
+    await emitAIUsageEvent({
+      actorId: authed.id,
+      endpoint: 'translate-exercise-content',
+      outcome: translation.providerFailures > 0 ? 'degraded' : 'succeeded',
+      httpStatus: 200,
+      rejectionCode: translation.providerFailures > 0 ? 'provider_partial_failure' : undefined,
+      provider: 'deepseek',
+      model: 'deepseek-chat',
+    });
   }
 
   // Awaited, not fire-and-forget: a serverless function's process can be

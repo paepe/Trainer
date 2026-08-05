@@ -219,12 +219,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const parsed = JSON.parse(match[0]) as { message?: string };
       messageText = parsed.message?.trim() ?? '';
+    } catch (err) {
+      const timedOut = (err as Error)?.name === 'AbortError';
+      await emitAIUsageEvent({
+        actorId: caller.id,
+        endpoint: 'send-welcome-message',
+        outcome: 'provider_failed',
+        httpStatus: timedOut ? 504 : 500,
+        provider: 'deepseek',
+        model: 'deepseek-chat',
+      });
+      throw err;
     } finally {
       clearTimeout(timeout);
     }
 
     if (!messageText) {
       await releaseAIOperation(operationKey);
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'provider_failed', httpStatus: 502, provider: 'deepseek', model: 'deepseek-chat' });
       return res.status(502).json({ error: 'AI returned an empty welcome message' });
     }
 
@@ -249,6 +261,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!logRes.ok) {
       console.error('[send-welcome-message] notification_log insert failed:', logRes.status);
       await releaseAIOperation(operationKey);
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'degraded', httpStatus: 502, rejectionCode: 'delivery_persist_failed', provider: 'deepseek', model: 'deepseek-chat' });
       return res.status(502).json({ error: 'Welcome delivery could not be persisted' });
     }
 
