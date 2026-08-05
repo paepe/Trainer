@@ -176,7 +176,7 @@ Resposta ao utilizador
 
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.
 
-- [ ] Redigir Política de Uso Justo com exemplos de uso pessoal normal e abuso, sem converter o plano em quota visível.
+- [x] Redigir rascunho interno da Política de Uso Justo com exemplos de uso pessoal normal e abuso, sem converter o plano em quota visível — [AI_FAIR_USE_POLICY_DRAFT.md](AI_FAIR_USE_POLICY_DRAFT.md), pendente de revisão jurídica/privacidade e publicação.
 - [ ] Inserir a cláusula aprovada nos Termos, com revisão jurídica e de privacidade.
 - [ ] Manter “Ilimitado” no marketing de AI FITNESS e AI PERFORMANCE.
 - [ ] Criar textos UX localizados para `429`, degradação e contenção temporária, com canal de suporte.
@@ -241,7 +241,7 @@ Resposta ao utilizador
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e rejeita `items` inválido/excessivo antes do provedor, welcome usa idempotência atómica HMAC activa em produção. CORS de chamadas autenticadas foi validado em produção. Restam validação uniforme de schema/Content-Type e a camada pré-auth de rajada. |
 | 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-05 | Tabela, RLS, view diária e retenção de 90 dias aplicadas e auditadas; emissão minimizada de sucesso nos 8 endpoints está activa em produção. A primeira amostra autenticada e a medição de período de observação permanecem pendentes. |
-| 3 — Termos e comunicação | ⬜ Não iniciada | — | — |
+| 3 — Termos e comunicação | 🟨 Em rascunho interno | 2026-08-05 | Política de Uso Justo redigida para revisão; nenhum Termo, marketing ou texto público foi alterado. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
 | 6 — Produção e governança | ⬜ Não iniciada | — | — |
