@@ -147,6 +147,7 @@ export function Step04MovementHistory({ dark, primary, accent, data, onUpdate, o
         {voiceOpen && (
           <WizardVoiceOverlay dark={dark} primary={primary}
             context={tr('wizard.step04.voiceContext')}
+            allowExternalAI={data.consent?.allow_ai_adaptation === true}
             onConfirm={(text) => {
               setAH({ ...ah, voice_note: text });
               setVoiceOpen(false);

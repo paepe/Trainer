@@ -116,6 +116,7 @@ export function Step09SensitiveFactors({ dark, primary, accent, data, onUpdate, 
       {voiceOpen && (
         <WizardVoiceOverlay dark={dark} primary={primary}
           context={tr('wizard.step09.voiceContext')}
+          allowExternalAI={data.consent?.allow_ai_adaptation === true}
           onConfirm={(text) => {
             onUpdate({ sensitive_factors: { ...sf, voice_note: text } });
             setVoiceOpen(false);

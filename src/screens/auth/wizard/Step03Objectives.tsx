@@ -101,6 +101,7 @@ export function Step03Objectives({ dark, primary, accent: _accent, data, onUpdat
       {voiceOpen && (
         <WizardVoiceOverlay dark={dark} primary={primary}
           context={tr('wizard.step03.voiceContext')}
+          allowExternalAI={data.consent?.allow_ai_adaptation === true}
           onConfirm={(text) => {
             if (obj.primary_goal) {
               onUpdate({ objectives: { ...obj, primary_goal: obj.primary_goal, secondary_goals: secondaryGoals, voice_note: text } });

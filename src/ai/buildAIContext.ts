@@ -62,7 +62,9 @@ export function buildClientContext(
   if (risk?.flags.ai_privacy_masking_required) riskFlags.push('ai_privacy_masking_required');
   if (risk?.flags.safety_gate_required)        riskFlags.push('safety_gate_required');
 
-  const aiAdaptationAllowed = profile.consent?.allow_ai_adaptation !== false;
+  // Consent must be explicit. A legacy or incomplete profile cannot authorize
+  // external AI processing of its free text or health-related context.
+  const aiAdaptationAllowed = profile.consent?.allow_ai_adaptation === true;
 
   return {
     id:                  profile.user_id,
@@ -73,7 +75,7 @@ export function buildClientContext(
     weightKg:            profile.basic_data?.weight_kg,
     primaryGoal:         profile.objectives?.primary_goal ?? '',
     secondaryGoals:      profile.objectives?.secondary_goals ?? [],
-    voiceNote:           profile.objectives?.voice_note,
+    voiceNote:           aiAdaptationAllowed ? profile.objectives?.voice_note : undefined,
     fitnessLevel:        profile.movement_history?.fitness_level ?? '',
     daysPerWeek:         profile.availability?.days_per_week ?? 3,
     sessionDuration:     profile.availability?.session_duration_min ?? 60,
@@ -81,12 +83,12 @@ export function buildClientContext(
     preferredDays:       profile.availability?.preferred_days,
     adherenceBarriers:   profile.availability?.adherence_barriers,
     modalities:          profile.movement_history?.modalities ?? [],
-    hasHealthCondition:  profile.declared_health?.has_condition ?? false,
-    healthCategories:    profile.declared_health?.categories ?? [],
-    healthFreeText:       profile.declared_health?.free_text,
-    healthVoiceNote:      profile.declared_health?.voice_note,
-    comorbidities:       profile.comorbidities?.conditions ?? [],
-    comorbiditiesNote:   profile.comorbidities?.voice_note,
+    hasHealthCondition:  aiAdaptationAllowed ? (profile.declared_health?.has_condition ?? false) : false,
+    healthCategories:    aiAdaptationAllowed ? (profile.declared_health?.categories ?? []) : [],
+    healthFreeText:      aiAdaptationAllowed ? profile.declared_health?.free_text : undefined,
+    healthVoiceNote:     aiAdaptationAllowed ? profile.declared_health?.voice_note : undefined,
+    comorbidities:       aiAdaptationAllowed ? (profile.comorbidities?.conditions ?? []) : [],
+    comorbiditiesNote:   aiAdaptationAllowed ? profile.comorbidities?.voice_note : undefined,
     mobilityLevel:       profile.functional_capacity?.mobility ?? '',
     balanceLevel:        profile.functional_capacity?.balance ?? '',
     autonomyLevel:       profile.functional_capacity?.autonomy,
@@ -126,7 +128,7 @@ export function buildClientContext(
       feltGymConstraint:     profile.abandon_history.felt_gym_constraint,
       whatHelped:            profile.abandon_history.what_helped_consistency,
       whatDisrupted:         profile.abandon_history.what_disrupted_routine,
-      voiceNote:             profile.abandon_history.voice_note,
+      voiceNote:             aiAdaptationAllowed ? profile.abandon_history.voice_note : undefined,
     } : undefined,
     consentAiAdaptation: profile.consent?.allow_ai_adaptation,
     trainabilityTier:    amplified?.trainabilityTier,

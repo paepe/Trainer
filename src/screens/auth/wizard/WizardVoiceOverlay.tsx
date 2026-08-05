@@ -10,12 +10,14 @@ interface WizardVoiceOverlayProps {
   dark?: boolean;
   primary?: string;
   context:    string;
+  /** True only when the profile's AI-adaptation consent has been persisted. */
+  allowExternalAI?: boolean;
   onConfirm:  (text: string) => void;
   onClose:    () => void;
 }
 
 export function WizardVoiceOverlay({
-  dark = true, primary = '#2DD4E0', context, onConfirm, onClose,
+  dark = true, primary = '#2DD4E0', context, allowExternalAI = false, onConfirm, onClose,
 }: WizardVoiceOverlayProps) {
   const { t: tr } = useTranslation();
   const [manualText, setManualText] = React.useState('');
@@ -52,7 +54,9 @@ export function WizardVoiceOverlay({
     const raw = text.trim();
     setCleaning(true);
     try {
-      const cleaned = await cleanupVoiceNote(raw);
+      // Before persisted consent, speech recognition remains fully usable but
+      // the raw transcript never leaves the device for external AI cleanup.
+      const cleaned = allowExternalAI ? await cleanupVoiceNote(raw, 'onboarding') : raw;
       onConfirm(cleaned);
     } finally {
       setCleaning(false);

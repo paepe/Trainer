@@ -250,25 +250,20 @@ export function ProfileWizardScreen({ nav, t, dark, saveProfileV2, fetchProfileV
     const finalData = { ...dataRef.current, risk };
     update({ risk });
 
-    const saveP = saveProfileV2 ? saveProfileV2(finalData, 'completed') : Promise.resolve({ error: null });
-
-    const ctrl = new AbortController();
-    const timeout = setTimeout(() => ctrl.abort(), 25_000);
-    const aiP = fetch('/api/generate-amplified', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(finalData),
-      signal:  ctrl.signal,
-    }).catch(() => null)
-      .finally(() => clearTimeout(timeout));
-
-    const [saveResult] = await Promise.all([saveP, aiP]).finally(() => clearTimeout(timeout));
+    const saveResult = saveProfileV2
+      ? await saveProfileV2(finalData, 'completed')
+      : { error: null };
 
     if (saveResult?.error) {
       setSaveError(userFacingError(saveResult.error));
       setGenerating(false);
       return;
     }
+
+    // The previous request discarded the generated result and therefore had no
+    // product effect while sending profile data to an external provider. A future
+    // persisted amplified-profile flow must call the authenticated API only after
+    // the saved consent has been verified server-side.
 
     setGenerating(false);
     setMode('view');

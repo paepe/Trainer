@@ -106,7 +106,8 @@ Resposta ao utilizador
 - [x] Identificar dependência quebrada de entrega: `send-welcome-message` não autentica a chamada interna a `send-notification` e não valida seu resultado.
 - [ ] Distinguir funções comerciais (`voice`, geração, análise) de operações internas (`classify`, tradução, welcome), aplicando autorização por papel e propósito.
 - [x] Mapear os propósitos de `cleanup-voice-note`: check-in, Coach DNA, nota de plano do TRAINER e onboarding (objetivos, histórico de movimento, saúde declarada, comorbidades e fatores sensíveis).
-- [ ] Decidir o consentimento exigido para cada propósito e a minimização do payload de `generate-amplified`; não assumir que ausência de consentimento equivale a permissão.
+- [x] Aprovar D0.1: `allow_ai_adaptation` ausente ou falso equivale a não autorização; o consentimento é lido da versão persistida do perfil.
+- [ ] Completar o consentimento/autorização dos propósitos restantes de voz e os limites operacionais de `generate-amplified`; D0.1 já resolve o onboarding e a minimização de dados de saúde.
 - [ ] Definir limites duros de payload e concorrência a partir da UX real de cada fluxo.
 - [ ] Definir teto de fan-out por request e estratégia de batching/fila para tradução; o teto deve limitar chamadas reais ao provedor, não apenas itens recebidos.
 - [ ] Definir sinais de abuso: chamadas concorrentes, repetição idêntica, volume inviável para uso humano e padrões distribuídos por conta/rede.
@@ -117,11 +118,11 @@ Resposta ao utilizador
 
 **Critério de aceite:** inventário validado em execução, identidade cobrada, autorização, modelo de dados, retenção, degradação e ameaças aprovados. Nenhum threshold definitivo é escolhido antes da telemetria.
 
-### Decisão pendente D0.1 — processamento externo de dados de saúde por IA
+### Decisão D0.1 — processamento externo de dados de saúde por IA
 
 **Recomendação técnica e de privacidade:** regra **default-deny**. Antes de um consentimento `allow_ai_adaptation=true` já persistido, nenhum texto de onboarding é enviado ao provedor externo de IA; o reconhecimento de voz continua utilizável com o texto bruto local. Após consentimento, o backend aceita somente o propósito autorizado e um payload minimizado. `generate-amplified` deve receber apenas dados operacionais necessários, nunca texto livre clínico, transcrições, medicação, saúde emocional ou fatores/ciclo sensíveis brutos.
 
-Esta decisão preserva o onboarding e evita inferir consentimento a partir de ausência de dado. Ela é gate da Fase 1 para `cleanup-voice-note` e `generate-amplified`.
+**Aprovada e aplicada em 2026-08-05.** Esta decisão preserva o onboarding e evita inferir consentimento a partir de ausência de dado. O reconhecimento continua local antes do consentimento; `cleanup-voice-note` exige caller autenticado, propósito fechado e consentimento persistido para onboarding. `generate-amplified` exige caller autenticado, consentimento persistido e lê exclusivamente o perfil persistido, reduzido a sinais estruturados permitidos. A chamada do wizard que descartava a resposta foi removida.
 
 ### Fase 1 — Fechar exposição imediata dos endpoints de IA
 
@@ -132,6 +133,7 @@ Esta decisão preserva o onboarding e evita inferir consentimento a partir de au
 - [ ] Em `parse-voice`, validar `checkin.voice_input` do próprio aluno; patrocínio do TRAINER nunca autoriza inferência paga.
 - [ ] Em `cleanup-voice-note`, introduzir propósito fechado e validar papel, fluxo e entitlement/consentimento correspondentes; não assumir que todo uso é check-in.
 - [ ] Em `generate-amplified`, vincular o perfil ao próprio caller e exigir consentimento de IA aplicável.
+- [x] Aplicar D0.1 aos fluxos de onboarding e Perfil Ampliado: fallback local pré-consentimento, `401/403` antes do provedor, leitura de consentimento/perfil persistidos e minimização de texto livre/dados sensíveis.
 - [ ] Em `classify-exercises`, exigir papel TRAINER e validar tamanho de cada campo, além do lote de 50.
 - [ ] Em `send-welcome-message`, validar que o caller é o aluno destinatário ou TRAINER autorizado e que existe vínculo/convite aceito; nunca confiar apenas em `studentId`/`trainerId`.
 - [ ] Substituir a chamada interna sem credencial por uma capacidade server-to-server restrita ou escrita transacional autorizada no outbox de notificações; exigir confirmação de entrega antes de concluir a operação.

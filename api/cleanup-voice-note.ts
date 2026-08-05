@@ -8,6 +8,8 @@
 // speaker actually meant — without inventing content. Used as a pre-save pass
 // for free-text voice notes (client onboarding wizard, coach-dna free prompt).
 
+import { hasPersistedAIAdaptationConsent, verifyRequestUser } from './_lib/auth.js';
+
 const SYSTEM_PROMPT = `You clean up raw speech-to-text transcripts that contain "stutter echo" —
 repeated/overlapping fragments from an on-device recognizer re-emitting the same phrase
 multiple times mid-sentence (e.g. "meu objetivo é perdermeu objetivo é perder pesomeu
@@ -22,7 +24,13 @@ Rules:
   cleaned version rather than inventing content.
 - Output STRICT JSON only: {"cleaned": string}. No markdown, no commentary, no extra keys.`;
 
-interface VercelRequest  { method?: string; body?: { transcript?: string; locale?: string } }
+type CleanupPurpose = 'checkin' | 'coach_dna' | 'trainer_workout_note' | 'onboarding';
+
+interface VercelRequest  {
+  method?: string;
+  headers?: Record<string, string | string[] | undefined>;
+  body?: { transcript?: string; locale?: string; purpose?: CleanupPurpose };
+}
 interface VercelResponse { status(c: number): VercelResponse; json(b: unknown): VercelResponse }
 
 declare const process: { env: Record<string, string | undefined> };
@@ -32,9 +40,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const caller = await verifyRequestUser(req);
+  if (!caller) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   const transcript = req.body?.transcript?.trim();
   if (!transcript) {
     return res.status(400).json({ error: 'transcript required' });
+  }
+
+  const purpose = req.body?.purpose;
+  if (!purpose || !['checkin', 'coach_dna', 'trainer_workout_note', 'onboarding'].includes(purpose)) {
+    return res.status(400).json({ error: 'valid cleanup purpose required' });
+  }
+  if (transcript.length > 4_000) {
+    return res.status(413).json({ error: 'transcript exceeds maximum length' });
+  }
+
+  // Onboarding can contain health, medication, and other sensitive free text.
+  // The server verifies persisted consent rather than trusting the client state.
+  if (purpose === 'onboarding' && !await hasPersistedAIAdaptationConsent(caller.id)) {
+    return res.status(403).json({ error: 'AI adaptation consent required' });
   }
 
   const apiKey = process.env.DEEPSEEK_API_KEY;

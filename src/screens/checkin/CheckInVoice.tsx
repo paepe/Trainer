@@ -52,7 +52,7 @@ export function CheckInVoice({ dark, primary, userName, onSubmit, onBack }: Chec
     const timeout = setTimeout(() => ctrl.abort(), 20_000);
 
     try {
-      const cleaned = await cleanupVoiceNote(raw);
+      const cleaned = await cleanupVoiceNote(raw, 'checkin');
 
       const res = await fetch('/api/parse-voice', {
         method:  'POST',

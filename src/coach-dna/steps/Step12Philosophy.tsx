@@ -39,7 +39,7 @@ export const Step12Philosophy: React.FC<Step12Props> = ({ philosophy, onChange }
     const base = sessionBaseRef.current;
     sessionRawRef.current = '';
     sessionBaseRef.current = '';
-    void cleanupVoiceNote(raw).then(cleaned => {
+    void cleanupVoiceNote(raw, 'coach_dna').then(cleaned => {
       onChange({ ...philosophy, prompt: `${base}${base ? ' ' : ''}${cleaned}`.trim() });
     });
   };

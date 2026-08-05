@@ -266,7 +266,7 @@ export function WorkoutPlanEditorScreen({
     const base = notesSessionBaseRef.current;
     notesSessionRawRef.current = '';
     notesSessionBaseRef.current = '';
-    void cleanupVoiceNote(raw).then(cleaned => {
+    void cleanupVoiceNote(raw, 'trainer_workout_note').then(cleaned => {
       setDraft(prev => ({ ...prev, notes: `${base}${base ? ' ' : ''}${cleaned}`.trim() }));
     });
   };

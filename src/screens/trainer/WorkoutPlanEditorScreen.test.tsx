@@ -817,7 +817,7 @@ describe('WorkoutPlanEditorScreen — voice dictation for exercise notes', () =>
     await waitFor(() => expect(
       screen.getByPlaceholderText('Note visible to the client for this exercise…')
     ).toHaveValue('Keep your back straight (cleaned)'));
-    expect(cleanupVoiceNote).toHaveBeenCalledWith('Keep your back straight');
+    expect(cleanupVoiceNote).toHaveBeenCalledWith('Keep your back straight', 'trainer_workout_note');
   });
 
   it('preserves already-typed notes as a base and appends the cleaned dictated text after them', async () => {

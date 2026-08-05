@@ -120,6 +120,7 @@ export function Step05DeclaredHealth({ dark, primary, accent, data, onUpdate, on
       {voiceOpen && (
         <WizardVoiceOverlay dark={dark} primary={primary}
           context={tr('wizard.step05.voiceContext')}
+          allowExternalAI={data.consent?.allow_ai_adaptation === true}
           onConfirm={(text) => {
             onUpdate({ declared_health: { ...dh, voice_note: text } });
             setVoiceOpen(false);

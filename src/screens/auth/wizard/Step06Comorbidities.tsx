@@ -63,6 +63,7 @@ export function Step06Comorbidities({ dark, primary, accent, data, onUpdate, onN
       {voiceOpen && (
         <WizardVoiceOverlay dark={dark} primary={primary}
           context={tr('wizard.step06.voiceContext')}
+          allowExternalAI={data.consent?.allow_ai_adaptation === true}
           onConfirm={(text) => {
             onUpdate({ comorbidities: { ...co, voice_note: text } });
             setVoiceOpen(false);

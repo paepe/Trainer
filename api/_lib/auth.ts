@@ -85,3 +85,21 @@ export async function hasActiveLink(userA: string, userB: string): Promise<boole
     return false;
   }
 }
+
+/**
+ * Consent is read from the persisted profile, never from a client request body.
+ * Missing, malformed, or unavailable consent is deliberately treated as denied.
+ */
+export async function hasPersistedAIAdaptationConsent(userId: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${authSupabaseUrl()}/rest/v1/profile_v2?select=consent&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+      { headers: authServiceHeaders() },
+    );
+    if (!res.ok) return false;
+    const rows = await res.json() as { consent?: { allow_ai_adaptation?: unknown } | null }[];
+    return rows[0]?.consent?.allow_ai_adaptation === true;
+  } catch {
+    return false;
+  }
+}
