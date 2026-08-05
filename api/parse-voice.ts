@@ -119,6 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const data = await response.json() as {
       choices?: { message?: { content?: string } }[];
       error?:   { message?: string };
+      usage?:   { prompt_tokens?: number; completion_tokens?: number };
     };
 
     if (!response.ok) {
