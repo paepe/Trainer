@@ -1286,9 +1286,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (err: unknown) {
     if ((err as Error)?.name === 'AbortError') {
       console.warn('[generate-smart-workout] timed out');
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 504, provider: 'deepseek', model: 'deepseek-chat' });
       return res.status(504).json({ error: 'Generation timed out' });
     }
     console.error('[generate-smart-workout] provider request failed');
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 500, provider: 'deepseek', model: 'deepseek-chat' });
     return res.status(500).json({ error: 'generation failed' });
   } finally {
     clearTimeout(timeout);

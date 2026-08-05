@@ -150,9 +150,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (err: unknown) {
     if ((err as Error)?.name === 'AbortError') {
       console.warn('[cleanup-voice-note] timed out');
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'provider_failed', httpStatus: 504, provider: 'deepseek', model: 'deepseek-chat' });
       return res.status(504).json({ error: 'Cleanup timed out' });
     }
     console.error('[cleanup-voice-note] provider request failed');
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'provider_failed', httpStatus: 500, provider: 'deepseek', model: 'deepseek-chat' });
     return res.status(500).json({ error: 'cleanup failed' });
   } finally {
     clearTimeout(timeout);

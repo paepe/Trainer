@@ -178,6 +178,8 @@ Resposta ao utilizador
 
 **Correcção de privacidade (2026-08-05):** logs de enforcement do treino inteligente passaram a registrar somente contagens; listas de exercícios derivadas da resposta da IA não são mais escritas em log.
 
+**Telemetria de falha (2026-08-05):** `parse-voice`, `cleanup-voice-note`, `generate-amplified`, `classify-exercises`, `generate-workout` e `generate-smart-workout` agora registram um evento minimizado `provider_failed` para timeout ou falha posterior à chamada do provedor. Tradução e welcome permanecem pendentes desta cobertura.
+
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.

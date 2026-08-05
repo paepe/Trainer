@@ -146,6 +146,7 @@ Expected output format:
   } catch (err) {
     clearTimeout(timeout);
     const isTimeout = (err as Error)?.name === 'AbortError';
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'provider_failed', httpStatus: isTimeout ? 504 : 500, provider: 'deepseek', model: 'deepseek-chat' });
     return res.status(isTimeout ? 504 : 500).json({
       error: isTimeout ? 'Classification request timed out' : String(err),
     });

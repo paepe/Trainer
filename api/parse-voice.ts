@@ -134,10 +134,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (err: unknown) {
     if ((err as Error)?.name === 'AbortError') {
       console.warn('[parse-voice] timed out');
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'provider_failed', httpStatus: 504, provider: 'deepseek', model: 'deepseek-chat' });
       res.status(504).json({ error: 'Parsing timed out' });
     } else {
-    console.error('[parse-voice] provider request failed');
-    res.status(500).json({ error: 'parse failed' });
+      console.error('[parse-voice] provider request failed');
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'provider_failed', httpStatus: 500, provider: 'deepseek', model: 'deepseek-chat' });
+      res.status(500).json({ error: 'parse failed' });
     }
   } finally {
     clearTimeout(timeout);

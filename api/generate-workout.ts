@@ -501,9 +501,11 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
   } catch (err: unknown) {
     if ((err as Error)?.name === 'AbortError') {
       console.warn('[generate-workout] timed out');
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'provider_failed', httpStatus: 504, provider: 'deepseek', model: 'deepseek-chat' });
       res.status(504).json({ error: 'Workout generation timed out' });
     } else {
       console.error('[generate-workout] provider request failed');
+      await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'provider_failed', httpStatus: 500, provider: 'deepseek', model: 'deepseek-chat' });
       res.status(500).json({ error: 'Failed to generate workout' });
     }
   } finally {
