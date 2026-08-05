@@ -154,6 +154,8 @@ Resposta ao utilizador
 
 **Objetivo:** medir custo e comportamento normal antes de calibrar enforcement, sem registrar conteúdo sensível.
 
+**Proposta registrada:** [contrato de dados de telemetria](AI_TELEMETRY_DATA_CONTRACT.md) e migração revisável `supabase/sql-archive/supabase-ai-telemetry-20260805.sql`; retenção bruta proposta de 90 dias, HMAC por ator e escrita exclusivamente server-side. Ainda não aplicada.
+
 - [ ] Criar tabela de eventos de uso de IA com RLS administrativa e política de retenção definida na Fase 0.
 - [ ] Usar `request_id`/chave de operação única, gerada ou validada pelo servidor, para retries não duplicarem custo nem eventos.
 - [ ] Registrar sucesso, falha do provedor e rejeição pós-auth/pré-provedor sem prompt, transcrição, resposta ou dado de saúde.
@@ -236,7 +238,7 @@ Resposta ao utilizador
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8, welcome usa idempotência atómica HMAC activa em produção. Restam validação uniforme de schema/Content-Type e a camada pré-auth de rajada. |
-| 2 — Telemetria persistida | ⬜ Não iniciada | — | — |
+| 2 — Telemetria persistida | 🟨 Em desenho | 2026-08-05 | Contrato minimizado e migração de retenção de 90 dias preparados; pendentes de revisão/ativação antes de instrumentar endpoints. |
 | 3 — Termos e comunicação | ⬜ Não iniciada | — | — |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
