@@ -171,7 +171,7 @@ Resposta ao utilizador
 - [x] Criar agregados diários por plano e endpoint, além de agregado diário administrativo por ator HMAC; evitar consultas analíticas pesadas em tabelas transacionais.
 - [x] Instrumentar emissão de sucesso minimizada nos oito endpoints; a emissão é feature-flagged e está activa em produção desde 2026-08-05.
 - [ ] Executar período de observação aprovado sem bloqueio automático e medir percentis de uso, concorrência, erros e custo por plano.
-- [x] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor. Auditoria de produção de 2026-08-06 confirmou RLS ativa, zero privilégios `anon`/`authenticated`, esquema sem campos de conteúdo e retenção de 90 dias em todos os seis eventos; a suíte cobre idempotência e falha do coletor.
+- [x] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor. Auditoria de produção de 2026-08-06 confirmou RLS ativa, zero privilégios `anon`/`authenticated`, esquema sem campos de conteúdo e retenção de 90 dias em todos os sete eventos; a suíte cobre idempotência e falha do coletor.
 - [x] Garantir que falha de telemetria não duplica a chamada de IA nem expõe conteúdo em fallback de log; `emitAIUsageEvent` é best-effort, sem retry da operação, e os testes cobrem indisponibilidade.
 
 **Critério de aceite:** custo e distribuição de uso por plano/endpoint são mensuráveis com qualidade declarada; retries não duplicam eventos; nenhuma telemetria contém conteúdo ou dados de saúde.
@@ -263,7 +263,7 @@ Resposta ao utilizador
 - [x] Confirmar que não há prompt, transcrição, resposta ou dado de saúde em eventos, logs e alertas — auditoria de telemetria/logs e esquema RLS das tabelas de proteção revisados em 2026-08-06.
 - [ ] Revisar custos, falsos positivos e suporte após período acordado de observação.
 - [ ] Ajustar thresholds somente com evidência de telemetria, registrando decisão e impacto.
-- [ ] Atualizar este documento ao concluir cada fase: data, alterações, testes, evidência e pendências.
+- [x] Atualizar este documento ao concluir cada fase: data, alterações, testes, evidência e pendências.
 - [ ] Reavaliar retenção, acesso administrativo e postura de privacidade trimestralmente.
 
 **Smoke autenticado de degradação (2026-08-06):** na conta FREE já autenticada, a geração de plano remoto retornou falha do fornecedor (`network_or_runtime`, sem status HTTP). A configuração Vercel confirma `DEEPSEEK_API_KEY` presente; a falha foi transitória de runtime/rede, não ausência de credencial. O cliente apresentou estado de geração, finalizou um plano seguro de fallback e o botão **Start Workout** abriu o modo de execução com dez exercícios, sem registrar séries ou concluir a sessão. A telemetria persistiu um único evento minimizado `provider_failed`, sem tokens, custo, prompt ou dado de saúde. A UI foi corrigida para identificar esse resultado como plano local seguro, nunca como plano gerado por IA. Isto confirma a degradação segura desse fluxo, mas não substitui a validação dos demais endpoints, do rate limit pós-auth ou do período de observação.
@@ -282,8 +282,8 @@ Resposta ao utilizador
 | 1 — Exposição imediata | 🟩 Concluída | 2026-08-06 | Os oito endpoints de IA exigem identidade, `Content-Type: application/json`, objeto JSON na raiz e rejeitam body acima de um teto global antes de I/O subsequente; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e valida lote, e as duas rotas de geração aceitam no máximo 128 mil caracteres. Welcome usa idempotência atómica HMAC ativa em produção. O guard WAF `ai-preauth-burst` protege somente falhas de autenticação, sem armazenamento de IP no aplicativo. |
 | 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-06 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. A observação começou, mas a primeira amostra contém apenas smokes controlados; não há base para thresholds. |
 | 3 — Termos e comunicação | 🟨 Dependência externa | 2026-08-06 | Política de Uso Justo, atribuição TRAINER–aluno e textos UX en/pt/es/de foram preparados e revisados; manuais TRAINER en/pt/es foram corrigidos para PRO 5/15/30. Não há thresholds públicos. Publicação em Termos e referência explícita na matriz dependem de aprovação de Product, Jurídico e Privacy. |
-| 4 — Rate limiting | ⬜ Não iniciada | — | — |
-| 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
+| 4 — Rate limiting | 🟨 Fundação aplicada, aguardando sombra | 2026-08-06 | Bucket atômico com RLS foi aplicado e conectado aos oito endpoints; o modo permanece `off` até ruleset baseado na observação e aprovação para sombra. |
+| 5 — Alertas e contenção | 🟨 Fundação aplicada, aguardando baseline | 2026-08-06 | Tabela administrativa minimizada, RLS, escritor desativado e runbook foram preparados; faltam baseline, regras, destino operacional e validação sintética. |
 | 6 — Produção e governança | 🟨 Verificação parcial | 2026-08-06 | O boundary anônimo dos oito endpoints devolveu `401` em produção. Smoke autenticado confirmou que uma falha transitória do fornecedor degrada para plano seguro e não interrompe o início do treino; telemetria minimizada registrou o erro sem conteúdo e a UI identifica o resultado local sem alegar geração por IA. Permanecem pendentes os demais endpoints, rate limit pós-auth e observação de uso real. |
 
 ### Regra de atualização
