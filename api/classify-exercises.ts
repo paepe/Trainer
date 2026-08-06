@@ -15,6 +15,7 @@ import { hasJsonContentType, isTrainerRole, verifyRequestUser } from './_lib/aut
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject, isJsonValueWithinLimit } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
+import { rejectPostAuthAIBurst } from './_lib/postAuthRateLimit.js';
 
 const SYSTEM_PROMPT = `You are a sports science expert. Classify each exercise into exactly one category:
 
@@ -56,6 +57,7 @@ export default async function handler(req: any, res: any) {
     if (await rejectUnauthenticatedAIBurst(req, res)) return;
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  if (await rejectPostAuthAIBurst(caller.id, 'classify-exercises', res)) return;
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     return res.status(415).json({ error: 'Content-Type must be application/json' });

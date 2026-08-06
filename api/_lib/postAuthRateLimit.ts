@@ -43,3 +43,13 @@ export async function checkPostAuthAIRateLimit(actorId: string, endpoint: AIEndp
     return currentMode === 'shadow' ? 'would_limit' : 'limited';
   } catch { return 'unavailable'; }
 }
+
+type RateLimitResponse = { setHeader?(name: string, value: string): void; status(code: number): { json(body: unknown): unknown } };
+/** Applies only an explicitly enabled ruleset; shadow mode never blocks. */
+export async function rejectPostAuthAIBurst(actorId: string, endpoint: AIEndpoint, res: RateLimitResponse): Promise<boolean> {
+  const result = await checkPostAuthAIRateLimit(actorId, endpoint);
+  if (result === 'would_limit') { console.warn('[ai-postauth-rate-limit] shadow would limit', endpoint); return false; }
+  if (result === 'limited') { res.setHeader?.('Retry-After', '60'); res.status(429).json({ error: 'This AI feature is temporarily busy. Please retry shortly.' }); return true; }
+  if (result === 'unavailable') { res.status(503).json({ error: 'AI protection is temporarily unavailable' }); return true; }
+  return false;
+}

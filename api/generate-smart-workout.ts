@@ -22,6 +22,7 @@ import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { claimAIRequest, completeAIRequest, releaseAIOperation } from './_lib/aiOperationIdempotency.js';
 import { isJsonObject } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
+import { rejectPostAuthAIBurst } from './_lib/postAuthRateLimit.js';
 
 type ProviderFailureKind = 'timeout' | 'http_error' | 'non_json_response' | 'invalid_json_response' | 'network_or_runtime';
 
@@ -1084,6 +1085,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (await rejectUnauthenticatedAIBurst(req, res)) return;
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  if (await rejectPostAuthAIBurst(caller.id, 'generate-smart-workout', res)) return;
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     return res.status(415).json({ error: 'Content-Type must be application/json' });

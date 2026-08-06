@@ -9,6 +9,7 @@ import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
+import { rejectPostAuthAIBurst } from './_lib/postAuthRateLimit.js';
 
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.
@@ -289,6 +290,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  if (await rejectPostAuthAIBurst(caller.id, 'generate-workout', res)) return;
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     res.status(415).json({ error: 'Content-Type must be application/json' });

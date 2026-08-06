@@ -13,6 +13,7 @@ import {
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
+import { rejectPostAuthAIBurst } from './_lib/postAuthRateLimit.js';
 
 const SYSTEM_PROMPT = `You are an expert sports science AI for a personal training platform called TrAIner.
 You receive a structured profile of a fitness client in JSON and must generate:
@@ -149,6 +150,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  if (await rejectPostAuthAIBurst(caller.id, 'generate-amplified', res)) return;
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     res.status(415).json({ error: 'Content-Type must be application/json' });

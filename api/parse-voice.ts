@@ -8,6 +8,7 @@ import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject, isJsonValueWithinLimit } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
+import { rejectPostAuthAIBurst } from './_lib/postAuthRateLimit.js';
 
 export const MAX_PARSE_VOICE_REQUEST_CHARS = 8_000;
 
@@ -69,6 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  if (await rejectPostAuthAIBurst(caller.id, 'parse-voice', res)) return;
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     return res.status(415).json({ error: 'Content-Type must be application/json' });
