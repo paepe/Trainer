@@ -249,6 +249,8 @@ Resposta ao utilizador
 - [x] Preparar runbook interno de investigação, reversão, comunicação ao cliente e preservação mínima de evidência — [AI_ABUSE_RESPONSE_RUNBOOK_DRAFT.md](AI_ABUSE_RESPONSE_RUNBOOK_DRAFT.md). É rascunho não operacional e depende das aprovações e do baseline desta fase.
 - [ ] Testar alertas e contenção com eventos sintéticos, sem dados reais de saúde.
 
+**Infraestrutura preparada (2026-08-06):** `ai_usage_alerts` foi aplicada em produção com RLS, sem acesso `anon`/`authenticated`, retenção de 90 dias e apenas evidência operacional limitada a 4 KB. O escritor server-side está desligado até `AI_ANOMALY_ALERTS_ENABLED=true`; não existem regras, destino externo, alerta ativo ou contenção automática antes do baseline.
+
 **Critério de aceite:** padrão anormal dispara alerta verificável, contenção é reversível e auditável, e nenhum usuário é suspenso apenas por IP ou decisão opaca.
 
 ### Fase 6 — Verificação de produção e governança contínua
