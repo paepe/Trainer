@@ -242,7 +242,7 @@ Resposta ao utilizador
 - [ ] Entregar alertas a canal operacional com identificador pseudonimizado e contexto mínimo; validar DPA e acesso do destino.
 - [ ] Implementar contenção progressiva: rate limit temporário → revisão manual → suspensão documentada em abuso confirmado.
 - [ ] Exigir revisão humana antes de suspensão prolongada ou encerramento de conta.
-- [ ] Criar runbook de investigação, reversão, comunicação ao cliente e preservação mínima de evidência.
+- [x] Preparar runbook interno de investigação, reversão, comunicação ao cliente e preservação mínima de evidência — [AI_ABUSE_RESPONSE_RUNBOOK_DRAFT.md](AI_ABUSE_RESPONSE_RUNBOOK_DRAFT.md). É rascunho não operacional e depende das aprovações e do baseline desta fase.
 - [ ] Testar alertas e contenção com eventos sintéticos, sem dados reais de saúde.
 
 **Critério de aceite:** padrão anormal dispara alerta verificável, contenção é reversível e auditável, e nenhum usuário é suspenso apenas por IP ou decisão opaca.
