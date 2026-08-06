@@ -129,10 +129,10 @@ Resposta ao utilizador
 **Objetivo:** garantir que cada chamada com custo tenha identidade autenticada, autorização e limites de payload antes de alcançar o provedor.
 
 - [x] Migrar `parse-voice`, `cleanup-voice-note`, `generate-amplified`, `classify-exercises` e `send-welcome-message` para `api/_lib/auth.ts`.
-- [ ] Atualizar os cinco chamadores para enviar o token; não aceitar identidade declarada apenas no body.
+- [x] Atualizar os cinco chamadores para enviar o token; não aceitar identidade declarada apenas no body — auditoria estática confirmou `authHeaders()` em cleanup, voz, classificação e welcome; Perfil Ampliado ignora o body e lê o perfil persistido do caller.
 - [x] Em `parse-voice`, validar `checkin.voice_input` **e** `ai.checkin_interpretation` da própria conta; patrocínio do TRAINER nunca autoriza inferência paga.
 - [x] Em `cleanup-voice-note`, introduzir propósito fechado e validar papel, fluxo e entitlement/consentimento correspondentes; não assumir que todo uso é check-in.
-- [ ] Em `generate-amplified`, vincular o perfil ao próprio caller e exigir consentimento de IA aplicável.
+- [x] Em `generate-amplified`, vincular o perfil ao próprio caller e exigir consentimento de IA aplicável; body legado é ignorado, perfil/consentimento são persistidos e o request é limitado a 8.000 caracteres.
 - [x] Aplicar D0.1 aos fluxos de onboarding e Perfil Ampliado: fallback local pré-consentimento, `401/403` antes do provedor, leitura de consentimento/perfil persistidos e minimização de texto livre/dados sensíveis.
 - [x] Em `classify-exercises`, exigir papel TRAINER e validar tamanho de cada campo, além do lote de 50.
 - [x] Em `send-welcome-message`, derivar o aluno do JWT e exigir vínculo activo com o TRAINER; não confiar em `studentId`/`trainerId` declarados no body.
@@ -149,6 +149,8 @@ Resposta ao utilizador
 **Critério de aceite:** nenhum endpoint de custo fica acessível anonimamente, confia em IDs do body como autoridade ou aceita payload ilimitado; testes positivos, negativos e de vínculo cobrem os oito endpoints.
 
 **Nota de verificação (2026-08-05):** `send-welcome-message` bloqueia replays sequenciais consultando a mensagem persistida antes de gerar. Para concorrência, reserva uma chave HMAC numa tabela de claims antes de chamar o provedor, completa-a só depois de persistir a notificação e liberta-a em falha. A ativação foi confirmada com deploy Vercel Ready, variáveis de produção presentes, endpoint anônimo retornando `401`, zero claims residuais e permissões de RPC exclusivas de `service_role`.
+
+**Validação de boundary (2026-08-06):** `generate-amplified` recebeu limite explícito de 8.000 caracteres mesmo não consumindo o body legado; a autoridade continua sendo apenas o perfil persistido do caller. A suíte dos oito handlers de IA passou com 92 testes, cobrindo autenticação, consentimento/papel/vínculo quando aplicável, `Content-Type`, limites já definidos e caminhos sem chamada ao provedor para rejeições críticas. Schema uniforme completo e proteção pré-auth continuam pendentes.
 
 ### Fase 2 — Telemetria persistida, medição e custo por assinante
 

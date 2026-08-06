@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import handler, { minimizeAmplifiedProfile } from './generate-amplified';
+import handler, { isAmplifiedRequestWithinLimit, MAX_AMPLIFIED_REQUEST_CHARS, minimizeAmplifiedProfile } from './generate-amplified';
 
 process.env.SUPABASE_URL = 'https://example.supabase.co';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key';
@@ -88,6 +88,13 @@ describe('POST /api/generate-amplified', () => {
     expect(userMessage).not.toContain('cycle_current_day');
     expect(userMessage).not.toContain('injected goal');
     expect(userMessage).not.toContain('Injected private voice');
+  });
+});
+
+describe('generate-amplified — request boundary', () => {
+  it('rejects oversized legacy request bodies before any persisted-profile or provider read', () => {
+    expect(isAmplifiedRequestWithinLimit({ legacy: 'x'.repeat(MAX_AMPLIFIED_REQUEST_CHARS) })).toBe(false);
+    expect(isAmplifiedRequestWithinLimit({ legacy: 'x'.repeat(100) })).toBe(true);
   });
 });
 

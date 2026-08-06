@@ -39,6 +39,19 @@ Rules:
 - Be concise and clinical. Never mention sensitive data (medications, substance, psychiatric)
 - narrative must be in English`;
 
+// The request body is intentionally ignored: authority comes exclusively from
+// the persisted profile of the authenticated caller. Bound it nevertheless so
+// a legacy client cannot turn JSON parsing into unbounded backend work.
+export const MAX_AMPLIFIED_REQUEST_CHARS = 8_000;
+
+export function isAmplifiedRequestWithinLimit(value: unknown): boolean {
+  try {
+    return JSON.stringify(value).length <= MAX_AMPLIFIED_REQUEST_CHARS;
+  } catch {
+    return false;
+  }
+}
+
 interface VercelRequest  {
   method?: string;
   headers?: Record<string, string | string[] | undefined>;
@@ -136,6 +149,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     res.status(415).json({ error: 'Content-Type must be application/json' });
+    return;
+  }
+  if (!isAmplifiedRequestWithinLimit(req.body)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
+    res.status(413).json({ error: 'Request exceeds maximum size' });
     return;
   }
 
