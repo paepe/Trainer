@@ -55,4 +55,4 @@ Antes de publicar esta política ou referenciá-la nos Termos, concluir:
 - revisão jurídica e de privacidade;
 - verificação de consistência com a matriz de licenças e comunicação de marketing;
 - textos UX localizados para limitação temporária e degradação;
-- confirmação de que o rate limiting opera inicialmente em modo sombra e com revisão de falsos positivos.
+- confirmação de que o guard pré-auth está activo em produção e de que qualquer limitador pós-auth começa em modo sombra, com revisão de falsos positivos antes de bloquear utilizadores autenticados.

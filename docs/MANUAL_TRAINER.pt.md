@@ -75,7 +75,7 @@ Três licenças, em ordem crescente de recursos: **Trial → Pro → Elite**.
 
 | Recurso | Trial | Pro | Elite |
 |--------|:-----:|:---:|:-----:|
-| Nº de alunos | até **3** | até **50** | **ilimitado** |
+| Nº de alunos | até **3** | até **5 / 15 / 30** (faixa escolhida) | **ilimitado** |
 | Criar treino manual | ✓ | ✓ | ✓ |
 | Score de prontidão (básico) | ✓ | ✓ | ✓ |
 | **Geração de treino por IA** | — | ✓ | ✓ |
@@ -107,7 +107,7 @@ falha em vez de travar sem aviso.
 partir do **Pro**. No Trial, monte o treino manualmente ou faça o upgrade em
 **Menu → Assinatura**.
 
-**"Atingi o limite de alunos."** Cada licença tem seu teto (3 / 50 / ilimitado).
+**"Atingi o limite de alunos."** Cada licença tem seu teto: Trial 3, Pro 5 / 15 / 30 (conforme a faixa escolhida) e Elite ilimitado.
 Para ampliar, faça o upgrade em **Menu → Assinatura**.
 
 ---

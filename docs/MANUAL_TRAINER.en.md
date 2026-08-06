@@ -75,7 +75,7 @@ Three licenses, in increasing order of features: **Trial → Pro → Elite**.
 
 | Feature | Trial | Pro | Elite |
 |--------|:-----:|:---:|:-----:|
-| Number of clients | up to **3** | up to **50** | **unlimited** |
+| Number of clients | up to **3** | up to **5 / 15 / 30** (selected tier) | **unlimited** |
 | Create workout manually | ✓ | ✓ | ✓ |
 | Readiness score (basic) | ✓ | ✓ | ✓ |
 | **AI workout generation** | — | ✓ | ✓ |
@@ -106,7 +106,7 @@ reports the failure instead of freezing without notice.
 **"The AI button doesn't show / doesn't work."** AI generation is available from
 **Pro**. On Trial, build the workout manually or upgrade in **Menu → Subscription**.
 
-**"I've reached the client limit."** Each license has its ceiling (3 / 50 / unlimited).
+**"I've reached the client limit."** Each license has its ceiling: Trial 3, Pro 5 / 15 / 30 (depending on the selected tier), and Elite unlimited.
 To expand, upgrade in **Menu → Subscription**.
 
 ---

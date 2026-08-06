@@ -1,7 +1,7 @@
 # Feature Access Matrix — TrAIner App
-**Versão:** 1.0  
-**Data:** 2026-06-17  
-**Estado:** Base para revisão de política de preços
+**Versão:** 1.1
+**Data:** 2026-08-06
+**Estado:** Matriz de referência de acesso; cláusula de Uso Justo ainda depende de publicação dos Termos
 
 ---
 
@@ -89,6 +89,8 @@ feature_permissions (Supabase)
 **Correção 2026-08-05 (Fase 6):** PRO deixou de ser um degrau único (50 clientes) — passou a 3 faixas seleccionáveis (PRO 5/15/30), com preço próprio cada, renderizadas num único card com selector na UI (`PlansScreen.tsx`). ELITE inalterado.
 
 **Correção 2026-08-05 (pós-Fase 6):** o `pro` legado, usado como entitlement efectivo durante a janela de 21 dias do TRIAL, foi alinhado a **30 clientes**. Assim, o TRIAL não excede a maior faixa PRO comercial; ELITE continua o único nível ilimitado.
+
+**Auditoria documental 2026-08-06:** os manuais TRAINER en/pt/es foram alinhados à capacidade PRO 5/15/30. A expressão comercial “ilimitado sujeito à Política de Uso Justo” só será incluída nesta matriz depois de a cláusula estar aprovada e publicada nos Termos.
 
 | Funcionalidade | Descrição | TRIAL | PRO (5 / 15 / 30) | ELITE |
 |---|---|:---:|:---:|:---:|

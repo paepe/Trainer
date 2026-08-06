@@ -78,7 +78,7 @@ Tres licencias, en orden creciente de recursos: **Trial → Pro → Elite**.
 
 | Recurso | Trial | Pro | Elite |
 |--------|:-----:|:---:|:-----:|
-| Nº de clientes | hasta **3** | hasta **50** | **ilimitado** |
+| Nº de clientes | hasta **3** | hasta **5 / 15 / 30** (franja elegida) | **ilimitado** |
 | Crear entrenamiento manual | ✓ | ✓ | ✓ |
 | Puntuación de disposición (básica) | ✓ | ✓ | ✓ |
 | **Generación de entrenamiento por IA** | — | ✓ | ✓ |
@@ -111,7 +111,7 @@ nuevo; la app ahora informa del fallo en lugar de bloquearse sin aviso.
 partir de **Pro**. En Trial, arma el entrenamiento manualmente o mejora tu plan en
 **Menú → Suscripción**.
 
-**"Alcancé el límite de clientes."** Cada licencia tiene su tope (3 / 50 / ilimitado).
+**"Alcancé el límite de clientes."** Cada licencia tiene su tope: Trial 3, Pro 5 / 15 / 30 (según la franja elegida) y Elite ilimitado.
 Para ampliarlo, mejora tu plan en **Menú → Suscripción**.
 
 ---

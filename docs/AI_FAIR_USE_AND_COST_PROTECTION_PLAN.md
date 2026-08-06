@@ -212,6 +212,8 @@ Resposta ao utilizador
 - [ ] Atualizar a matriz de licenças para “ilimitado sujeito à Política de Uso Justo” somente após publicação dos Termos.
 - [x] Registrar política de consumo iniciado por TRAINER em nome de aluno e relação com eventual franquia de IA do TRAINER — [AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md](AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md), pendente de aprovação comercial/jurídica/Privacy.
 
+**Auditoria de consistência (2026-08-06):** os manuais TRAINER en/pt/es ainda comunicavam o degrau histórico PRO de 50 alunos. Foram alinhados à matriz efectiva PRO 5/15/30; as traduções da UI já apresentavam essas três faixas. A política continua interna e não há Termos no workspace a publicar, portanto esta fase permanece dependente de aprovação e publicação externas.
+
 **Critério de aceite:** Termos, Política, marketing, matriz e UX descrevem a mesma oferta antes do enforcement da Fase 4.
 
 ### Fase 4 — Rate limiting server-side sem quota comercial
@@ -269,7 +271,7 @@ Resposta ao utilizador
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟩 Concluída | 2026-08-06 | Os oito endpoints de IA exigem identidade, `Content-Type: application/json`, objeto JSON na raiz e rejeitam body acima de um teto global antes de I/O subsequente; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e valida lote, e as duas rotas de geração aceitam no máximo 128 mil caracteres. Welcome usa idempotência atómica HMAC ativa em produção. O guard WAF `ai-preauth-burst` protege somente falhas de autenticação, sem armazenamento de IP no aplicativo. |
 | 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-06 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. A observação começou, mas a primeira amostra contém apenas smokes controlados; não há base para thresholds. |
-| 3 — Termos e comunicação | 🟨 Dependência externa | 2026-08-06 | Política de Uso Justo, atribuição TRAINER–aluno e textos UX en/pt/es/de foram preparados e revisados; não há thresholds públicos. Publicação em Termos e atualização da matriz dependem de aprovação de Product, Jurídico e Privacy. |
+| 3 — Termos e comunicação | 🟨 Dependência externa | 2026-08-06 | Política de Uso Justo, atribuição TRAINER–aluno e textos UX en/pt/es/de foram preparados e revisados; manuais TRAINER en/pt/es foram corrigidos para PRO 5/15/30. Não há thresholds públicos. Publicação em Termos e referência explícita na matriz dependem de aprovação de Product, Jurídico e Privacy. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
 | 6 — Produção e governança | ⬜ Não iniciada | — | — |
