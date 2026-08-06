@@ -222,6 +222,7 @@ Resposta ao utilizador
 
 - [x] Redigir e obter aprovação de Product, Jurídico e Privacy para a Política de Uso Justo, com exemplos de uso pessoal normal e abuso, sem converter o plano em quota visível — aprovação registrada em 2026-08-06; [AI_FAIR_USE_POLICY_DRAFT.md](AI_FAIR_USE_POLICY_DRAFT.md) aguarda publicação.
 - [x] Obter aprovação de Product, Jurídico e Privacy para a cláusula de Uso Justo nos Termos — aprovação registrada em 2026-08-06; redação em [AI_FAIR_USE_TERMS_CLAUSE_DRAFT.md](AI_FAIR_USE_TERMS_CLAUSE_DRAFT.md).
+- [x] Preparar a superfície pública versionada e o aceite persistido: rotas /legal/terms e /legal/fair-use, gate pós-login que preserva treino em andamento e migração revisável [supabase-legal-document-acceptance-20260806.sql](../supabase/sql-archive/supabase-legal-document-acceptance-20260806.sql). Compilação e 444 testes passaram; publicação em produção depende da aplicação da migração e do deploy.
 - [ ] Publicar a cláusula aprovada nos Termos e vincular a Política de Uso Justo na superfície pública do produto.
 - [x] Manter “Ilimitado” no marketing de AI FITNESS e AI PERFORMANCE; a revisão confirmou ausência de contador/quota comercial visível e preservou a mensagem de upgrade para sessões ilimitadas.
 - [x] Criar textos UX localizados para `429`, degradação e contenção temporária, com canal de suporte — chaves `workoutGen.*` adicionadas para en/pt/es/de; só serão exibidas quando o enforcement for aprovado.
@@ -229,7 +230,7 @@ Resposta ao utilizador
 - [ ] Atualizar a matriz de licenças para “ilimitado sujeito à Política de Uso Justo” somente após publicação dos Termos.
 - [x] Registrar política de consumo iniciado por TRAINER em nome de aluno e relação com eventual franquia de IA do TRAINER — [AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md](AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md), pendente de aprovação comercial/jurídica/Privacy.
 
-**Auditoria de consistência (2026-08-06):** os manuais TRAINER en/pt/es ainda comunicavam o degrau histórico PRO de 50 alunos. Foram alinhados à matriz efectiva PRO 5/15/30; as traduções da UI já apresentavam essas três faixas. Product, Jurídico e Privacy aprovaram a Política de Uso Justo e a cláusula dos Termos em 2026-08-06. A fase permanece pendente somente da publicação pública, ligação entre os documentos, atualização da matriz comercial e respetivo aceite versionado.
+**Auditoria de consistência (2026-08-06):** os manuais TRAINER en/pt/es ainda comunicavam o degrau histórico PRO de 50 alunos. Foram alinhados à matriz efectiva PRO 5/15/30; as traduções da UI já apresentavam essas três faixas. Product, Jurídico e Privacy aprovaram a Política de Uso Justo e a cláusula dos Termos em 2026-08-06. A implementação da publicação e do aceite versionado foi preparada e validada localmente; a fase permanece pendente somente da aplicação da migração, deploy, verificação pública, atualização da matriz comercial e respetivo aceite em produção.
 
 **Critério de aceite:** Termos, Política, marketing, matriz e UX descrevem a mesma oferta antes do enforcement da Fase 4.
 

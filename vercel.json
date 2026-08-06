@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/studio",    "destination": "/studio.html" },
     { "source": "/studio/(.*)", "destination": "/studio.html" },
-    { "source": "/invite/(.*)", "destination": "/index.html" }
+    { "source": "/invite/(.*)", "destination": "/index.html" },
+    { "source": "/legal/(.*)", "destination": "/index.html" }
   ]
 }

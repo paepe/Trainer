@@ -7,6 +7,7 @@ import { iconBtn, borderSubtle, textPri, textSec, textMute, primaryBtn, textBtn 
 import type { NavFn } from '../../types';
 import type { AuthError } from '@supabase/supabase-js';
 import { friendlyError } from '../../lib/friendlyError';
+import { LEGAL_DOCUMENTS } from '../../legal/legalDocuments';
 
 interface Theme { primary: string; accent: string; }
 
@@ -14,7 +15,7 @@ interface RegisterScreenProps {
   nav:    NavFn;
   t:      Theme;
   dark:   boolean;
-  signUp: (email: string, password: string, name: string, role?: string) => Promise<{ data: unknown; error: AuthError | null }>;
+  signUp: (email: string, password: string, name: string, role?: string, legalAcceptance?: { termsVersion: string; fairUseVersion: string; locale: string }) => Promise<{ data: unknown; error: AuthError | null }>;
   lockedEmail?: string | undefined;
   inviteToken?: string | undefined;
 }
@@ -86,12 +87,18 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
   const [pw2,     setPw2]     = React.useState('');
   const [err,     setErr]     = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const [legalAccepted, setLegalAccepted] = React.useState(false);
 
   const submit = async () => {
     if (!name || !email || !pw) { setErr(tr('auth.register.errFields')); return; }
     if (pw !== pw2) { setErr(tr('auth.register.errMatch')); return; }
+    if (!legalAccepted) { setErr('Leia e aceite os Termos de Uso e a Política de Uso Justo para criar sua conta.'); return; }
     setLoading(true); setErr('');
-    const { data, error } = await signUp(email, pw, name, 'client');
+    const { data, error } = await signUp(email, pw, name, 'client', {
+      termsVersion: LEGAL_DOCUMENTS.terms_of_use_ai.version,
+      fairUseVersion: LEGAL_DOCUMENTS.fair_use_policy.version,
+      locale: navigator.language.slice(0, 10),
+    });
     if (error) { setErr(friendlyError(error, tr)); setLoading(false); return; }
     const d = data as { session?: unknown; user?: { id: string } } | null;
     if (!d?.session) {
@@ -111,6 +118,10 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
   };
 
   const oauth = async (provider: 'google') => {
+    if (!legalAccepted) {
+      setErr('Leia e aceite os Termos de Uso e a Política de Uso Justo para continuar.');
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: window.location.origin },
@@ -151,6 +162,12 @@ export function RegisterScreen({ nav, t, dark, signUp, lockedEmail, inviteToken 
         <TextInput icon="lock" placeholder={tr('auth.common.password')}        value={pw}    onChange={setPw}    type="password"/>
         <TextInput icon="lock" placeholder={tr('auth.common.confirmPassword')} value={pw2}   onChange={setPw2}   type="password"/>
       </div>
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, marginTop: 18, color: textSec(dark), fontSize: 12, lineHeight: 1.45 }}>
+        <input type="checkbox" checked={legalAccepted} onChange={event => setLegalAccepted(event.target.checked)} style={{ marginTop: 3 }}/>
+        <span>
+          Li e aceito os <a href="/legal/terms" target="_blank" rel="noreferrer">Termos de Uso</a> e a <a href="/legal/fair-use" target="_blank" rel="noreferrer">Política de Uso Justo</a>.
+        </span>
+      </label>
       {err && <div style={{ color: t.accent, fontSize: 12, marginTop: 10 }}>{err}</div>}
 
       <div style={{ marginTop: 32, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>

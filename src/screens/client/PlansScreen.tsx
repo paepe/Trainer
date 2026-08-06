@@ -413,6 +413,9 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
       <div style={{ textAlign: 'center', fontSize: 11, color: T.textMute, fontFamily: FF_MONO }}>
         {tr('plans.footPre')}{tr(billing === 'monthly' ? 'plans.footMonthly' : 'plans.footAnnual')}{tr('plans.footPost')}
       </div>
+      <p style={{ margin: '0 4px', color: T.textMute, fontSize: 11.5, lineHeight: 1.5, textAlign: 'center' }}>
+        Recursos de IA elegíveis são oferecidos para uso pessoal normal, sujeitos à <a href="/legal/fair-use" target="_blank" rel="noreferrer" style={{ color: accent }}>Política de Uso Justo</a> e aos <a href="/legal/terms" target="_blank" rel="noreferrer" style={{ color: accent }}>Termos de Uso</a>.
+      </p>
     </ScreenWrap>
   );
 }

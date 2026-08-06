@@ -34,7 +34,7 @@ interface SelectorRow<K extends keyof AppPreferences> {
   options: { value: AppPreferences[K]; label: string }[];
 }
 
-export function SettingsScreen({ nav: _nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError, isMale = false }: SettingsScreenProps) {
+export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError, isMale = false }: SettingsScreenProps) {
   const { t: tr } = useTranslation();
   const isAutonomous = !isTrainer && !hasTrainer;
 
@@ -165,6 +165,18 @@ export function SettingsScreen({ nav: _nav, t, prefs, setPrefs, dark, isTrainer 
         {!isAutonomous && (
           <ToggleSection title={tr('settings.sections.b2b')} rows={[['whiteLabel', tr('settings.toggle.whiteLabel.label'), tr('settings.toggle.whiteLabel.hint')]]} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
         )}
+
+        <button onClick={() => nav('legal', { documentSlug: 'terms', returnTo: 'settings' })} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
+          padding: '16px 4px', background: 'transparent', border: 'none',
+          fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left',
+        }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 500, color: textPri(dark) }}>Termos e Uso Justo</div>
+            <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>Consulte os documentos vigentes e a versão aceita.</div>
+          </div>
+          <Icon name="chev" size={18} color={textMute(dark)}/>
+        </button>
 
         <button onClick={() => alert(tr('settings.aboutTagline'))} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',

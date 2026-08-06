@@ -16,6 +16,11 @@ interface SignInResult  { error: AuthError | null }
 interface SignUpResult  { data: unknown; error: AuthError | null }
 interface UpdateResult { error: AuthError | PostgrestError | null }
 interface ResetResult  { error: AuthError | null }
+interface LegalAcceptanceMetadata {
+  termsVersion: string;
+  fairUseVersion: string;
+  locale: string;
+}
 
 interface UseAuthReturn {
   session:           Session | null;
@@ -25,7 +30,7 @@ interface UseAuthReturn {
   loading:           boolean;
   passwordRecovery:  boolean;
   signIn:            (email: string, password: string) => Promise<SignInResult>;
-  signUp:            (email: string, password: string, name: string, role?: string) => Promise<SignUpResult>;
+  signUp:            (email: string, password: string, name: string, role?: string, legalAcceptance?: LegalAcceptanceMetadata) => Promise<SignUpResult>;
   signOut:           () => Promise<void>;
   updateProfile:     (updates: Partial<Profile>) => Promise<UpdateResult>;
   upsertSubscription:   (planKey: PlanKey, billingCycle: 'monthly' | 'annual') => Promise<UpdateResult>;
@@ -125,13 +130,35 @@ export function useAuth(): UseAuthReturn {
     return { error };
   }
 
-  async function signUp(email: string, password: string, name: string, role = 'client'): Promise<SignUpResult> {
+  async function signUp(
+    email: string,
+    password: string,
+    name: string,
+    role = 'client',
+    legalAcceptance?: LegalAcceptanceMetadata,
+  ): Promise<SignUpResult> {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name, role } },
+      options: {
+        data: {
+          name,
+          role,
+          legal_acceptance: legalAcceptance
+            ? { terms_version: legalAcceptance.termsVersion, fair_use_version: legalAcceptance.fairUseVersion, locale: legalAcceptance.locale }
+            : undefined,
+        },
+      },
     });
     if (error) console.error('[useAuth] signUp error:', error);
+    if (!error && data.session && legalAcceptance) {
+      const legalRpc = supabase.rpc as unknown as (
+        name: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ error: { message: string } | null }>;
+      const { error: legalError } = await legalRpc('accept_current_legal_documents', { p_locale: legalAcceptance.locale });
+      if (legalError) console.error('[useAuth] legal acceptance write error:', legalError.message);
+    }
     return { data, error };
   }
 

@@ -9,6 +9,7 @@ import { usePushNotifications } from './hooks/usePushNotifications';
 import { useTrainerLink } from './hooks/useTrainerLink';
 import { useTrialWindow } from './hooks/useTrialWindow';
 import { useWelcomeWindow } from './hooks/useWelcomeWindow';
+import { LegalConsentGate, useLegalAcceptance } from './legal';
 import { WelcomeScreen, LoginScreen, RegisterScreen, ResetPasswordScreen } from './screens/auth';
 import { AppLayout } from './layouts';
 import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
@@ -40,8 +41,9 @@ const CoachDNAScreen             = React.lazy(() => import('./coach-dna/CoachDNA
 const TrainerAlertsScreen        = React.lazy(() => import('./screens/trainer/TrainerAlertsScreen').then(m => ({ default: m.TrainerAlertsScreen })));
 const ClientInboxScreen          = React.lazy(() => import('./screens/client/ClientInboxScreen').then(m => ({ default: m.ClientInboxScreen })));
 const AcceptInvitationScreen     = React.lazy(() => import('./screens/auth/AcceptInvitationScreen').then(m => ({ default: m.AcceptInvitationScreen })));
+const LegalScreen                = React.lazy(() => import('./legal/LegalScreen').then(m => ({ default: m.LegalScreen })));
 
-const PUBLIC_SCREENS = ['welcome', 'login', 'register', 'acceptInvitation', 'resetPassword'];
+const PUBLIC_SCREENS = ['welcome', 'login', 'register', 'acceptInvitation', 'resetPassword', 'legal'];
 
 interface AppCycleConfig {
   length: number;
@@ -406,8 +408,13 @@ export default function App() {
     return () => { cancelled = true; };
   }, [session, profile, isTrainer, screen, fetchProfileV2, subscription, loading]);
 
-  // Deep link: /invite/:token → AcceptInvitationScreen (web path; native opens via universal/app links to the same URL)
+  // Deep links are handled before auth routing: legal documents remain public.
   React.useEffect(() => {
+    const legal = window.location.pathname.match(/^\/legal(?:\/(terms|fair-use))?\/?$/);
+    if (legal) {
+      nav('legal', { documentSlug: legal[1] ?? 'terms' });
+      return;
+    }
     const m = window.location.pathname.match(/^\/invite\/([^/]+)/);
     if (m) {
       window.history.replaceState(null, '', '/');
@@ -575,6 +582,7 @@ export default function App() {
   // These hooks must be declared before any early return to satisfy Rules of Hooks.
   const trialWindow   = useTrialWindow(isTrainer ? subscription : null);
   const welcomeWindow = useWelcomeWindow(!isTrainer ? subscription : null);
+  const legalAcceptance = useLegalAcceptance(session && profile ? profile.id : null, prefs.language);
 
   const expiredModalKey = `expiredModalDismissed_${session?.user?.id ?? ''}`;
   const [expiredModalDismissed, setExpiredModalDismissed] = React.useState(
@@ -629,6 +637,7 @@ export default function App() {
       case 'register':         return <RegisterScreen          {...common} lockedEmail={screenPayload?.lockedEmail as string | undefined} inviteToken={screenPayload?.inviteToken as string | undefined}/>;
       case 'resetPassword':    return <ResetPasswordScreen     nav={nav} t={t} dark={dark} updatePassword={updatePassword} onDone={() => { clearPasswordRecovery(); setScreen('login'); }}/>;
       case 'acceptInvitation': return <AcceptInvitationScreen  nav={nav} t={t} dark={dark} user={profile && session ? { id: profile.id, name: profile.name, email: session.user.email ?? '' } : null} token={(screenPayload?.token as string) ?? ''} signIn={signIn} signOut={signOut} resendConfirmation={resendConfirmation}/>;
+      case 'legal':            return <LegalScreen documentSlug={screenPayload?.documentSlug as string | undefined} onBack={session ? () => nav((screenPayload?.returnTo as string) ?? (isTrainer ? 'trainerDashboard' : 'checkin')) : () => nav('welcome')}/>;
       case 'profile':          return <ProfileWizardScreen     key={profileNavKey} nav={nav} t={t} dark={dark} saveProfileV2={saveProfileV2} fetchProfileV2={fetchProfileV2} saveUser={handleSetUser} user={user}/>;
       case 'checkin':          return (
         <>
@@ -722,6 +731,13 @@ export default function App() {
     disabledNavKeys: (isTrainer && !selectedClient) ? TRAINER_CLIENT_REQUIRED : [],
   };
 
+  // Never interrupt a session already in progress. Outside that runtime-critical
+  // flow, a material legal update is acknowledged before continuing in the app.
+  const legalGateRequired = !!session && !!profile
+    && legalAcceptance.status === 'required'
+    && !passwordRecovery
+    && !['legal', 'workoutMode', 'workoutSummary'].includes(screen);
+
   return (
     <ThemeProvider t={t} dark={dark} isTrainer={isTrainer}>
       <NotificationProvider t={t}>
@@ -776,7 +792,9 @@ export default function App() {
           )}
           <ChunkErrorBoundary primary={t.primary}>
             <React.Suspense fallback={<LoadingScreen primary={t.primary} />}>
-              {screenContent}
+              {legalGateRequired
+                ? <LegalConsentGate onAccept={legalAcceptance.acceptCurrentDocuments}/>
+                : screenContent}
             </React.Suspense>
           </ChunkErrorBoundary>
         </AppLayout>
