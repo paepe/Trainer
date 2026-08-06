@@ -1,6 +1,6 @@
-# TrAIner — Política de Uso Justo de Recursos de IA (rascunho interno)
+# TrAIner — Política de Uso Justo de Recursos de IA (aprovada; publicação pendente)
 
-**Estado:** rascunho para revisão de Product, Jurídico e Privacy — não publicado
+**Estado:** aprovado por Product, Jurídico e Privacy em 2026-08-06 — aguarda publicação pública
 
 **Escopo:** recursos de IA incluídos nos planos AI FITNESS e AI PERFORMANCE, incluindo geração de treinos, adaptações, interpretação de check-ins e recursos de voz quando contratualmente disponíveis.
 
@@ -48,11 +48,11 @@ O assinante pode contactar o suporte para contestar uma limitação temporária.
 
 Os mecanismos de proteção devem usar dados minimizados. Telemetria de uso não deve registrar prompts, transcrições, respostas, identificadores brutos, endereços IP ou dados de saúde. A resposta de uma solicitação pode ser mantida exclusivamente no cache efêmero de idempotência, sob RLS e acesso `service_role`, pelo tempo estritamente necessário para devolver o mesmo resultado a um retry de transporte; esse cache não é telemetria nem fonte de análise. Acesso administrativo e retenção devem seguir o contrato de telemetria e as políticas de privacidade aplicáveis.
 
-## 7. Condições de publicação
+## 7. Publicação pendente
 
 Antes de publicar esta política ou referenciá-la nos Termos, concluir:
 
-- revisão jurídica e de privacidade;
+- [x] revisão jurídica, de privacidade e de Product — aprovada em 2026-08-06;
 - verificação de consistência com a matriz de licenças e comunicação de marketing;
 - textos UX localizados para limitação temporária e degradação;
 - confirmação de que o guard pré-auth está activo em produção e de que qualquer limitador pós-auth começa em modo sombra, com revisão de falsos positivos antes de bloquear utilizadores autenticados.
