@@ -11,7 +11,7 @@
 import { hasJsonContentType, hasPersistedAIAdaptationConsent, isTrainerRole, verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
-import { isJsonValueWithinLimit } from './_lib/requestSize.js';
+import { isJsonObject, isJsonValueWithinLimit } from './_lib/requestSize.js';
 
 export const MAX_CLEANUP_VOICE_REQUEST_CHARS = 8_000;
 
@@ -66,6 +66,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isJsonValueWithinLimit(req.body, MAX_CLEANUP_VOICE_REQUEST_CHARS)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: 'Request exceeds maximum size' });
+  }
+  if (!isJsonObject(req.body)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'cleanup-voice-note', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
+    return res.status(400).json({ error: 'JSON object body required' });
   }
 
   const transcript = req.body?.transcript?.trim();

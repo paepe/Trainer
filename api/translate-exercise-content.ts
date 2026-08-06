@@ -53,7 +53,7 @@ export const MAX_CONCURRENT_PROVIDER_CALLS = 8;
 // one POST call site below (storeTranslations) now sets it explicitly.
 import { verifyRequestUser, authSupabaseUrl, authServiceHeaders, hasJsonContentType } from './_lib/auth.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
-import { isJsonValueWithinLimit } from './_lib/requestSize.js';
+import { isJsonObject, isJsonValueWithinLimit } from './_lib/requestSize.js';
 
 // 300 legitimate items of 300 characters plus JSON structure fit comfortably
 // below this cap; arbitrary auxiliary fields do not.
@@ -255,6 +255,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isJsonValueWithinLimit(req.body, MAX_TRANSLATION_REQUEST_CHARS)) {
     await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: 'Request exceeds maximum size' });
+  }
+  if (!isJsonObject(req.body)) {
+    await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
+    return res.status(400).json({ error: 'JSON object body required' });
   }
 
   const targetLocale = req.body?.targetLocale;

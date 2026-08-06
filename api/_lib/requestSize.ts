@@ -6,3 +6,8 @@ export function isJsonValueWithinLimit(value: unknown, maxChars: number): boolea
     return false;
   }
 }
+
+/** Parsed request bodies for JSON APIs must be objects, never arrays/primitives. */
+export function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}

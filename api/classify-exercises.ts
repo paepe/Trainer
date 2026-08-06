@@ -13,7 +13,7 @@
 
 import { hasJsonContentType, isTrainerRole, verifyRequestUser } from './_lib/auth.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
-import { isJsonValueWithinLimit } from './_lib/requestSize.js';
+import { isJsonObject, isJsonValueWithinLimit } from './_lib/requestSize.js';
 
 const SYSTEM_PROMPT = `You are a sports science expert. Classify each exercise into exactly one category:
 
@@ -59,6 +59,10 @@ export default async function handler(req: any, res: any) {
   if (!isJsonValueWithinLimit(req.body, MAX_CLASSIFY_REQUEST_CHARS)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: 'Request exceeds maximum size' });
+  }
+  if (!isJsonObject(req.body)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
+    return res.status(400).json({ error: 'JSON object body required' });
   }
   if (!await isTrainerRole(caller.id)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 403, rejectionCode: 'role_denied' });

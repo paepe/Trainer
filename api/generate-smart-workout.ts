@@ -20,6 +20,7 @@ import {
 } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { claimAIRequest, completeAIRequest, releaseAIOperation } from './_lib/aiOperationIdempotency.js';
+import { isJsonObject } from './_lib/requestSize.js';
 
 type ProviderFailureKind = 'timeout' | 'http_error' | 'non_json_response' | 'invalid_json_response' | 'network_or_runtime';
 
@@ -1086,6 +1087,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isSmartWorkoutRequestWithinLimit(body)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: 'Request exceeds maximum size' });
+  }
+  if (!isJsonObject(body)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
+    return res.status(400).json({ error: 'JSON object body required' });
   }
   if (!body?.trainer || !body?.client || !body?.today || !body?.task) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });

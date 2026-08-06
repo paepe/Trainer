@@ -18,6 +18,7 @@
 - Timeouts de fornecedor são limites de continuidade, não promessa comercial nem threshold de uso justo.
 - O pool de tradução limita chamadas reais ao fornecedor por request; não usa `Promise.all` ilimitado.
 - Os limites de geração evitam payload arbitrário antes da preparação de prompt.
+- Todos os oito endpoints exigem objeto JSON na raiz; arrays, `null` e primitivos são rejeitados com `400` antes de I/O específico do endpoint.
 - Valores de rajada, concorrência por ator e volume diário não serão definidos antes de evidência normal da Fase 2.
 
 ## Lacunas a fechar antes da Fase 4

@@ -7,6 +7,7 @@
 import { hasJsonContentType, verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
+import { isJsonObject } from './_lib/requestSize.js';
 
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.
@@ -294,6 +295,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isWorkoutRequestWithinLimit(req.body)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     return res.status(413).json({ error: 'Request exceeds maximum size' });
+  }
+  if (!isJsonObject(req.body)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
+    return res.status(400).json({ error: 'JSON object body required' });
   }
 
   const entitlements = await resolveUserEntitlements(caller.id);

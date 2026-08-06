@@ -11,6 +11,7 @@ import {
   verifyRequestUser,
 } from './_lib/auth.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
+import { isJsonObject } from './_lib/requestSize.js';
 
 const SYSTEM_PROMPT = `You are an expert sports science AI for a personal training platform called TrAIner.
 You receive a structured profile of a fitness client in JSON and must generate:
@@ -154,6 +155,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!isAmplifiedRequestWithinLimit(req.body)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
     res.status(413).json({ error: 'Request exceeds maximum size' });
+    return;
+  }
+  if (!isJsonObject(req.body)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-amplified', outcome: 'rejected', httpStatus: 400, rejectionCode: 'invalid_payload' });
+    res.status(400).json({ error: 'JSON object body required' });
     return;
   }
 
