@@ -1,6 +1,7 @@
 # Cláusula para os Termos — Uso Justo de IA
 
-**Estado:** aprovado por Product, Jurídico e Privacy em 2026-08-06; não publicado.
+**Estado:** publicado em produção, versão 1.0 — aprovado por Product, Jurídico e Privacy em 2026-08-06.
+**URL pública:** https://trainer-lake.vercel.app/legal/terms
 
 Os recursos de inteligência artificial incluídos no plano aplicável são disponibilizados para utilização pessoal normal, sem franquia comercial visível de sessões, exercícios, check-ins ou análises. O uso permanece sujeito à Política de Uso Justo do TrAIner e a mecanismos proporcionais de proteção contra automação, fraude, uso abusivo, credenciais comprometidas e risco de disponibilidade ou custo anormal.
 
@@ -15,4 +16,4 @@ Para proteção de privacidade, os mecanismos operacionais de consumo não regis
 - [x] Jurídico: adequação contratual, jurisdição, suspensão e suporte — aprovado em 2026-08-06.
 - [x] Privacy: transparência, retenção, pseudonimização e DPA — aprovado em 2026-08-06.
 - [x] Product: coerência com oferta “ilimitado” e comunicação de marketing — aprovado em 2026-08-06.
-- [ ] Publicação nos Termos e ligação para a Política de Uso Justo.
+- [x] Publicação nos Termos e ligação para a Política de Uso Justo — deploy Vercel Ready e smoke HTTP/browser aprovados em 2026-08-06.

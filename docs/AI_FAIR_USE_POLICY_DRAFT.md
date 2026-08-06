@@ -1,6 +1,7 @@
-# TrAIner — Política de Uso Justo de Recursos de IA (aprovada; publicação pendente)
+# TrAIner — Política de Uso Justo de Recursos de IA
 
-**Estado:** aprovado por Product, Jurídico e Privacy em 2026-08-06 — aguarda publicação pública
+**Estado:** publicada em produção, versão 1.0 — aprovada por Product, Jurídico e Privacy em 2026-08-06
+**URL pública:** https://trainer-lake.vercel.app/legal/fair-use
 
 **Escopo:** recursos de IA incluídos nos planos AI FITNESS e AI PERFORMANCE, incluindo geração de treinos, adaptações, interpretação de check-ins e recursos de voz quando contratualmente disponíveis.
 
@@ -48,11 +49,12 @@ O assinante pode contactar o suporte para contestar uma limitação temporária.
 
 Os mecanismos de proteção devem usar dados minimizados. Telemetria de uso não deve registrar prompts, transcrições, respostas, identificadores brutos, endereços IP ou dados de saúde. A resposta de uma solicitação pode ser mantida exclusivamente no cache efêmero de idempotência, sob RLS e acesso `service_role`, pelo tempo estritamente necessário para devolver o mesmo resultado a um retry de transporte; esse cache não é telemetria nem fonte de análise. Acesso administrativo e retenção devem seguir o contrato de telemetria e as políticas de privacidade aplicáveis.
 
-## 7. Publicação pendente
+## 7. Publicação e controlo de versão
 
-Antes de publicar esta política ou referenciá-la nos Termos, concluir:
+Concluído para a versão 1.0:
 
 - [x] revisão jurídica, de privacidade e de Product — aprovada em 2026-08-06;
-- verificação de consistência com a matriz de licenças e comunicação de marketing;
-- textos UX localizados para limitação temporária e degradação;
-- confirmação de que o guard pré-auth está activo em produção e de que qualquer limitador pós-auth começa em modo sombra, com revisão de falsos positivos antes de bloquear utilizadores autenticados.
+- [x] verificação de consistência com a matriz de licenças e comunicação de marketing;
+- [x] textos UX localizados para limitação temporária e degradação;
+- [x] publicação no produto, com aceite versionado e link público estável;
+- [x] confirmação de que o guard pré-auth está activo em produção e de que qualquer limitador pós-auth começa em modo sombra, com revisão de falsos positivos antes de bloquear utilizadores autenticados.

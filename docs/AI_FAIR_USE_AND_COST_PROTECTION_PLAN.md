@@ -220,17 +220,17 @@ Resposta ao utilizador
 
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.
 
-- [x] Redigir e obter aprovação de Product, Jurídico e Privacy para a Política de Uso Justo, com exemplos de uso pessoal normal e abuso, sem converter o plano em quota visível — aprovação registrada em 2026-08-06; [AI_FAIR_USE_POLICY_DRAFT.md](AI_FAIR_USE_POLICY_DRAFT.md) aguarda publicação.
+- [x] Redigir e obter aprovação de Product, Jurídico e Privacy para a Política de Uso Justo, com exemplos de uso pessoal normal e abuso, sem converter o plano em quota visível — aprovação e publicação registradas em 2026-08-06; [AI_FAIR_USE_POLICY_DRAFT.md](AI_FAIR_USE_POLICY_DRAFT.md).
 - [x] Obter aprovação de Product, Jurídico e Privacy para a cláusula de Uso Justo nos Termos — aprovação registrada em 2026-08-06; redação em [AI_FAIR_USE_TERMS_CLAUSE_DRAFT.md](AI_FAIR_USE_TERMS_CLAUSE_DRAFT.md).
-- [x] Preparar a superfície pública versionada e o aceite persistido: rotas /legal/terms e /legal/fair-use, gate pós-login que preserva treino em andamento e migração revisável [supabase-legal-document-acceptance-20260806.sql](../supabase/sql-archive/supabase-legal-document-acceptance-20260806.sql). Compilação e 444 testes passaram; publicação em produção depende da aplicação da migração e do deploy.
-- [ ] Publicar a cláusula aprovada nos Termos e vincular a Política de Uso Justo na superfície pública do produto.
+- [x] Publicar a superfície pública versionada e o aceite persistido: rotas /legal/terms e /legal/fair-use, gate pós-login que preserva treino em andamento e migração revisável [supabase-legal-document-acceptance-20260806.sql](../supabase/sql-archive/supabase-legal-document-acceptance-20260806.sql). Migração aplicada no Supabase; deploy Vercel Ready e smoke HTTP/browser das duas rotas aprovados em 2026-08-06.
+- [x] Publicar a cláusula aprovada nos Termos e vincular a Política de Uso Justo na superfície pública do produto — [Termos](https://trainer-lake.vercel.app/legal/terms) e [Política](https://trainer-lake.vercel.app/legal/fair-use) disponíveis.
 - [x] Manter “Ilimitado” no marketing de AI FITNESS e AI PERFORMANCE; a revisão confirmou ausência de contador/quota comercial visível e preservou a mensagem de upgrade para sessões ilimitadas.
 - [x] Criar textos UX localizados para `429`, degradação e contenção temporária, com canal de suporte — chaves `workoutGen.*` adicionadas para en/pt/es/de; só serão exibidas quando o enforcement for aprovado.
 - [x] Não publicar thresholds internos ou mecanismos que facilitem evasão; a política e os textos UX deliberadamente não contêm números operacionais.
-- [ ] Atualizar a matriz de licenças para “ilimitado sujeito à Política de Uso Justo” somente após publicação dos Termos.
+- [x] Atualizar a matriz de licenças para “ilimitado sujeito à Política de Uso Justo”, após publicação dos Termos — links públicos e redação alinhados em [FEATURE_ACCESS_MATRIX.md](FEATURE_ACCESS_MATRIX.md).
 - [x] Registrar política de consumo iniciado por TRAINER em nome de aluno e relação com eventual franquia de IA do TRAINER — [AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md](AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md), pendente de aprovação comercial/jurídica/Privacy.
 
-**Auditoria de consistência (2026-08-06):** os manuais TRAINER en/pt/es ainda comunicavam o degrau histórico PRO de 50 alunos. Foram alinhados à matriz efectiva PRO 5/15/30; as traduções da UI já apresentavam essas três faixas. Product, Jurídico e Privacy aprovaram a Política de Uso Justo e a cláusula dos Termos em 2026-08-06. A implementação da publicação e do aceite versionado foi preparada e validada localmente; a fase permanece pendente somente da aplicação da migração, deploy, verificação pública, atualização da matriz comercial e respetivo aceite em produção.
+**Auditoria de consistência (2026-08-06):** os manuais TRAINER en/pt/es ainda comunicavam o degrau histórico PRO de 50 alunos. Foram alinhados à matriz efectiva PRO 5/15/30; as traduções da UI já apresentavam essas três faixas. Product, Jurídico e Privacy aprovaram a Política de Uso Justo e a cláusula dos Termos em 2026-08-06. A migração foi aplicada no Supabase e o deploy Vercel Ready foi verificado nas duas rotas públicas. A Fase 3 está concluída; o aceite versionado passa a ser exigido no próximo acesso autenticado, sem interromper treino já em curso.
 
 **Critério de aceite:** Termos, Política, marketing, matriz e UX descrevem a mesma oferta antes do enforcement da Fase 4.
 

@@ -1,7 +1,7 @@
 # Feature Access Matrix — TrAIner App
-**Versão:** 1.1
+**Versão:** 1.2
 **Data:** 2026-08-06
-**Estado:** Matriz de referência de acesso; cláusula de Uso Justo ainda depende de publicação dos Termos
+**Estado:** Matriz de referência de acesso; Uso Justo publicado nos [Termos](https://trainer-lake.vercel.app/legal/terms) e na [Política](https://trainer-lake.vercel.app/legal/fair-use)
 
 ---
 
@@ -55,6 +55,8 @@ feature_permissions (Supabase)
 | **Convite de treinador** | Permite ao aluno vincular-se a um treinador e receber o respectivo plano | ✅ (limitado ao plano) | ✅ (limitado ao plano) | ✅ |
 | **CTA de upgrade** | Botão/mensagem de actualização mostrado ao aluno ao atingir um limite do plano | ✅ ao exceder limite | ✅ ao tentar desempenho | — |
 
+**Uso ilimitado de IA:** AI FITNESS e AI PERFORMANCE oferecem uso ilimitado para utilização pessoal normal, sujeito à [Política de Uso Justo](https://trainer-lake.vercel.app/legal/fair-use) e aos [Termos de Uso](https://trainer-lake.vercel.app/legal/terms). Isto não cria contador comercial visível nem divulga controles operacionais internos.
+
 ### 2.2 Regras de Negócio — FREE
 
 1. **Sessão única semanal:** A IA gera no máximo 1 sessão com 6 exercícios fitness por semana.
@@ -90,7 +92,7 @@ feature_permissions (Supabase)
 
 **Correção 2026-08-05 (pós-Fase 6):** o `pro` legado, usado como entitlement efectivo durante a janela de 21 dias do TRIAL, foi alinhado a **30 clientes**. Assim, o TRIAL não excede a maior faixa PRO comercial; ELITE continua o único nível ilimitado.
 
-**Auditoria documental 2026-08-06:** os manuais TRAINER en/pt/es foram alinhados à capacidade PRO 5/15/30. A expressão comercial “ilimitado sujeito à Política de Uso Justo” só será incluída nesta matriz depois de a cláusula estar aprovada e publicada nos Termos.
+**Auditoria documental 2026-08-06:** os manuais TRAINER en/pt/es foram alinhados à capacidade PRO 5/15/30. A expressão comercial “ilimitado sujeito à Política de Uso Justo” está publicada nos [Termos](https://trainer-lake.vercel.app/legal/terms) e na [Política de Uso Justo](https://trainer-lake.vercel.app/legal/fair-use); não expõe thresholds internos.
 
 | Funcionalidade | Descrição | TRIAL | PRO (5 / 15 / 30) | ELITE |
 |---|---|:---:|:---:|:---:|
