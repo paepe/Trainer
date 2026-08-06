@@ -671,7 +671,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           readinessScore: readiness,
           adaptations:    adaptResult,
         });
-        setPlanSource('ai');
+        setPlanSource(useSmart ? 'ai' : 'fallback');
         // Both paths now emit names already in exerciseNamesLocale — the
         // smart endpoint via its own `locale` param, the local generator via
         // the curated translations embedded in the Fase 3 mirror (Fase 4).
@@ -710,7 +710,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         readinessScore: ctx.readinessScore ?? 60,
         adaptations:    [],
       });
-      setPlanSource('ai');
+      setPlanSource('fallback');
     }
   };
 
@@ -876,7 +876,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           ) : (
             <img
               src={aiPlanIcon}
-              alt={tr('client.workout.aiPoweredPlan')}
+              alt={planSource === 'fallback'
+                ? tr('client.workout.localFallbackPlan')
+                : tr('client.workout.aiPoweredPlan')}
               style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover', flexShrink: 0 }}
             />
           )}
@@ -889,7 +891,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 letterSpacing: '.07em', textTransform: 'uppercase',
                 background: `${t.primary}22`, color: t.primary,
               }}>
-                {planSource === 'trainer' ? tr('client.workout.yourTrainer') : tr('client.workout.aiPlan')}
+                {planSource === 'trainer'
+                  ? tr('client.workout.yourTrainer')
+                  : planSource === 'fallback'
+                    ? tr('client.workout.localFallback')
+                    : tr('client.workout.aiPlan')}
               </div>
             </div>
             <div style={{
@@ -897,10 +903,16 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
-              {planSource === 'trainer' ? tr('client.workout.trainerPlan') : tr('client.workout.aiPoweredPlan')}
+              {planSource === 'trainer'
+                ? tr('client.workout.trainerPlan')
+                : planSource === 'fallback'
+                  ? tr('client.workout.localFallbackPlan')
+                  : tr('client.workout.aiPoweredPlan')}
             </div>
             <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.55)' : 'rgba(14,26,43,.5)', marginTop: 2 }}>
-              {hasTrainerPlans ? (
+              {planSource === 'fallback' ? (
+                tr('client.workout.localFallbackNote')
+              ) : hasTrainerPlans ? (
                 <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{trainerPlans.length === 1 ? tr('client.workout.planCount_one', { count: trainerPlans.length }) : tr('client.workout.planCount_other', { count: trainerPlans.length })}</>
 
               ) : (

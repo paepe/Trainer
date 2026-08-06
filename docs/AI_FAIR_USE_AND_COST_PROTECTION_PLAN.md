@@ -260,7 +260,7 @@ Resposta ao utilizador
 - [ ] Atualizar este documento ao concluir cada fase: data, alterações, testes, evidência e pendências.
 - [ ] Reavaliar retenção, acesso administrativo e postura de privacidade trimestralmente.
 
-**Smoke autenticado de degradação (2026-08-06):** na conta FREE já autenticada, a geração de plano remoto retornou falha do fornecedor (`network_or_runtime`, sem status HTTP). O cliente apresentou estado de geração, finalizou um plano seguro de fallback e o botão **Start Workout** abriu o modo de execução com dez exercícios, sem registrar séries ou concluir a sessão. A telemetria persistiu um único evento minimizado `provider_failed`, sem tokens, custo, prompt ou dado de saúde. Isto confirma a degradação segura desse fluxo, mas não substitui a validação dos demais endpoints, do rate limit pós-auth ou do período de observação.
+**Smoke autenticado de degradação (2026-08-06):** na conta FREE já autenticada, a geração de plano remoto retornou falha do fornecedor (`network_or_runtime`, sem status HTTP). A configuração Vercel confirma `DEEPSEEK_API_KEY` presente; a falha foi transitória de runtime/rede, não ausência de credencial. O cliente apresentou estado de geração, finalizou um plano seguro de fallback e o botão **Start Workout** abriu o modo de execução com dez exercícios, sem registrar séries ou concluir a sessão. A telemetria persistiu um único evento minimizado `provider_failed`, sem tokens, custo, prompt ou dado de saúde. A UI foi corrigida para identificar esse resultado como plano local seguro, nunca como plano gerado por IA. Isto confirma a degradação segura desse fluxo, mas não substitui a validação dos demais endpoints, do rate limit pós-auth ou do período de observação.
 
 **Critério de aceite:** os controles funcionam em produção, têm evidência registrada e não degradam o fluxo crítico de treino.
 
@@ -276,7 +276,7 @@ Resposta ao utilizador
 | 3 — Termos e comunicação | 🟨 Dependência externa | 2026-08-06 | Política de Uso Justo, atribuição TRAINER–aluno e textos UX en/pt/es/de foram preparados e revisados; manuais TRAINER en/pt/es foram corrigidos para PRO 5/15/30. Não há thresholds públicos. Publicação em Termos e referência explícita na matriz dependem de aprovação de Product, Jurídico e Privacy. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
-| 6 — Produção e governança | 🟨 Verificação parcial | 2026-08-06 | Smoke autenticado confirmou que uma falha transitória do fornecedor degrada para plano seguro e não interrompe o início do treino; telemetria minimizada registrou o erro sem conteúdo. Permanecem pendentes os demais endpoints, rate limit pós-auth e observação de uso real. |
+| 6 — Produção e governança | 🟨 Verificação parcial | 2026-08-06 | Smoke autenticado confirmou que uma falha transitória do fornecedor degrada para plano seguro e não interrompe o início do treino; telemetria minimizada registrou o erro sem conteúdo e a UI identifica o resultado local sem alegar geração por IA. Permanecem pendentes os demais endpoints, rate limit pós-auth e observação de uso real. |
 
 ### Regra de atualização
 
