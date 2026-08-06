@@ -229,7 +229,7 @@ Resposta ao utilizador
 - [ ] Executar primeiro em modo sombra, comparar falsos positivos e obter aprovação antes de bloquear.
 - [ ] Aplicar janelas de rajada e concorrência independentes por operação; não reutilizar um número global.
 - [ ] Retornar `429` com `Retry-After` e mensagem localizada, sem revelar thresholds internos.
-- [ ] Prever exceção operacional temporária, auditada, com motivo, aprovador e expiração automática.
+- [x] Prever exceção operacional temporária, auditada, com motivo, aprovador e expiração automática — tabela `ai_rate_limit_exceptions` aplicada com RLS, máximo de sete dias e revogação; o limitador consulta somente exceção ativa quando for habilitado.
 - [ ] Implementar TTL/limpeza dos buckets e testes de concorrência, relógio, múltiplas instâncias e indisponibilidade.
 - [ ] Em falha do limitador, aplicar a degradação aprovada: treino local seguro, check-in manual ou indisponibilidade não crítica; não chamar o provedor em fail-open.
 - [ ] Validar que execução offline, registo de sets e sessão já iniciada nunca dependem do limitador.

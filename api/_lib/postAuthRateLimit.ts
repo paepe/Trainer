@@ -33,6 +33,9 @@ export async function checkPostAuthAIRateLimit(actorId: string, endpoint: AIEndp
     return 'unavailable';
   }
   try {
+    const exception = await fetch(`${authSupabaseUrl()}/rest/v1/rpc/has_active_ai_rate_limit_exception`, { method: 'POST', headers: { ...authServiceHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ p_actor_hash: hash, p_endpoint: endpoint }) });
+    if (!exception.ok) return 'unavailable';
+    if ((await exception.json()) === true) return 'allowed';
     const response = await fetch(`${authSupabaseUrl()}/rest/v1/rpc/consume_ai_rate_limit_bucket`, {
       method: 'POST', headers: { ...authServiceHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_actor_hash: hash, p_endpoint: endpoint, p_window_seconds: windowSeconds, p_max_requests: maxRequests }),
