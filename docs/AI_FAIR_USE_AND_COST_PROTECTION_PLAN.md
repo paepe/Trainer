@@ -104,7 +104,7 @@ Resposta ao utilizador
 - [ ] Confirmar em execução os oito fluxos e identificar a pessoa/entidade que deve ser cobrada em cada um.
 - [x] Identificar fan-out econômico estático: `translate-exercise-content` pode disparar até 300 chamadas concorrentes em um único request de cache miss.
 - [x] Identificar dependência quebrada de entrega: `send-welcome-message` não autentica a chamada interna a `send-notification` e não valida seu resultado.
-- [ ] Distinguir funções comerciais (`voice`, geração, análise) de operações internas (`classify`, tradução, welcome), aplicando autorização por papel e propósito.
+- [x] Distinguir funções comerciais (`voice`, geração, análise) de operações internas (`classify`, tradução, welcome), aplicando autorização por papel e propósito — [AI_ENDPOINT_AUTHORITY_MATRIX.md](AI_ENDPOINT_AUTHORITY_MATRIX.md).
 - [x] Mapear os propósitos de `cleanup-voice-note`: check-in, Coach DNA, nota de plano do TRAINER e onboarding (objetivos, histórico de movimento, saúde declarada, comorbidades e fatores sensíveis).
 - [x] Aprovar D0.1: `allow_ai_adaptation` ausente ou falso equivale a não autorização; o consentimento é lido da versão persistida do perfil.
 - [ ] Completar o consentimento/autorização dos propósitos restantes de voz e os limites operacionais de `generate-amplified`; D0.1 já resolve o onboarding e a minimização de dados de saúde.
