@@ -6,11 +6,11 @@
 |---|---:|---:|---:|---|
 | `generate-smart-workout` | 128.000 caracteres serializados | 28 s | 1 | Limite de transporte aplicado; limite de uso justo depende da Fase 2 |
 | `generate-workout` | 128.000 caracteres serializados | 25 s | 1 | Limite de transporte aplicado; limite de uso justo depende da Fase 2 |
-| `translate-exercise-content` | 300 itens × 300 caracteres | isolado por item | 8 chamadas ao provedor | Pool aplicado; lote é compatível com a biblioteca atual |
+| `translate-exercise-content` | body de 100.000; 300 itens × 300 caracteres | isolado por item | 8 chamadas ao provedor | Teto global, lote e pool aplicados; compatível com a biblioteca atual |
 | `parse-voice` | body de 8.000; transcrição de 4.000 caracteres | 15 s | 1 | Teto global e de campo aplicados |
 | `cleanup-voice-note` | body de 8.000; transcrição de 4.000 caracteres | 15 s | 1 | Teto global e de campo aplicados |
 | `generate-amplified` | 8.000 caracteres serializados; perfil persistido minimizado | 22 s | 1 | Body legado limitado e ignorado como autoridade |
-| `classify-exercises` | 50 itens; nome 200; grupo 80 caracteres | 15 s | 1 | Lote interno limitado |
+| `classify-exercises` | body de 24.000; 50 itens; nome 200; grupo 80 caracteres | 15 s | 1 | Teto global, lote e campos aplicados |
 | `send-welcome-message` | body de 2.000; `trainerId` até 128 caracteres | 28 s | 1 | Teto global e de campo aplicados |
 
 ## Decisões já tomadas
@@ -22,5 +22,5 @@
 
 ## Lacunas a fechar antes da Fase 4
 
-1. Medir o tamanho real dos fluxos de voz e classificação sem registrar conteúdo.
+1. Medir o tamanho real dos fluxos de voz e classificação sem registrar conteúdo, para confirmar a folga operacional dos tetos estáticos.
 2. Definir, após observação, janelas independentes por endpoint e o comportamento do armazenamento atômico compartilhado.

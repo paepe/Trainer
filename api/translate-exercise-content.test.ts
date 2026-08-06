@@ -9,7 +9,7 @@
 // real code path, not reasoned about.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import handler from './translate-exercise-content';
+import handler, { MAX_TRANSLATION_REQUEST_CHARS } from './translate-exercise-content';
 
 process.env.SUPABASE_URL = 'https://example.supabase.co';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key';
@@ -151,6 +151,19 @@ describe('POST /api/translate-exercise-content', () => {
 
     expect(res._status).toBe(413);
     expect((fetch as ReturnType<typeof vi.fn>).mock.calls.some(([url]) => String(url).includes('api.deepseek.com'))).toBe(false);
+  });
+
+  it('rejects an oversized body before consulting the cache or provider', async () => {
+    const res = mockRes();
+    await handler(
+      mockReq({ targetLocale: 'en', padding: 'x'.repeat(MAX_TRANSLATION_REQUEST_CHARS) }),
+      res as never,
+    );
+
+    expect(res._status).toBe(413);
+    expect((fetch as ReturnType<typeof vi.fn>).mock.calls.some(([url]) =>
+      String(url).includes('exercise_content_translations') || String(url).includes('api.deepseek.com'),
+    )).toBe(false);
   });
 
   it('rejects a request with no Authorization header', async () => {

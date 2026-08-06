@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import handler from './classify-exercises';
+import handler, { MAX_CLASSIFY_REQUEST_CHARS } from './classify-exercises';
 
 process.env.SUPABASE_URL = 'https://example.supabase.co';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-key';
@@ -54,5 +54,21 @@ describe('POST /api/classify-exercises', () => {
     }, res);
 
     expect(res._status).toBe(400);
+  });
+
+  it('rejects an oversized body before the trainer role lookup', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.includes('/auth/v1/user')) return { ok: true, json: async () => ({ id: 'trainer-1' }) } as Response;
+      throw new Error(`unexpected fetch: ${url}`);
+    }));
+    const res = mockRes();
+
+    await handler({
+      method: 'POST', headers: { authorization: 'Bearer test-jwt', 'content-type': 'application/json' },
+      body: { padding: 'x'.repeat(MAX_CLASSIFY_REQUEST_CHARS) },
+    }, res);
+
+    expect(res._status).toBe(413);
+    expect((fetch as ReturnType<typeof vi.fn>).mock.calls.some(([url]) => String(url).includes('/rest/v1/profiles'))).toBe(false);
   });
 });

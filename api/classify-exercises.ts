@@ -13,6 +13,7 @@
 
 import { hasJsonContentType, isTrainerRole, verifyRequestUser } from './_lib/auth.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
+import { isJsonValueWithinLimit } from './_lib/requestSize.js';
 
 const SYSTEM_PROMPT = `You are a sports science expert. Classify each exercise into exactly one category:
 
@@ -38,6 +39,9 @@ const VALID_CATEGORIES = new Set<string>(['fitness', 'performance', 'mobility'])
 const MAX_BATCH = 50;
 const MAX_NAME_CHARS = 200;
 const MAX_MUSCLE_GROUP_CHARS = 80;
+// Bounds any fields not represented in the classified exercise schema before
+// the role lookup or provider request can consume resources.
+export const MAX_CLASSIFY_REQUEST_CHARS = 24_000;
 
 export default async function handler(req: any, res: any) {
   res.setHeader?.('Access-Control-Allow-Origin', '*');
@@ -51,6 +55,10 @@ export default async function handler(req: any, res: any) {
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
+  if (!isJsonValueWithinLimit(req.body, MAX_CLASSIFY_REQUEST_CHARS)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
+    return res.status(413).json({ error: 'Request exceeds maximum size' });
   }
   if (!await isTrainerRole(caller.id)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'classify-exercises', outcome: 'rejected', httpStatus: 403, rejectionCode: 'role_denied' });
