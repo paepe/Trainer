@@ -21,6 +21,9 @@ import {
   releaseAIOperation,
 } from './_lib/aiOperationIdempotency.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
+import { isJsonValueWithinLimit } from './_lib/requestSize.js';
+
+export const MAX_WELCOME_REQUEST_CHARS = 2_000;
 
 const PROMPT_CHAR_BUDGET = 600; // mirrors the Step12 free-text textarea max length
 
@@ -80,6 +83,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
+  if (!isJsonValueWithinLimit(req.body, MAX_WELCOME_REQUEST_CHARS)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'send-welcome-message', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
+    return res.status(413).json({ error: 'Request exceeds maximum size' });
   }
 
   const trainerId = req.body?.trainerId;

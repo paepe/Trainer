@@ -6,6 +6,9 @@
 import { hasJsonContentType, verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
+import { isJsonValueWithinLimit } from './_lib/requestSize.js';
+
+export const MAX_PARSE_VOICE_REQUEST_CHARS = 8_000;
 
 const SYSTEM_PROMPT = `You are a structured data extractor for a fitness app.
 The user has spoken a free-form daily check-in. Extract the following fields if mentioned.
@@ -67,6 +70,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     return res.status(415).json({ error: 'Content-Type must be application/json' });
+  }
+  if (!isJsonValueWithinLimit(req.body, MAX_PARSE_VOICE_REQUEST_CHARS)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'parse-voice', outcome: 'rejected', httpStatus: 413, rejectionCode: 'payload_too_large' });
+    return res.status(413).json({ error: 'Request exceeds maximum size' });
   }
 
   const entitlements = await resolveUserEntitlements(caller.id);

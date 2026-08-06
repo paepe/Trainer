@@ -108,7 +108,7 @@ Resposta ao utilizador
 - [x] Mapear os propósitos de `cleanup-voice-note`: check-in, Coach DNA, nota de plano do TRAINER e onboarding (objetivos, histórico de movimento, saúde declarada, comorbidades e fatores sensíveis).
 - [x] Aprovar D0.1: `allow_ai_adaptation` ausente ou falso equivale a não autorização; o consentimento é lido da versão persistida do perfil.
 - [ ] Completar o consentimento/autorização dos propósitos restantes de voz e os limites operacionais de `generate-amplified`; D0.1 já resolve o onboarding e a minimização de dados de saúde.
-- [ ] Definir limites duros de payload e concorrência a partir da UX real de cada fluxo.
+- [x] Definir limites duros de payload e concorrência por request — [AI_ENDPOINT_OPERATIONAL_BOUNDS.md](AI_ENDPOINT_OPERATIONAL_BOUNDS.md); limites de uso justo por ator continuam dependentes da observação.
 - [ ] Definir teto de fan-out por request e estratégia de batching/fila para tradução; o teto deve limitar chamadas reais ao provedor, não apenas itens recebidos.
 - [ ] Definir sinais de abuso: chamadas concorrentes, repetição idêntica, volume inviável para uso humano e padrões distribuídos por conta/rede.
 - [ ] Aprovar modelo de telemetria, idempotência, cálculo de custo, retenção, RLS e descarte conforme minimização e GDPR.
