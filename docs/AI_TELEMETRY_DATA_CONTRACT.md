@@ -12,9 +12,9 @@ One event is emitted after an authenticated request reaches a terminal outcome. 
 
 | Field | Meaning | Privacy rule |
 |---|---|---|
-| `request_id` | Server-generated UUID for one request | No client-provided identifier accepted |
+| `request_id` | Server-generated UUID for one event | No client-provided identifier accepted |
 | `actor_hash` | HMAC-SHA-256 of the authenticated actor | No raw user ID |
-| `operation_key` | Optional HMAC idempotency key | No raw user ID |
+| `operation_key` | Optional HMAC idempotency key derived from actor + client retry UUID | The retry UUID is never persisted; no raw user ID |
 | `endpoint`, `outcome`, `http_status`, `rejection_code` | Operational result | Enumerated values only |
 | `plan_key`, `provider`, `model` | Commercial/provider dimension | No billing identifier |
 | `input_tokens`, `output_tokens`, `total_tokens` | Provider usage, when supplied | Numeric only |
@@ -23,6 +23,8 @@ One event is emitted after an authenticated request reaches a terminal outcome. 
 ## Explicit exclusions
 
 The event table and all fallbacks must never contain: request/response body, prompt, transcript, exercise note, trainer philosophy, health or cycle information, email, name, raw UUID, IP address, device token, or error body.
+
+The idempotency claim store is not telemetry. It may retain the completed API response for at most 10 minutes, under RLS and `service_role` only, solely to return the same response to a transport retry without repeating a paid provider call. It is never used for analytics, alerts or support investigation.
 
 ## Retention and access proposal
 
@@ -37,4 +39,4 @@ Telemetry is best-effort and never retries the AI call. A telemetry write failur
 
 ## Cost method
 
-`provider_usage` means the provider supplied token counts. `unavailable` means token/cost data was not supplied. No price is inferred until a versioned price catalogue is approved.
+`provider_usage` means the provider supplied token counts. `unavailable` means token/cost data was not supplied. The versioned production price catalogue calculates a conservative `estimated_cache_miss` cost for `deepseek-chat` when cache-token separation is unavailable; this quality is stated explicitly and is not represented as an exact charge.

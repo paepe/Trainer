@@ -46,7 +46,7 @@ O assinante pode contactar o suporte para contestar uma limitação temporária.
 
 ## 6. Privacidade
 
-Os mecanismos de proteção devem usar dados minimizados. Telemetria de uso não deve registrar prompts, transcrições, respostas, identificadores brutos, endereços IP ou dados de saúde. Acesso administrativo e retenção devem seguir o contrato de telemetria e as políticas de privacidade aplicáveis.
+Os mecanismos de proteção devem usar dados minimizados. Telemetria de uso não deve registrar prompts, transcrições, respostas, identificadores brutos, endereços IP ou dados de saúde. A resposta de uma solicitação pode ser mantida exclusivamente no cache efêmero de idempotência, sob RLS e acesso `service_role`, pelo tempo estritamente necessário para devolver o mesmo resultado a um retry de transporte; esse cache não é telemetria nem fonte de análise. Acesso administrativo e retenção devem seguir o contrato de telemetria e as políticas de privacidade aplicáveis.
 
 ## 7. Condições de publicação
 
