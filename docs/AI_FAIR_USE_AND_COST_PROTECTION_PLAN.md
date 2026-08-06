@@ -113,7 +113,7 @@ Resposta ao utilizador
 - [ ] Definir sinais de abuso: chamadas concorrentes, repetição idêntica, volume inviável para uso humano e padrões distribuídos por conta/rede.
 - [ ] Aprovar modelo de telemetria, idempotência, cálculo de custo, retenção, RLS e descarte conforme minimização e GDPR.
 - [ ] Definir HMAC/rotação do sinal de rede ou decidir formalmente não usá-lo.
-- [ ] Definir política de degradação por endpoint e resposta a indisponibilidade da proteção.
+- [x] Definir política de degradação por endpoint e resposta a indisponibilidade da proteção — [AI_ENDPOINT_DEGRADATION_POLICY.md](AI_ENDPOINT_DEGRADATION_POLICY.md); treino em curso e execução offline permanecem independentes de IA.
 - [ ] Obter aprovação explícita de Product, Privacy e Engineering para o desenho; thresholds de enforcement permanecem provisórios até a Fase 2 medir uso real.
 
 **Critério de aceite:** inventário validado em execução, identidade cobrada, autorização, modelo de dados, retenção, degradação e ameaças aprovados. Nenhum threshold definitivo é escolhido antes da telemetria.
