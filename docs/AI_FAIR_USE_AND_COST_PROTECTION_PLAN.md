@@ -198,7 +198,7 @@ Resposta ao utilizador
 
 **Idempotência de retries (2026-08-05):** a migração `supabase-ai-request-idempotency-20260805.sql` acrescentou resposta curta e expiração à tabela de claims HMAC já protegida por RLS. A aplicação gera um UUID por solicitação de treino e o backend o associa por HMAC ao ator autenticado; uma repetição recebe a resposta previamente concluída, sem nova chamada ao fornecedor. O smoke pós-deploy confirmou a geração normal e uma claim `smart_workout_generation` em estado `completed`, com resposta server-side presente e expiração de 10 minutos. A cobertura automatizada valida UUID, claim, resposta em cache e indisponibilidade fail-closed.
 
-**Auditoria de observação (2026-08-06):** a produção contém somente seis eventos do smoke controlado de 05/08, de um único ator pseudonimizado: cinco gerações `generate-smart-workout` bem-sucedidas, `20.197` tokens no total e custo conservador agregado de `4.032` micros USD; há uma falha histórica sem custo mensurável. A tabela contém exclusivamente campos operacionais minimizados, RLS está ativa, não há privilégios para `anon`/`authenticated`, todos os eventos expiram em exatamente 90 dias e não há expiração pendente. Não existe amostra de uso humano normal, concorrência ou distribuição por coorte suficiente para definir thresholds, alertas ou bloqueios. O enforcement pós-auth da Fase 4 permanece bloqueado.
+**Auditoria de observação (2026-08-06):** a produção contém sete eventos de smoke controlado, de um único ator pseudonimizado: cinco gerações `generate-smart-workout` bem-sucedidas, `20.197` tokens no total e custo conservador agregado de `4.032` micros USD; há duas falhas do provedor, sem tokens ou custo mensurável. A mais recente foi um smoke autenticado de degradação: o fornecedor falhou sem status HTTP, a telemetria registrou somente `provider_failed`/HTTP 500/modelo e o cliente iniciou o treino com plano seguro de fallback. A tabela contém exclusivamente campos operacionais minimizados, RLS está ativa, não há privilégios para `anon`/`authenticated`, todos os eventos expiram em exatamente 90 dias e não há expiração pendente. Não existe amostra de uso humano normal, concorrência ou distribuição por coorte suficiente para definir thresholds, alertas ou bloqueios. O enforcement pós-auth da Fase 4 permanece bloqueado.
 
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
@@ -260,6 +260,8 @@ Resposta ao utilizador
 - [ ] Atualizar este documento ao concluir cada fase: data, alterações, testes, evidência e pendências.
 - [ ] Reavaliar retenção, acesso administrativo e postura de privacidade trimestralmente.
 
+**Smoke autenticado de degradação (2026-08-06):** na conta FREE já autenticada, a geração de plano remoto retornou falha do fornecedor (`network_or_runtime`, sem status HTTP). O cliente apresentou estado de geração, finalizou um plano seguro de fallback e o botão **Start Workout** abriu o modo de execução com dez exercícios, sem registrar séries ou concluir a sessão. A telemetria persistiu um único evento minimizado `provider_failed`, sem tokens, custo, prompt ou dado de saúde. Isto confirma a degradação segura desse fluxo, mas não substitui a validação dos demais endpoints, do rate limit pós-auth ou do período de observação.
+
 **Critério de aceite:** os controles funcionam em produção, têm evidência registrada e não degradam o fluxo crítico de treino.
 
 ---
@@ -274,7 +276,7 @@ Resposta ao utilizador
 | 3 — Termos e comunicação | 🟨 Dependência externa | 2026-08-06 | Política de Uso Justo, atribuição TRAINER–aluno e textos UX en/pt/es/de foram preparados e revisados; manuais TRAINER en/pt/es foram corrigidos para PRO 5/15/30. Não há thresholds públicos. Publicação em Termos e referência explícita na matriz dependem de aprovação de Product, Jurídico e Privacy. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
-| 6 — Produção e governança | ⬜ Não iniciada | — | — |
+| 6 — Produção e governança | 🟨 Verificação parcial | 2026-08-06 | Smoke autenticado confirmou que uma falha transitória do fornecedor degrada para plano seguro e não interrompe o início do treino; telemetria minimizada registrou o erro sem conteúdo. Permanecem pendentes os demais endpoints, rate limit pós-auth e observação de uso real. |
 
 ### Regra de atualização
 
