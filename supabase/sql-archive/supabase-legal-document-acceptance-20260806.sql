@@ -77,12 +77,12 @@ begin
     insert into public.legal_document_acceptances (
       user_id, document_key, document_version, locale
     )
-    select v_user_id, document_key, version, v_locale
+    select v_user_id, current_documents.document_key, current_documents.version, v_locale
     from current_documents
-    on conflict (user_id, document_key, document_version) do nothing
+    on conflict on constraint legal_document_acceptances_user_id_document_key_document_ve_key do nothing
     returning legal_document_acceptances.document_key, legal_document_acceptances.document_version
   )
-  select document_key, document_version from accepted;
+  select accepted.document_key, accepted.document_version from accepted;
 end;
 $$;
 
