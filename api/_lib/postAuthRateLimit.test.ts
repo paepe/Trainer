@@ -29,4 +29,11 @@ describe('checkPostAuthAIRateLimit', () => {
     expect(res.status).toHaveBeenCalledWith(429);
     expect(res.setHeader).toHaveBeenCalledWith('Retry-After', '60');
   });
+  it('bypasses bucket consumption for an active approved exception', async () => {
+    vi.stubEnv('AI_POSTAUTH_RATE_LIMIT_MODE', 'enforce'); vi.stubEnv('AI_POSTAUTH_RATE_LIMIT_HMAC_SECRET', 'test-secret');
+    vi.stubEnv('AI_POSTAUTH_RATE_LIMIT_WINDOW_SECONDS', '60'); vi.stubEnv('AI_POSTAUTH_RATE_LIMIT_MAX_REQUESTS', '10');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => true }));
+    await expect(checkPostAuthAIRateLimit('actor', 'generate-smart-workout')).resolves.toBe('allowed');
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
 });
