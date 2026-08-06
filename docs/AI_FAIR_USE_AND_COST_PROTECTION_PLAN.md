@@ -233,6 +233,8 @@ Resposta ao utilizador
 - [ ] Em falha do limitador, aplicar a degradação aprovada: treino local seguro, check-in manual ou indisponibilidade não crítica; não chamar o provedor em fail-open.
 - [ ] Validar que execução offline, registo de sets e sessão já iniciada nunca dependem do limitador.
 
+**Execução técnica 2026-08-06:** a camada pós-auth foi conectada aos oito endpoints e a infraestrutura atômica está aplicada com RLS. O modo padrão `off` é uma operação nula; por isso a produção continua sem bucket, bloqueio ou retenção adicional até existir ruleset aprovado. Regressão integral: 37 arquivos / 438 testes aprovados; deploys de produção correspondentes ficaram `Ready`.
+
 **Critério de aceite:** excedentes não alcançam o provedor; concorrência não permite bypass; modo sombra demonstrou baixa taxa de falso positivo; uso humano normal permanece sem contador e sem cap comercial.
 
 ### Fase 5 — Anomalia, alertas e contenção operacional
