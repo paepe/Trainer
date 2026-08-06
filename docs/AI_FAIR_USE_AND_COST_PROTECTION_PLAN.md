@@ -154,6 +154,8 @@ Resposta ao utilizador
 
 **Validação de boundary (2026-08-06):** `generate-amplified` recebeu limite explícito de 8.000 caracteres mesmo não consumindo o body legado; a autoridade continua sendo apenas o perfil persistido do caller. Os oito handlers agora exigem objeto JSON na raiz, além de seus campos e limites específicos. A suíte passou com 99 testes, cobrindo autenticação, consentimento/papel/vínculo quando aplicável, `Content-Type`, limites, guard WAF e caminhos sem chamada ao provedor para rejeições críticas.
 
+**Boundary anônimo em produção (2026-08-06):** um `POST` JSON sem credencial para cada um dos oito endpoints retornou `401`: `generate-smart-workout`, `generate-workout`, `translate-exercise-content`, `parse-voice`, `cleanup-voice-note`, `generate-amplified`, `classify-exercises` e `send-welcome-message`. Nenhuma dessas requisições chegou ao fornecedor; o guard WAF continua reservado para rajadas anônimas acima do limiar amplo configurado.
+
 ### Fase 2 — Telemetria persistida, medição e custo por assinante
 
 **Objetivo:** medir custo e comportamento normal antes de calibrar enforcement, sem registrar conteúdo sensível.
@@ -276,7 +278,7 @@ Resposta ao utilizador
 | 3 — Termos e comunicação | 🟨 Dependência externa | 2026-08-06 | Política de Uso Justo, atribuição TRAINER–aluno e textos UX en/pt/es/de foram preparados e revisados; manuais TRAINER en/pt/es foram corrigidos para PRO 5/15/30. Não há thresholds públicos. Publicação em Termos e referência explícita na matriz dependem de aprovação de Product, Jurídico e Privacy. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
-| 6 — Produção e governança | 🟨 Verificação parcial | 2026-08-06 | Smoke autenticado confirmou que uma falha transitória do fornecedor degrada para plano seguro e não interrompe o início do treino; telemetria minimizada registrou o erro sem conteúdo e a UI identifica o resultado local sem alegar geração por IA. Permanecem pendentes os demais endpoints, rate limit pós-auth e observação de uso real. |
+| 6 — Produção e governança | 🟨 Verificação parcial | 2026-08-06 | O boundary anônimo dos oito endpoints devolveu `401` em produção. Smoke autenticado confirmou que uma falha transitória do fornecedor degrada para plano seguro e não interrompe o início do treino; telemetria minimizada registrou o erro sem conteúdo e a UI identifica o resultado local sem alegar geração por IA. Permanecem pendentes os demais endpoints, rate limit pós-auth e observação de uso real. |
 
 ### Regra de atualização
 
