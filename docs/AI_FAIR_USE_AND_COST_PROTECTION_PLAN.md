@@ -1,7 +1,7 @@
 # TrAIner — Plano de Uso Justo, Proteção de Custo e Prevenção de Abuso de IA
 
 **Estado:** Fases 0–1 em execução; Fase 2 activada em observação controlada — enforcement permanece bloqueado até haver evidência de uso real e aprovação específica
-**Última atualização:** 2026-08-05 — idempotência de retries de treino inteligente validada em produção
+**Última atualização:** 2026-08-06 — período de observação iniciado; sem evidência suficiente para calibrar enforcement
 **Proprietário:** Product / Engineering / Privacy
 **Escopo:** todos os endpoints server-side com custo de IA — recursos de AI FITNESS/AI PERFORMANCE, operações do TRAINER e automações internas/onboarding
 
@@ -194,6 +194,8 @@ Resposta ao utilizador
 
 **Idempotência de retries (2026-08-05):** a migração `supabase-ai-request-idempotency-20260805.sql` acrescentou resposta curta e expiração à tabela de claims HMAC já protegida por RLS. A aplicação gera um UUID por solicitação de treino e o backend o associa por HMAC ao ator autenticado; uma repetição recebe a resposta previamente concluída, sem nova chamada ao fornecedor. O smoke pós-deploy confirmou a geração normal e uma claim `smart_workout_generation` em estado `completed`, com resposta server-side presente e expiração de 10 minutos. A cobertura automatizada valida UUID, claim, resposta em cache e indisponibilidade fail-closed.
 
+**Início da observação (2026-08-06):** a primeira consulta de agregados registrou somente tráfego controlado de smoke: duas gerações `ai_fitness` bem-sucedidas, `8.007` tokens no total e custo conservador de `1.593` micros USD, além de uma falha histórica sem custo mensurável. Não há amostra de uso humano normal, concorrência ou distribuição por coorte suficiente para definir thresholds, alertas ou bloqueios. O enforcement da Fase 4 permanece bloqueado.
+
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.
@@ -262,7 +264,7 @@ Resposta ao utilizador
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; todos exigem `Content-Type: application/json`; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e rejeita `items` inválido/excessivo antes do provedor, e as duas rotas de geração rejeitam payload acima de 128 mil caracteres. Welcome usa idempotência atómica HMAC activa em produção. CORS de chamadas autenticadas foi validado em produção. Restam validação uniforme de schema e a camada pré-auth de rajada. |
-| 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-05 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. Smoke autenticado pós-deploy confirmou geração, tokens, `plan_key=ai_fitness`, agregado diário por plano e claim concluída com cache de 10 minutos. Permanece o período de observação. |
+| 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-06 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. A observação começou, mas a primeira amostra contém apenas smokes controlados; não há base para thresholds. |
 | 3 — Termos e comunicação | 🟨 Em rascunho interno | 2026-08-05 | Política de Uso Justo redigida para revisão; nenhum Termo, marketing ou texto público foi alterado. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
