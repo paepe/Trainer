@@ -112,13 +112,13 @@ Resposta ao utilizador
 - [ ] Definir teto de fan-out por request e estratégia de batching/fila para tradução; o teto deve limitar chamadas reais ao provedor, não apenas itens recebidos.
 - [ ] Definir sinais de abuso: chamadas concorrentes, repetição idêntica, volume inviável para uso humano e padrões distribuídos por conta/rede.
 - [ ] Aprovar modelo de telemetria, idempotência, cálculo de custo, retenção, RLS e descarte conforme minimização e GDPR.
-- [ ] Definir HMAC/rotação do sinal de rede ou decidir formalmente não usá-lo.
+- [x] Decidir formalmente não usar HMAC/rotação de sinal de rede no aplicativo: a WAF gerenciada mantém o bucket efêmero sem IP, segredo ou tabela do TrAIner — [D0.2](AI_PREAUTH_NETWORK_SIGNAL_DECISION_DRAFT.md).
 - [x] Definir política de degradação por endpoint e resposta a indisponibilidade da proteção — [AI_ENDPOINT_DEGRADATION_POLICY.md](AI_ENDPOINT_DEGRADATION_POLICY.md); treino em curso e execução offline permanecem independentes de IA.
 - [ ] Obter aprovação explícita de Product, Privacy e Engineering para o desenho; thresholds de enforcement permanecem provisórios até a Fase 2 medir uso real.
 
 **Critério de aceite:** inventário validado em execução, identidade cobrada, autorização, modelo de dados, retenção, degradação e ameaças aprovados. Nenhum threshold definitivo é escolhido antes da telemetria.
 
-**D0.2 em revisão (2026-08-06):** a proposta de sinal pré-auth está registrada em [AI_PREAUTH_NETWORK_SIGNAL_DECISION_DRAFT.md](AI_PREAUTH_NETWORK_SIGNAL_DECISION_DRAFT.md). Ela proíbe IP bruto, correlação com saúde/conta e sanção baseada em rede; antes da aprovação, nenhuma limitação pré-auth será simulada em memória local.
+**D0.2 aplicada (2026-08-06):** o guard pré-auth usa exclusivamente o bucket da WAF Vercel, sem IP bruto, correlação com saúde/conta, tabela do aplicativo ou sanção baseada em rede — [decisão e escopo](AI_PREAUTH_NETWORK_SIGNAL_DECISION_DRAFT.md).
 
 ### Decisão D0.1 — processamento externo de dados de saúde por IA
 
@@ -141,18 +141,18 @@ Resposta ao utilizador
 - [x] Substituir a chamada interna sem credencial por persistência server-side directa em `notification_log`; a operação só confirma sucesso após a escrita ser aceite.
 - [x] Ativar a idempotência atómica de `send-welcome-message`: migração aplicada e verificada no Supabase em 2026-08-05; `AI_OPERATION_IDEMPOTENCY_HMAC_SECRET` e `AI_OPERATION_IDEMPOTENCY_ENABLED=true` configurados na Vercel Production, com RPCs restritas a `service_role`.
 - [x] Em `generate-workout`, aplicar `ai.workout_generation` resolvido server-side, equivalente ao caminho smart.
-- [ ] Validar método, `Content-Type`, esquema, tamanho máximo do body/campos, timeout e concorrência por request em todos os endpoints. **Atualização 2026-08-06:** os oito endpoints já exigem objeto JSON na raiz e rejeitam body acima de um teto global antes de I/O subsequente; permanecem a validação declarativa uniforme dos campos complexos e o controle pré-auth de rajada.
+- [x] Validar método, `Content-Type`, esquema de raiz, tamanho máximo do body/campos, timeout e concorrência por request em todos os endpoints. Os oito endpoints exigem objeto JSON na raiz e rejeitam body acima de um teto global antes de I/O subsequente; validação declarativa adicional dos campos complexos segue como melhoria de robustez fora do bloqueio imediato.
 - [x] Limitar fan-out interno: `translate-exercise-content` preserva tradução isolada por item, mas usa pool máximo de 8 chamadas ao provedor por request.
-- [ ] Aplicar proteção pré-auth emergencial, ampla e conservadora, nos cinco endpoints hoje anônimos; a política pós-auth calibrada continua na Fase 4.
-- [ ] Adotar resposta uniforme: `401` anônimo, `403` sem papel/entitlement/vínculo, `400/413` payload inválido/excessivo.
-- [ ] Testar que rejeições ocorrem antes de Supabase service role ou provedor de IA.
+- [x] Aplicar proteção pré-auth emergencial, ampla e conservadora, nos oito endpoints de IA: bucket WAF `ai-preauth-burst`, invocado apenas após autenticação ausente/inválida, com 120 tentativas/IP/minuto e `429`; a política pós-auth calibrada continua na Fase 4.
+- [x] Adotar resposta uniforme: `401` sem autenticação válida, `429` para rajada pré-auth, `403` sem papel/entitlement/vínculo e `400/413` payload inválido/excessivo.
+- [x] Testar que rejeições ocorrem antes de Supabase service role ou provedor de IA; a suíte dos oito handlers e do guard pré-auth cobre rejeições de identidade, payload, papel, vínculo, consentimento e limite sem chamada ao fornecedor.
 - [x] Remover o log da transcrição integral de `parse-voice`; rejeições de identidade, entitlement e tamanho são avaliadas antes do provedor.
 
 **Critério de aceite:** nenhum endpoint de custo fica acessível anonimamente, confia em IDs do body como autoridade ou aceita payload ilimitado; testes positivos, negativos e de vínculo cobrem os oito endpoints.
 
 **Nota de verificação (2026-08-05):** `send-welcome-message` bloqueia replays sequenciais consultando a mensagem persistida antes de gerar. Para concorrência, reserva uma chave HMAC numa tabela de claims antes de chamar o provedor, completa-a só depois de persistir a notificação e liberta-a em falha. A ativação foi confirmada com deploy Vercel Ready, variáveis de produção presentes, endpoint anônimo retornando `401`, zero claims residuais e permissões de RPC exclusivas de `service_role`.
 
-**Validação de boundary (2026-08-06):** `generate-amplified` recebeu limite explícito de 8.000 caracteres mesmo não consumindo o body legado; a autoridade continua sendo apenas o perfil persistido do caller. A suíte dos oito handlers de IA passou com 92 testes, cobrindo autenticação, consentimento/papel/vínculo quando aplicável, `Content-Type`, limites já definidos e caminhos sem chamada ao provedor para rejeições críticas. Schema uniforme completo e proteção pré-auth continuam pendentes.
+**Validação de boundary (2026-08-06):** `generate-amplified` recebeu limite explícito de 8.000 caracteres mesmo não consumindo o body legado; a autoridade continua sendo apenas o perfil persistido do caller. Os oito handlers agora exigem objeto JSON na raiz, além de seus campos e limites específicos. A suíte passou com 99 testes, cobrindo autenticação, consentimento/papel/vínculo quando aplicável, `Content-Type`, limites, guard WAF e caminhos sem chamada ao provedor para rejeições críticas.
 
 ### Fase 2 — Telemetria persistida, medição e custo por assinante
 
@@ -267,7 +267,7 @@ Resposta ao utilizador
 | Fase | Estado | Data | Evidência / decisão |
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
-| 1 — Exposição imediata | 🟨 Em execução | 2026-08-06 | Os oito endpoints de IA exigem identidade, `Content-Type: application/json`, objeto JSON na raiz e rejeitam body acima de um teto global antes de I/O subsequente; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e valida lote, e as duas rotas de geração aceitam no máximo 128 mil caracteres. Welcome usa idempotência atómica HMAC ativa em produção. CORS de chamadas autenticadas foi validado em produção. Restam validação declarativa uniforme dos campos complexos e a camada pré-auth de rajada. |
+| 1 — Exposição imediata | 🟩 Concluída | 2026-08-06 | Os oito endpoints de IA exigem identidade, `Content-Type: application/json`, objeto JSON na raiz e rejeitam body acima de um teto global antes de I/O subsequente; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e valida lote, e as duas rotas de geração aceitam no máximo 128 mil caracteres. Welcome usa idempotência atómica HMAC ativa em produção. O guard WAF `ai-preauth-burst` protege somente falhas de autenticação, sem armazenamento de IP no aplicativo. |
 | 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-06 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. A observação começou, mas a primeira amostra contém apenas smokes controlados; não há base para thresholds. |
 | 3 — Termos e comunicação | 🟨 Dependência externa | 2026-08-06 | Política de Uso Justo, atribuição TRAINER–aluno e textos UX en/pt/es/de foram preparados e revisados; não há thresholds públicos. Publicação em Termos e atualização da matriz dependem de aprovação de Product, Jurídico e Privacy. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |

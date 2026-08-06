@@ -21,6 +21,7 @@ import {
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { claimAIRequest, completeAIRequest, releaseAIOperation } from './_lib/aiOperationIdempotency.js';
 import { isJsonObject } from './_lib/requestSize.js';
+import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
 
 type ProviderFailureKind = 'timeout' | 'http_error' | 'non_json_response' | 'invalid_json_response' | 'network_or_runtime';
 
@@ -1079,7 +1080,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Caller must be the client themself, or a trainer actively linked to them.
   // ('ai-coach' autonomous sessions are always initiated by the client's device.)
   const caller = await verifyRequestUser(req);
-  if (!caller) return res.status(401).json({ error: 'Unauthorized' });
+  if (!caller) {
+    if (await rejectUnauthenticatedAIBurst(req, res)) return;
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     return res.status(415).json({ error: 'Content-Type must be application/json' });

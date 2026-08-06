@@ -8,6 +8,7 @@ import { hasJsonContentType, verifyRequestUser } from './_lib/auth.js';
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject } from './_lib/requestSize.js';
+import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
 
 const SYSTEM_PROMPT = `You are an expert personal trainer AI assistant built into the TrAIner platform.
 Your job is to generate safe, effective, personalised workout plans based on the client's profile and daily check-in data.
@@ -284,6 +285,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Generation costs money — only authenticated users may invoke the LLM.
   const caller = await verifyRequestUser(req);
   if (!caller) {
+    if (await rejectUnauthenticatedAIBurst(req, res)) return;
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }

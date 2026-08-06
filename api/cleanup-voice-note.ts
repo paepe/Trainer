@@ -12,6 +12,7 @@ import { hasJsonContentType, hasPersistedAIAdaptationConsent, isTrainerRole, ver
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject, isJsonValueWithinLimit } from './_lib/requestSize.js';
+import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
 
 export const MAX_CLEANUP_VOICE_REQUEST_CHARS = 8_000;
 
@@ -57,6 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const caller = await verifyRequestUser(req);
   if (!caller) {
+    if (await rejectUnauthenticatedAIBurst(req, res)) return;
     return res.status(401).json({ error: 'Unauthorized' });
   }
   if (!hasJsonContentType(req)) {

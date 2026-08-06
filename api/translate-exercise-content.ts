@@ -54,6 +54,7 @@ export const MAX_CONCURRENT_PROVIDER_CALLS = 8;
 import { verifyRequestUser, authSupabaseUrl, authServiceHeaders, hasJsonContentType } from './_lib/auth.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject, isJsonValueWithinLimit } from './_lib/requestSize.js';
+import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
 
 // 300 legitimate items of 300 characters plus JSON structure fit comfortably
 // below this cap; arbitrary auxiliary fields do not.
@@ -247,7 +248,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const authed = await verifyRequestUser(req);
-  if (!authed) return res.status(401).json({ error: 'Unauthorized' });
+  if (!authed) {
+    if (await rejectUnauthenticatedAIBurst(req, res)) return;
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   if (!hasJsonContentType(req)) {
     await emitAIUsageEvent({ actorId: authed.id, endpoint: 'translate-exercise-content', outcome: 'rejected', httpStatus: 415, rejectionCode: 'invalid_content_type' });
     return res.status(415).json({ error: 'Content-Type must be application/json' });

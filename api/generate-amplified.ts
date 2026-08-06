@@ -12,6 +12,7 @@ import {
 } from './_lib/auth.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject } from './_lib/requestSize.js';
+import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
 
 const SYSTEM_PROMPT = `You are an expert sports science AI for a personal training platform called TrAIner.
 You receive a structured profile of a fitness client in JSON and must generate:
@@ -144,6 +145,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const caller = await verifyRequestUser(req);
   if (!caller) {
+    if (await rejectUnauthenticatedAIBurst(req, res)) return;
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
