@@ -163,14 +163,14 @@ Resposta ao utilizador
 - [x] Criar tabela de eventos de uso de IA com RLS administrativa e retenção bruta de 90 dias; aplicada e auditada em produção em 2026-08-05.
 - [x] Usar `request_id`/chave de operação única, gerada ou validada pelo servidor, para retries não duplicarem custo nem eventos; UUID do cliente é HMAC-vinculado ao ator no backend e a resposta fica disponível somente por 10 minutos para o retry.
 - [x] Registrar sucesso, falha do provedor e rejeição pós-auth/pré-provedor sem prompt, transcrição, resposta ou dado de saúde.
-- [ ] Para tráfego anônimo, usar somente métricas agregadas/amostradas da camada pré-auth; não criar um evento persistente por tentativa que permita encher a tabela.
+- [x] Para tráfego anônimo, usar somente a WAF gerenciada pré-auth; não criar evento persistente por tentativa que permita encher a tabela. O TrAIner não armazena IP ou bucket de rede.
 - [x] Registrar contadores do provedor quando disponíveis; quando indisponíveis, marcar método como `unavailable` — nunca fabricar precisão.
 - [x] Calcular custo a partir de modelo, tokens/unidades, provedor, moeda e versão temporal do preço; para `deepseek-chat`, o cálculo conservador usa preço de cache miss e declara a qualidade da estimativa.
 - [x] Criar agregados diários por plano e endpoint, além de agregado diário administrativo por ator HMAC; evitar consultas analíticas pesadas em tabelas transacionais.
 - [x] Instrumentar emissão de sucesso minimizada nos oito endpoints; a emissão é feature-flagged e está activa em produção desde 2026-08-05.
 - [ ] Executar período de observação aprovado sem bloqueio automático e medir percentis de uso, concorrência, erros e custo por plano.
-- [ ] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor.
-- [ ] Garantir que falha de telemetria não duplica a chamada de IA nem expõe conteúdo em fallback de log.
+- [x] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor. Auditoria de produção de 2026-08-06 confirmou RLS ativa, zero privilégios `anon`/`authenticated`, esquema sem campos de conteúdo e retenção de 90 dias em todos os seis eventos; a suíte cobre idempotência e falha do coletor.
+- [x] Garantir que falha de telemetria não duplica a chamada de IA nem expõe conteúdo em fallback de log; `emitAIUsageEvent` é best-effort, sem retry da operação, e os testes cobrem indisponibilidade.
 
 **Critério de aceite:** custo e distribuição de uso por plano/endpoint são mensuráveis com qualidade declarada; retries não duplicam eventos; nenhuma telemetria contém conteúdo ou dados de saúde.
 
@@ -198,7 +198,7 @@ Resposta ao utilizador
 
 **Idempotência de retries (2026-08-05):** a migração `supabase-ai-request-idempotency-20260805.sql` acrescentou resposta curta e expiração à tabela de claims HMAC já protegida por RLS. A aplicação gera um UUID por solicitação de treino e o backend o associa por HMAC ao ator autenticado; uma repetição recebe a resposta previamente concluída, sem nova chamada ao fornecedor. O smoke pós-deploy confirmou a geração normal e uma claim `smart_workout_generation` em estado `completed`, com resposta server-side presente e expiração de 10 minutos. A cobertura automatizada valida UUID, claim, resposta em cache e indisponibilidade fail-closed.
 
-**Início da observação (2026-08-06):** a primeira consulta de agregados registrou somente tráfego controlado de smoke: duas gerações `ai_fitness` bem-sucedidas, `8.007` tokens no total e custo conservador de `1.593` micros USD, além de uma falha histórica sem custo mensurável. Não há amostra de uso humano normal, concorrência ou distribuição por coorte suficiente para definir thresholds, alertas ou bloqueios. O enforcement da Fase 4 permanece bloqueado.
+**Auditoria de observação (2026-08-06):** a produção contém somente seis eventos do smoke controlado de 05/08, de um único ator pseudonimizado: cinco gerações `generate-smart-workout` bem-sucedidas, `20.197` tokens no total e custo conservador agregado de `4.032` micros USD; há uma falha histórica sem custo mensurável. A tabela contém exclusivamente campos operacionais minimizados, RLS está ativa, não há privilégios para `anon`/`authenticated`, todos os eventos expiram em exatamente 90 dias e não há expiração pendente. Não existe amostra de uso humano normal, concorrência ou distribuição por coorte suficiente para definir thresholds, alertas ou bloqueios. O enforcement pós-auth da Fase 4 permanece bloqueado.
 
 ### Fase 3 — Política de Uso Justo, Termos e comunicação
 
