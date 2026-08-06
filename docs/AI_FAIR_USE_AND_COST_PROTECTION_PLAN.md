@@ -208,7 +208,7 @@ Resposta ao utilizador
 **Objetivo:** alinhar contrato, marketing e UX antes de ativar contenção automatizada.
 
 - [x] Redigir rascunho interno da Política de Uso Justo com exemplos de uso pessoal normal e abuso, sem converter o plano em quota visível — [AI_FAIR_USE_POLICY_DRAFT.md](AI_FAIR_USE_POLICY_DRAFT.md), pendente de revisão jurídica/privacidade e publicação.
-- [ ] Inserir a cláusula aprovada nos Termos, com revisão jurídica e de privacidade.
+- [ ] Inserir a cláusula aprovada nos Termos, com revisão jurídica e de privacidade — redação pronta em [AI_FAIR_USE_TERMS_CLAUSE_DRAFT.md](AI_FAIR_USE_TERMS_CLAUSE_DRAFT.md), ainda não publicada.
 - [x] Manter “Ilimitado” no marketing de AI FITNESS e AI PERFORMANCE; a revisão confirmou ausência de contador/quota comercial visível e preservou a mensagem de upgrade para sessões ilimitadas.
 - [x] Criar textos UX localizados para `429`, degradação e contenção temporária, com canal de suporte — chaves `workoutGen.*` adicionadas para en/pt/es/de; só serão exibidas quando o enforcement for aprovado.
 - [x] Não publicar thresholds internos ou mecanismos que facilitem evasão; a política e os textos UX deliberadamente não contêm números operacionais.
