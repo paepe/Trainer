@@ -118,6 +118,37 @@ describe('PlansScreen', () => {
     });
   });
 
+  it('records the current legal acceptance before it changes a plan', async () => {
+    const nav = vi.fn();
+    const upsertSubscription = mockUpsert();
+    const acceptLegalDocuments = vi.fn().mockResolvedValue(null);
+    render(
+      <PlansScreen
+        nav={nav}
+        t={{ primary: '#000', accent: '#000' }}
+        dark={false}
+        user={{ id: '1', role: 'client', plan_key: 'free' }}
+        upsertSubscription={upsertSubscription}
+        updateProfile={upsertSubscription}
+        legalAccepted={false}
+        acceptLegalDocuments={acceptLegalDocuments}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('Your AI in the loop'));
+    const cta = screen.getByText('Confirm my license').closest('button') as HTMLButtonElement;
+    expect(cta).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('checkbox'));
+    expect(cta).not.toBeDisabled();
+    fireEvent.click(cta);
+
+    await waitFor(() => {
+      expect(acceptLegalDocuments).toHaveBeenCalledTimes(1);
+      expect(upsertSubscription).toHaveBeenCalledWith('ai_fitness', 'monthly');
+    });
+  });
+
   it('navigates to the profile wizard on confirm when reached from onboarding', async () => {
     const nav = vi.fn();
     const upsertSubscription = mockUpsert();

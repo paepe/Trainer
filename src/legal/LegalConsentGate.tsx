@@ -26,8 +26,8 @@ export function LegalConsentGate({ onAccept }: Props) {
           Para continuar, confirme que leu e aceita os Termos de Uso aplicáveis aos recursos de IA e a Política de Uso Justo.
         </p>
         <p style={{ color: 'var(--text-sec)', fontSize: 13, lineHeight: 1.55 }}>
-          <a href="/legal/terms" target="_blank" rel="noreferrer">Ler Termos de Uso</a>{' · '}
-          <a href="/legal/fair-use" target="_blank" rel="noreferrer">Ler Política de Uso Justo</a>
+          <a href="/legal/terms" target="_blank" rel="noreferrer" style={legalLinkStyle}>Ler Termos de Uso</a>{' · '}
+          <a href="/legal/fair-use" target="_blank" rel="noreferrer" style={legalLinkStyle}>Ler Política de Uso Justo</a>
         </p>
         <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: 'var(--text-pri)', fontSize: 13, lineHeight: 1.45, margin: '20px 0' }}>
           <input type="checkbox" checked={checked} onChange={event => setChecked(event.target.checked)} style={{ marginTop: 3 }}/>
@@ -44,3 +44,10 @@ export function LegalConsentGate({ onAccept }: Props) {
     </main>
   );
 }
+
+const legalLinkStyle: React.CSSProperties = {
+  color: '#77E7F2',
+  fontWeight: 700,
+  textDecorationThickness: 2,
+  textUnderlineOffset: 3,
+};

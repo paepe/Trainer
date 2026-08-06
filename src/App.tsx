@@ -693,7 +693,7 @@ export default function App() {
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
       case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)} isMale={user.gender === 'male'}/>;
-      case 'plans':              return <PlansScreen             nav={nav} t={t} dark={dark} user={user} source={screenPayload?.source as string | undefined} upsertSubscription={upsertSubscription} updateProfile={updateProfile}/>;
+      case 'plans':              return <PlansScreen             nav={nav} t={t} dark={dark} user={user} source={screenPayload?.source as string | undefined} upsertSubscription={upsertSubscription} updateProfile={updateProfile} legalAccepted={legalAcceptance.status === 'accepted'} acceptLegalDocuments={legalAcceptance.acceptCurrentDocuments}/>;
       case 'planConfirm':        return <PlanConfirmScreen       nav={nav} t={t} planKey={(screenPayload?.planKey as string | undefined) ?? 'free'} isTrainer={!!(screenPayload?.isTrainer)}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient} startFreeSession={startFreeSession}/>;
       case 'trainerClientDetail': return <TrainerClientDetailScreen  nav={nav} user={trainerUser} selectedClient={selectedClient} planExpiryDays={prefs.planExpiryDays} dashboardLimit={prefs.trainerDashboardLimit}/>;
@@ -736,7 +736,7 @@ export default function App() {
   const legalGateRequired = !!session && !!profile
     && legalAcceptance.status === 'required'
     && !passwordRecovery
-    && !['legal', 'workoutMode', 'workoutSummary'].includes(screen);
+    && !['legal', 'plans', 'workoutMode', 'workoutSummary'].includes(screen);
 
   return (
     <ThemeProvider t={t} dark={dark} isTrainer={isTrainer}>

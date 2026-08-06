@@ -19,6 +19,8 @@ interface Props {
   source?: string | undefined;
   upsertSubscription: (planKey: PlanKey, billingCycle: 'monthly' | 'annual') => Promise<{ error: unknown }>;
   updateProfile: (updates: { role: UserRole }) => Promise<{ error: unknown }>;
+  legalAccepted?: boolean | undefined;
+  acceptLegalDocuments?: (() => Promise<string | null>) | undefined;
 }
 
 type BillingCycle = 'monthly' | 'annual';
@@ -36,7 +38,7 @@ function fmtCents(cents: number, cycle: BillingCycle): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(monthly / 100);
 }
 
-export function PlansScreen({ nav, user, source, upsertSubscription, updateProfile }: Props) {
+export function PlansScreen({ nav, user, source, upsertSubscription, updateProfile, legalAccepted = true, acceptLegalDocuments }: Props) {
   const { t: tr } = useTranslation();
   const isTrainer = !!user.role && (TRAINER_ROLES as readonly string[]).includes(user.role);
   const isManage    = source === 'manage';
@@ -66,6 +68,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
   );
   const [confirming, setConfirming] = React.useState(false);
   const [confirmErr, setConfirmErr] = React.useState('');
+  const [legalConfirmed, setLegalConfirmed] = React.useState(legalAccepted);
   // The 3 PRO client-count tiers (Fase 6) render as one card with a segmented
   // selector instead of 3 near-identical cards — the repetition itself was
   // the problem flagged, not the tiers. Defaults to whichever band the
@@ -76,12 +79,29 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
 
   React.useEffect(() => { setSelected(null); setConfirmErr(''); }, [audienceMode]);
 
-  const canConfirm = !!selected && selected !== currentPlanKey && !confirming;
+  React.useEffect(() => { setLegalConfirmed(legalAccepted); }, [legalAccepted]);
+
+  const canConfirm = !!selected && selected !== currentPlanKey && !confirming
+    && (legalAccepted || legalConfirmed);
 
   const handleConfirm = async () => {
     if (!selected || confirming) return;
+    if (!legalAccepted && !legalConfirmed) {
+      setConfirmErr('Leia e aceite os Termos de Uso e a Política de Uso Justo antes de confirmar o plano.');
+      return;
+    }
     setConfirming(true);
     setConfirmErr('');
+    if (!legalAccepted) {
+      const legalError = acceptLegalDocuments
+        ? await acceptLegalDocuments()
+        : 'Não foi possível registrar o aceite legal.';
+      if (legalError) {
+        setConfirming(false);
+        setConfirmErr(legalError);
+        return;
+      }
+    }
     const { error } = await upsertSubscription(selected as PlanKey, billing);
     if (error) {
       setConfirming(false);
@@ -408,6 +428,20 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
             );
           })}
         </div>
+      )}
+
+      {selected && !legalAccepted && (
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, margin: '2px 4px', color: T.textSec, fontSize: 12, lineHeight: 1.5 }}>
+          <input
+            type="checkbox"
+            checked={legalConfirmed}
+            onChange={event => setLegalConfirmed(event.target.checked)}
+            style={{ marginTop: 3 }}
+          />
+          <span>
+            Li e aceito os <a href="/legal/terms" target="_blank" rel="noreferrer" style={{ color: accent, fontWeight: 700 }}>Termos de Uso</a> e a <a href="/legal/fair-use" target="_blank" rel="noreferrer" style={{ color: accent, fontWeight: 700 }}>Política de Uso Justo</a>, versão 1.0. O aceite será registrado antes da confirmação do plano.
+          </span>
+        </label>
       )}
 
       <div style={{ textAlign: 'center', fontSize: 11, color: T.textMute, fontFamily: FF_MONO }}>
