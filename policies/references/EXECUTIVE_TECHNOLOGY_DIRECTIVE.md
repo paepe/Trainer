@@ -1,7 +1,7 @@
 # Executive Technology Directive — TrAIner Project
 
 **Status:** Formal active reference  
-**Revision date:** 20/05/2026  
+**Revision date:** 06/08/2026
 **Scope:** Entire TrAIner software ecosystem (client app, Trainer Studio, AI pipeline, backend services)
 
 ## 1. Purpose
@@ -50,14 +50,57 @@ They should be used to:
 
 In case of conflict, this unified directive prevails.
 
+### 2.3. Controlled product-governance documents
+
+The following documents are controlled operational references for AI cost, fair use,
+licensing and TRAINER-sponsored capabilities:
+
+- ../../docs/AI_GOVERNANCE_CHANGE_GATE.md — mandatory impact-assessment and
+  evidence gate for each relevant change
+- ../../docs/AI_FAIR_USE_AND_COST_PROTECTION_PLAN.md — phased implementation
+  plan and its live checklist
+- ../../docs/AI_FAIR_USE_POLICY_DRAFT.md and
+  ../../docs/AI_FAIR_USE_TERMS_CLAUSE_DRAFT.md — policy and Terms wording
+- ../../docs/AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md — sponsored
+  student rights and cost boundaries
+- ../../docs/FEATURE_ACCESS_MATRIX.md — commercial entitlement and capability
+  reference
+- ../../docs/AI_ENDPOINT_AUTHORITY_MATRIX.md,
+  ../../docs/AI_TELEMETRY_DATA_CONTRACT.md,
+  ../../docs/AI_ENDPOINT_OPERATIONAL_BOUNDS.md and
+  ../../docs/AI_ENDPOINT_DEGRADATION_POLICY.md — technical authority,
+  minimisation, operational limits and safe degradation
+- ../../docs/AI_ABUSE_SIGNAL_CATALOG_DRAFT.md and
+  ../../docs/AI_ABUSE_RESPONSE_RUNBOOK_DRAFT.md — detection and operational
+  response
+
+Their status, owner, revision date and approval state must remain explicit. A draft
+is not a published contractual promise; approval and publication remain separate
+controls.
+
+### 2.4. Mandatory governance change gate
+
+Before implementing, reviewing or releasing a feature that changes AI/provider
+usage, cost, telemetry, rate limiting, alerts, authentication/entitlements,
+licensing, TRAINER sponsorship, sensitive-data processing, marketing claims or
+Terms/Privacy wording, the change owner must apply
+AI_GOVERNANCE_CHANGE_GATE.md.
+
+The gate requires an impact assessment and one of two auditable outcomes in the
+same change set: (a) update every affected controlled document and its
+revision/checklist, or (b) record an evidenced “no document impact” conclusion.
+Implementation, review and release are incomplete without this record. Contractual,
+Privacy and Product approvals cannot be inferred from an engineering merge.
+
 ## 3. Precedence Rule
 
 When there is conflict between architectural or engineering documents, precedence follows this order:
 
 1. this unified directive
 2. formal directives with date suffix in `YYYYMMDD` pattern
-3. active operational manifests and playbooks
-4. findings, plans, and historical records
+3. approved controlled policy documents and active operational manifests/playbooks
+4. active plans, matrices and decision records
+5. findings and historical records
 
 ### Application of the rule
 

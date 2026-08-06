@@ -7,6 +7,19 @@
 
 ---
 
+## Governança de continuidade
+
+Desde 2026-08-06, qualquer funcionalidade que altere custo de IA, limites,
+telemetria, entitlement/licença, patrocínio TRAINER, dados sensíveis, promessa
+comercial ou Termos deve passar pelo
+[AI Governance Change Gate](AI_GOVERNANCE_CHANGE_GATE.md). O gate obriga a revisão
+deste plano e dos documentos correlatos no mesmo change set, ou um registo
+evidenciado de “sem impacto documental”. A
+[Executive Technology Directive](../policies/references/EXECUTIVE_TECHNOLOGY_DIRECTIVE.md)
+é a autoridade desta obrigação.
+
+---
+
 ## 1. Objetivo e princípio comercial
 
 Manter a promessa comercial de **uso ilimitado** para utilização pessoal normal, sem expor o TrAIner a automação, abuso ou custo variável descontrolado.

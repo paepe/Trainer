@@ -52,6 +52,12 @@ Always consult and comply with:
 - `policies/references/PROFILE.md` — Full professional profile and quality standards
 - `policies/references/EXECUTIVE_TECHNOLOGY_DIRECTIVE.md` — Canonical architecture, engineering, and governance directive
 
+For a change involving AI cost/provider usage, telemetry, rate limiting, alerts,
+licensing, TRAINER sponsorship, sensitive data, commercial claims, Terms or
+Privacy, also apply `docs/AI_GOVERNANCE_CHANGE_GATE.md` and consult the controlled
+documents it routes to. Record either the affected-document updates or an evidenced
+“no document impact” conclusion in the same change set.
+
 In case of conflict, the EXECUTIVE_TECHNOLOGY_DIRECTIVE.md prevails.
 
 ## Project Commands
