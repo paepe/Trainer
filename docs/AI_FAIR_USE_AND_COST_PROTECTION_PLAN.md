@@ -109,8 +109,8 @@ Resposta ao utilizador
 - [x] Aprovar D0.1: `allow_ai_adaptation` ausente ou falso equivale a não autorização; o consentimento é lido da versão persistida do perfil.
 - [ ] Completar o consentimento/autorização dos propósitos restantes de voz e os limites operacionais de `generate-amplified`; D0.1 já resolve o onboarding e a minimização de dados de saúde.
 - [x] Definir limites duros de payload e concorrência por request — [AI_ENDPOINT_OPERATIONAL_BOUNDS.md](AI_ENDPOINT_OPERATIONAL_BOUNDS.md); limites de uso justo por ator continuam dependentes da observação.
-- [ ] Definir teto de fan-out por request e estratégia de batching/fila para tradução; o teto deve limitar chamadas reais ao provedor, não apenas itens recebidos.
-- [ ] Definir sinais de abuso: chamadas concorrentes, repetição idêntica, volume inviável para uso humano e padrões distribuídos por conta/rede.
+- [x] Definir teto de fan-out e estratégia para tradução — pool máximo de oito chamadas reais por request, sem fila persistente até evidência de necessidade; ver [AI_TRANSLATION_FANOUT_OPERATIONAL_DECISION.md](AI_TRANSLATION_FANOUT_OPERATIONAL_DECISION.md).
+- [x] Catalogar sinais de abuso e limites interpretativos sem thresholds — [AI_ABUSE_SIGNAL_CATALOG_DRAFT.md](AI_ABUSE_SIGNAL_CATALOG_DRAFT.md). A calibragem numérica continua dependente da Fase 2.
 - [ ] Aprovar modelo de telemetria, idempotência, cálculo de custo, retenção, RLS e descarte conforme minimização e GDPR.
 - [x] Decidir formalmente não usar HMAC/rotação de sinal de rede no aplicativo: a WAF gerenciada mantém o bucket efêmero sem IP, segredo ou tabela do TrAIner — [D0.2](AI_PREAUTH_NETWORK_SIGNAL_DECISION_DRAFT.md).
 - [x] Definir política de degradação por endpoint e resposta a indisponibilidade da proteção — [AI_ENDPOINT_DEGRADATION_POLICY.md](AI_ENDPOINT_DEGRADATION_POLICY.md); treino em curso e execução offline permanecem independentes de IA.
