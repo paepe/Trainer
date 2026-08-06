@@ -118,6 +118,8 @@ Resposta ao utilizador
 
 **Critério de aceite:** inventário validado em execução, identidade cobrada, autorização, modelo de dados, retenção, degradação e ameaças aprovados. Nenhum threshold definitivo é escolhido antes da telemetria.
 
+**D0.2 em revisão (2026-08-06):** a proposta de sinal pré-auth está registrada em [AI_PREAUTH_NETWORK_SIGNAL_DECISION_DRAFT.md](AI_PREAUTH_NETWORK_SIGNAL_DECISION_DRAFT.md). Ela proíbe IP bruto, correlação com saúde/conta e sanção baseada em rede; antes da aprovação, nenhuma limitação pré-auth será simulada em memória local.
+
 ### Decisão D0.1 — processamento externo de dados de saúde por IA
 
 **Recomendação técnica e de privacidade:** regra **default-deny**. Antes de um consentimento `allow_ai_adaptation=true` já persistido, nenhum texto de onboarding é enviado ao provedor externo de IA; o reconhecimento de voz continua utilizável com o texto bruto local. Após consentimento, o backend aceita somente o propósito autorizado e um payload minimizado. `generate-amplified` deve receber apenas dados operacionais necessários, nunca texto livre clínico, transcrições, medicação, saúde emocional ou fatores/ciclo sensíveis brutos.
