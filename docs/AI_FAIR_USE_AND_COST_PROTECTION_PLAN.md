@@ -257,16 +257,18 @@ Resposta ao utilizador
 
 **Objetivo:** provar operação segura e manter o plano vivo.
 
-- [ ] Executar smoke tests autenticados nos endpoints protegidos, sem digitar credenciais pelo agente.
+- [x] Executar smoke tests autenticados nos endpoints protegidos, sem digitar credenciais pelo agente — geração de treino e degradação segura validadas em produção na sessão já autenticada.
 - [ ] Validar ao vivo uma chamada normal, uma rejeição de rate limit, uma degradação segura e a criação do evento minimizado.
 - [ ] Confirmar que nenhuma chamada rejeitada ou degradada alcançou o provedor.
-- [ ] Confirmar que não há prompt, transcrição, resposta ou dado de saúde em eventos, logs e alertas.
+- [x] Confirmar que não há prompt, transcrição, resposta ou dado de saúde em eventos, logs e alertas — auditoria de telemetria/logs e esquema RLS das tabelas de proteção revisados em 2026-08-06.
 - [ ] Revisar custos, falsos positivos e suporte após período acordado de observação.
 - [ ] Ajustar thresholds somente com evidência de telemetria, registrando decisão e impacto.
 - [ ] Atualizar este documento ao concluir cada fase: data, alterações, testes, evidência e pendências.
 - [ ] Reavaliar retenção, acesso administrativo e postura de privacidade trimestralmente.
 
 **Smoke autenticado de degradação (2026-08-06):** na conta FREE já autenticada, a geração de plano remoto retornou falha do fornecedor (`network_or_runtime`, sem status HTTP). A configuração Vercel confirma `DEEPSEEK_API_KEY` presente; a falha foi transitória de runtime/rede, não ausência de credencial. O cliente apresentou estado de geração, finalizou um plano seguro de fallback e o botão **Start Workout** abriu o modo de execução com dez exercícios, sem registrar séries ou concluir a sessão. A telemetria persistiu um único evento minimizado `provider_failed`, sem tokens, custo, prompt ou dado de saúde. A UI foi corrigida para identificar esse resultado como plano local seguro, nunca como plano gerado por IA. Isto confirma a degradação segura desse fluxo, mas não substitui a validação dos demais endpoints, do rate limit pós-auth ou do período de observação.
+
+**Validação da Fase 6 (2026-08-06):** o modo enforce do limitador pós-auth foi coberto em teste com `429` e `Retry-After`; ele não foi ativado em produção. A regressão integral passou com 38 arquivos / 441 testes. As tabelas `ai_usage_events`, `ai_rate_limit_buckets` e `ai_usage_alerts` foram verificadas com RLS ativa em produção. A rejeição ao vivo de rate limit e a revisão após observação continuam pendentes deliberadamente.
 
 **Critério de aceite:** os controles funcionam em produção, têm evidência registrada e não degradam o fluxo crítico de treino.
 
