@@ -4,6 +4,7 @@
 import { createHmac } from 'node:crypto';
 import { authServiceHeaders, authSupabaseUrl } from './auth.js';
 import type { AIEndpoint } from './aiTelemetry.js';
+import { recordAIUsageAlert } from './aiUsageAlerts.js';
 
 export type PostAuthRateLimitMode = 'off' | 'shadow' | 'enforce';
 export type PostAuthRateLimitResult = 'allowed' | 'would_limit' | 'limited' | 'unavailable';
@@ -34,17 +35,30 @@ export async function checkPostAuthAIRateLimit(actorId: string, endpoint: AIEndp
   }
   try {
     const exception = await fetch(`${authSupabaseUrl()}/rest/v1/rpc/has_active_ai_rate_limit_exception`, { method: 'POST', headers: { ...authServiceHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ p_actor_hash: hash, p_endpoint: endpoint }) });
-    if (!exception.ok) return 'unavailable';
+    if (!exception.ok) {
+      await recordAIUsageAlert({ actorHash: hash, endpoint, kind: 'limiter_unavailable', severity: 'critical', evidence: { stage: 'exception_lookup' } });
+      return 'unavailable';
+    }
     if ((await exception.json()) === true) return 'allowed';
     const response = await fetch(`${authSupabaseUrl()}/rest/v1/rpc/consume_ai_rate_limit_bucket`, {
       method: 'POST', headers: { ...authServiceHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_actor_hash: hash, p_endpoint: endpoint, p_window_seconds: windowSeconds, p_max_requests: maxRequests }),
     });
-    if (!response.ok) return 'unavailable';
+    if (!response.ok) {
+      await recordAIUsageAlert({ actorHash: hash, endpoint, kind: 'limiter_unavailable', severity: 'critical', evidence: { stage: 'bucket_consume' } });
+      return 'unavailable';
+    }
     const rows = await response.json() as { limited?: boolean }[];
     if (!rows[0]?.limited) return 'allowed';
-    return currentMode === 'shadow' ? 'would_limit' : 'limited';
-  } catch { return 'unavailable'; }
+    if (currentMode === 'shadow') {
+      await recordAIUsageAlert({ actorHash: hash, endpoint, kind: 'volume_anomaly', severity: 'warning', evidence: { mode: 'shadow' } });
+      return 'would_limit';
+    }
+    return 'limited';
+  } catch {
+    await recordAIUsageAlert({ actorHash: hash, endpoint, kind: 'limiter_unavailable', severity: 'critical', evidence: { stage: 'transport' } });
+    return 'unavailable';
+  }
 }
 
 type RateLimitResponse = { setHeader?(name: string, value: string): void; status(code: number): { json(body: unknown): unknown } };

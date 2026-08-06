@@ -254,6 +254,8 @@ Resposta ao utilizador
 
 **Infraestrutura preparada (2026-08-06):** `ai_usage_alerts` foi aplicada em produção com RLS, sem acesso `anon`/`authenticated`, retenção de 90 dias e apenas evidência operacional limitada a 4 KB. O escritor server-side está desligado até `AI_ANOMALY_ALERTS_ENABLED=true`; não existem regras, destino externo, alerta ativo ou contenção automática antes do baseline. Regressão integral: 38 arquivos / 440 testes aprovados.
 
+**Ligação de observação preparada (2026-08-06):** quando e somente quando o limitador estiver em `shadow` e o escritor de alertas estiver explicitamente ativo, o resultado `would_limit` cria alerta minimizado de volume e indisponibilidade do limitador cria alerta técnico. Não há destino externo, decisão automática ou alerta ativo no estado atual.
+
 **Critério de aceite:** padrão anormal dispara alerta verificável, contenção é reversível e auditável, e nenhum usuário é suspenso apenas por IP ou decisão opaca.
 
 ### Fase 6 — Verificação de produção e governança contínua
