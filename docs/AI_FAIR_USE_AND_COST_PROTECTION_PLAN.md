@@ -171,6 +171,7 @@ Resposta ao utilizador
 - [x] Criar agregados diários por plano e endpoint, além de agregado diário administrativo por ator HMAC; evitar consultas analíticas pesadas em tabelas transacionais.
 - [x] Instrumentar emissão de sucesso minimizada nos oito endpoints; a emissão é feature-flagged e está activa em produção desde 2026-08-05.
 - [ ] Executar período de observação aprovado sem bloqueio automático e medir percentis de uso, concorrência, erros e custo por plano.
+- [x] Preparar relatório reexecutável de observação agregada por dia/endpoint/plano/resultado — `scripts/report-ai-observation.mjs` e RPC administrativa `ai_usage_observation_report`, sem actor hash ou conteúdo no output.
 - [x] Testar RLS, minimização, retenção, idempotência, falha de escrita e indisponibilidade do coletor. Auditoria de produção de 2026-08-06 confirmou RLS ativa, zero privilégios `anon`/`authenticated`, esquema sem campos de conteúdo e retenção de 90 dias em todos os sete eventos; a suíte cobre idempotência e falha do coletor.
 - [x] Garantir que falha de telemetria não duplica a chamada de IA nem expõe conteúdo em fallback de log; `emitAIUsageEvent` é best-effort, sem retry da operação, e os testes cobrem indisponibilidade.
 
