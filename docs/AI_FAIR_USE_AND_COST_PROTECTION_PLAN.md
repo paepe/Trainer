@@ -222,7 +222,7 @@ Resposta ao utilizador
 
 **Objetivo:** bloquear automação e rajadas antes do custo, com thresholds calibrados pela Fase 2.
 
-- [ ] Implementar mecanismo compartilhado, server-side, atômico e resistente a múltiplas instâncias; memória local de função serverless não é autoridade.
+- [x] Preparar mecanismo compartilhado, server-side e atômico, com HMAC por ator e bucket por endpoint — `api/_lib/postAuthRateLimit.ts` e migração revisável `supabase/sql-archive/supabase-ai-postauth-rate-limit-20260806.sql`. Permanece desligado, não aplicado e sem ruleset até observação/aprovação; memória local não é autoridade.
 - [ ] Implementar duas camadas: rajada pré-auth por sinal de rede pseudonimizado e limite pós-auth por ator + endpoint.
 - [ ] Sinal de rede é defesa adicional e nunca fundamento isolado para sanção de conta; acomodar NAT, redes corporativas e famílias.
 - [ ] Executar primeiro em modo sombra, comparar falsos positivos e obter aprovação antes de bloquear.
