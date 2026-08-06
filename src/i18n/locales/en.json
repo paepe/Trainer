@@ -2464,7 +2464,11 @@
     "generateFailed": "Failed to generate workout",
     "noValidPlan": "Workout service did not return a valid plan.",
     "smartFailed": "Smart workout generation failed",
-    "smartTimedOut": "Smart workout timed out."
+    "smartTimedOut": "Smart workout timed out.",
+    "rateLimited": "This AI feature is temporarily busy. Please try again shortly.",
+    "temporarilyContained": "This AI feature is temporarily unavailable while we protect the service. Your workout in progress is not affected.",
+    "protectionUnavailable": "This AI feature is temporarily unavailable. Please try again shortly.",
+    "support": "If this continues, contact support."
   },
   "events": {
     "highPainTitle": "High pain reported — {{region}}",

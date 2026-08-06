@@ -2464,7 +2464,11 @@
     "generateFailed": "Workout-Generierung fehlgeschlagen",
     "noValidPlan": "Workout-Dienst gab keinen gültigen Plan zurück.",
     "smartFailed": "Intelligente Workout-Generierung fehlgeschlagen",
-    "smartTimedOut": "Intelligentes Workout abgelaufen."
+    "smartTimedOut": "Intelligentes Workout abgelaufen.",
+    "rateLimited": "Diese KI-Funktion ist vorübergehend ausgelastet. Bitte versuchen Sie es in Kürze erneut.",
+    "temporarilyContained": "Diese KI-Funktion ist vorübergehend nicht verfügbar, während wir den Dienst schützen. Ihr laufendes Workout bleibt davon unberührt.",
+    "protectionUnavailable": "Diese KI-Funktion ist vorübergehend nicht verfügbar. Bitte versuchen Sie es in Kürze erneut.",
+    "support": "Wenn das Problem fortbesteht, wenden Sie sich an den Support."
   },
   "events": {
     "highPainTitle": "Hoher Schmerz gemeldet — {{region}}",

@@ -2464,7 +2464,11 @@
     "generateFailed": "Falha ao gerar treino",
     "noValidPlan": "Serviço de treino não retornou um plano válido.",
     "smartFailed": "Falha na geração inteligente de treino",
-    "smartTimedOut": "Treino inteligente expirou."
+    "smartTimedOut": "Treino inteligente expirou.",
+    "rateLimited": "Este recurso de IA está temporariamente ocupado. Tente novamente em instantes.",
+    "temporarilyContained": "Este recurso de IA está temporariamente indisponível enquanto protegemos o serviço. Seu treino em andamento não é afetado.",
+    "protectionUnavailable": "Este recurso de IA está temporariamente indisponível. Tente novamente em instantes.",
+    "support": "Se isso continuar, contate o suporte."
   },
   "events": {
     "highPainTitle": "Dor alta reportada — {{region}}",

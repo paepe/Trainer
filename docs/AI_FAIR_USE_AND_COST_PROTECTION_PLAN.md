@@ -202,11 +202,11 @@ Resposta ao utilizador
 
 - [x] Redigir rascunho interno da Política de Uso Justo com exemplos de uso pessoal normal e abuso, sem converter o plano em quota visível — [AI_FAIR_USE_POLICY_DRAFT.md](AI_FAIR_USE_POLICY_DRAFT.md), pendente de revisão jurídica/privacidade e publicação.
 - [ ] Inserir a cláusula aprovada nos Termos, com revisão jurídica e de privacidade.
-- [ ] Manter “Ilimitado” no marketing de AI FITNESS e AI PERFORMANCE.
-- [ ] Criar textos UX localizados para `429`, degradação e contenção temporária, com canal de suporte.
-- [ ] Não publicar thresholds internos ou mecanismos que facilitem evasão.
+- [x] Manter “Ilimitado” no marketing de AI FITNESS e AI PERFORMANCE; a revisão confirmou ausência de contador/quota comercial visível e preservou a mensagem de upgrade para sessões ilimitadas.
+- [x] Criar textos UX localizados para `429`, degradação e contenção temporária, com canal de suporte — chaves `workoutGen.*` adicionadas para en/pt/es/de; só serão exibidas quando o enforcement for aprovado.
+- [x] Não publicar thresholds internos ou mecanismos que facilitem evasão; a política e os textos UX deliberadamente não contêm números operacionais.
 - [ ] Atualizar a matriz de licenças para “ilimitado sujeito à Política de Uso Justo” somente após publicação dos Termos.
-- [ ] Registrar política de consumo iniciado por TRAINER em nome de aluno e relação com eventual franquia de IA do TRAINER.
+- [x] Registrar política de consumo iniciado por TRAINER em nome de aluno e relação com eventual franquia de IA do TRAINER — [AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md](AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md), pendente de aprovação comercial/jurídica/Privacy.
 
 **Critério de aceite:** Termos, Política, marketing, matriz e UX descrevem a mesma oferta antes do enforcement da Fase 4.
 
@@ -265,7 +265,7 @@ Resposta ao utilizador
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟨 Em execução | 2026-08-05 | Os oito endpoints de IA exigem identidade; todos exigem `Content-Type: application/json`; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e rejeita `items` inválido/excessivo antes do provedor, e as duas rotas de geração rejeitam payload acima de 128 mil caracteres. Welcome usa idempotência atómica HMAC activa em produção. CORS de chamadas autenticadas foi validado em produção. Restam validação uniforme de schema e a camada pré-auth de rajada. |
 | 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-06 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. A observação começou, mas a primeira amostra contém apenas smokes controlados; não há base para thresholds. |
-| 3 — Termos e comunicação | 🟨 Em rascunho interno | 2026-08-05 | Política de Uso Justo redigida para revisão; nenhum Termo, marketing ou texto público foi alterado. |
+| 3 — Termos e comunicação | 🟨 Dependência externa | 2026-08-06 | Política de Uso Justo, atribuição TRAINER–aluno e textos UX en/pt/es/de foram preparados e revisados; não há thresholds públicos. Publicação em Termos e atualização da matriz dependem de aprovação de Product, Jurídico e Privacy. |
 | 4 — Rate limiting | ⬜ Não iniciada | — | — |
 | 5 — Alertas e contenção | ⬜ Não iniciada | — | — |
 | 6 — Produção e governança | ⬜ Não iniciada | — | — |
