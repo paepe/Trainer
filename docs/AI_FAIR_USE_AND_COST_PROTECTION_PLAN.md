@@ -235,6 +235,8 @@ Resposta ao utilizador
 
 **Execução técnica 2026-08-06:** a camada pós-auth foi conectada aos oito endpoints e a infraestrutura atômica está aplicada com RLS. O modo padrão `off` é uma operação nula; por isso a produção continua sem bucket, bloqueio ou retenção adicional até existir ruleset aprovado. Regressão integral: 37 arquivos / 438 testes aprovados; deploys de produção correspondentes ficaram `Ready`.
 
+**Teste sintético do bucket (2026-08-06):** em produção, com hashes fictícios e sem dados de conta, três consumos contra máximo três foram permitidos e o quarto/quinto retornaram `limited=true`; a expiração foi forçada somente sobre o bucket sintético, a próxima operação removeu o item expirado e os dois buckets de teste foram apagados. A regressão integral posterior passou com 38 arquivos / 441 testes. Ainda faltam testes de relógio/múltiplas instâncias e uma validação em sombra com regras aprovadas.
+
 **Critério de aceite:** excedentes não alcançam o provedor; concorrência não permite bypass; modo sombra demonstrou baixa taxa de falso positivo; uso humano normal permanece sem contador e sem cap comercial.
 
 ### Fase 5 — Anomalia, alertas e contenção operacional
