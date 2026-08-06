@@ -1,6 +1,6 @@
 # TrAIner — Plano de Uso Justo, Proteção de Custo e Prevenção de Abuso de IA
 
-**Estado:** Fases 0–1 em execução; Fase 2 activada em observação controlada — enforcement permanece bloqueado até haver evidência de uso real e aprovação específica
+**Estado:** Fases 0–1 em execução; Fase 2 activa em observação controlada pré-lançamento — enforcement pós-auth permanece bloqueado até haver evidência representativa de uso real pós-lançamento e aprovação específica
 **Última atualização:** 2026-08-06 — período de observação iniciado; sem evidência suficiente para calibrar enforcement
 **Proprietário:** Product / Engineering / Privacy
 **Escopo:** todos os endpoints server-side com custo de IA — recursos de AI FITNESS/AI PERFORMANCE, operações do TRAINER e automações internas/onboarding
@@ -190,9 +190,22 @@ Resposta ao utilizador
 
 **Critério de aceite:** custo e distribuição de uso por plano/endpoint são mensuráveis com qualidade declarada; retries não duplicam eventos; nenhuma telemetria contém conteúdo ou dados de saúde.
 
+### Regime de observação pré e pós-lançamento
+
+O plano não encerra por decurso de prazo enquanto o produto não estiver lançado. A
+amostra pré-lançamento serve para validar instrumentação, privacidade, custo
+reportado e degradação segura; não representa comportamento comercial humano e não
+autoriza thresholds pós-auth.
+
+Após o lançamento, a observação continua sem bloqueio automático durante um mínimo
+de 30 dias de utilização normal. A revisão é semanal e só propõe modo sombra quando
+houver distribuição suficiente entre utilizadores, planos e classes de endpoint para
+distinguir uso intenso legítimo de automação. Se o volume permanecer baixo, a
+observação é prolongada — nunca se inventa um threshold para fechar uma fase.
+
 **Nota de verificação (2026-08-05):** uma tentativa de smoke test pelo navegador foi interrompida antes de qualquer chamada porque a aba disponível apresentava a tela de login. A consulta de produção confirmou `0` eventos totais e `0` eventos recentes; portanto, não houve geração nem escrita de telemetria indevida. Permanece pendente uma chamada normal por uma sessão autenticada já existente, sem o agente inserir credenciais.
 
-**Snapshot de observação (2026-08-06):** o relatório administrativo agregado mostra 7 eventos em generate-smart-workout, todos associados a um único ator pseudonimizado: 5 sucessos (20.197 tokens no total) e 2 falhas de fornecedor, distribuídos entre ai_fitness e unknown. Não há custo estimado porque o provedor não retornou preço utilizável nesses eventos. A amostra é deliberadamente insuficiente para percentis, coortes, concorrência normal ou thresholds pós-auth; nenhuma regra de sombra ou bloqueio foi ativada.
+**Snapshot de observação pré-lançamento (2026-08-06):** o relatório administrativo agregado mostra 7 eventos em generate-smart-workout, todos associados a um único ator pseudonimizado: 5 sucessos (20.197 tokens no total) e 2 falhas de fornecedor, distribuídos entre ai_fitness e unknown. Não há custo estimado porque o provedor não retornou preço utilizável nesses eventos. A amostra valida a instrumentação, mas é deliberadamente insuficiente e não representativa para percentis, coortes, concorrência normal ou thresholds pós-auth; nenhuma regra de sombra ou bloqueio foi ativada.
 
 **Correcção de privacidade (2026-08-05):** o log técnico de custo de `generate-smart-workout` deixou de incluir `client_id` e `caller_id` brutos. A análise por ator permanece exclusivamente no evento minimizado com HMAC.
 
@@ -302,7 +315,7 @@ Resposta ao utilizador
 |---|---|---|---|
 | 0 — Baseline e ameaça | 🟨 Em auditoria documental | 2026-08-05 | Inventário estático: 8 endpoints; 5 sem autenticação própria; sequência do plano corrigida |
 | 1 — Exposição imediata | 🟩 Concluída | 2026-08-06 | Os oito endpoints de IA exigem identidade, `Content-Type: application/json`, objeto JSON na raiz e rejeitam body acima de um teto global antes de I/O subsequente; voz exige entitlement próprio, classificação exige TRAINER, tradução limita fan-out a 8 e valida lote, e as duas rotas de geração aceitam no máximo 128 mil caracteres. Welcome usa idempotência atómica HMAC ativa em produção. O guard WAF `ai-preauth-burst` protege somente falhas de autenticação, sem armazenamento de IP no aplicativo. |
-| 2 — Telemetria persistida | 🟨 Em observação controlada | 2026-08-06 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. O snapshot contém 7 eventos de um único ator, insuficientes para thresholds. |
+| 2 — Telemetria persistida | 🟨 Em observação pré-lançamento | 2026-08-06 | Tabela, RLS, retenção de 90 dias, catálogo temporal de preço, agregados diários e idempotência de retries foram aplicados e auditados; emissão minimizada de sucesso nos 8 endpoints está ativa. O snapshot contém 7 eventos de um único ator e valida instrumentação, não thresholds. A calibração inicia somente após lançamento e 30 dias mínimos de uso normal. |
 | 3 — Termos e comunicação | 🟩 Concluída | 2026-08-06 | Política e Termos v1.0 publicados, links públicos estáveis, aceite versionado persistido, matriz comercial atualizada e smoke HTTP/browser aprovado. Não há thresholds públicos. |
 | 4 — Rate limiting | 🟨 Fundação aplicada, aguardando sombra | 2026-08-06 | Bucket atômico com RLS foi aplicado e conectado aos oito endpoints; o modo permanece `off` até ruleset baseado na observação e aprovação para sombra. |
 | 5 — Alertas e contenção | 🟨 Fundação aplicada, aguardando baseline | 2026-08-06 | Tabela administrativa minimizada, RLS, escritor desativado e runbook foram preparados; faltam baseline, regras, destino operacional e validação sintética. |
