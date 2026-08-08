@@ -17,3 +17,15 @@ Para proteção de privacidade, os mecanismos operacionais de consumo não regis
 - [x] Privacy: transparência, retenção, pseudonimização e DPA — aprovado em 2026-08-06.
 - [x] Product: coerência com oferta “ilimitado” e comunicação de marketing — aprovado em 2026-08-06.
 - [x] Publicação nos Termos e ligação para a Política de Uso Justo — deploy Vercel Ready e smoke HTTP/browser aprovados em 2026-08-06.
+
+## Versões linguísticas
+
+O texto em português acima é a fonte canónica aprovada da versão 1.0. Em
+2026-08-07, as versões EN, ES e DE foram estruturadas no catálogo versionado do
+produto (`src/legal/legalDocuments.ts`) para que a tela pública e o gate de
+aceite sigam o idioma efetivo da aplicação.
+
+As três traduções permanecem **pendentes de validação jurídica linguística antes
+de publicação**. Não alteram a versão contratual, a oferta comercial ou a regra
+de aceite; essa aprovação confirmará equivalência jurídica e terminológica com a
+fonte portuguesa antes do deploy.

@@ -1,0 +1,1 @@
+../sql-archive/supabase-fix-trainer-in-app-invitation-expiry-20260807.sql

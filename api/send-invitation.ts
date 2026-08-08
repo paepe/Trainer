@@ -1,6 +1,6 @@
 // POST /api/send-invitation
 // Trainer invites a candidate (with or without a TrAIner account) by email.
-// 1. Validates exclusivity (candidate must not be actively linked to another trainer)
+// 1. Validates exclusivity (candidate must not be actively linked to any trainer)
 // 2. Creates a trainer_invitations row (service role — bypasses RLS, generates token)
 // 3. Sends a transactional email via Resend with the accept-invite deep link
 // Requires: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY,
@@ -18,6 +18,20 @@ import { verifyRequestUser, isTrainerRole, authSupabaseUrl, authServiceHeaders }
 import { resolveUserEntitlements } from './_lib/entitlements.js';
 
 const INVITE_TTL_DAYS = 7;
+
+async function recordLimitBlock(supabaseUrl: string, headers: Record<string, string>) {
+  // Best-effort aggregate telemetry: never retain trainer, candidate, e-mail,
+  // search term or health/training data in this operational signal.
+  try {
+    await fetch(`${supabaseUrl}/rest/v1/trainer_invitation_operation_events`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'return=minimal' },
+      body: JSON.stringify({ event_type: 'blocked_limit', source: 'email' }),
+    });
+  } catch {
+    // Observability must not change the authoritative authorization response.
+  }
+}
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -59,20 +73,28 @@ export default async function handler(req: any, res: any) {
     if (clientsLimit.allowed && clientsLimit.limitValue !== null && countRes.ok) {
       const activeRows = await countRes.json() as { id: string }[];
       if (activeRows.length >= clientsLimit.limitValue) {
+        await recordLimitBlock(supabaseUrl, restHeaders);
         return res.status(403).json({ error: 'client_limit_reached', limit: clientsLimit.limitValue });
       }
     }
 
-    // ── 1. Exclusivity guard — candidate may only have ONE active trainer ──────
+    // ── 1. Exclusivity guard — active clients cannot receive another invitation ─
+    // This includes a duplicate invitation from the same TRAINER. A new invitation
+    // is only valid after the existing relationship has been explicitly ended.
     const existingRes = await fetch(
-      `${supabaseUrl}/rest/v1/profiles?select=id,trainer_clients!inner(trainer_id,status)&email=eq.${encodeURIComponent(invitedEmail)}&trainer_clients.status=eq.active`,
+      `${supabaseUrl}/rest/v1/profiles?select=id,role,trainer_clients(trainer_id,status)&email=eq.${encodeURIComponent(invitedEmail)}`,
       { headers: restHeaders },
     );
     if (existingRes.ok) {
-      const rows = (await existingRes.json()) as { id: string; trainer_clients: { trainer_id: string; status: string }[] }[];
-      const linkedToOther = rows.some(r => r.trainer_clients.some(tc => tc.trainer_id !== trainerId && tc.status === 'active'));
-      if (linkedToOther) {
-        return res.status(409).json({ error: 'already_linked_elsewhere' });
+      const rows = (await existingRes.json()) as { id: string; role: string | null; trainer_clients: { trainer_id: string; status: string }[] }[];
+      // A registered account is eligible only when it is a CLIENT. Unknown
+      // e-mail addresses remain eligible so a prospective client can sign up.
+      if (rows.some(row => row.role !== 'client')) {
+        return res.status(409).json({ error: 'recipient_not_client' });
+      }
+      const hasActiveTrainer = rows.some(r => r.trainer_clients.some(tc => tc.status === 'active'));
+      if (hasActiveTrainer) {
+        return res.status(409).json({ error: 'already_linked' });
       }
     }
 

@@ -1,0 +1,1 @@
+../sql-archive/supabase-trainer-invitation-revoke-audit-20260807.sql

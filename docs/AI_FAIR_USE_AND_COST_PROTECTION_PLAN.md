@@ -247,6 +247,8 @@ observação é prolongada — nunca se inventa um threshold para fechar uma fas
 
 **Auditoria de consistência (2026-08-06):** os manuais TRAINER en/pt/es ainda comunicavam o degrau histórico PRO de 50 alunos. Foram alinhados à matriz efectiva PRO 5/15/30; as traduções da UI já apresentavam essas três faixas. Product, Jurídico e Privacy aprovaram a Política de Uso Justo e a cláusula dos Termos em 2026-08-06. A migração foi aplicada no Supabase e o deploy Vercel Ready foi verificado nas duas rotas públicas. A Fase 3 está concluída; o aceite versionado passa a ser exigido no próximo acesso autenticado, sem interromper treino já em curso.
 
+**Localização legal (2026-08-07):** a auditoria confirmou que as rotas públicas e o gate de aceite exibiam somente português, apesar de o aplicativo suportar EN/ES/DE. O catálogo legal foi estruturado por idioma, com a mesma versão 1.0, e recebeu testes de completude de seções e bullets. A fonte portuguesa permanece publicada; as traduções EN/ES/DE aguardam validação jurídica linguística antes de qualquer deploy. A persistência do locale no aceite já existente será preservada.
+
 **Critério de aceite:** Termos, Política, marketing, matriz e UX descrevem a mesma oferta antes do enforcement da Fase 4.
 
 ### Fase 4 — Rate limiting server-side sem quota comercial

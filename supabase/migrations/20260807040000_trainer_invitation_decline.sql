@@ -1,0 +1,1 @@
+../sql-archive/supabase-trainer-invitation-decline-20260807.sql

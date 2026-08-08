@@ -1,7 +1,8 @@
 import React from 'react';
+import { effectiveInvitationStatus, toggleAllManagedSelection, toggleManagedSelection, visibleTrainerInvitations } from '../../lib/trainerInvitationManagement';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import { TextInput, VStack, HStack } from '@/ui';
+import { SegmentedControl, TextInput, VStack, HStack } from '@/ui';
 import { supabase } from '../../supabase';
 import { useAlerts } from '../../hooks/useAlerts';
 import { Icon } from '../../components/Icon';
@@ -52,6 +53,14 @@ interface TrainerInvitation {
   status:        string;
   created_at:    string | null;
   expires_at:    string;
+  archived_at?:  string | null;
+}
+
+interface DiscoverableClient {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+  plan_key: string;
 }
 
 interface TrainerDashboardUser {
@@ -89,6 +98,12 @@ export function TrainerDashboardScreen({
   const [showInvite, setShowInvite]     = React.useState(false);
   const [inviteName, setInviteName]     = React.useState('');
   const [inviteEmail, setInviteEmail]   = React.useState('');
+  const [inviteMode, setInviteMode]     = React.useState<'email' | 'inApp'>('email');
+  const [candidateSearch, setCandidateSearch] = React.useState('');
+  const [candidatePlan, setCandidatePlan] = React.useState<'all' | 'free' | 'ai_fitness' | 'ai_performance'>('all');
+  const [candidates, setCandidates] = React.useState<DiscoverableClient[]>([]);
+  const [searchingCandidates, setSearchingCandidates] = React.useState(false);
+  const [invitingCandidateId, setInvitingCandidateId] = React.useState<string | null>(null);
   const [inviteErr, setInviteErr]       = React.useState('');
   const [inviteOk, setInviteOk]         = React.useState('');
   const [inviting, setInviting]         = React.useState(false);
@@ -97,6 +112,14 @@ export function TrainerDashboardScreen({
   const [activeSessions, setActiveSessions] = React.useState<ActiveSession[]>([]);
   const [invitations, setInvitations]   = React.useState<TrainerInvitation[]>([]);
   const [invitationBusyId, setInvitationBusyId] = React.useState<string | null>(null);
+  const [manageInvites, setManageInvites] = React.useState(false);
+  const [inviteSearch, setInviteSearch] = React.useState('');
+  const [inviteFilter, setInviteFilter] = React.useState<'all' | 'sent' | 'accepted' | 'declined' | 'expired' | 'revoked'>('all');
+  const [inviteArchiveScope, setInviteArchiveScope] = React.useState<'active' | 'archived'>('active');
+  const [inviteSort, setInviteSort] = React.useState<'recent' | 'oldest' | 'nameAsc' | 'nameDesc' | 'status'>('recent');
+  const [selectedInvitationIds, setSelectedInvitationIds] = React.useState<Set<string>>(new Set());
+  const [manageClients, setManageClients] = React.useState(false);
+  const [selectedClientIds, setSelectedClientIds] = React.useState<Set<string>>(new Set());
   const [startingFree, setStartingFree] = React.useState(false);
 
   const fetchSafetyGate = React.useCallback((clientIds: string[]) => {
@@ -135,7 +158,9 @@ export function TrainerDashboardScreen({
       .from('trainer_clients')
       .select('id, status, created_at, client:profiles!trainer_clients_client_id_fkey(id, name, email, role, avatar_url)')
       .eq('trainer_id', user.id)
-      .in('status', ['active', 'pending'])
+      // The Clients screen is a relationship surface, not an invitation queue.
+      // A prospect only becomes visible here after explicitly accepting an invite.
+      .eq('status', 'active')
       .order('created_at', { ascending: false });
 
     // Free-session synthetic subjects carry an active link (required by RLS) but
@@ -212,10 +237,10 @@ export function TrainerDashboardScreen({
   async function fetchInvitations() {
     if (!user?.id) return;
     const { data } = await invitationsTable()
-      .select('id, invited_email, invited_name, status, created_at, expires_at')
+      .select('id, invited_email, invited_name, status, created_at, expires_at, archived_at')
       .eq('trainer_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(8);
+      .limit(50);
     setInvitations(data ?? []);
   }
 
@@ -247,7 +272,8 @@ export function TrainerDashboardScreen({
       const result = await sendInvite(inviteEmail, inviteName);
       if (!result.ok) {
         setInviteErr(
-          result.error === 'already_linked_elsewhere' ? tr('trainer.dashboard.errAlreadyLinked')
+          (result.error === 'already_linked_elsewhere' || result.error === 'already_linked') ? tr('trainer.dashboard.errAlreadyLinked')
+          : result.error === 'recipient_not_client'  ? tr('trainer.dashboard.errInviteRecipientNotClient')
           : result.error === 'client_limit_reached'   ? tr('trainer.dashboard.clientLimitReached')
           : tr('trainer.dashboard.errInviteFailed')
         );
@@ -267,9 +293,54 @@ export function TrainerDashboardScreen({
     }
   }
 
+  async function findCandidates() {
+    setSearchingCandidates(true);
+    setInviteErr('');
+    const { data, error } = await supabase.rpc('search_discoverable_free_clients', {
+      p_query: candidateSearch,
+      p_plan_keys: candidatePlan === 'all' ? null : [candidatePlan],
+      p_limit: 20,
+      p_offset: 0,
+    });
+    if (error) setInviteErr(tr('trainer.dashboard.errCandidateSearch'));
+    else setCandidates((data ?? []) as DiscoverableClient[]);
+    setSearchingCandidates(false);
+  }
+
+  async function inviteInApp(candidate: DiscoverableClient) {
+    setInvitingCandidateId(candidate.id);
+    setInviteErr('');
+    const { error } = await supabase.rpc('create_trainer_in_app_invitation', { p_client_id: candidate.id });
+    if (error) setInviteErr(tr('trainer.dashboard.errInviteFailed'));
+    else {
+      setInviteOk(tr('trainer.dashboard.inAppInviteSent', { name: candidate.display_name }));
+      setCandidates(prev => prev.filter(item => item.id !== candidate.id));
+      void fetchInvitations();
+    }
+    setInvitingCandidateId(null);
+  }
+
   async function revokeInvitation(inv: TrainerInvitation) {
     setInvitationBusyId(inv.id);
-    await invitationsTable().update({ status: 'revoked' }).eq('id', inv.id).eq('status', 'sent').limit(1);
+    await supabase.rpc('revoke_trainer_invitation', { p_invitation_id: inv.id });
+    await fetchInvitations();
+    setInvitationBusyId(null);
+  }
+
+  async function revokeAndArchiveInvitation(inv: TrainerInvitation) {
+    if (!window.confirm(tr('trainer.dashboard.confirmRevokeAndArchive', { name: inv.invited_name }))) return;
+    setInvitationBusyId(inv.id);
+    const { error: revokeError } = await supabase.rpc('revoke_trainer_invitation', { p_invitation_id: inv.id });
+    if (revokeError) {
+      setInviteErr(tr('trainer.dashboard.errInvitationOperation'));
+      setInvitationBusyId(null);
+      return;
+    }
+    const { error: archiveError } = await supabase.rpc('archive_trainer_invitations', {
+      p_invitation_ids: [inv.id],
+      p_archive: true,
+    });
+    if (archiveError) setInviteErr(tr('trainer.dashboard.errInvitationOperation'));
     await fetchInvitations();
     setInvitationBusyId(null);
   }
@@ -277,15 +348,60 @@ export function TrainerDashboardScreen({
   async function resendInvitation(inv: TrainerInvitation) {
     setInvitationBusyId(inv.id);
     if (inv.status === 'sent') {
-      await invitationsTable().update({ status: 'revoked' }).eq('id', inv.id).eq('status', 'sent').limit(1);
+      await supabase.rpc('revoke_trainer_invitation', { p_invitation_id: inv.id });
     }
     await sendInvite(inv.invited_email, inv.invited_name);
     await fetchInvitations();
     setInvitationBusyId(null);
   }
 
+  async function setSelectedInvitationArchiveState(archive: boolean) {
+    const ids = [...selectedInvitationIds];
+    if (ids.length === 0) return;
+    if (archive && !window.confirm(tr('trainer.dashboard.confirmArchiveSelected', { count: ids.length }))) return;
+    setInvitationBusyId('bulk');
+    const { error } = await supabase.rpc('archive_trainer_invitations', {
+      p_invitation_ids: ids,
+      p_archive: archive,
+    });
+    if (!error) { setSelectedInvitationIds(new Set()); await fetchInvitations(); }
+    else setInviteErr(tr('trainer.dashboard.errInvitationOperation'));
+    setInvitationBusyId(null);
+  }
+
+  async function endSelectedClientLinks() {
+    const ids = [...selectedClientIds];
+    if (ids.length === 0) return;
+    if (!window.confirm(tr('trainer.dashboard.confirmEndClients', { count: ids.length }))) return;
+    setInvitationBusyId('end-clients');
+    const { error } = await supabase.rpc('end_trainer_client_links', { p_link_ids: ids, p_reason: null });
+    if (error) setInviteErr(tr('trainer.dashboard.errClientOperation'));
+    else { setSelectedClientIds(new Set()); await fetchClients(); }
+    setInvitationBusyId(null);
+  }
+
+  const toggleClient = (id: string) => setSelectedClientIds(prev => {
+    return toggleManagedSelection(prev, id);
+  });
+  const toggleAllActiveClients = () => setSelectedClientIds(prev => {
+    return toggleAllManagedSelection(prev, activeClients.map(c => c.id));
+  });
+
+  const visibleInvitations = React.useMemo(() => {
+    return visibleTrainerInvitations(invitations, inviteArchiveScope, inviteFilter, inviteSearch, inviteSort);
+  }, [invitations, inviteArchiveScope, inviteFilter, inviteSearch, inviteSort]);
+
+  const toggleInvitation = (id: string) => setSelectedInvitationIds(prev => {
+    return toggleManagedSelection(prev, id);
+  });
+  const selectableInvitationIds = visibleInvitations
+    .filter(inv => effectiveInvitationStatus(inv) !== 'sent')
+    .map(inv => inv.id);
+  const toggleAllVisible = () => setSelectedInvitationIds(prev => {
+    return toggleAllManagedSelection(prev, selectableInvitationIds);
+  });
+
   const activeClients  = clients.filter(c => c.status === 'active');
-  const pendingClients = clients.filter(c => c.status === 'pending');
 
   const atClientLimit = (
     !clientLimitAccess.loading &&
@@ -313,7 +429,7 @@ export function TrainerDashboardScreen({
 
   return (
     <>
-      <ScreenTitle dark={dark} sub={tr('trainer.dashboard.subActive', { active: activeClients.length, pending: pendingClients.length })}>
+      <ScreenTitle dark={dark} sub={tr('trainer.dashboard.subActive', { active: activeClients.length })}>
         {tr('trainer.dashboard.title')}
       </ScreenTitle>
 
@@ -442,6 +558,7 @@ export function TrainerDashboardScreen({
             background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`,
             display: 'flex', alignItems: 'center', gap: 14,
           }}>
+            {manageClients && tc.status === 'active' && <input type="checkbox" checked={selectedClientIds.has(tc.id)} onChange={() => toggleClient(tc.id)} aria-label={tr('trainer.dashboard.selectClient', { name: tc.client?.name || '' })} />}
             <AvatarImage url={tc.client?.avatar_url} label={tc.client?.name || '?'} w={42} h={42} radius={14} dark={dark}/>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
@@ -489,30 +606,45 @@ export function TrainerDashboardScreen({
           </div>
         ))}
 
+        {clients.length > 0 && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={() => { setManageClients(v => !v); setSelectedClientIds(new Set()); }} style={{ ...ghostBtn(dark), padding: '7px 11px', borderRadius: 999, fontSize: 11 }}>
+            {manageClients ? tr('trainer.dashboard.finishManagingClients') : tr('trainer.dashboard.manageClients')}
+          </button>
+          {manageClients && <>
+            <button onClick={toggleAllActiveClients} style={{ ...ghostBtn(dark), padding: '7px 11px', borderRadius: 999, fontSize: 11 }}>{tr('trainer.dashboard.selectAll')}</button>
+            <button onClick={() => void endSelectedClientLinks()} disabled={!selectedClientIds.size || invitationBusyId === 'end-clients'} style={{ ...ghostBtn(dark), padding: '7px 11px', borderRadius: 999, fontSize: 11, opacity: selectedClientIds.size ? 1 : .5 }}>{tr('trainer.dashboard.endSelectedClients', { count: selectedClientIds.size })}</button>
+          </>}
+        </div>}
+
         {/* Invite form */}
         {showInvite ? (
           <div style={{
             padding: 18, borderRadius: 16,
             background: surfRaised(dark), border: `1.5px solid ${t.primary}`,
           }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: textPri(dark), marginBottom: 10 }}>
-              {tr('trainer.dashboard.inviteByEmail')}
-            </div>
-            <TextInput
-              icon="user"
-              placeholder={tr('trainer.dashboard.inviteNamePlaceholder')}
-              value={inviteName}
-              onChange={setInviteName}
-            />
-            <div style={{ marginTop: 8 }}>
-              <TextInput
-                icon="mail"
-                placeholder="client@email.com"
-                type="email"
-                value={inviteEmail}
-                onChange={setInviteEmail}
-              />
-            </div>
+            <HStack gap={8} style={{ marginBottom: 10 }}>
+              <button onClick={() => setInviteMode('email')} style={{ ...ghostBtn(dark), padding: '7px 10px', borderRadius: 999, fontSize: 11, opacity: inviteMode === 'email' ? 1 : .6 }}>{tr('trainer.dashboard.inviteByEmail')}</button>
+              <button onClick={() => { setInviteMode('inApp'); void findCandidates(); }} style={{ ...ghostBtn(dark), padding: '7px 10px', borderRadius: 999, fontSize: 11, opacity: inviteMode === 'inApp' ? 1 : .6 }}>{tr('trainer.dashboard.findInTrainer')}</button>
+            </HStack>
+            {inviteMode === 'email' ? <>
+              <TextInput icon="user" placeholder={tr('trainer.dashboard.inviteNamePlaceholder')} value={inviteName} onChange={setInviteName} />
+              <div style={{ marginTop: 8 }}><TextInput icon="mail" placeholder="client@email.com" type="email" value={inviteEmail} onChange={setInviteEmail} /></div>
+            </> : <>
+              <div style={{ fontSize: 12, color: textSec(dark), marginBottom: 8 }}>{tr('trainer.dashboard.findInTrainerHint')}</div>
+              <TextInput icon="user" placeholder={tr('trainer.dashboard.searchCandidates')} value={candidateSearch} onChange={setCandidateSearch} />
+              <HStack gap={6} style={{ marginTop: 8, flexWrap: 'wrap' }}>
+                {(['all', 'free', 'ai_fitness', 'ai_performance'] as const).map(plan => <button key={plan} onClick={() => { setCandidatePlan(plan); }} style={{ ...ghostBtn(dark), padding: '5px 8px', borderRadius: 999, fontSize: 10, opacity: candidatePlan === plan ? 1 : .65 }}>{tr(`trainer.dashboard.candidatePlan.${plan}`)}</button>)}
+                <button onClick={() => void findCandidates()} disabled={searchingCandidates} style={{ ...ghostBtn(dark), padding: '5px 8px', borderRadius: 999, fontSize: 10 }}>{searchingCandidates ? tr('common.loading') : tr('common.search')}</button>
+              </HStack>
+              <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
+                {candidates.map(candidate => <div key={candidate.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: `1px solid ${borderSubtle(dark)}` }}>
+                  <AvatarImage url={candidate.avatar_url} label={candidate.display_name} w={30} h={30} radius={10} dark={dark}/>
+                  <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 600, color: textPri(dark) }}>{candidate.display_name}</div><div style={{ fontSize: 10, color: textMute(dark) }}>{candidate.plan_key}</div></div>
+                  <button onClick={() => void inviteInApp(candidate)} disabled={invitingCandidateId === candidate.id} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11 }}>{tr('trainer.dashboard.send')}</button>
+                </div>)}
+                {!searchingCandidates && candidates.length === 0 && <div style={{ fontSize: 11, color: textMute(dark) }}>{tr('trainer.dashboard.noCandidates')}</div>}
+              </div>
+            </>}
             {inviteErr && (
               <div style={{ color: t.accent, fontSize: 11, marginTop: 8 }}>
                 {inviteErr}
@@ -524,7 +656,7 @@ export function TrainerDashboardScreen({
               </div>
             )}
             <HStack gap={8} style={{ marginTop: 12 }}>
-              <button
+              {inviteMode === 'email' && <button
                 onClick={() => { setShowInvite(false); setInviteName(''); setInviteEmail(''); setInviteErr(''); setInviteOk(''); }}
                 style={{
                   ...ghostBtn(dark),
@@ -535,7 +667,7 @@ export function TrainerDashboardScreen({
                 }}
               >
                 {tr('trainer.dashboard.cancel')}
-              </button>
+              </button>}
               <button
                 onClick={invite}
                 disabled={inviting || !inviteName || !inviteEmail}
@@ -555,7 +687,85 @@ export function TrainerDashboardScreen({
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 8 }}>
                   {tr('trainer.dashboard.inviteHistoryTitle')}
                 </div>
-                {invitations.map(inv => {
+                <button onClick={() => { setManageInvites(v => !v); setSelectedInvitationIds(new Set()); }} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11, marginBottom: 8 }}>
+                  {manageInvites ? tr('trainer.dashboard.finishManagingInvites') : tr('trainer.dashboard.manageInvites')}
+                </button>
+                {manageInvites && <>
+                  <TextInput value={inviteSearch} onChange={setInviteSearch} placeholder={tr('trainer.dashboard.searchInvites')} />
+                  <div style={{ marginTop: 10 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: textMute(dark), marginBottom: 6 }}>
+                      {tr('trainer.dashboard.invitationScopeLabel')}
+                    </div>
+                    <SegmentedControl
+                      value={inviteArchiveScope}
+                      color={t.primarySoft}
+                      activeStyle={{
+                        background: `${t.primarySoft}14`,
+                        border: `1px solid ${t.primarySoft}99`,
+                      }}
+                      options={[
+                        { value: 'active', label: tr('trainer.dashboard.invitationScope.active') },
+                        { value: 'archived', label: tr('trainer.dashboard.invitationScope.archived') },
+                      ]}
+                      onChange={(scope) => {
+                        setInviteArchiveScope(scope as 'active' | 'archived');
+                        setSelectedInvitationIds(new Set());
+                      }}
+                    />
+                  </div>
+                  <HStack gap={6} style={{ margin: '8px 0', flexWrap: 'wrap' }}>
+                    {(['all', 'sent', 'accepted', 'declined', 'expired', 'revoked'] as const).map(filter => (
+                      <button key={filter} onClick={() => { setInviteFilter(filter); setSelectedInvitationIds(new Set()); }} aria-pressed={inviteFilter === filter} style={{ ...ghostBtn(dark), padding: '5px 8px', borderRadius: 999, fontSize: 10, opacity: inviteFilter === filter ? 1 : .65 }}>
+                        {tr(`trainer.dashboard.inviteFilter.${filter}`)}
+                      </button>
+                    ))}
+                    <button onClick={() => setInviteSort(s => s === 'recent' ? 'oldest' : s === 'oldest' ? 'nameAsc' : s === 'nameAsc' ? 'nameDesc' : s === 'nameDesc' ? 'status' : 'recent')} style={{ ...ghostBtn(dark), display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 8px', borderRadius: 999, fontSize: 10 }}>
+                      <span aria-hidden="true" style={{ fontSize: 12, lineHeight: 1 }}>↕</span>
+                      {tr(`trainer.dashboard.inviteSort.${inviteSort}`)}
+                    </button>
+                  </HStack>
+                  <HStack gap={8} style={{ marginBottom: selectedInvitationIds.size ? 10 : 8 }}>
+                    <button onClick={toggleAllVisible} disabled={selectableInvitationIds.length === 0} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11, opacity: selectableInvitationIds.length ? 1 : .5 }}>{tr('trainer.dashboard.selectAll')}</button>
+                  </HStack>
+                  {selectedInvitationIds.size > 0 && (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                      flexWrap: 'wrap', padding: '10px 12px', marginBottom: 10, borderRadius: 12,
+                      background: `${t.accent}14`, border: `1px solid ${t.accent}66`,
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: textPri(dark) }}>
+                        {tr('trainer.dashboard.selectedInvitations', { count: selectedInvitationIds.size })}
+                      </div>
+                      <HStack gap={8} style={{ flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => setSelectedInvitationIds(new Set())}
+                          disabled={invitationBusyId === 'bulk'}
+                          style={{ ...ghostBtn(dark), padding: '7px 10px', borderRadius: 9, fontSize: 11 }}
+                        >
+                          {tr('trainer.dashboard.clearSelection')}
+                        </button>
+                        <button
+                          onClick={() => void setSelectedInvitationArchiveState(inviteArchiveScope !== 'archived')}
+                          disabled={invitationBusyId === 'bulk'}
+                          style={{
+                            padding: '8px 12px', borderRadius: 9, border: 'none',
+                            background: t.accent, color: '#FFFFFF', fontSize: 11, fontWeight: 700,
+                            fontFamily: '"Plus Jakarta Sans",sans-serif', cursor: 'pointer',
+                            opacity: invitationBusyId === 'bulk' ? .65 : 1,
+                          }}
+                        >
+                          {inviteArchiveScope === 'archived'
+                            ? tr('trainer.dashboard.restoreSelected', { count: selectedInvitationIds.size })
+                            : tr('trainer.dashboard.archiveSelected', { count: selectedInvitationIds.size })}
+                        </button>
+                      </HStack>
+                    </div>
+                  )}
+                </>}
+                {manageInvites && visibleInvitations.length === 0 && (
+                  <div style={{ fontSize: 12, color: textMute(dark), padding: '10px 0' }}>{tr('trainer.dashboard.noInvitationsFound')}</div>
+                )}
+                {(manageInvites ? visibleInvitations : invitations.filter(inv => !inv.archived_at).slice(0, 8)).map(inv => {
                   const isExpired = inv.status === 'sent' && new Date(inv.expires_at) < new Date();
                   const status = isExpired ? 'expired' : inv.status;
                   const statusColor = status === 'accepted' ? t.primary
@@ -563,7 +773,8 @@ export function TrainerDashboardScreen({
                     : textMute(dark);
                   const busy = invitationBusyId === inv.id;
                   return (
-                    <div key={inv.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0' }}>
+                    <div key={inv.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '7px 0' }}>
+                      {manageInvites && status !== 'sent' && <input type="checkbox" checked={selectedInvitationIds.has(inv.id)} onChange={() => toggleInvitation(inv.id)} aria-label={tr('trainer.dashboard.selectInvite', { name: inv.invited_name })} />}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12.5, fontWeight: 600, color: textPri(dark), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {inv.invited_name}
@@ -571,6 +782,15 @@ export function TrainerDashboardScreen({
                         <div style={{ fontSize: 11, color: textMute(dark), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {inv.invited_email}
                         </div>
+                        {manageInvites && (inviteSort === 'recent' || inviteSort === 'oldest') && inv.created_at && (
+                          <div style={{ fontSize: 10, color: textMute(dark), marginTop: 2 }}>
+                            {tr('trainer.dashboard.invitedOn', {
+                              date: new Date(inv.created_at).toLocaleDateString(i18n.language || 'en-US', {
+                                day: 'numeric', month: 'long', year: 'numeric',
+                              }),
+                            })}
+                          </div>
+                        )}
                       </div>
                       <div style={{
                         fontSize: 9.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999,
@@ -580,11 +800,16 @@ export function TrainerDashboardScreen({
                         {tr(`trainer.dashboard.inviteStatus.${status}`)}
                       </div>
                       {status === 'sent' && (
-                        <button onClick={() => revokeInvitation(inv)} disabled={busy} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11 }}>
-                          {tr('trainer.dashboard.revoke')}
-                        </button>
+                        <>
+                          <button onClick={() => revokeInvitation(inv)} disabled={busy} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11 }}>
+                            {tr('trainer.dashboard.revoke')}
+                          </button>
+                          {manageInvites && <button onClick={() => void revokeAndArchiveInvitation(inv)} disabled={busy} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11 }}>
+                            {tr('trainer.dashboard.revokeAndArchive')}
+                          </button>}
+                        </>
                       )}
-                      {(status === 'expired' || status === 'revoked') && (
+                      {(status === 'expired' || status === 'revoked' || status === 'declined') && (
                         <button onClick={() => resendInvitation(inv)} disabled={busy} style={{ ...ghostBtn(dark), padding: '6px 10px', borderRadius: 999, fontSize: 11 }}>
                           {tr('trainer.dashboard.resend')}
                         </button>

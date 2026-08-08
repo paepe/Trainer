@@ -130,9 +130,9 @@ export const DEFAULTS: Record<FeatureKey, Grant> = {
   'marketplace.revenue_share':     { allowed: false, limitValue: null },
   'workout.sessions_per_week':     { allowed: true,  limitValue: 1 },    // free: cap mais restritivo configurado
   'workout.exercises_per_session': { allowed: true,  limitValue: 6 },    // free
-  'workout.exercise_type':         { allowed: true,  limitValue: 0 },    // free (0 = fitness only)
+  'workout.exercise_type':         { allowed: true,  limitValue: 0 },    // legado; gate comercial desactivado no servidor
   'checkin.full':                  { allowed: false, limitValue: null },  // legacy, ver types/feature-permissions.ts
-  'trainer_plan.days_per_week':    { allowed: true,  limitValue: 1 },    // free
+  'trainer_plan.days_per_week':    { allowed: true,  limitValue: 1 },    // legado; plano TRAINER não é reduzido por tier do aluno
   'progress.fitness_advanced':     { allowed: false, limitValue: null },
   'progress.performance':          { allowed: false, limitValue: null },
   // Fase 4.1 — mesma disciplina fail-closed que scores.basic: DEFAULT é

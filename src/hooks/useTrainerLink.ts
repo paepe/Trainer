@@ -9,7 +9,7 @@ interface UseTrainerLinkResult {
 
 const cache = new Map<string, string | null>();
 
-export function useTrainerLink(clientId: string | null): UseTrainerLinkResult {
+export function useTrainerLink(clientId: string | null, revision = 0): UseTrainerLinkResult {
   const [trainerId, setTrainerId] = React.useState<string | null>(null);
   const [loading,   setLoading]   = React.useState(true);
 
@@ -35,7 +35,7 @@ export function useTrainerLink(clientId: string | null): UseTrainerLinkResult {
         setTrainerId(id);
         setLoading(false);
       });
-  }, [clientId]);
+  }, [clientId, revision]);
 
   return { trainerId, hasTrainer: trainerId !== null, loading };
 }

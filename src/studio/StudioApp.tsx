@@ -17,6 +17,8 @@ export default function StudioApp() {
   const [view, setView] = React.useState('dashboard');
 
   React.useEffect(() => {
+    // The function is declared below so it can remain a single local data mapper.
+    // eslint-disable-next-line react-hooks/immutability
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       if (s) void fetchProfile(s.user.id);

@@ -7,6 +7,7 @@ import { SectionLabel } from '../../components/SectionLabel';
 import { surfRaised, borderSubtle, textPri, textSec, textMute } from '../../theme';
 import type { NavFn } from '../../types';
 import type { AppPreferences, BooleanPrefKey } from '../../types/preferences';
+import { supabase } from '../../supabase';
 
 interface Theme {
   primary: string;
@@ -24,6 +25,14 @@ interface SettingsScreenProps {
   saveError?:       string | null;
   clearSaveError?:  () => void;
   isMale?:          boolean;
+  userId?:          string | null;
+  onTrainerEnded?:  () => void;
+}
+
+interface ActiveTrainerLink {
+  id: string;
+  trainer_id: string;
+  trainer_name: string | null;
 }
 
 type ToggleRow   = [BooleanPrefKey, string, string];
@@ -34,9 +43,65 @@ interface SelectorRow<K extends keyof AppPreferences> {
   options: { value: AppPreferences[K]; label: string }[];
 }
 
-export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError, isMale = false }: SettingsScreenProps) {
+export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = false, hasTrainer = false, saveError, clearSaveError, isMale = false, userId, onTrainerEnded }: SettingsScreenProps) {
   const { t: tr } = useTranslation();
   const isAutonomous = !isTrainer && !hasTrainer;
+  const [discoverable, setDiscoverable] = React.useState(false);
+  const [discoveryReady, setDiscoveryReady] = React.useState(false);
+  const [trainerLink, setTrainerLink] = React.useState<ActiveTrainerLink | null>(null);
+  const [trainerLinkReady, setTrainerLinkReady] = React.useState(false);
+  const [endingTrainerLink, setEndingTrainerLink] = React.useState(false);
+  const [trainerLinkError, setTrainerLinkError] = React.useState('');
+
+  React.useEffect(() => {
+    if (!userId || isTrainer) return;
+    supabase.from('trainer_discovery_preferences').select('discoverable').eq('user_id', userId).maybeSingle()
+      .then(({ data }) => { setDiscoverable(!!data?.discoverable); setDiscoveryReady(true); });
+  }, [userId, isTrainer]);
+
+  React.useEffect(() => {
+    if (!userId || isTrainer) {
+      setTrainerLink(null);
+      setTrainerLinkReady(true);
+      return;
+    }
+    setTrainerLinkReady(false);
+    const getActiveLink = supabase.rpc.bind(supabase) as unknown as (
+      name: 'get_my_active_trainer_link',
+    ) => Promise<{ data: ActiveTrainerLink[] | null; error: { message: string } | null }>;
+    getActiveLink('get_my_active_trainer_link').then(({ data }) => {
+      setTrainerLink(data?.[0] ?? null);
+      setTrainerLinkReady(true);
+    });
+  }, [userId, isTrainer, hasTrainer]);
+
+  const setDiscovery = async (value: boolean) => {
+    if (!userId) return;
+    const previous = discoverable;
+    setDiscoverable(value);
+    const { error } = await supabase.from('trainer_discovery_preferences')
+      .upsert({ user_id: userId, discoverable: value }, { onConflict: 'user_id' });
+    if (error) setDiscoverable(previous);
+  };
+
+  const endTrainerLink = async () => {
+    if (!trainerLink || endingTrainerLink) return;
+    if (!window.confirm(tr('settings.trainerLink.confirm'))) return;
+    setEndingTrainerLink(true);
+    setTrainerLinkError('');
+    const endLink = supabase.rpc.bind(supabase) as unknown as (
+      name: 'end_my_trainer_link', args: { p_reason: string | null },
+    ) => Promise<{ data: { id: string; status: string; ended_at: string }[] | null; error: { message: string } | null }>;
+    const { data, error } = await endLink('end_my_trainer_link', { p_reason: null });
+    if (error || !data?.length) {
+      setTrainerLinkError(tr('settings.trainerLink.error'));
+    } else {
+      setTrainerLink(null);
+      setDiscoverable(false);
+      onTrainerEnded?.();
+    }
+    setEndingTrainerLink(false);
+  };
 
   const handlePrefChange = (p: Partial<AppPreferences>) => {
     if (p.language != null && p.language !== i18n.language) {
@@ -131,6 +196,29 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
           </>
         )}
 
+        {!isTrainer && trainerLinkReady && trainerLink && (
+          <div style={{ marginBottom: 18 }}>
+            <SectionLabel dark={dark}>{tr('settings.trainerLink.section')}</SectionLabel>
+            <div style={{ background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, borderRadius: 16, padding: '14px 16px' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: textPri(dark) }}>
+                {tr('settings.trainerLink.connectedTo', { name: trainerLink.trainer_name || tr('settings.trainerLink.unknown') })}
+              </div>
+              <div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 4, lineHeight: 1.45 }}>
+                {tr('settings.trainerLink.hint')}
+              </div>
+              {trainerLinkError && <div style={{ marginTop: 10, color: '#EF5B3C', fontSize: 12, fontWeight: 600 }}>{trainerLinkError}</div>}
+              <button onClick={() => void endTrainerLink()} disabled={endingTrainerLink} style={{
+                marginTop: 14, width: '100%', padding: '11px 14px', borderRadius: 10,
+                background: 'transparent', border: '1px solid #EF5B3C88', color: '#EF5B3C',
+                fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: endingTrainerLink ? 'wait' : 'pointer',
+                opacity: endingTrainerLink ? .55 : 1,
+              }}>
+                {endingTrainerLink ? tr('settings.trainerLink.ending') : tr('settings.trainerLink.end')}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* AI personalization */}
         <ToggleSection title={tr('settings.sections.ai')} rows={aiGroup} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
 
@@ -155,6 +243,16 @@ export function SettingsScreen({ nav, t, prefs, setPrefs, dark, isTrainer = fals
 
         {/* Notifications */}
         <ToggleSection title={tr('settings.sections.notifications')} rows={notifGroup} prefs={prefs} setPrefs={handlePrefChange} t={t} dark={dark}/>
+
+        {!isTrainer && discoveryReady && (
+          <div style={{ marginBottom: 18 }}>
+            <SectionLabel dark={dark}>{tr('settings.sections.trainerDiscovery')}</SectionLabel>
+            <div style={{ background: surfRaised(dark), border: `1px solid ${borderSubtle(dark)}`, borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1 }}><div style={{ fontSize: 14, fontWeight: 500, color: textPri(dark) }}>{tr('settings.toggle.trainerDiscovery.label')}</div><div style={{ fontSize: 11.5, color: textMute(dark), marginTop: 2 }}>{tr('settings.toggle.trainerDiscovery.hint')}</div></div>
+              <Toggle on={discoverable} primary={t.primary} onChange={setDiscovery}/>
+            </div>
+          </div>
+        )}
 
         {/* Data & History — clients (power-user fetch depth) */}
         {!isTrainer && (

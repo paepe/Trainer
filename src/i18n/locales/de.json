@@ -78,6 +78,13 @@
     },
     "actions": {
       "approve": "Genehmigen",
+      "acceptTrainerInvitation": "Einladung annehmen",
+      "declineTrainerInvitation": "Einladung ablehnen",
+      "confirmDeclineTrainerInvitation": "Diese Einladung ablehnen? Du kannst künftig eine neue Einladung erhalten.",
+      "requestNewTrainerInvitation": "Neue Einladung anfordern",
+      "confirmRequestNewTrainerInvitation": "Den Trainer um eine neue Einladung bitten?",
+      "resendTrainerInvitation": "Einladung erneut senden",
+      "ignoreRenewalRequest": "Ignorieren",
       "reject": "Ablehnen",
       "startWorkout": "Training starten",
       "startWorkoutTimeout": "Mit KI-Plan trainieren",
@@ -89,7 +96,13 @@
       "approved": "Vom Trainer genehmigt",
       "rejected": "Überspringen vom Trainer empfohlen",
       "accessGranted": "Zugriff gewährt",
-      "accessDenied": "Zugriff verweigert"
+      "accessDenied": "Zugriff verweigert",
+      "invitationAccepted": "Einladung angenommen",
+      "invitationDeclined": "Einladung abgelehnt",
+      "invitationRevoked": "Einladung widerrufen",
+      "renewalRequested": "Anfrage für neue Einladung gesendet",
+      "resent": "Neue Einladung gesendet",
+      "ignored": "Anfrage ignoriert"
     },
     "badges": {
       "expired": "Abgelaufen",
@@ -99,6 +112,9 @@
       "postponed": "Verschoben",
       "alert": "Warnung",
       "approved": "Genehmigt",
+      "renewalRequested": "Neue Einladung angefordert",
+      "resent": "Einladung erneut gesendet",
+      "ignored": "Anfrage ignoriert",
       "rejected": "Abgelehnt",
       "done": "Erledigt",
       "trainedAutonomously": "Autonom trainiert",
@@ -124,6 +140,12 @@
       "workout_rejected_body": "Dein Trainingsplan wurde zurückgegeben. Prüfe das Feedback.",
       "invitation_accepted": "{{clientName}} hat deine Einladung angenommen!",
       "invitation_accepted_body": "{{clientName}} ist als dein Kunde beigetreten.",
+      "trainer_link_ended": "{{clientName}} hat die Betreuung beendet",
+      "trainer_link_ended_body": "Der Kunde hat sich entschieden, die Betreuung vorerst zu beenden. Danke, dass du ihn bis hierhin begleitet hast. Wir hoffen, dass euch zukünftige Trainingsmöglichkeiten wieder zusammenbringen.",
+      "trainer_invitation": "Trainer-Einladung",
+      "trainer_invitation_body": "Du hast eine Trainer-Einladung in TrAIner erhalten.",
+      "trainer_invitation_renewal_request": "Anfrage für neue Einladung",
+      "trainer_invitation_renewal_request_body": "Ein potenzieller Kunde hat um eine neue Einladung gebeten.",
       "ready_to_train": "{{name}} ist bereit zu trainieren",
       "ready_to_train_female": "{{name}} ist bereit zu trainieren",
       "ready_to_train_male": "{{name}} ist bereit zu trainieren",
@@ -750,7 +772,7 @@
   "trainer": {
     "dashboard": {
       "title": "Meine Kunden",
-      "subActive": "{{active}} aktiv · {{pending}} ausstehend",
+      "subActive": "{{active}} aktiv",
       "noClients": "Noch keine Kunden",
       "noClientsNote": "Lade deinen ersten Kunden per E-Mail ein, um loszulegen.",
       "pending": "Ausstehend",
@@ -761,18 +783,52 @@
       "freeSession": "Freie Trainingseinheit",
       "startingFreeSession": "Wird gestartet…",
       "inviteByEmail": "Per E-Mail einladen",
+      "findInTrainer": "In TrAIner finden",
+      "findInTrainerHint": "Zeigt nur Personen, die Einladungen zugestimmt haben. Name, Avatar und Tarif sind die einzigen sichtbaren Angaben.",
+      "searchCandidates": "Nach Name suchen",
+      "noCandidates": "Keine verfügbaren Personen gefunden.",
+      "inAppInviteSent": "Einladung an {{name}} im Posteingang gesendet.",
+      "errCandidateSearch": "Verfügbare Personen konnten nicht gesucht werden.",
+      "candidatePlan": { "all": "Alle Tarife", "free": "FREE", "ai_fitness": "AI FITNESS", "ai_performance": "AI PERFORMANCE" },
       "inviteNamePlaceholder": "Name des Kandidaten",
       "cancel": "Abbrechen",
       "send": "Einladung senden",
       "sending": "Wird gesendet…",
       "inviteSent": "Einladung gesendet — die Person erhält eine E-Mail mit einem Link zum Beitreten.",
       "inviteCreatedNoEmail": "Einladung erstellt. Der E-Mail-Versand ist noch nicht konfiguriert — teile den Link manuell.",
-      "errAlreadyLinked": "Diese Person ist bereits mit einem anderen Trainer verknüpft.",
+      "errAlreadyLinked": "Diese Person hat bereits einen aktiven Trainer. Eine neue Einladung kann erst nach Beendigung der Verbindung gesendet werden.",
+      "errInviteRecipientNotClient": "Dies ist ein TRAINER-Konto und kann keine Kundeneinladung erhalten.",
       "errInviteFailed": "Die Einladung konnte nicht gesendet werden. Bitte versuche es erneut.",
       "inviteHistoryTitle": "Letzte Einladungen",
+      "manageInvites": "Einladungen verwalten",
+      "manageClients": "Kunden verwalten",
+      "finishManagingClients": "Kundenverwaltung beenden",
+      "selectClient": "{{name}} auswählen",
+      "endSelectedClients": "Verbindung beenden ({{count}})",
+      "confirmEndClients": "Verbindung mit {{count}} Kunde(n) beenden? Der operative Zugriff des TRAINERs wird entfernt, ohne Verlauf oder Profil zu löschen.",
+      "errClientOperation": "Die Verbindung konnte nicht beendet werden. Bitte versuche es erneut.",
+      "finishManagingInvites": "Verwaltung beenden",
+      "searchInvites": "Nach Name oder E-Mail suchen",
+      "invitedOn": "Eingeladen am {{date}}",
+      "noInvitationsFound": "Keine Einladungen entsprechen den ausgewählten Filtern.",
+      "invitationScopeLabel": "Anzeigen",
+      "invitationScope": { "active": "Aktive Einladungen", "archived": "Archiviert" },
+      "selectAll": "Alle auswählen",
+      "selectedInvitations": "Aktuelle Auswahl: {{count}}",
+      "clearSelection": "Auswahl aufheben",
+      "archiveSelected": "Ausgewählte archivieren ({{count}})",
+      "restoreSelected": "Ausgewählte wiederherstellen ({{count}})",
+      "confirmArchiveSelected": "{{count}} Einladung(en) archivieren? Sie können später wiederhergestellt werden.",
+      "selectInvite": "{{name}} auswählen",
+      "revokeAndArchive": "Widerrufen und archivieren",
+      "confirmRevokeAndArchive": "Einladung von {{name}} widerrufen und archivieren? Der Link wird nicht mehr gültig sein.",
+      "errInvitationOperation": "Der Einladungsvorgang konnte nicht abgeschlossen werden. Bitte versuche es erneut.",
+      "inviteFilter": { "all": "Alle", "sent": "Gesendet", "accepted": "Angenommen", "declined": "Abgelehnt", "expired": "Abgelaufen", "revoked": "Widerrufen", "archived": "Archiviert" },
+      "inviteSort": { "recent": "Neueste", "oldest": "Älteste", "nameAsc": "Name A–Z", "nameDesc": "Name Z–A", "status": "Status" },
       "inviteStatus": {
         "sent": "Ausstehend",
         "accepted": "Angenommen",
+        "declined": "Abgelehnt",
         "expired": "Abgelaufen",
         "revoked": "Widerrufen"
       },
@@ -1048,7 +1104,8 @@
       "title": "Trainingsverlauf",
       "viewProgress": "Fortschritt ansehen",
       "viewing": "Ansicht",
-      "loading": "Lädt…",
+    "loading": "Lädt…",
+    "search": "Suchen",
       "emptyForDay": "Noch keine Einheiten am {{day}}.",
       "days": [
         "So",
@@ -2311,6 +2368,16 @@
   "settings": {
     "title": "Einstellungen",
     "aboutTagline": "TrAIner v0.1 — KI-gestützter Fitness-Begleiter",
+    "trainerLink": {
+      "section": "Mein Trainer",
+      "connectedTo": "Du trainierst mit {{name}}",
+      "unknown": "deinem Trainer",
+      "hint": "Das Beenden der Betreuung entzieht deinem Trainer den operativen Zugriff auf deine Pläne, Check-ins, dein Profil und freigegebene Daten. Dein Trainingsverlauf wird nicht gelöscht.",
+      "end": "Betreuung beenden",
+      "ending": "Wird beendet…",
+      "confirm": "Diese Betreuung beenden? Dein Trainer verliert sofort den operativen Zugriff auf deine freigegebenen Daten. Dein Verlauf wird nicht gelöscht.",
+      "error": "Die Betreuung konnte nicht beendet werden. Bitte versuche es erneut."
+    },
     "sections": {
       "training": "Trainingsstandards",
       "ai": "KI & Datenschutz",
@@ -2323,7 +2390,8 @@
       "language": "Sprache",
       "clientMgmt": "Kundenverwaltung",
       "lightPalette": "Helles Farbprofil",
-      "exerciseNames": "Übungsnamen"
+      "exerciseNames": "Übungsnamen",
+      "trainerDiscovery": "TRAINER-Einladungen"
     },
     "fields": {
       "location": {
@@ -2412,6 +2480,10 @@
       "exerciseNamesEnglish": {
         "label": "Behalte die Übungsnamen auf Englisch bei.",
         "hint": "Ausgeschaltet werden die Übungsnamen in deine App-Sprache übersetzt."
+      },
+      "trainerDiscovery": {
+        "label": "Für TRAINER-Einladungen verfügbar",
+        "hint": "Erlaubt TRAINERn, deinen Namen, Avatar und Tariftyp für eine Einladung zu sehen. E-Mail- und Gesundheitsdaten werden nicht geteilt."
       }
     },
     "opt": {
@@ -2567,6 +2639,7 @@
     "expired": "Diese Einladung ist abgelaufen. Bitte deinen Trainer, eine neue zu senden.",
     "revoked": "Diese Einladung wurde vom Trainer widerrufen.",
     "errAlreadyLinked": "Du bist bereits mit einem anderen Trainer verbunden. Ein Klient kann nur einen Trainer gleichzeitig haben.",
+    "errRecipientNotClient": "Dies ist ein TRAINER-Konto und kann keine Kundeneinladung annehmen.",
     "errEmailMismatch": "Diese Einladung gehört zu einem anderen Konto. Melde dich ab und mit der richtigen E-Mail an, um sie anzunehmen.",
     "wrongAccountTitle": "Anderes Konto erkannt",
     "wrongAccountBody": "Diese Einladung wurde an {{invitedEmail}} gesendet, aber du bist mit einem anderen Konto angemeldet. Melde dich ab und mit {{invitedEmail}} an (oder erstelle ein Konto), um die Einladung von {{trainerName}} anzunehmen.",
@@ -2615,7 +2688,7 @@
           "Intelligente Trainingsbibliothek",
           "Basis-Fortschritt-Tracking",
           "Ein paar KI-Tipps pro Woche",
-          "1 Trainertag/Woche im Trainingsplan"
+          "Vollständiger Plan deines Trainers"
         ]
       },
       "ai_fitness": {
@@ -2627,7 +2700,7 @@
           "Tägliche Anpassung an Energie & Muskelkater",
           "Zyklus-bewusste Programmierung",
           "Vollständiger Verlauf & Insights",
-          "3 Trainertage/Woche im Trainingsplan"
+          "Vollständiger Plan deines Trainers"
         ]
       },
       "ai_performance": {
@@ -2639,7 +2712,7 @@
           "Erweiterte Leistungsanalysen",
           "Prädiktive Belastung & Erholung",
           "Bevorzugte menschliche Prüfung",
-          "Alle Trainertage des Trainingsplans freigeschaltet"
+          "Vollständiger Plan deines Trainers"
         ]
       },
       "trial": {

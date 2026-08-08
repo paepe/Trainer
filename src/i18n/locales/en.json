@@ -18,6 +18,7 @@
     "yesterday": "Yesterday",
     "action": "Action",
     "loading": "Loading…",
+    "search": "Search",
     "optional": "(optional)",
     "noData": "—",
     "back": "Back",
@@ -78,6 +79,13 @@
     },
     "actions": {
       "approve": "Approve",
+      "acceptTrainerInvitation": "Accept invitation",
+      "declineTrainerInvitation": "Decline invitation",
+      "confirmDeclineTrainerInvitation": "Decline this invitation? You may receive a new invitation in the future.",
+      "requestNewTrainerInvitation": "Request a new invitation",
+      "confirmRequestNewTrainerInvitation": "Ask the trainer for a new invitation?",
+      "resendTrainerInvitation": "Resend invitation",
+      "ignoreRenewalRequest": "Ignore",
       "reject": "Reject",
       "startWorkout": "Start Workout",
       "startWorkoutTimeout": "Train with AI plan",
@@ -89,7 +97,13 @@
       "approved": "Approved by trainer",
       "rejected": "Recommended skipping by trainer",
       "accessGranted": "Access granted",
-      "accessDenied": "Access denied"
+      "accessDenied": "Access denied",
+      "invitationAccepted": "Invitation accepted",
+      "invitationDeclined": "Invitation declined",
+      "invitationRevoked": "Invitation revoked",
+      "renewalRequested": "New invitation request sent",
+      "resent": "New invitation sent",
+      "ignored": "Request ignored"
     },
     "badges": {
       "expired": "Expired",
@@ -99,6 +113,9 @@
       "postponed": "Postponed",
       "alert": "Alert",
       "approved": "Approved",
+      "renewalRequested": "New invitation requested",
+      "resent": "Invitation resent",
+      "ignored": "Request ignored",
       "rejected": "Rejected",
       "done": "Done",
       "trainedAutonomously": "Trained autonomously",
@@ -124,6 +141,12 @@
       "workout_rejected_body": "Your workout plan was returned. Check the feedback.",
       "invitation_accepted": "{{clientName}} accepted your invitation!",
       "invitation_accepted_body": "{{clientName}} joined as your client.",
+      "trainer_link_ended": "{{clientName}} ended coaching",
+      "trainer_link_ended_body": "The client chose to end coaching at this time. Thank you for supporting them so far. We hope future training opportunities may bring you together again.",
+      "trainer_invitation": "Trainer invitation",
+      "trainer_invitation_body": "You have received a trainer invitation in TrAIner.",
+      "trainer_invitation_renewal_request": "New invitation request",
+      "trainer_invitation_renewal_request_body": "A prospective client asked for a new invitation.",
       "ready_to_train": "{{name}} is ready to train",
       "ready_to_train_female": "{{name}} is ready to train",
       "ready_to_train_male": "{{name}} is ready to train",
@@ -750,7 +773,7 @@
   "trainer": {
     "dashboard": {
       "title": "My Clients",
-      "subActive": "{{active}} active · {{pending}} pending",
+      "subActive": "{{active}} active",
       "noClients": "No clients yet",
       "noClientsNote": "Invite your first client by email to get started.",
       "pending": "Pending",
@@ -761,18 +784,52 @@
       "freeSession": "Free Training Session",
       "startingFreeSession": "Starting…",
       "inviteByEmail": "Invite by email",
+      "findInTrainer": "Find in TrAIner",
+      "findInTrainerHint": "Shows only people who chose to receive invitations. Name, avatar and plan are the only details shown.",
+      "searchCandidates": "Search by name",
+      "noCandidates": "No available people found.",
+      "inAppInviteSent": "Invitation sent to {{name}} in Inbox.",
+      "errCandidateSearch": "Could not search available people.",
+      "candidatePlan": { "all": "All plans", "free": "FREE", "ai_fitness": "AI FITNESS", "ai_performance": "AI PERFORMANCE" },
       "inviteNamePlaceholder": "Candidate's name",
       "cancel": "Cancel",
       "send": "Send invite",
       "sending": "Sending…",
       "inviteSent": "Invitation sent — they'll receive an email with a link to join.",
       "inviteCreatedNoEmail": "Invitation created. Email delivery is not configured yet — share the link manually.",
-      "errAlreadyLinked": "This person is already linked to another trainer.",
+      "errAlreadyLinked": "This person already has an active trainer. A new invitation can only be sent after the link ends.",
+      "errInviteRecipientNotClient": "This is a TRAINER account and cannot receive a client invitation.",
       "errInviteFailed": "Couldn't send the invitation. Please try again.",
       "inviteHistoryTitle": "Recent invitations",
+      "manageInvites": "Manage invitations",
+      "manageClients": "Manage clients",
+      "finishManagingClients": "Finish managing clients",
+      "selectClient": "Select {{name}}",
+      "endSelectedClients": "End link ({{count}})",
+      "confirmEndClients": "End the link with {{count}} client(s)? The TRAINER's operational access will be removed without deleting history or profile.",
+      "errClientOperation": "The client link could not be ended. Please try again.",
+      "finishManagingInvites": "Finish managing",
+      "searchInvites": "Search by name or email",
+      "invitedOn": "Invited on {{date}}",
+      "noInvitationsFound": "No invitations match the selected filters.",
+      "invitationScopeLabel": "Show",
+      "invitationScope": { "active": "Active invitations", "archived": "Archived" },
+      "selectAll": "Select all",
+      "selectedInvitations": "Current selection: {{count}}",
+      "clearSelection": "Clear selection",
+      "archiveSelected": "Archive selected ({{count}})",
+      "restoreSelected": "Restore selected ({{count}})",
+      "confirmArchiveSelected": "Archive {{count}} invitation(s)? They can be restored later.",
+      "selectInvite": "Select {{name}}",
+      "revokeAndArchive": "Revoke and archive",
+      "confirmRevokeAndArchive": "Revoke and archive {{name}}'s invitation? The link will no longer be valid.",
+      "errInvitationOperation": "The invitation operation could not be completed. Please try again.",
+      "inviteFilter": { "all": "All", "sent": "Sent", "accepted": "Accepted", "declined": "Declined", "expired": "Expired", "revoked": "Revoked", "archived": "Archived" },
+      "inviteSort": { "recent": "Most recent", "oldest": "Oldest", "nameAsc": "Name A–Z", "nameDesc": "Name Z–A", "status": "Status" },
       "inviteStatus": {
         "sent": "Pending",
         "accepted": "Accepted",
+        "declined": "Declined",
         "expired": "Expired",
         "revoked": "Revoked"
       },
@@ -2311,6 +2368,16 @@
   "settings": {
     "title": "Settings",
     "aboutTagline": "TrAIner v0.1 — AI-powered fitness companion",
+    "trainerLink": {
+      "section": "My trainer",
+      "connectedTo": "You are training with {{name}}",
+      "unknown": "your trainer",
+      "hint": "Ending this coaching link removes your trainer's access to your plans, check-ins, profile and shared data. Your training history is not deleted.",
+      "end": "End coaching",
+      "ending": "Ending…",
+      "confirm": "End this coaching link? Your trainer will immediately lose operational access to your shared data. Your history will not be deleted.",
+      "error": "We couldn't end the coaching link. Please try again."
+    },
     "sections": {
       "training": "Training Defaults",
       "ai": "AI & Privacy",
@@ -2323,7 +2390,8 @@
       "language": "Language",
       "clientMgmt": "Client Management",
       "lightPalette": "Light Mode Palette",
-      "exerciseNames": "Exercise Names"
+      "exerciseNames": "Exercise Names",
+      "trainerDiscovery": "Trainer invitations"
     },
     "fields": {
       "location": {
@@ -2412,6 +2480,10 @@
       "exerciseNamesEnglish": {
         "label": "Keep exercise names in English.",
         "hint": "Off shows exercise names translated to your app language instead."
+      },
+      "trainerDiscovery": {
+        "label": "Available for TRAINER invitations",
+        "hint": "Allows TRAINERs to find your name, avatar and plan type to send an invitation. Your email and health data are not shared."
       }
     },
     "opt": {
@@ -2567,6 +2639,7 @@
     "expired": "This invitation has expired. Ask your trainer to send a new one.",
     "revoked": "This invitation was revoked by the trainer.",
     "errAlreadyLinked": "You're already linked to another trainer. A client can only have one trainer at a time.",
+    "errRecipientNotClient": "This is a TRAINER account and cannot accept a client invitation.",
     "errEmailMismatch": "This invitation belongs to a different account. Sign out and sign in with the correct email to accept it.",
     "wrongAccountTitle": "Different account detected",
     "wrongAccountBody": "This invitation was sent to {{invitedEmail}}, but you're signed in with a different account. Sign out and sign in (or create an account) with {{invitedEmail}} to accept {{trainerName}}'s invitation.",
@@ -2615,7 +2688,7 @@
           "Smart workout library",
           "Basic progress tracking",
           "A few AI tips each week",
-          "1 trainer plan day per week"
+          "Your trainer's full plan"
         ]
       },
       "ai_fitness": {
@@ -2627,7 +2700,7 @@
           "Daily adjustments to energy & soreness",
           "Cycle-aware programming",
           "Full history & insights",
-          "3 trainer plan days per week"
+          "Your trainer's full plan"
         ]
       },
       "ai_performance": {
@@ -2639,7 +2712,7 @@
           "Advanced performance analytics",
           "Predictive load & recovery",
           "Priority human review",
-          "All trainer plan days unlocked"
+          "Your trainer's full plan"
         ]
       },
       "trial": {

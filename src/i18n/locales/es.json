@@ -18,6 +18,7 @@
     "yesterday": "Ayer",
     "action": "Acción",
     "loading": "Cargando…",
+    "search": "Buscar",
     "optional": "(opcional)",
     "noData": "—",
     "back": "Volver",
@@ -78,6 +79,13 @@
     },
     "actions": {
       "approve": "Aprobar",
+      "acceptTrainerInvitation": "Aceptar invitación",
+      "declineTrainerInvitation": "Rechazar invitación",
+      "confirmDeclineTrainerInvitation": "¿Rechazar esta invitación? Podrás recibir una nueva invitación en el futuro.",
+      "requestNewTrainerInvitation": "Solicitar nueva invitación",
+      "confirmRequestNewTrainerInvitation": "¿Pedir una nueva invitación al entrenador?",
+      "resendTrainerInvitation": "Reenviar invitación",
+      "ignoreRenewalRequest": "Ignorar",
       "reject": "Rechazar",
       "startWorkout": "Iniciar Entrenamiento",
       "startWorkoutTimeout": "Entrenar con plan de IA",
@@ -89,7 +97,13 @@
       "approved": "Aprobado por el entrenador",
       "rejected": "El entrenador recomienda saltarse la sesión",
       "accessGranted": "Acceso concedido",
-      "accessDenied": "Acceso denegado"
+      "accessDenied": "Acceso denegado",
+      "invitationAccepted": "Invitación aceptada",
+      "invitationDeclined": "Invitación rechazada",
+      "invitationRevoked": "Invitación revocada",
+      "renewalRequested": "Solicitud de nueva invitación enviada",
+      "resent": "Nueva invitación enviada",
+      "ignored": "Solicitud ignorada"
     },
     "badges": {
       "expired": "Expirado",
@@ -99,6 +113,9 @@
       "postponed": "Pospuesto",
       "alert": "Alerta",
       "approved": "Aprobado",
+      "renewalRequested": "Nueva invitación solicitada",
+      "resent": "Invitación reenviada",
+      "ignored": "Solicitud ignorada",
       "rejected": "Rechazado",
       "done": "Hecho",
       "trainedAutonomously": "Entrenó de forma autónoma",
@@ -124,6 +141,12 @@
       "workout_rejected_body": "Tu plan fue devuelto. Revisa los comentarios.",
       "invitation_accepted": "¡{{clientName}} aceptó tu invitación!",
       "invitation_accepted_body": "{{clientName}} se unió como tu cliente.",
+      "trainer_link_ended": "{{clientName}} finalizó el acompañamiento",
+      "trainer_link_ended_body": "El alumno ha decidido finalizar el acompañamiento por ahora. Gracias por acompañarlo hasta aquí. Esperamos que futuras oportunidades de entrenamiento puedan reunirlos de nuevo.",
+      "trainer_invitation": "Invitación de entrenador",
+      "trainer_invitation_body": "Has recibido una invitación de entrenador en TrAIner.",
+      "trainer_invitation_renewal_request": "Solicitud de nueva invitación",
+      "trainer_invitation_renewal_request_body": "Un posible cliente pidió una nueva invitación.",
       "ready_to_train": "{{name}} está listo para entrenar",
       "ready_to_train_male": "{{name}} está listo para entrenar",
       "ready_to_train_female": "{{name}} está lista para entrenar",
@@ -750,7 +773,7 @@
   "trainer": {
     "dashboard": {
       "title": "Mis Clientes",
-      "subActive": "{{active}} activos · {{pending}} pendientes",
+      "subActive": "{{active}} activos",
       "noClients": "Aún no hay clientes",
       "noClientsNote": "Invita a tu primer cliente por correo para empezar.",
       "pending": "Pendiente",
@@ -761,18 +784,52 @@
       "freeSession": "Sesión de Entrenamiento Libre",
       "startingFreeSession": "Iniciando…",
       "inviteByEmail": "Invitar por correo",
+      "findInTrainer": "Buscar en TrAIner",
+      "findInTrainerHint": "Solo muestra personas que eligieron recibir invitaciones. Nombre, avatar y plan son los únicos datos mostrados.",
+      "searchCandidates": "Buscar por nombre",
+      "noCandidates": "No se encontraron personas disponibles.",
+      "inAppInviteSent": "Invitación enviada a {{name}} en la bandeja de entrada.",
+      "errCandidateSearch": "No fue posible buscar personas disponibles.",
+      "candidatePlan": { "all": "Todos los planes", "free": "FREE", "ai_fitness": "AI FITNESS", "ai_performance": "AI PERFORMANCE" },
       "inviteNamePlaceholder": "Nombre del candidato",
       "cancel": "Cancelar",
       "send": "Enviar invitación",
       "sending": "Enviando…",
       "inviteSent": "Invitación enviada — la persona recibirá un correo con un enlace para unirse.",
       "inviteCreatedNoEmail": "Invitación creada. El envío de correo aún no está configurado — comparte el enlace manualmente.",
-      "errAlreadyLinked": "Esta persona ya está vinculada a otro entrenador.",
+      "errAlreadyLinked": "Esta persona ya tiene un entrenador activo. Solo se puede enviar una nueva invitación después de finalizar el vínculo.",
+      "errInviteRecipientNotClient": "Esta es una cuenta de TRAINER y no puede recibir una invitación de alumno.",
       "errInviteFailed": "No se pudo enviar la invitación. Inténtalo de nuevo.",
       "inviteHistoryTitle": "Invitaciones recientes",
+      "manageInvites": "Gestionar invitaciones",
+      "manageClients": "Gestionar clientes",
+      "finishManagingClients": "Terminar gestión de clientes",
+      "selectClient": "Seleccionar {{name}}",
+      "endSelectedClients": "Finalizar vínculo ({{count}})",
+      "confirmEndClients": "¿Finalizar el vínculo con {{count}} cliente(s)? Se eliminará el acceso operativo del TRAINER sin borrar el historial ni el perfil.",
+      "errClientOperation": "No se pudo finalizar el vínculo. Inténtalo de nuevo.",
+      "finishManagingInvites": "Terminar gestión",
+      "searchInvites": "Buscar por nombre o correo",
+      "invitedOn": "Invitado el {{date}}",
+      "noInvitationsFound": "Ninguna invitación coincide con los filtros seleccionados.",
+      "invitationScopeLabel": "Mostrar",
+      "invitationScope": { "active": "Invitaciones activas", "archived": "Archivadas" },
+      "selectAll": "Seleccionar todo",
+      "selectedInvitations": "Selección actual: {{count}}",
+      "clearSelection": "Borrar selección",
+      "archiveSelected": "Archivar seleccionados ({{count}})",
+      "restoreSelected": "Restaurar seleccionados ({{count}})",
+      "confirmArchiveSelected": "¿Archivar {{count}} invitación(es)? Podrán restaurarse más tarde.",
+      "selectInvite": "Seleccionar {{name}}",
+      "revokeAndArchive": "Revocar y archivar",
+      "confirmRevokeAndArchive": "¿Revocar y archivar la invitación de {{name}}? El enlace dejará de ser válido.",
+      "errInvitationOperation": "No se pudo completar la operación de invitación. Inténtalo de nuevo.",
+      "inviteFilter": { "all": "Todos", "sent": "Enviados", "accepted": "Aceptados", "declined": "Rechazados", "expired": "Caducados", "revoked": "Revocados", "archived": "Archivados" },
+      "inviteSort": { "recent": "Más recientes", "oldest": "Más antiguos", "nameAsc": "Nombre A–Z", "nameDesc": "Nombre Z–A", "status": "Estado" },
       "inviteStatus": {
         "sent": "Pendiente",
         "accepted": "Aceptada",
+        "declined": "Rechazada",
         "expired": "Caducada",
         "revoked": "Revocada"
       },
@@ -2311,6 +2368,16 @@
   "settings": {
     "title": "Ajustes",
     "aboutTagline": "TrAIner v0.1 — Compañero fitness con IA",
+    "trainerLink": {
+      "section": "Mi entrenador",
+      "connectedTo": "Entrenas con {{name}}",
+      "unknown": "tu entrenador",
+      "hint": "Finalizar el acompañamiento elimina el acceso operativo de tu entrenador a tus planes, check-ins, perfil y datos compartidos. Tu historial de entrenamiento no se elimina.",
+      "end": "Finalizar acompañamiento",
+      "ending": "Finalizando…",
+      "confirm": "¿Finalizar este acompañamiento? Tu entrenador perderá inmediatamente el acceso operativo a tus datos compartidos. Tu historial no se eliminará.",
+      "error": "No se pudo finalizar el acompañamiento. Inténtalo de nuevo."
+    },
     "sections": {
       "training": "Valores por Defecto",
       "ai": "IA y Privacidad",
@@ -2323,7 +2390,8 @@
       "language": "Idioma",
       "clientMgmt": "Gestión de Clientes",
       "lightPalette": "Paleta Modo Claro",
-      "exerciseNames": "Nombres de Ejercicios"
+      "exerciseNames": "Nombres de Ejercicios",
+      "trainerDiscovery": "Invitaciones de TRAINER"
     },
     "fields": {
       "location": {
@@ -2412,6 +2480,10 @@
       "exerciseNamesEnglish": {
         "label": "Mantén los nombres de los ejercicios en inglés.",
         "hint": "Desactivado, los nombres aparecen traducidos al idioma de la app."
+      },
+      "trainerDiscovery": {
+        "label": "Disponible para invitaciones de TRAINER",
+        "hint": "Permite que TRAINERs encuentren tu nombre, avatar y tipo de plan para enviar una invitación. Tu correo y datos de salud no se comparten."
       }
     },
     "opt": {
@@ -2567,6 +2639,7 @@
     "expired": "Esta invitación ha caducado. Pide a tu entrenador que envíe una nueva.",
     "revoked": "Esta invitación fue revocada por el entrenador.",
     "errAlreadyLinked": "Ya estás vinculado a otro entrenador. Un cliente solo puede tener un entrenador a la vez.",
+    "errRecipientNotClient": "Esta es una cuenta de TRAINER y no puede aceptar una invitación de alumno.",
     "errEmailMismatch": "Esta invitación pertenece a otra cuenta. Cierra sesión e inicia sesión con el correo correcto para aceptarla.",
     "wrongAccountTitle": "Cuenta diferente detectada",
     "wrongAccountBody": "Esta invitación fue enviada a {{invitedEmail}}, pero has iniciado sesión con otra cuenta. Cierra sesión e inicia sesión (o crea una cuenta) con {{invitedEmail}} para aceptar la invitación de {{trainerName}}.",
@@ -2615,7 +2688,7 @@
           "Biblioteca de entrenos inteligente",
           "Seguimiento básico de progreso",
           "Algunos consejos de IA por semana",
-          "1 día/semana del plan del entrenador"
+          "Plan completo de tu entrenador"
         ]
       },
       "ai_fitness": {
@@ -2627,7 +2700,7 @@
           "Ajustes diarios por energía y agujetas",
           "Programación sensible al ciclo",
           "Historial e insights completos",
-          "3 días/semana del plan del entrenador"
+          "Plan completo de tu entrenador"
         ]
       },
       "ai_performance": {
@@ -2639,7 +2712,7 @@
           "Analíticas avanzadas de rendimiento",
           "Carga y recuperación predictivas",
           "Revisión humana prioritaria",
-          "Todos los días del plan del entrenador"
+          "Plan completo de tu entrenador"
         ]
       },
       "trial": {

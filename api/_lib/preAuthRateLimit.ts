@@ -23,7 +23,10 @@ export async function rejectUnauthenticatedAIBurst(
   if (process.env.VERCEL_ENV !== 'production') return false;
 
   try {
-    const result = await checkRateLimit(PREAUTH_AI_RATE_LIMIT_ID, { headers: req.headers ?? {} });
+    const headers = Object.fromEntries(
+      Object.entries(req.headers ?? {}).filter((entry): entry is [string, string | string[]] => entry[1] !== undefined),
+    );
+    const result = await checkRateLimit(PREAUTH_AI_RATE_LIMIT_ID, { headers });
     if (result.rateLimited) {
       res.setHeader?.('Retry-After', String(PREAUTH_AI_RETRY_AFTER_SECONDS));
       res.status(429).json({ error: 'Too many requests. Please retry shortly.' });

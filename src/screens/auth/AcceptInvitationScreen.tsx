@@ -143,6 +143,9 @@ export function AcceptInvitationScreen({ nav, t, dark, user, token, signIn, sign
       case 'already_linked_elsewhere':
         setState({ phase: 'error', message: tr('invite.errAlreadyLinked') });
         return;
+      case 'recipient_not_client':
+        setState({ phase: 'error', message: tr('invite.errRecipientNotClient') });
+        return;
       case 'email_mismatch':
         setState({ phase: 'error', message: tr('invite.errEmailMismatch') });
         return;

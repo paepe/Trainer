@@ -1,0 +1,1 @@
+../sql-archive/supabase-feature-permissions-20260616.sql

@@ -4,6 +4,8 @@
 **Status:** Proposto — aguardando aprovação para iniciar Fase 1
 **Objetivo:** Permitir que um treinador convide qualquer pessoa para se associar como aluno/cliente — **com ou sem conta prévia no TrAIner** — e que essa associação se complete automaticamente assim que o convidado tiver login ativo.
 
+> **Atualização operacional — 2026-08-07:** o fluxo-base deste documento foi implementado. Gestão de ciclo de vida, arquivamento, encerramento de vínculo e descoberta opt-in são mantidos no plano vivo [TRAIL](../../../../docs/TRAINER_INVITATION_LIFECYCLE_AND_DISCOVERY_PLAN.md). Em caso de divergência, o plano de 2026-08-07 prevalece para evoluções futuras; este documento preserva a decisão arquitetural original do convite por token.
+
 ---
 
 ## 1. Diagnóstico do estado atual

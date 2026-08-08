@@ -6,7 +6,7 @@ import { useProfileData }  from './hooks/useProfileData';
 import { useCheckinData }  from './hooks/useCheckinData';
 import { useWorkoutData }  from './hooks/useWorkoutData';
 import { usePushNotifications } from './hooks/usePushNotifications';
-import { useTrainerLink } from './hooks/useTrainerLink';
+import { invalidateTrainerLinkCache, useTrainerLink } from './hooks/useTrainerLink';
 import { useTrialWindow } from './hooks/useTrialWindow';
 import { useWelcomeWindow } from './hooks/useWelcomeWindow';
 import { LegalConsentGate, useLegalAcceptance } from './legal';
@@ -103,15 +103,6 @@ export default function App() {
       .then(({ error }) => { if (error) console.error('[App] stale session cleanup:', error); });
   }, [profile?.id]);
 
-  // Seed checkin defaults from live prefs (so changes apply immediately, not just on reload)
-  React.useEffect(() => {
-    setCheckin(prev => ({
-      ...prev,
-      location: prefs.defaultLocation ?? prev.location,
-      minutes:  prefs.defaultDurationMin ?? prev.minutes,
-    }));
-  }, [prefs.defaultLocation, prefs.defaultDurationMin]);
-
   const {
     saveCycleConfig, fetchCycleConfig,
     savePreferences, fetchPreferences,
@@ -166,10 +157,20 @@ export default function App() {
     energy: 7, soreness: ['Lower back'], minutes: 30, goal: 'Endurance',
     location: 'gym', sleep_quality: 'good', equipment: [],
   });
+
+  // Seed checkin defaults from live prefs (so changes apply immediately, not just on reload).
+  React.useEffect(() => {
+    setCheckin(prev => ({
+      ...prev,
+      location: prefs.defaultLocation ?? prev.location,
+      minutes:  prefs.defaultDurationMin ?? prev.minutes,
+    }));
+  }, [prefs.defaultLocation, prefs.defaultDurationMin]);
   const [screen, setScreen] = React.useState('welcome');
   const [prefSaveError, setPrefSaveError] = React.useState<string | null>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const { trainerId: linkedTrainerIdResolved } = useTrainerLink(!isTrainer ? (profile?.id ?? null) : null);
+  const [trainerLinkRevision, setTrainerLinkRevision] = React.useState(0);
+  const { trainerId: linkedTrainerIdResolved } = useTrainerLink(!isTrainer ? (profile?.id ?? null) : null, trainerLinkRevision);
   // Preserve legacy string shape: null while loading → empty string when no trainer
   const linkedTrainerId = isTrainer ? null : (linkedTrainerIdResolved ?? '');
   const [pendingAlerts, setPendingAlerts] = React.useState(0);
@@ -374,20 +375,9 @@ export default function App() {
     if (!session || !profile || loading || !subscription || passwordRecovery) return;
     if (!['welcome', 'login', 'register'].includes(screen)) return;
     let cancelled = false;
-    // Resolve any pending invitation server-side (by the authenticated user's
-    // own e-mail) instead of relying on sessionStorage — that mechanism loses
-    // its reference whenever the flow crosses a tab/window boundary, e.g. a
-    // password-recovery link opened from the e-mail client in a new tab.
-    // See policies/references/post-invite-onboarding-qa-20260608.md (Fase 0).
-    supabase.rpc('get_pending_invitation_for_user').then(({ data }) => {
-      if (cancelled) return;
-      const row = (data as { token: string }[] | null)?.[0];
-      if (row?.token) {
-        setScreenPayload({ token: row.token });
-        setScreen('acceptInvitation');
-        return;
-      }
-      if (!['welcome', 'login'].includes(screen)) return;
+    // In-app invitations are intentionally passive: they remain in the Inbox
+    // until the student explicitly chooses Accept or Reject.
+    if (!['welcome', 'login'].includes(screen)) return;
       // Only redirect to plan selection when the user genuinely has no plan yet.
       // Users on any paid plan (ai_fitness, ai_performance, pro, elite) have already
       // chosen — showing plans would be noise and unwanted pressure.
@@ -404,7 +394,6 @@ export default function App() {
         const completed = data && (data as Record<string, unknown>).completed_at;
         setScreen(completed ? 'checkin' : 'profile');
       });
-    });
     return () => { cancelled = true; };
   }, [session, profile, isTrainer, screen, fetchProfileV2, subscription, loading]);
 
@@ -692,7 +681,7 @@ export default function App() {
       );
       case 'cycle':              return <CycleScreen             {...common} setCycleConfig={(cfg) => setCycleConfig(prev => ({ length: cfg.length ?? prev.length, periodLength: cfg.periodLength ?? prev.periodLength, lastStartOffset: cfg.lastStartOffset ?? prev.lastStartOffset }))} cycleEnabled={prefs.cycle}/>;
       case 'studio':             return <TrainerStudioScreen     {...common}/>;
-      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)} isMale={user.gender === 'male'}/>;
+      case 'settings':           return <SettingsScreen          {...common} prefs={prefs} setPrefs={(p) => handleSetPrefs({ ...prefs, ...p })} isTrainer={isTrainer} hasTrainer={!!linkedTrainerId} saveError={prefSaveError} clearSaveError={() => setPrefSaveError(null)} isMale={user.gender === 'male'} userId={user.id} onTrainerEnded={() => { if (profile?.id) invalidateTrainerLinkCache(profile.id); setTrainerLinkRevision(value => value + 1); }}/>;
       case 'plans':              return <PlansScreen             nav={nav} t={t} dark={dark} user={user} source={screenPayload?.source as string | undefined} upsertSubscription={upsertSubscription} updateProfile={updateProfile} legalAccepted={legalAcceptance.status === 'accepted'} acceptLegalDocuments={legalAcceptance.acceptCurrentDocuments}/>;
       case 'planConfirm':        return <PlanConfirmScreen       nav={nav} t={t} planKey={(screenPayload?.planKey as string | undefined) ?? 'free'} isTrainer={!!(screenPayload?.isTrainer)}/>;
       case 'trainerDashboard':    return <TrainerDashboardScreen     nav={nav} user={trainerUser} selectClient={selectClient} startFreeSession={startFreeSession}/>;

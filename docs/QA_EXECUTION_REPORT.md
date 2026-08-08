@@ -223,6 +223,8 @@ Matriz verificada contra spec. **Todos os valores correctos.**
 | coach_dna | — | — | — | ❌ | ✅ | ✅ |
 | scores.basic | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
+> **Nota de historicidade (2026-08-07):** esta é uma evidência de execução de 2026-06-21, não a configuração actual. AI FITNESS passou de 7 para ilimitado em 2026-08-05; os gates de `workout.exercise_type` e `trainer_plan.days_per_week` foram posteriormente retirados. O estado actual está em `FEATURE_ACCESS_MATRIX.md` §2 e §4.
+
 ---
 
 ## classify-exercises API — Resultado do Teste

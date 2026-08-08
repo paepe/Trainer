@@ -21,7 +21,8 @@ function loadEnv() {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) continue;
       const [key, ...rest] = trimmed.split('=');
-      if (key && rest.length) {
+      // Explicit CI or pre-release E2E variables must override local defaults.
+      if (key && rest.length && !process.env[key.trim()]) {
         process.env[key.trim()] = rest.join('=').trim().replace(/^["']|["']$/g, '');
       }
     }

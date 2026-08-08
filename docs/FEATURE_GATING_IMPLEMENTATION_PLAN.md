@@ -6,6 +6,8 @@
 **Estimativa total:** ~32h
 **Auditoria base:** 2026-06-18 — gaps integrados nas Fases 0, 6B e 8
 
+> **Estado histórico:** este plano regista decisões de 2026-06. Não é a fonte de verdade actual para limites comerciais. Em 2026-08-05, AI FITNESS passou a uso ilimitado e os gates comerciais de categoria de exercício e de dias do plano TRAINER foram retirados. Consultar `FEATURE_ACCESS_MATRIX.md` §2 e §4 para o estado efectivo.
+
 ---
 
 ## Premissas
@@ -88,7 +90,7 @@ O valor correcto é **50**, conforme `docs/FEATURE_ACCESS_MATRIX.md`.
 **Decisões de produto (2026-06-18):**
 
 - Duração: **21 dias** a partir do signup
-- Tier exibido: **AI Fitness completo** (7 sessões/semana, check-in completo, progresso fitness avançado)
+- Tier exibido: **AI Fitness completo** (à data: 7 sessões/semana, check-in completo, progresso fitness avançado; limite de sessões substituído por uso ilimitado em 2026-08-05 — ver nota de estado acima)
 - Aplicação: **todos os novos cadastros a partir do lançamento** — sem retroactividade (produto não lançado)
 
 **Mecânica:** o utilizador FREE recebe experiência completa de AI Fitness durante 21 dias sem cartão, sem fricção. Nos últimos 4 dias aparece um countdown discreto. No dia 22, o gating degrada para os limites FREE reais — o utilizador sente a perda concreta de algo que já usou, que é o CTA mais eficaz para conversão.

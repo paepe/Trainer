@@ -18,6 +18,7 @@
     "yesterday": "Ontem",
     "action": "Ação",
     "loading": "Carregando…",
+    "search": "Buscar",
     "optional": "(opcional)",
     "noData": "—",
     "back": "Voltar",
@@ -78,6 +79,13 @@
     },
     "actions": {
       "approve": "Aprovar",
+      "acceptTrainerInvitation": "Aceitar convite",
+      "declineTrainerInvitation": "Recusar convite",
+      "confirmDeclineTrainerInvitation": "Recusar este convite? Você poderá receber um novo convite no futuro.",
+      "requestNewTrainerInvitation": "Pedir novo convite",
+      "confirmRequestNewTrainerInvitation": "Pedir ao treinador um novo convite?",
+      "resendTrainerInvitation": "Reenviar convite",
+      "ignoreRenewalRequest": "Ignorar",
       "reject": "Rejeitar",
       "startWorkout": "Iniciar Treino",
       "startWorkoutTimeout": "Treinar com plano da IA",
@@ -89,7 +97,13 @@
       "approved": "Aprovado pelo treinador",
       "rejected": "Recomendado pular pelo treinador",
       "accessGranted": "Acesso concedido",
-      "accessDenied": "Acesso negado"
+      "accessDenied": "Acesso negado",
+      "invitationAccepted": "Convite aceito",
+      "invitationDeclined": "Convite recusado",
+      "invitationRevoked": "Convite revogado",
+      "renewalRequested": "Pedido de novo convite enviado",
+      "resent": "Novo convite enviado",
+      "ignored": "Pedido ignorado"
     },
     "badges": {
       "expired": "Expirado",
@@ -99,6 +113,9 @@
       "postponed": "Adiado",
       "alert": "Alerta",
       "approved": "Aprovado",
+      "renewalRequested": "Novo convite solicitado",
+      "resent": "Convite reenviado",
+      "ignored": "Pedido ignorado",
       "rejected": "Rejeitado",
       "done": "Concluído",
       "trainedAutonomously": "Treinou autonomamente",
@@ -124,6 +141,12 @@
       "workout_rejected_body": "Seu plano de treino foi devolvido. Veja o feedback.",
       "invitation_accepted": "{{clientName}} aceitou seu convite!",
       "invitation_accepted_body": "{{clientName}} entrou como seu cliente.",
+      "trainer_link_ended": "{{clientName}} encerrou o acompanhamento",
+      "trainer_link_ended_body": "O aluno optou por encerrar o acompanhamento neste momento. Obrigado por acompanhá-lo até aqui. Esperamos que novas oportunidades de treino possam reunir vocês no futuro.",
+      "trainer_invitation": "Convite de treinador",
+      "trainer_invitation_body": "Você recebeu um convite de treinador no TrAIner.",
+      "trainer_invitation_renewal_request": "Pedido de novo convite",
+      "trainer_invitation_renewal_request_body": "Um possível aluno pediu um novo convite.",
       "ready_to_train": "{{name}} está pronto para treinar",
       "ready_to_train_male": "{{name}} está pronto para treinar",
       "ready_to_train_female": "{{name}} está pronta para treinar",
@@ -750,7 +773,7 @@
   "trainer": {
     "dashboard": {
       "title": "Meus Clientes",
-      "subActive": "{{active}} ativos · {{pending}} pendentes",
+      "subActive": "{{active}} ativos",
       "noClients": "Nenhum cliente ainda",
       "noClientsNote": "Convide seu primeiro cliente por e-mail para começar.",
       "pending": "Pendente",
@@ -761,18 +784,52 @@
       "freeSession": "Sessão de Treino Livre",
       "startingFreeSession": "Iniciando…",
       "inviteByEmail": "Convidar por e-mail",
+      "findInTrainer": "Encontrar no TrAIner",
+      "findInTrainerHint": "Mostra somente pessoas que escolheram receber convites. Nome, avatar e plano são os únicos dados exibidos.",
+      "searchCandidates": "Buscar por nome",
+      "noCandidates": "Nenhuma pessoa disponível encontrada.",
+      "inAppInviteSent": "Convite enviado para {{name}} no Inbox.",
+      "errCandidateSearch": "Não foi possível buscar pessoas disponíveis.",
+      "candidatePlan": { "all": "Todos os planos", "free": "FREE", "ai_fitness": "AI FITNESS", "ai_performance": "AI PERFORMANCE" },
       "inviteNamePlaceholder": "Nome do candidato",
       "cancel": "Cancelar",
       "send": "Enviar convite",
       "sending": "Enviando…",
       "inviteSent": "Convite enviado — a pessoa receberá um e-mail com um link para se associar.",
       "inviteCreatedNoEmail": "Convite criado. O envio de e-mail ainda não está configurado — compartilhe o link manualmente.",
-      "errAlreadyLinked": "Esta pessoa já está vinculada a outro treinador.",
+      "errAlreadyLinked": "Esta pessoa já tem um treinador ativo. Um novo convite só pode ser enviado após o encerramento do vínculo.",
+      "errInviteRecipientNotClient": "Esta conta é de TRAINER e não pode receber convite de aluno.",
       "errInviteFailed": "Não foi possível enviar o convite. Tente novamente.",
       "inviteHistoryTitle": "Convites recentes",
+      "manageInvites": "Gerenciar convites",
+      "manageClients": "Gerenciar clientes",
+      "finishManagingClients": "Concluir gestão de clientes",
+      "selectClient": "Selecionar {{name}}",
+      "endSelectedClients": "Encerrar vínculo ({{count}})",
+      "confirmEndClients": "Encerrar o vínculo com {{count}} cliente(s)? O acesso operacional do TRAINER será removido, sem apagar histórico ou perfil.",
+      "errClientOperation": "Não foi possível encerrar o vínculo. Tente novamente.",
+      "finishManagingInvites": "Concluir gestão",
+      "searchInvites": "Buscar por nome ou e-mail",
+      "invitedOn": "Convidado em {{date}}",
+      "noInvitationsFound": "Nenhum convite corresponde aos filtros selecionados.",
+      "invitationScopeLabel": "Exibir",
+      "invitationScope": { "active": "Convites ativos", "archived": "Arquivados" },
+      "selectAll": "Selecionar todos",
+      "selectedInvitations": "Seleção atual: {{count}}",
+      "clearSelection": "Limpar seleção",
+      "archiveSelected": "Arquivar selecionados ({{count}})",
+      "restoreSelected": "Restaurar selecionados ({{count}})",
+      "confirmArchiveSelected": "Arquivar {{count}} convite(s)? Eles poderão ser restaurados depois.",
+      "selectInvite": "Selecionar {{name}}",
+      "revokeAndArchive": "Revogar e arquivar",
+      "confirmRevokeAndArchive": "Revogar o convite de {{name}} e arquivá-lo? O link deixará de ser válido.",
+      "errInvitationOperation": "Não foi possível concluir a operação do convite. Tente novamente.",
+      "inviteFilter": { "all": "Todos", "sent": "Enviados", "accepted": "Aceitos", "declined": "Recusados", "expired": "Expirados", "revoked": "Revogados", "archived": "Arquivados" },
+      "inviteSort": { "recent": "Mais recentes", "oldest": "Mais antigos", "nameAsc": "Nome A–Z", "nameDesc": "Nome Z–A", "status": "Status" },
       "inviteStatus": {
         "sent": "Pendente",
         "accepted": "Aceito",
+        "declined": "Recusado",
         "expired": "Expirado",
         "revoked": "Revogado"
       },
@@ -2311,6 +2368,16 @@
   "settings": {
     "title": "Configurações",
     "aboutTagline": "TrAIner v0.1 — Acompanhamento fitness com IA",
+    "trainerLink": {
+      "section": "Meu treinador",
+      "connectedTo": "Você treina com {{name}}",
+      "unknown": "seu treinador",
+      "hint": "Encerrar o acompanhamento remove o acesso operacional do treinador aos seus planos, check-ins, perfil e dados compartilhados. Seu histórico de treino não será apagado.",
+      "end": "Encerrar acompanhamento",
+      "ending": "Encerrando…",
+      "confirm": "Encerrar este acompanhamento? O treinador perderá imediatamente o acesso operacional aos seus dados compartilhados. Seu histórico não será apagado.",
+      "error": "Não foi possível encerrar o acompanhamento. Tente novamente."
+    },
     "sections": {
       "training": "Padrões de Treino",
       "ai": "IA e Privacidade",
@@ -2323,7 +2390,8 @@
       "language": "Idioma",
       "clientMgmt": "Gestão de Clientes",
       "lightPalette": "Paleta Modo Claro",
-      "exerciseNames": "Nomes de Exercícios"
+      "exerciseNames": "Nomes de Exercícios",
+      "trainerDiscovery": "Convites de Treinador"
     },
     "fields": {
       "location": {
@@ -2412,6 +2480,10 @@
       "exerciseNamesEnglish": {
         "label": "Mantenha os nomes dos exercícios em inglês.",
         "hint": "Desligado, os nomes aparecem traduzidos para o idioma do app."
+      },
+      "trainerDiscovery": {
+        "label": "Disponível para convites de TRAINER",
+        "hint": "Permite que TRAINERs encontrem seu nome, avatar e tipo de plano para enviar um convite. Seu e-mail e dados de saúde não são compartilhados."
       }
     },
     "opt": {
@@ -2567,6 +2639,7 @@
     "expired": "Este convite expirou. Peça ao seu treinador para enviar um novo.",
     "revoked": "Este convite foi revogado pelo treinador.",
     "errAlreadyLinked": "Você já está vinculado a outro treinador. Um aluno só pode ter um treinador por vez.",
+    "errRecipientNotClient": "Esta conta é de TRAINER e não pode aceitar convite de aluno.",
     "errEmailMismatch": "Este convite pertence a outra conta. Saia e entre com o e-mail correto para aceitá-lo.",
     "wrongAccountTitle": "Conta diferente detectada",
     "wrongAccountBody": "Este convite foi enviado para {{invitedEmail}}, mas você está conectado com outra conta. Saia e entre (ou crie uma conta) com {{invitedEmail}} para aceitar o convite de {{trainerName}}.",
@@ -2615,7 +2688,7 @@
           "Biblioteca de treinos inteligente",
           "Acompanhamento básico de progresso",
           "Algumas dicas de IA por semana",
-          "1 dia/semana do plano do treinador"
+          "Plano completo do seu treinador"
         ]
       },
       "ai_fitness": {
@@ -2627,7 +2700,7 @@
           "Ajustes diários por energia e dores",
           "Programação sensível ao ciclo",
           "Histórico e insights completos",
-          "3 dias/semana do plano do treinador"
+          "Plano completo do seu treinador"
         ]
       },
       "ai_performance": {
@@ -2639,7 +2712,7 @@
           "Análises avançadas de desempenho",
           "Carga e recuperação preditivas",
           "Revisão humana prioritária",
-          "Todos os dias do plano do treinador"
+          "Plano completo do seu treinador"
         ]
       },
       "trial": {

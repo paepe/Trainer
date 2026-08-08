@@ -67,6 +67,33 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
   const [busy,     setBusy]     = React.useState<string | null>(null);
   const [expanded, setExpanded] = React.useState<string | null>(null);
 
+  const declineInvitation = async (item: InboxItem) => {
+    const token = item.params?.inviteToken;
+    if (typeof token !== 'string' || !window.confirm(tr('inbox.actions.confirmDeclineTrainerInvitation'))) return;
+    setBusy(item.id);
+    const { error } = await supabase.rpc('decline_trainer_invitation', { p_token: token });
+    if (!error) setItems(prev => prev.map(row => row.id === item.id ? { ...row, response: 'declined', response_at: new Date().toISOString() } : row));
+    setBusy(null);
+  };
+
+  const requestNewInvitation = async (item: InboxItem) => {
+    const token = item.params?.inviteToken;
+    if (typeof token !== 'string' || !window.confirm(tr('inbox.actions.confirmRequestNewTrainerInvitation'))) return;
+    setBusy(item.id);
+    const { error } = await supabase.rpc('request_trainer_invitation_renewal', { p_token: token });
+    if (!error) setItems(prev => prev.map(row => row.id === item.id ? { ...row, response: 'renewal_requested', response_at: new Date().toISOString() } : row));
+    setBusy(null);
+  };
+
+  const respondToRenewal = async (item: InboxItem, resend: boolean) => {
+    const requestId = item.params?.requestId;
+    if (typeof requestId !== 'string') return;
+    setBusy(item.id);
+    const { error } = await supabase.rpc('respond_trainer_invitation_renewal', { p_request_id: requestId, p_resend: resend });
+    if (!error) setItems(prev => prev.map(row => row.id === item.id ? { ...row, response: resend ? 'resent' : 'ignored', response_at: new Date().toISOString() } : row));
+    setBusy(null);
+  };
+
   // ── Batch name resolution (1 query instead of N) ──────────────────────────
   // Caches resolved names in a ref so Realtime INSERTs reuse them.
 
@@ -314,6 +341,17 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     return item.template_key ? tr(`inbox.templates.${item.template_key}_body`, params) : item.body;
   };
 
+  const responseLabel = (item: InboxItem) => {
+    if (item.response === 'accepted') return tr('inbox.responses.invitationAccepted');
+    if (item.response === 'declined') return tr('inbox.responses.invitationDeclined');
+    if (item.response === 'revoked') return tr('inbox.responses.invitationRevoked');
+    if (item.response === 'renewal_requested') return tr('inbox.responses.renewalRequested');
+    if (item.response === 'resent') return tr('inbox.responses.resent');
+    if (item.response === 'ignored') return tr('inbox.responses.ignored');
+    if (item.type === 'access_request') return item.response === 'approved' ? tr('inbox.responses.accessGranted') : tr('inbox.responses.accessDenied');
+    return item.response === 'approved' ? tr('inbox.responses.approved') : tr('inbox.responses.rejected');
+  };
+
   return (
     <>
       <ScreenTitle dark={dark}>
@@ -460,6 +498,27 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                       </button>
                     )}
 
+                    {!isTrainer && item.type === 'trainer_invitation' && !expired && !item.response && typeof item.params?.inviteToken === 'string' && (
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => nav('acceptInvitation', { token: item.params!.inviteToken as string })} style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: t.primary, color: '#0E1A2B', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{tr('inbox.actions.acceptTrainerInvitation')}</button>
+                        <button onClick={() => void declineInvitation(item)} disabled={busy === item.id} style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: `1px solid ${t.accent}66`, background: 'transparent', color: t.accent, fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{tr('inbox.actions.declineTrainerInvitation')}</button>
+                      </div>
+                    )}
+
+                    {!isTrainer && item.type === 'trainer_invitation' && expired && !item.response && typeof item.params?.inviteToken === 'string' && (
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ marginBottom: 9, fontSize: 11.5, color: textMute(dark), lineHeight: 1.45 }}>{tr('invite.expired')}</div>
+                        <button onClick={() => void requestNewInvitation(item)} disabled={busy === item.id} style={{ width: '100%', padding: '11px 0', borderRadius: 10, border: `1px solid ${t.primary}66`, background: 'transparent', color: t.primary, fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', cursor: busy === item.id ? 'default' : 'pointer' }}>{tr('inbox.actions.requestNewTrainerInvitation')}</button>
+                      </div>
+                    )}
+
+                    {isTrainer && item.type === 'trainer_invitation_renewal_request' && !item.response && typeof item.params?.requestId === 'string' && (
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => void respondToRenewal(item, true)} disabled={busy === item.id} style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: t.primary, color: '#0E1A2B', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', cursor: busy === item.id ? 'default' : 'pointer' }}>{tr('inbox.actions.resendTrainerInvitation')}</button>
+                        <button onClick={() => void respondToRenewal(item, false)} disabled={busy === item.id} style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: `1px solid ${t.accent}66`, background: 'transparent', color: t.accent, fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit', cursor: busy === item.id ? 'default' : 'pointer' }}>{tr('inbox.actions.ignoreRenewalRequest')}</button>
+                      </div>
+                    )}
+
                     {/* CLIENT: View plan on new plan received */}
                     {isNewPlan && (
                       <button onClick={() => nav('workout')} style={{
@@ -508,10 +567,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                         border: `1px solid ${item.response === 'approved' ? '#4ade8040' : `${t.accent}40`}`,
                         fontSize: 11.5, color: item.response === 'approved' ? '#4ade80' : t.accent, fontWeight: 600,
                       }}>
-                        {isAccessRequest
-                          ? (item.response === 'approved' ? tr('inbox.responses.accessGranted') : tr('inbox.responses.accessDenied'))
-                          : (item.response === 'approved' ? tr('inbox.responses.approved') : tr('inbox.responses.rejected'))
-                        } · {fmtDate(item.response_at, i18n.language)}
+                        {responseLabel(item)} · {fmtDate(item.response_at, i18n.language)}
                       </div>
                     )}
                   </div>
@@ -573,6 +629,9 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
   );
 
   if (item.response === 'approved' || item.type === 'workout_approved' || item.type === 'access_granted') return badge(tr('inbox.badges.approved'), '#4ade80');
+  if (item.response === 'renewal_requested') return badge(tr('inbox.badges.renewalRequested'), '#4ade80');
+  if (item.response === 'resent') return badge(tr('inbox.badges.resent'), '#4ade80');
+  if (item.response === 'ignored') return badge(tr('inbox.badges.ignored'), textMute(dark), true);
   if (item.response === 'rejected' || item.type === 'workout_rejected' || item.type === 'access_denied') return badge(tr('inbox.badges.rejected'), t.accent);
   if (expired && item.type === 'workout_ready') return badge(tr('inbox.badges.expired'), textMute(dark), true);
   if (item.type === 'workout_ready' && isTrainer)                        return badge(tr('inbox.badges.pending'), t.primary);
@@ -594,6 +653,8 @@ function StatusBadge({ item, expired, isTrainer, t, dark }: {
 
 function getBadgeColor(item: InboxItem, expired: boolean, isTrainer: boolean, t: any, dark: boolean): string {
   if (item.response === 'approved' || item.type === 'workout_approved' || item.type === 'access_granted') return '#4ade80';
+  if (item.response === 'renewal_requested' || item.response === 'resent') return '#4ade80';
+  if (item.response === 'ignored') return textMute(dark);
   if (item.response === 'rejected' || item.type === 'workout_rejected' || item.type === 'access_denied') return t.accent;
   if (expired && item.type === 'workout_ready') return textMute(dark);
   if (item.type === 'workout_ready' && isTrainer) return t.primary;

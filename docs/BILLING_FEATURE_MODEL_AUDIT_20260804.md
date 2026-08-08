@@ -5,6 +5,8 @@
 **Escopo:** cruzamento entre a análise comercial externa (`ANALISE_COMERCIAL_FEATURE_ACCESS_MATRIX_TRAINER_20260804.md`) e verificação técnica directa.
 **Natureza:** auditoria de achados. Não contém plano de implementação nem decisão — aguarda instrução do project lead.
 
+> **Estado posterior (2026-08-07):** este documento preserva os achados de 2026-08-04. As decisões posteriores retiraram os gates comerciais de dias/categoria do plano TRAINER e alteraram AI FITNESS para uso ilimitado. Para a oferta e os entitlements actuais, consultar `FEATURE_ACCESS_MATRIX.md` §2 e §4.
+
 **Método aplicado nesta auditoria:** *"Aplicando: conciso, direto, sem recapitulação."* — protocolo de interação do `PROFILE.md` §Interaction Protocols (conciseness extrema, viés de ação, tom executivo). Registado aqui por instrução do project lead: as recomendações de impacto comercial em §7 seguem o mesmo protocolo — afirmação directa, sem hedge decorativo, sem repetição de contexto já estabelecido.
 
 **Convenção de atribuição:**

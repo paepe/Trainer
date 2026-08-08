@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { BRAND, THEME_VARS as DARK } from '../theme/tokens';
 import { HStack } from './Layout';
 
@@ -12,6 +12,7 @@ export interface SegmentedControlProps {
   value: string;
   onChange: (v: string) => void;
   color?: string;
+  activeStyle?: CSSProperties;
 }
 
 export function SegmentedControl({
@@ -19,6 +20,7 @@ export function SegmentedControl({
   value,
   onChange,
   color = BRAND.primary,
+  activeStyle,
 }: SegmentedControlProps) {
   return (
     <HStack gap={8}>
@@ -40,6 +42,7 @@ export function SegmentedControl({
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all .12s ease',
+              ...(on ? activeStyle : {}),
             }}
           >
             {o.label}

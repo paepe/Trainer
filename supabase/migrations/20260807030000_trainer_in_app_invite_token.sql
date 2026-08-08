@@ -1,0 +1,1 @@
+../sql-archive/supabase-add-trainer-in-app-invite-token-20260807.sql

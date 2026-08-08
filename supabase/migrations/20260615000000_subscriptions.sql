@@ -1,0 +1,1 @@
+../sql-archive/supabase-subscriptions-20260615.sql

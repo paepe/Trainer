@@ -58,3 +58,15 @@ Concluído para a versão 1.0:
 - [x] textos UX localizados para limitação temporária e degradação;
 - [x] publicação no produto, com aceite versionado e link público estável;
 - [x] confirmação de que o guard pré-auth está activo em produção e de que qualquer limitador pós-auth começa em modo sombra, com revisão de falsos positivos antes de bloquear utilizadores autenticados.
+
+## 8. Versões linguísticas
+
+O português é a fonte canónica aprovada da Política v1.0. As versões EN, ES e
+DE foram preparadas no catálogo legal versionado do produto em 2026-08-07, com
+as mesmas seções e exemplos materiais da fonte portuguesa, para apresentação no
+idioma da aplicação.
+
+As traduções estão **pendentes de validação jurídica linguística antes de
+publicação**. A validação deve confirmar equivalência jurídica e terminológica,
+sem alterar a versão, os direitos de licença, a regra de patrocínio TRAINER ou a
+promessa comercial de uso ilimitado para uso pessoal normal.

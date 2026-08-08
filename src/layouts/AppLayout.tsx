@@ -81,7 +81,14 @@ export function AppLayout({
       <SideMenu
         open={menuOpen}
         nav={(s, p) => { setMenuOpen(false); if (s && s !== 'menu') nav(s, p); }}
-        t={t} user={user} current={screen} setUser={handleSetUser} signOut={signOut} role={profile?.role}
+        t={t} user={user} current={screen} setUser={handleSetUser}
+        signOut={() => {
+          // Auth changes unmount the application shell asynchronously. Close the
+          // transient drawer first so it can never remain over the login screen.
+          setMenuOpen(false);
+          signOut();
+        }}
+        role={profile?.role}
         disabledScreens={disabledNavKeys}
       />
     </VStack>

@@ -135,20 +135,20 @@ async function addExerciseWithSets(page: Page, name: string, sets: number) {
 
 // The manual/AI handshake, in both directions: what the trainer builds sets the
 // AI's budget, and what the AI returns is measured back against the same window.
-test('manual plan sets the AI budget: 3 exercises x 20 min leave a 25-min budget in a 45-min window', async ({ page }) => {
+test('manual plan sets the AI budget from the client\'s available window', async ({ page }) => {
   await openTrainerApp(page);
   await openPlanEditor(page, 'Andre');
 
   const availableMin = parseInt((await page.getByText(/\d+min/).first().innerText()).match(/(\d+)min/)![1]!, 10);
-  expect(availableMin, 'fixture expects Andre to have a 45-min check-in').toBe(45);
+  expect(availableMin, 'fixture must expose a positive available workout window').toBeGreaterThan(20);
 
   // 3 exercises x 4 sets x (40s active + 60s rest) = 1200s = exactly 20 min.
   for (const name of ['Bench Press', 'Barbell Row', 'Back Squat']) {
     await addExerciseWithSets(page, name, 4);
   }
 
-  // The editor must read the manual plan as 20 of the 45 available minutes.
-  await expect(page.getByText(/~20 dos 45 min/)).toBeVisible();
+  // The editor must read the manual plan as 20 minutes of the actual available window.
+  await expect(page.getByText(new RegExp(`~20 dos ${availableMin} min`))).toBeVisible();
 
   let payload: Record<string, unknown> | null = null;
   page.on('request', r => {
@@ -160,11 +160,11 @@ test('manual plan sets the AI budget: 3 exercises x 20 min leave a 25-min budget
   await expect(page.getByText(/Algo deu errado/i)).toHaveCount(0);
 
   // The manual side bounded the AI: full window travels as context, the unused
-  // remainder as the budget for this batch — 45 - 20 = 25.
+  // remainder as the budget for this batch.
   expect(payload, 'the AI call must have been made').not.toBeNull();
   const sent = payload as unknown as { remaining_minutes: number; checkin: { minutes: number }; existing_exercises: unknown[] };
-  expect(sent.remaining_minutes).toBe(25);
-  expect(sent.checkin.minutes).toBe(45);
+  expect(sent.remaining_minutes).toBe(availableMin - 20);
+  expect(sent.checkin.minutes).toBe(availableMin);
   expect(sent.existing_exercises).toHaveLength(3);
 
   // ...and the combined plan lands inside the window: neither banner is shown.

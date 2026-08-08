@@ -1,0 +1,1 @@
+../sql-archive/supabase-schema.sql

@@ -1,0 +1,1 @@
+../sql-archive/supabase-trainer-invitations-20260607.sql

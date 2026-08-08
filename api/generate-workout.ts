@@ -318,7 +318,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { checkin, physicalProfile, cycleContext, existing_exercises, remaining_minutes, session_order } = req.body || {};
+  const { checkin, physicalProfile, cycleContext, existing_exercises, remaining_minutes, session_order } = req.body as RequestBody;
   const sessionOrder    = sanitizeSessionOrder(session_order);
   // Complementing appends to a plan the trainer already structured, so the
   // preparation and recovery blocks are already theirs — this batch only fills

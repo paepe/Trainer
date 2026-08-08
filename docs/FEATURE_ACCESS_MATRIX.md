@@ -1,6 +1,6 @@
 # Feature Access Matrix — TrAIner App
-**Versão:** 1.2
-**Data:** 2026-08-06
+**Versão:** 1.3
+**Data:** 2026-08-07
 **Estado:** Matriz de referência de acesso; Uso Justo publicado nos [Termos](https://trainer-lake.vercel.app/legal/terms) e na [Política](https://trainer-lake.vercel.app/legal/fair-use)
 
 ---
@@ -35,14 +35,16 @@ feature_permissions (Supabase)
 
 **Nota 2026-08-04:** coluna Descrição adicionada; valor de "Exercícios por sessão (IA)" para FREE corrigido de 2 para 6, alinhando com a correcção já feita em §4 (2026-08-03).
 
+**Auditoria de alinhamento 2026-08-07:** esta secção foi reconciliada com a configuração efectiva em produção e com a autoridade server-side (`api/_lib/entitlements.ts`). AI FITNESS tem sessões autónomas ilimitadas (`limit_value = null`); `workout.exercise_type` e `trainer_plan.days_per_week` são chaves legadas, não lidas. Portanto, categoria de exercício e dias de plano prescrito não são gates comerciais por licença. A diferença entre AI FITNESS e AI PERFORMANCE é o acesso à análise avançada e às métricas de desempenho — não um modelo de IA ou uma categoria de treino exclusiva. Revisados, sem impacto: política de patrocínio TRAINER e matriz de autoridade de endpoints; não houve alteração de entitlement, API, patrocínio ou texto público nesta correcção documental.
+
 | Funcionalidade | Descrição | FREE | AI FITNESS | AI PERFORMANCE |
 |---|---|:---:|:---:|:---:|
 | **Geração de treino por IA** | Se a IA cria o treino de todo — o gate mais fundamental do fluxo; existe em produção (`ai.workout_generation`, `true` nos 6 planos) mas nunca tinha sido documentado aqui até 2026-08-04 (Fase 3, `docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`) | ✅ | ✅ | ✅ |
-| **Sessões / semana (IA)** | Quantas sessões de treino a IA gera automaticamente por semana | 1 | 7 | Ilimitado |
+| **Sessões / semana (IA)** | Quantas sessões de treino a IA gera automaticamente por semana | 1 | Ilimitado | Ilimitado |
 | **Exercícios por sessão (IA)** | Nº máximo de exercícios que a IA inclui em cada sessão gerada | 6 | Sem limite (tempo disponível) | Sem limite |
-| **Tipo de exercícios** | Se a IA pode prescrever exercícios de Desempenho (velocidade, potência, resistência) além de Fitness | Fitness apenas | Fitness apenas | Fitness + Desempenho |
-| **Plano do treinador — dias activos** | Quantos dias/semana do plano criado pelo treinador o aluno consegue efectivamente treinar; nos restantes vê CTA de upgrade | 1 dia | 3 dias / semana | Todos os dias |
-| **Plano do treinador — tipo exercícios** | Se os exercícios de Desempenho do plano do treinador chegam ao aluno, ou são filtrados para Fitness apenas | Fitness apenas | Fitness apenas | Fitness + Desempenho |
+| **Categoria do treino gerado** | A categoria apropriada é definida por objectivo, perfil e regras de segurança; não é diferenciador comercial de licença | Sem gate comercial | Sem gate comercial | Sem gate comercial |
+| **Plano do treinador — dias activos** | Um plano prescrito por TRAINER vinculado é executado integralmente; a licença do aluno não filtra dias | Todos os dias | Todos os dias | Todos os dias |
+| **Plano do treinador — tipo exercícios** | O plano prescrito chega integralmente; aplicam-se apenas regras de segurança e adequação ao aluno, não um filtro de plano | Sem gate comercial | Sem gate comercial | Sem gate comercial |
 | **Check-in Rápido** | Registo de prontidão por toque único, sem perguntas detalhadas | ✅ | ✅ | ✅ |
 | **Check-in Completo** | Formulário detalhado (voz/texto) que alimenta o AI Checkin Adjustment | ❌ | ✅ | ✅ |
 | **Progresso — métricas básicas** | Treinos concluídos, sequência e indicadores essenciais no ecrã de Progresso | ✅ | ✅ | ✅ |
@@ -53,30 +55,30 @@ feature_permissions (Supabase)
 | **AI Checkin Adjustment** | Ajusta o treino do dia consoante energia, dor e sono reportados no check-in | ❌ | ✅ | ✅ |
 | **AI Advanced Analysis** | Análise preditiva aprofundada de carga e recuperação sobre o histórico do aluno | ❌ | ❌ | ✅ |
 | **Convite de treinador** | Permite ao aluno vincular-se a um treinador e receber o respectivo plano | ✅ (limitado ao plano) | ✅ (limitado ao plano) | ✅ |
-| **CTA de upgrade** | Botão/mensagem de actualização mostrado ao aluno ao atingir um limite do plano | ✅ ao exceder limite | ✅ ao tentar desempenho | — |
+| **CTA de upgrade** | Botão/mensagem de actualização mostrado ao aluno ao atingir um limite do plano | ✅ ao exceder 1 sessão/semana ou 6 exercícios/sessão | — | — |
 
 **Uso ilimitado de IA:** AI FITNESS e AI PERFORMANCE oferecem uso ilimitado para utilização pessoal normal, sujeito à [Política de Uso Justo](https://trainer-lake.vercel.app/legal/fair-use) e aos [Termos de Uso](https://trainer-lake.vercel.app/legal/terms). Isto não cria contador comercial visível nem divulga controles operacionais internos.
 
 ### 2.2 Regras de Negócio — FREE
 
-1. **Sessão única semanal:** A IA gera no máximo 1 sessão com 6 exercícios fitness por semana.
-2. **Plano do treinador:** Se vinculado a um treinador, pode receber plano para 1 dos dias disponíveis. Nos dias restantes, ao tentar treinar, aparece mensagem de limitação + botão **Actualizar conta**.
+1. **Sessão única semanal:** A IA gera no máximo 1 sessão com 6 exercícios por semana. A escolha de exercícios segue objectivo, perfil e segurança, sem filtro comercial de categoria.
+2. **Plano do treinador:** Se vinculado a um treinador, executa integralmente o plano prescrito. A licença FREE não reduz dias nem filtra categorias do plano.
 3. **Check-in:** Apenas Check-in Rápido disponível.
 4. **Progresso:** Todas as abas visíveis, mas métricas fitness avançadas e de desempenho bloqueadas.
-5. **Mensagem de upgrade** deve informar: número de treinos/semana, tipo de exercícios e quantidade de exercícios por sessão.
+5. **Mensagem de upgrade** deve informar: número de treinos/semana e quantidade de exercícios por sessão; não deve prometer desbloqueio de categoria de treino.
 
 ### 2.3 Regras de Negócio — AI FITNESS
 
-1. **7 sessões semanais:** Sem restrição de exercícios por sessão; a IA respeita o tempo disponível.
-2. **Apenas fitness:** A IA nunca inclui exercícios de desempenho, mesmo que o plano do treinador os contenha.
-3. **Plano do treinador:** Até 3 dias/semana; somente exercícios fitness.
+1. **Sessões ilimitadas:** Sem restrição comercial de sessões ou de exercícios por sessão; a IA respeita o tempo disponível e o Uso Justo aplicável.
+2. **Categoria adequada ao contexto:** Não há filtro comercial "fitness apenas". A escolha respeita objectivo, perfil e regras de segurança.
+3. **Plano do treinador:** Executado integralmente, sem redução de dias ou filtragem comercial de exercícios pelo plano do aluno.
 4. **Check-in:** Rápido e Completo disponíveis.
 5. **Progresso:** Métricas fitness avançadas desbloqueadas; métricas de desempenho permanecem bloqueadas.
 
 ### 2.4 Regras de Negócio — AI PERFORMANCE
 
-1. **Sem restrição de sessões** ou tipo de exercícios.
-2. **Plano do treinador:** Todos os dias disponíveis; fitness e desempenho.
+1. **Sessões ilimitadas:** Sujeitas ao Uso Justo. A categoria não é diferenciador comercial; continua condicionada à adequação e segurança.
+2. **Plano do treinador:** Executado integralmente, como nos demais planos de aluno vinculados.
 3. **Check-in:** Rápido e Completo.
 4. **Progresso:** Todas as métricas desbloqueadas, incluindo ATL/CTL/TSB e demais scores de desempenho.
 
@@ -148,7 +150,7 @@ O limite `clients.limit` é validado em dois pontos:
 | `marketplace.listing` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
 | `marketplace.revenue_share` | boolean | (UI pendente — badge "Em breve" na PlansScreen) | 🔜 | — |
 | `checkin.full` | boolean | CheckInProntidaoScreen → CheckInHub (alcançável por aluno e por treinador no próprio uso) | ✅ inclui PRO/ELITE desde 2026-08-04 (corrige auditoria §3.5.1) | ✅ |
-| `workout.sessions_per_week` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=1, AI Fitness=7, AI Performance=∞; PRO/ELITE=∞ (explícito desde 2026-08-04, key não se aplica à conta do treinador) | ✅ servidor (Fase 2 do plano de licenciamento, `api/_lib/entitlements.ts`, confirmado com chamada real) |
+| `workout.sessions_per_week` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=1, AI Fitness=∞, AI Performance=∞; PRO/ELITE=∞ (key não se aplica à conta do treinador; AI FITNESS alterado para `null` na Fase 5, 2026-08-05) | ✅ servidor (Fase 2 do plano de licenciamento, `api/_lib/entitlements.ts`, confirmado com chamada real) |
 | `workout.exercises_per_session` | integer cap | StartWorkoutScreen (geração IA) | ✅ FREE=**6** (não 2 — corrigido 2026-08-03), resto=∞ | ✅ caminho de IA (Fase 2, `cutExerciseCount`, medido 0 violações); ✅ fallback local (Fase 0 do plano de continuidade); ✅ autoridade de servidor (Fase 2 do plano de licenciamento) |
 | `workout.exercise_type` | integer encoded | ~~StartWorkoutScreen (geração IA)~~ **legado, não lido** | 🔜 retirado como gate comercial (Fase 5 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`, 2026-08-05) — categoria de exercício deixa de ser diferenciador de preço; keys/linhas mantidas no catálogo, sem leitor | — `enforceCategoryFilter` é no-op permanente por construção (`fitnessOnly` resolvido a `false` na fonte única, `api/_lib/entitlements.ts`), não por omissão |
 | `trainer_plan.days_per_week` | integer cap | ~~StartWorkoutScreen (plano do treinador)~~ **legado, não lido** | 🔜 retirado (Fase 4 de `LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md`, 2026-08-04) — plano prescrito nunca é filtrado pelo tier do próprio aluno; keys/linhas mantidas no catálogo, sem leitor | — RLS de `workout_sessions` continuava sem validar plano na escrita (auditoria §3.3), mas ficou sem função depois da key deixar de ser lida — não por correcção da RLS |
@@ -171,7 +173,7 @@ Para implementar as regras dos planos de cliente definidas nesta sessão, são n
 
 | feature_key | Tipo (proposto aqui, 2026-06-17) | Descrição |
 |---|---|---|
-| `workout.sessions_per_week` | integer cap | Máximo de sessões semanais geradas pela IA (1, 7, null=∞) |
+| `workout.sessions_per_week` | integer cap | Máximo de sessões semanais geradas pela IA (proposta histórica: 1, 7, null=∞; estado actual em §4: 1, ∞, ∞) |
 | `workout.exercises_per_session` | integer cap | Máximo de exercícios por sessão IA (2, null=∞) |
 | `workout.exercise_type` | string enum *(implementado como `integer encoded` — ver nota acima)* | Tipo permitido: `'fitness'` ou `'all'` |
 | `checkin.full` | boolean | Acesso ao Check-in Completo |
@@ -184,7 +186,7 @@ Para implementar as regras dos planos de cliente definidas nesta sessão, são n
 ```sql
 -- workout.sessions_per_week
 ('workout.sessions_per_week', 'free',           true, 1),
-('workout.sessions_per_week', 'ai_fitness',     true, 7),
+('workout.sessions_per_week', 'ai_fitness',     true, 7), -- histórico; produção actual usa null (∞), ver §4
 ('workout.sessions_per_week', 'ai_performance', true, null),
 
 -- workout.exercises_per_session

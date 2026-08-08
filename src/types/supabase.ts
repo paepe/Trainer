@@ -63,6 +63,8 @@ export type Database = {
           checkin_id: string | null
           context: Json | null
           created_at: string | null
+          declined_at: string | null
+          declined_by: string | null
           id: string
           modified: boolean | null
           plan_id: string | null
@@ -1846,6 +1848,9 @@ export type Database = {
         Row: {
           client_id: string | null
           created_at: string | null
+          end_reason: string | null
+          ended_at: string | null
+          ended_by: string | null
           id: string
           invited_at: string | null
           permissions: Json | null
@@ -1856,6 +1861,9 @@ export type Database = {
         Insert: {
           client_id?: string | null
           created_at?: string | null
+          end_reason?: string | null
+          ended_at?: string | null
+          ended_by?: string | null
           id?: string
           invited_at?: string | null
           permissions?: Json | null
@@ -1866,6 +1874,9 @@ export type Database = {
         Update: {
           client_id?: string | null
           created_at?: string | null
+          end_reason?: string | null
+          ended_at?: string | null
+          ended_by?: string | null
           id?: string
           invited_at?: string | null
           permissions?: Json | null
@@ -1897,15 +1908,111 @@ export type Database = {
           },
         ]
       }
+      trainer_client_link_events: {
+        Row: {
+          actor_id: string
+          client_id: string
+          created_at: string
+          event_type: string
+          id: string
+          reason: string | null
+          trainer_client_id: string
+          trainer_id: string
+        }
+        Insert: {
+          actor_id: string
+          client_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          reason?: string | null
+          trainer_client_id: string
+          trainer_id: string
+        }
+        Update: {
+          actor_id?: string
+          client_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          reason?: string | null
+          trainer_client_id?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_client_link_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_client_link_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_client_link_events_trainer_client_id_fkey"
+            columns: ["trainer_client_id"]
+            isOneToOne: false
+            referencedRelation: "trainer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_client_link_events_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainer_discovery_preferences: {
+        Row: {
+          discoverable: boolean
+          share_avatar: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          discoverable?: boolean
+          share_avatar?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          discoverable?: boolean
+          share_avatar?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_discovery_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainer_invitations: {
         Row: {
           accepted_at: string | null
           accepted_by: string | null
+          archived_at: string | null
+          archived_by: string | null
           created_at: string | null
           expires_at: string
           id: string
           invited_email: string
           invited_name: string
+          revoked_at: string | null
+          revoked_by: string | null
+          source: string
           status: string
           token: string
           trainer_id: string
@@ -1913,11 +2020,18 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           accepted_by?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string | null
+          declined_at?: string | null
+          declined_by?: string | null
           expires_at: string
           id?: string
           invited_email: string
           invited_name: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          source?: string
           status?: string
           token: string
           trainer_id: string
@@ -1925,11 +2039,18 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           accepted_by?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string | null
+          declined_at?: string | null
+          declined_by?: string | null
           expires_at?: string
           id?: string
           invited_email?: string
           invited_name?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          source?: string
           status?: string
           token?: string
           trainer_id?: string
@@ -2404,6 +2525,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      archive_trainer_invitations: {
+        Args: { p_archive?: boolean; p_invitation_ids: string[] }
+        Returns: { archived_at: string | null; id: string }[]
+      }
+      end_trainer_client_links: {
+        Args: { p_link_ids: string[]; p_reason?: string | null }
+        Returns: { ended_at: string | null; id: string; status: string }[]
+      }
+      end_my_trainer_link: {
+        Args: { p_reason?: string | null }
+        Returns: { ended_at: string | null; id: string; status: string }[]
+      }
+      create_trainer_in_app_invitation: {
+        Args: { p_client_id: string }
+        Returns: { expires_at: string; id: string; status: string }[]
+      }
+      decline_trainer_invitation: {
+        Args: { p_token: string }
+        Returns: { declined_at: string; id: string; status: string }[]
+      }
+      request_trainer_invitation_renewal: {
+        Args: { p_token: string }
+        Returns: { created_at: string; id: string; status: string }[]
+      }
+      respond_trainer_invitation_renewal: {
+        Args: { p_request_id: string; p_resend: boolean }
+        Returns: { expires_at: string | null; id: string; invitation_id: string | null; status: string }[]
+      }
+      revoke_trainer_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: { id: string; revoked_at: string; status: string }[]
+      }
       accept_trainer_invitation: {
         Args: { p_token: string; p_user_id: string }
         Returns: {
@@ -2447,9 +2600,17 @@ export type Database = {
         }[]
       }
       has_permission: { Args: { perm: string; uid?: string }; Returns: boolean }
+      get_my_active_trainer_link: {
+        Args: Record<PropertyKey, never>
+        Returns: { id: string; trainer_id: string; trainer_name: string | null }[]
+      }
       log_profile_access_view: {
         Args: { p_grant_id: string }
         Returns: undefined
+      }
+      search_discoverable_free_clients: {
+        Args: { p_limit?: number; p_offset?: number; p_plan_keys?: string[] | null; p_query?: string }
+        Returns: { avatar_url: string | null; display_name: string; id: string; plan_key: string }[]
       }
       studio_has_trainer: { Args: { trainer_uuid: string }; Returns: boolean }
     }

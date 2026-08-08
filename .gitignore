@@ -35,3 +35,6 @@ playwright/.cache/
 # fresh clone could commit an entire worktree checkout.
 .claude/worktrees/
 .claude/settings.local.json
+
+# Supabase CLI local branch marker (machine state)
+supabase/.branches/

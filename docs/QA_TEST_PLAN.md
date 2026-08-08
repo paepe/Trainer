@@ -96,7 +96,7 @@ WHERE trainer_id = '<trainer_id>' AND status = 'active';
 4. Navegar para Progresso → verificar métricas visíveis
 
 **Resultado esperado:**
-- Workout: sem limite de sessões (comportamento AI Fitness — 7 sessões/semana)
+- Workout: sem limite comercial de sessões (comportamento AI Fitness — uso ilimitado sujeito à Política de Uso Justo)
 - Check-in: opções Rápido, Detalhado e Voz disponíveis
 - Progresso: métricas fitness avançadas visíveis (não bloqueadas)
 - Sem banner de countdown (janela tem mais de 4 dias)
@@ -500,7 +500,7 @@ WHERE trainer_id = '<trainer_id>' AND status = 'active';
 
 ---
 
-### TC-22 — Dias do plano do treinador limitados por tier de cliente
+### TC-22 — Plano do treinador não é reduzido pelo tier de cliente
 
 **Pré-condição:**
 - Trainer com plano de 5 dias enviado a clientes de tiers diferentes
@@ -512,9 +512,9 @@ WHERE trainer_id = '<trainer_id>' AND status = 'active';
 3. Login com `client_ai_performance` → Workout → verificar dias activos
 
 **Resultado esperado:**
-- `client_free`: 1 dia activo, restantes com cadeado e CTA de upgrade
-- `client_ai_fitness`: 3 dias activos, restantes bloqueados
-- `client_ai_performance`: todos os dias activos
+- Os três clientes executam todos os dias e exercícios do plano prescrito pelo TRAINER vinculado.
+- Não há cadeado ou CTA motivado pelo tier do aluno para dias ou categorias do plano.
+- Permanecem aplicáveis apenas regras de segurança e adequação do treino.
 
 **Pass / Fail:** ___  
 **Notas:** ___

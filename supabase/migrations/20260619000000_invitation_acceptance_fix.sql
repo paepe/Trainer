@@ -1,0 +1,1 @@
+../sql-archive/supabase-fix-accept-invitation-ambiguous-column-20260608.sql

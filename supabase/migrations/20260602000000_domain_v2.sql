@@ -1,0 +1,1 @@
+../sql-archive/supabase-migration-v2.sql
