@@ -353,11 +353,14 @@ without treating it as a commercial launch.
 - [ ] Run authenticated visual smoke tests for one CLIENT and one TRAINER using
       non-sensitive test data. **Partial evidence 2026-08-11:** TRAINER
       `carlos.silva@trainer.test` loaded Inbox, pagination, categories, scope,
-      search and invitation management successfully. The isolated CLIENT
-      contract test was intentionally skipped against pre-release because the
-      workspace has no service-role credential for temporary fixture cleanup;
-      it passed in Docker local. Complete this item with a logged-in CLIENT
-      visual session or a controlled credentialed fixture run.
+      search and invitation management successfully in pre-release. Local
+      CLIENT `tiago.moreira@client.test` loaded Inbox and the same controls
+      without console errors. This smoke exposed and fixed an old raw template
+      key for timeout notifications (`ecbfd5a`, deployed as
+      `dpl_8guK6KbKGhGTaoomrKGkELnoA7Nv`). Complete this item with a logged-in
+      CLIENT visual session in pre-release or a controlled credentialed fixture
+      run; this workspace deliberately has no service-role credential for
+      creating and cleaning remote fixtures.
 - [ ] Confirm archive remains reversible and no notification/action is lost.
       **Local evidence exists; pending pre-release visual confirmation.**
 - [ ] Confirm unread badges, Inbox navigation and logout remain unaffected.
