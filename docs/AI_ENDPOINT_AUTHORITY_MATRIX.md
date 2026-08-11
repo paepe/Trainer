@@ -1,6 +1,6 @@
 # TrAIner — Matriz de Autoridade dos Endpoints de IA
 
-**Estado:** inventário técnico verificado — 2026-08-06
+**Estado:** inventário técnico verificado — 2026-08-11
 
 | Endpoint | Natureza | Quem pode iniciar | Autoridade comercial | Proteção principal |
 |---|---|---|---|---|
@@ -19,3 +19,4 @@
 - Um vínculo TRAINER–aluno permite colaboração prevista; não patrocina voz, interpretação ou adaptação por IA do aluno.
 - Operações internas não devem transformar custo técnico em direito comercial transferível.
 - Endpoints comerciais devem resolver a licença no backend do sujeito da funcionalidade, não no frontend.
+- Quando os endpoints autónomos `generate-smart-workout` ou `generate-workout` recusam por `sessions_per_week_limit_reached`, o cliente deve apresentar o estado comercial e não degradar para um treino local; fallback é reservado a indisponibilidade técnica, nunca a uma recusa de entitlement.

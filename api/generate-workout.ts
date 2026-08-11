@@ -5,7 +5,7 @@
 // same plan); the "self-contained" premise this file used to carry is
 // disproven.
 import { hasJsonContentType, verifyRequestUser } from './_lib/auth.js';
-import { resolveUserEntitlements } from './_lib/entitlements.js';
+import { countSessionsThisWeek, isSessionsPerWeekCapReached, resolveUserEntitlements } from './_lib/entitlements.js';
 import { emitAIUsageEvent } from './_lib/aiTelemetry.js';
 import { isJsonObject } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
@@ -312,6 +312,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  // This legacy endpoint remains reachable for an incomplete profile. It must
+  // enforce the same weekly autonomous-generation guard as the smart endpoint,
+  // otherwise a degraded client path becomes an entitlement bypass.
+  const sessionsThisWeek = await countSessionsThisWeek(caller.id);
+  if (isSessionsPerWeekCapReached(entitlements, sessionsThisWeek)) {
+    await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-workout', outcome: 'rejected', httpStatus: 403, rejectionCode: 'sessions_cap_reached', planKey: entitlements.planKey });
+    res.status(403).json({
+      error: 'sessions_per_week_limit_reached',
+      limit: entitlements['workout.sessions_per_week'].limitValue,
+    });
+    return;
+  }
+
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     res.status(500).json({ error: 'AI service not configured.' });
@@ -486,13 +499,17 @@ Generate a workout plan for this client:\n\n${lines.join('\n')}\n\n${timeTargetL
     // the working block rather than failing the request (§6.3).
     const parsed = (JSON.parse(match[0]) as TimedExercise[])
       .map(ex => ({ ...ex, phase: normalizeBlock(ex.phase) }));
-    const { exercises, trimmed, paddedSets } = fitToBudget(parsed, targetMinutes);
+    const { exercises: budgetFitted, trimmed, paddedSets } = fitToBudget(parsed, targetMinutes);
+    // Same content cap as the smart path. The legacy response is a flat list,
+    // so preserving its original order is the least-surprising safe trim.
+    const maxExercises = entitlements['workout.exercises_per_session'].limitValue;
+    const exercises = maxExercises == null ? budgetFitted : budgetFitted.slice(0, maxExercises);
 
-    if (trimmed || paddedSets) {
+    if (trimmed || paddedSets || exercises.length !== budgetFitted.length) {
       console.warn(
         `[generate-workout] fitted to budget: model returned ` +
         `~${Math.round(totalMinutesOf(parsed))} min for ${targetMinutes} min ` +
-        `(trimmed ${trimmed}, padded ${paddedSets} set(s)) -> ` +
+        `(trimmed ${trimmed}, padded ${paddedSets} set(s), capped ${budgetFitted.length - exercises.length} exercise(s)) -> ` +
         `~${Math.round(totalMinutesOf(exercises))} min`,
       );
     }

@@ -7,7 +7,7 @@ import { Spinner } from '../../ui';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn, Subscription } from '../../types';
 import type { Json } from '../../types/supabase';
-import { requestSmartWorkout, requestWorkoutPlan } from '../../lib/workoutGeneration';
+import { requestSmartWorkout, requestWorkoutPlan, SmartWorkoutRequestError } from '../../lib/workoutGeneration';
 import type { CycleContext, GeneratedWorkoutExercise } from '../../lib/workoutGeneration';
 import { buildClientContext, buildTodayContext, buildLibraryContext, resolveTrainerContext, buildStatsContext } from '../../ai/buildAIContext';
 import type { TrainerContext, TaskContext } from '../../ai/types';
@@ -100,6 +100,7 @@ type GenState =
   | { phase: 'loading' }
   | { phase: 'success'; plan: Exercise[]; planId: string; readinessScore: number; adaptations: string[] }
   | { phase: 'error';   error: string }
+  | { phase: 'weekly-limit'; limit: number }
   | { phase: 'blocked'; safetyTitle: string; safetyMessage: string; readinessScore: number };
 
 // ── Fallback plan generator ──────────────────────────────────────────────────
@@ -502,9 +503,25 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const cycleContext = getCycleContext();
         setCycleCtx(cycleContext);
 
-        // If no profile, fall back to legacy endpoint
+        // 3. Weekly cap applies before every autonomous path, including the
+        // legacy generator used when a profile is incomplete. This is a UX
+        // fast-path; generate-smart-workout remains authoritative server-side.
+        const sessions = sessionsRes.status === 'fulfilled' ? (sessionsRes.value.data ?? []) : [];
+        if (sessionsPerWeekCap !== null) {
+          const weekStart = startOfWeek();
+          const weekCount = sessions.filter((s: any) =>
+            new Date(s.started_at) >= weekStart
+          ).length;
+          if (weekCount >= sessionsPerWeekCap) {
+            setGenState({ phase: 'weekly-limit', limit: sessionsPerWeekCap });
+            return;
+          }
+        }
+
+        // If no profile, fall back to legacy endpoint only after the weekly
+        // entitlement has been checked.
         if (!profileData) {
-          const           exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: exerciseNamesLocale });
+          const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: exerciseNamesLocale });
           setGenState({ phase: 'success', plan: exercises, planId: '', readinessScore: -1, adaptations: [] });
           void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile, exerciseNamesLocale);
           return;
@@ -512,7 +529,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
         const clientCtx = buildClientContext(profileData as any);
 
-        // 3. TodayContext from full check-in
+        // 4. TodayContext from full check-in
         const todayCtx = ciData
           ? buildTodayContext(ciData as any)
           : {
@@ -524,29 +541,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               ...(cycleContext ? { cycleActive: true, cyclePhase: cycleContext.phase } : {}),
             };
 
-        // 4. StatsContext from fetched data
-        const sessions = sessionsRes.status === 'fulfilled' ? (sessionsRes.value.data ?? []) : [];
-
-        // ── Weekly session cap (workout.sessions_per_week gate) ────────────────
-        // Count sessions started this calendar week (Monday–Sunday). Same
-        // enforcement now runs server-side in generate-smart-workout.ts
-        // (Fase 2, docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md) —
-        // this client-side check is UX (fail fast, no round trip), not the
-        // authority; startOfWeek is the one shared implementation of the
-        // week-boundary rule.
-        if (sessionsPerWeekCap !== null) {
-          const weekStart = startOfWeek();
-          const weekCount = sessions.filter((s: any) =>
-            new Date(s.started_at) >= weekStart
-          ).length;
-          if (weekCount >= sessionsPerWeekCap) {
-            setGenState({
-              phase:         'error',
-              error:         tr('client.workout.limitWeekly', { n: sessionsPerWeekCap }),
-            });
-            return;
-          }
-        }
+        // 5. StatsContext from fetched data
         const checkinHist = checkinHistRes.status === 'fulfilled' ? (checkinHistRes.value.data ?? []) : [];
         const avgEnergy = checkinHist.length
           ? Math.round(checkinHist.reduce((s, c) => s + (c.energy_level ?? 0), 0) / checkinHist.length * 10) / 10 : 0;
@@ -678,6 +673,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile, exerciseNamesLocale);
       } // end if (user?.id)
     } catch (err: unknown) {
+      // The server is authoritative for this entitlement. A confirmed weekly
+      // limit is a product state, not an outage: never generate a local
+      // fallback that could turn the cap into a bypass.
+      if (err instanceof SmartWorkoutRequestError && err.code === 'sessions_per_week_limit_reached') {
+        setGenState({ phase: 'weekly-limit', limit: sessionsPerWeekCap ?? 1 });
+        return;
+      }
       console.warn('[start-workout] AI generation failed — using fallback plan', err);
       // `todayCtx` is out of scope here (declared inside the try above), and
       // `activeCheckin`/`latestCheckin` state is stale within this same
@@ -1146,6 +1148,25 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               background: t.accent, color: '#fff',
               fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
             }}>{tr('client.workout.retry')}</button>
+          </div>
+        )}
+
+        {genState.phase === 'weekly-limit' && (
+          <div style={{
+            padding: '16px', borderRadius: 14,
+            background: `${t.primary}12`, border: `1px solid ${t.primary}55`,
+          }}>
+            <div style={{ fontSize: 13, color: textPri(dark), marginBottom: 8 }}>
+              {tr('client.workout.limitWeekly', { n: genState.limit })}
+            </div>
+            <div style={{ fontSize: 11.5, color: textSec(dark), lineHeight: 1.5, marginBottom: 12 }}>
+              {tr('client.workout.limitWeeklyCta')}
+            </div>
+            <button onClick={() => nav('plans', { source: 'weekly-limit' })} style={{
+              padding: '8px 18px', borderRadius: 999, border: 'none',
+              background: t.primary, color: '#0E1A2B',
+              fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+            }}>{tr('client.workout.limitWeeklyCta')}</button>
           </div>
         )}
 

@@ -1,6 +1,6 @@
 # Feature Access Matrix — TrAIner App
-**Versão:** 1.3
-**Data:** 2026-08-07
+**Versão:** 1.4
+**Data:** 2026-08-11
 **Estado:** Matriz de referência de acesso; Uso Justo publicado nos [Termos](https://trainer-lake.vercel.app/legal/terms) e na [Política](https://trainer-lake.vercel.app/legal/fair-use)
 
 ---
@@ -35,7 +35,9 @@ feature_permissions (Supabase)
 
 **Nota 2026-08-04:** coluna Descrição adicionada; valor de "Exercícios por sessão (IA)" para FREE corrigido de 2 para 6, alinhando com a correcção já feita em §4 (2026-08-03).
 
-**Auditoria de alinhamento 2026-08-07:** esta secção foi reconciliada com a configuração efectiva em produção e com a autoridade server-side (`api/_lib/entitlements.ts`). AI FITNESS tem sessões autónomas ilimitadas (`limit_value = null`); `workout.exercise_type` e `trainer_plan.days_per_week` são chaves legadas, não lidas. Portanto, categoria de exercício e dias de plano prescrito não são gates comerciais por licença. A diferença entre AI FITNESS e AI PERFORMANCE é o acesso à análise avançada e às métricas de desempenho — não um modelo de IA ou uma categoria de treino exclusiva. Revisados, sem impacto: política de patrocínio TRAINER e matriz de autoridade de endpoints; não houve alteração de entitlement, API, patrocínio ou texto público nesta correcção documental.
+**Auditoria de alinhamento 2026-08-07:** esta secção foi reconciliada com a configuração efectiva em produção e com a autoridade server-side (`api/_lib/entitlements.ts`). AI FITNESS tem sessões autónomas ilimitadas (`limit_value = null`); `workout.exercise_type` e `trainer_plan.days_per_week` são chaves legadas, não lidas. Portanto, categoria de exercício e dias de plano prescrito não são gates comerciais por licença. A diferença entre AI FITNESS e AI PERFORMANCE é o acesso à análise avançada e às métricas de desempenho — não um modelo de IA ou uma categoria de treino exclusiva.
+
+**Revisão 2026-08-11:** ao atingir a sessão autónoma semanal do FREE, a interface apresenta a limitação confirmada e o CTA contextual para AI FITNESS. O retorno autoritativo `sessions_per_week_limit_reached` não pode acionar o fallback local; assim, a comunicação e o backend mantêm a mesma regra. Não houve mudança de preço, entitlement, patrocínio, Termos ou Política de Uso Justo.
 
 | Funcionalidade | Descrição | FREE | AI FITNESS | AI PERFORMANCE |
 |---|---|:---:|:---:|:---:|

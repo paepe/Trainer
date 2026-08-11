@@ -80,6 +80,22 @@ export function resolveWorkoutApiBase(): string {
 // abort a valid server response immediately before it arrives.
 export const SMART_WORKOUT_CLIENT_TIMEOUT_MS = 40_000;
 
+/**
+ * A known response from the authoritative workout endpoint. Keeping the HTTP
+ * status and machine-readable code prevents the UI from treating a business
+ * limit as an infrastructure outage and incorrectly activating local fallback.
+ */
+export class SmartWorkoutRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = 'SmartWorkoutRequestError';
+  }
+}
+
 /** One UUID is generated per user-initiated request and retained for its transport retry. */
 export function createSmartWorkoutIdempotencyKey(): string {
   return globalThis.crypto.randomUUID();
@@ -198,7 +214,13 @@ export async function requestSmartWorkout(
     const data = await response.json() as SmartWorkoutResponse & { error?: string };
     clearTimeout(timeout);
 
-    if (!response.ok) throw new Error(data.error ?? 'Smart workout generation failed');
+    if (!response.ok) {
+      throw new SmartWorkoutRequestError(
+        data.error ?? 'Smart workout generation failed',
+        response.status,
+        data.error,
+      );
+    }
 
     const snapshot = data.context_snapshot;
 

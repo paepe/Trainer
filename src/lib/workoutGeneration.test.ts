@@ -9,7 +9,7 @@ vi.mock('../supabase', () => ({
   supabase: { auth: { getSession: () => Promise.resolve({ data: { session: null } }) } },
 }));
 
-import { requestSmartWorkout, SMART_WORKOUT_CLIENT_TIMEOUT_MS } from './workoutGeneration';
+import { requestSmartWorkout, SMART_WORKOUT_CLIENT_TIMEOUT_MS, SmartWorkoutRequestError } from './workoutGeneration';
 import type { SmartWorkoutRequest } from '../ai/types';
 
 function smartWorkoutResponse(phases: Array<{ phase: string; exercises: Array<{ name: string; category?: string }> }>) {
@@ -49,6 +49,21 @@ describe('requestSmartWorkout — client deadline', () => {
 
     const headers = (fetch as ReturnType<typeof vi.fn>).mock.calls[0]?.[1]?.headers as Record<string, string>;
     expect(headers['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/i);
+  });
+
+  it('preserves a server entitlement denial so the UI cannot mistake it for an outage', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      headers: { get: () => 'application/json' },
+      json: async () => ({ error: 'sessions_per_week_limit_reached' }),
+    }));
+
+    await expect(requestSmartWorkout(MINIMAL_REQUEST)).rejects.toMatchObject({
+      name: 'SmartWorkoutRequestError',
+      status: 403,
+      code: 'sessions_per_week_limit_reached',
+    } satisfies Partial<SmartWorkoutRequestError>);
   });
 });
 
