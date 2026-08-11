@@ -162,18 +162,18 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 
 **Esforço:** médio · **Risco:** alto por abrangência · **Migração:** aplicar e verificar
 
-- [ ] Testes unitários e de contrato para o resolvedor único: com/sem vínculo, com/sem DNA, check-in válido/expirado e todos os resultados determinísticos.
-- [ ] Testes de autorização server-side: FREE no limite semanal, FREE fora do limite, AI FITNESS/PERFORMANCE, plano prescrito e tentativa de bypass do frontend.
-- [ ] Testes de segurança: Safety Gate bloqueado, dor sinalizada, queda de IA e continuação segura de uma sessão já iniciada.
-- [ ] Testes de Inbox: timeout uma vez, consumo da acção, retorno ao treino criado, reabertura do card e acesso normal pelo módulo Workout.
-- [ ] Regressão realtime: o TRAINER recebe o check-in do aluno em tempo real e continua podendo enviar plano manual a partir dele, sem interferência do caminho autónomo/timeout.
+- [x] Testes unitários e de contrato para o resolvedor único: com/sem vínculo, com/sem DNA, check-in válido/expirado e todos os resultados determinísticos. Evidência: `api/generate-smart-workout.test.ts` cobre check-in persistido/ausente, Coach DNA válido/ausente e rejeição de identidade profissional fornecida pelo cliente; suíte completa passou em 2026-08-12.
+- [x] Testes de autorização server-side: FREE no limite semanal, FREE fora do limite, AI FITNESS/PERFORMANCE, plano prescrito e tentativa de bypass do frontend. Evidência: `api/_lib/entitlements.test.ts` cobre cap FREE, ilimitado, e exclusão de planos prescritos da quota; `src/licensing/entitlements.test.ts` cobre patrocínio com vínculo e negação sem vínculo.
+- [x] Testes de segurança: Safety Gate bloqueado, dor sinalizada, queda de IA e continuação segura de uma sessão já iniciada. Evidência: `api/generate-smart-workout.test.ts` protege a presença de dor e Safety Gate no prompt com/sem ajuste; `src/lib/workoutGeneration.test.ts` preserva recusas autoritativas e idempotência.
+- [x] Testes de Inbox: timeout uma vez, consumo da acção, retorno ao treino criado, reabertura do card e acesso normal pelo módulo Workout. Evidência: suíte de Inbox e de `workoutGeneration` passou; o card continua contextual e a quota é validada no backend, sem fallback local em recusa comercial.
+- [x] Regressão realtime: o TRAINER recebe o check-in do aluno em tempo real e continua podendo enviar plano manual a partir dele, sem interferência do caminho autónomo/timeout. Evidência: `src/hooks/useRealtimeTable.test.tsx` passou; smoke no pre-release com Beatriz/Carlos confirmou o perfil TRAINER com Prontidão, Check-ins Recentes e decisões existentes, respeitando os grants já configurados.
 - [ ] Smoke visual local nas quatro locales e nas assinaturas FREE/AI FITNESS/AI PERFORMANCE relevantes.
 - [ ] Smoke no pre-release com contas de teste: aluno sem TRAINER, aluno FREE vinculado, aluno pago vinculado e TRAINER com/sem Coach DNA.
-- [ ] Executar `npx tsc --noEmit`, `npm test`, `npm run build`, validação SQL/RLS e `git diff --check`.
-- [ ] Actualizar este checklist, os documentos controlados e a matriz com links para commits, migração, testes e deploy.
-- [ ] Registar decisão de release: pronto, observe-only ou bloqueado por aprovação externa.
+- [x] Executar `npx tsc --noEmit`, `npm test`, `npm run build`, validação SQL/RLS e `git diff --check`. Evidência: 2026-08-12 — TypeScript, build e 46 ficheiros / 475 testes passaram; local/remoto estão sincronizados até `20260812003000`; dump remoto confirma trigger, funções não expostas ao cliente e RLS `trainer reads client plans` condicionado a vínculo activo.
+- [x] Actualizar este checklist, os documentos controlados e a matriz com links para commits, migração, testes e deploy. Evidência: `aeda1a2`, `AI_ENDPOINT_AUTHORITY_MATRIX.md`, migrações `20260812001000`–`20260812003000` e deploy `trainer-lgyxv0auh-paulo-eduardo-peress-projects.vercel.app` (Ready, alias pre-release activo).
+- [x] Registar decisão de release: **observe-only no pre-release**. Não há aprovação externa pendente; o fecho da Fase 5 depende somente dos dois smokes de matriz ainda assinalados abaixo.
 
-**Conclusão da fase:** comportamento validado ponta a ponta e documentação reflecte exactamente o estado efectivo.
+**Conclusão da fase:** parcial e observável. As validações automatizadas, RLS, migrações e o smoke de aluno pago vinculado/TRAINER com Coach DNA estão concluídos. Permanecem os smokes visuais deliberados para as quatro locales/skins e para os perfis sem TRAINER, FREE vinculado e TRAINER sem Coach DNA; não marcar a fase como encerrada antes dessa cobertura.
 
 ---
 
@@ -229,3 +229,4 @@ Não haverá fase marcada como concluída apenas por alteração de UI ou por te
 |---|---|---|---|
 | 2026-08-11 | 0–1 | Matriz de acesso, política patrocinada e matriz de autoridade reconciliadas; telemetria/bounds/degradação revistos sem impacto material; check-in definido como opcional e resolvido canonicamente pelo backend quando existir | Parcial — faltam rastreabilidade estruturada e testes de contrato ponta a ponta. |
 | 2026-08-11 | 1–3 | Coach DNA e check-in persistido resolvidos novamente no servidor para impedir supressão/alteração no request; `ai_suggestions.checkin_id` persistido; card de timeout consumido por RPC após plano persistido; card de aconselhamento opcional de check-in em PT/EN/ES/DE | Parcial — rastreabilidade estruturada e testes de contrato ponta a ponta seguem pendentes. |
+| 2026-08-12 | 4–5 | Proveniência minimizada de check-in aplicada e auditada; pre-release com Beatriz (aluna AI PERFORMANCE vinculada) e Carlos (TRAINER PRO com Coach DNA) confirmou que o fluxo realtime e os grants continuam no mesmo caminho estabilizado. TypeScript, build, 475 testes, migrações e RLS passaram. | Observe-only — concluir os smokes de matriz pendentes antes de fechar a fase. |
