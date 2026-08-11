@@ -1,6 +1,6 @@
 # Plano — Organização, Filtros e Arquivamento da Inbox
 
-**Status:** In controlled pre-release validation — Phases 0–4 complete; Phase 5 in progress
+**Status:** Functionally complete — Phases 0–5 complete; operational observation ongoing
 **Version:** 1.0
 **Created:** 2026-08-11
 **Last reviewed:** 2026-08-11
@@ -350,22 +350,21 @@ without treating it as a commercial launch.
       `supabase db push --linked` applied `20260811000000`–`20260811000400`;
       commit `448da45` deployed as Vercel `dpl_5CVy65AgnwixZwgQyWezaqQqJpDx`
       and `trainer-lake.vercel.app` returned HTTP 200.
-- [ ] Run authenticated visual smoke tests for one CLIENT and one TRAINER using
-      non-sensitive test data. **Partial evidence 2026-08-11:** TRAINER
+- [x] Run authenticated visual smoke tests for one CLIENT and one TRAINER using
+      non-sensitive test data. **Evidence 2026-08-11:** TRAINER
       `carlos.silva@trainer.test` loaded Inbox, pagination, categories, scope,
-      search and invitation management successfully in pre-release. Local
-      CLIENT `tiago.moreira@client.test` loaded Inbox and the same controls
-      without console errors. This smoke exposed and fixed an old raw template
-      key for timeout notifications (`ecbfd5a`, deployed as
-      `dpl_8guK6KbKGhGTaoomrKGkELnoA7Nv`). Complete this item with a logged-in
-      CLIENT visual session in pre-release or a controlled credentialed fixture
-      run; this workspace deliberately has no service-role credential for
-      creating and cleaning remote fixtures.
-- [ ] Confirm archive remains reversible and no notification/action is lost.
-      **Local evidence exists; pending pre-release visual confirmation.**
-- [ ] Confirm unread badges, Inbox navigation and logout remain unaffected.
-      **Inbox navigation passed for TRAINER; pending controlled CLIENT visual
-      confirmation.**
+      search and invitation management successfully. CLIENT
+      `tiago.moreira@client.test` loaded Inbox in pre-release with search and
+      Archived scope; no console errors. This smoke exposed and fixed an old
+      raw timeout template key (`ecbfd5a`, deployment
+      `dpl_8guK6KbKGhGTaoomrKGkELnoA7Nv`).
+- [x] Confirm archive remains reversible and no notification/action is lost.
+      **Evidence 2026-08-11:** a read, non-actionable timeout notification on
+      the CLIENT test account moved from Active to Archived and was restored to
+      Active; no action contract, trainer link or workout state changed.
+- [x] Confirm unread badges, Inbox navigation and logout remain unaffected.
+      **Evidence 2026-08-11:** CLIENT Inbox badge/navigation worked; Menu →
+      Sign Out returned to the login view with no side drawer remaining.
 - [x] Record deployment, test evidence, rollback reference and release posture.
       **Evidence 2026-08-11:** source commit `448da45`; Vercel deployment
       `dpl_5CVy65AgnwixZwgQyWezaqQqJpDx`; rollback is the preceding main
@@ -377,7 +376,9 @@ without treating it as a commercial launch.
 **Exit criteria:** the shared pre-release instance demonstrates the same
 recipient isolation and UI behaviour validated locally.
 
-**Evidence / outcome:** pending.
+**Evidence / outcome:** completed 2026-08-11. All implementation and
+controlled pre-release acceptance criteria passed. The remaining observation
+item is intentionally ongoing and does not block completion of this delivery.
 
 ---
 
