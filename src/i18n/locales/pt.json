@@ -944,6 +944,8 @@
       "notYetEvaluated": "Ainda não avaliado pelo aluno",
       "energyAfter": "energia",
       "done": "FEITO",
+      "autonomousCoachDna": "Treino autónomo orientado pelo DNA Coach",
+      "autonomousAi": "Treino autónomo por IA",
       "readinessCheckinFor": "Check-in de Prontidão para {{name}}"
     },
     "planner": {

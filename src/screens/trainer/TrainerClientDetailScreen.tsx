@@ -198,6 +198,8 @@ interface PlanExercise {
 interface WorkoutPlan {
   id:              string;
   status:          string | null;
+  autonomous_origin?: string | null;
+  coach_dna_applied?: boolean;
   scheduled_date?: string | null;
   created_at:      string | null;
   trainer_notes?:  string | null;
@@ -321,7 +323,7 @@ export function TrainerClientDetailScreen({
     await autoExpirePlans(clientId, 'trainer');
     const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes, feedbackRes, grantsRes] = await Promise.all([
       supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,total_duration_min,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(dashboardLimit),
-      supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,duration_seconds,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(dashboardLimit),
+      supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,autonomous_origin,coach_dna_applied,plan_exercises(id,exercise_name,muscle_group,sets,reps,duration_seconds,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('profile_v2').select('basic_data,objectives,movement_history,functional_capacity,environment,availability,preferences,habits,comorbidities,declared_health,sensitive_factors,body_rhythm,consent,completed_at').eq('user_id', clientId).maybeSingle(),
       supabase.from('checkin_prontidao').select('id,occurred_at,readiness_score,energy_level,fatigue_level,pain_present,pain_intensity,sleep_quality,available_minutes,training_location,input_source,variant,quick_data,detailed_data').eq('user_id', clientId).order('occurred_at', { ascending: false }).limit(7),
       // C — trainer's past approve/reject decisions for this client (RLS scopes to_user_id = this trainer)
@@ -908,6 +910,11 @@ export function TrainerClientDetailScreen({
                       : null;
                     const planExs = [...(p.plan_exercises ?? [])].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
                     const exCount  = sessionExs ? sessionExs.length : planExs.length;
+                    const autonomousLabel = p.autonomous_origin
+                      ? p.coach_dna_applied
+                        ? tr('trainer.detail.autonomousCoachDna')
+                        : tr('trainer.detail.autonomousAi')
+                      : null;
 
                     return (
                       <div key={p.id} style={{ borderTop: i > 0 ? `1px solid ${borderSubtle(dark)}` : undefined }}>
@@ -928,6 +935,11 @@ export function TrainerClientDetailScreen({
                               {!session && p.trainer_notes ? ` · ${p.trainer_notes.slice(0, 30)}${p.trainer_notes.length > 30 ? '…' : ''}` : ''}
                               {linkedSessions.length > 1 ? ` · ${linkedSessions.length} sessions` : ''}
                             </div>
+                            {autonomousLabel && (
+                              <div style={{ fontSize: 10.5, color: p.coach_dna_applied ? t.primary : textMute(dark), marginTop: 3, fontWeight: 650 }}>
+                                {autonomousLabel}
+                              </div>
+                            )}
                             {session && renderPostWorkoutFeedback(session, feedbackBySession[session.id], dark, tr)}
                           </div>
                           <span style={{

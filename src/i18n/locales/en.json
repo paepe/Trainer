@@ -944,6 +944,8 @@
       "notYetEvaluated": "Not yet evaluated by client",
       "energyAfter": "energy",
       "done": "DONE",
+      "autonomousCoachDna": "Autonomous workout guided by Coach DNA",
+      "autonomousAi": "Autonomous AI workout",
       "readinessCheckinFor": "Readiness Check-in for {{name}}"
     },
     "planner": {

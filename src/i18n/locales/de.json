@@ -943,6 +943,8 @@
       "notYetEvaluated": "Noch nicht vom Klienten bewertet",
       "energyAfter": "Energie",
       "done": "FERTIG",
+      "autonomousCoachDna": "Eigenständiges Training nach Coach DNA",
+      "autonomousAi": "Eigenständiges KI-Training",
       "readinessCheckinFor": "Bereitschafts-Check-in für {{name}}"
     },
     "planner": {

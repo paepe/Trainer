@@ -146,9 +146,9 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 
 **Esforço:** pequeno/médio · **Risco:** médio · **Migração:** depende da Fase 2
 
-- [ ] Apresentar no histórico/dashboard do TRAINER que o aluno iniciou treino autónomo, incluindo origem e data/hora no locale adequado.
+- [x] Apresentar no histórico/dashboard do TRAINER que o aluno iniciou treino autónomo, incluindo origem e data/hora no locale adequado. Evidência: histórico `Plano & Treino` mostra treino autónomo por IA ou orientado pelo DNA Coach; a data existente usa o locale da aplicação.
 - [ ] Mostrar, quando permitido, que o treino usou o Coach DNA e o check-in aplicável, sem expor voz, interpretação ou conteúdo além das permissões existentes.
-- [ ] Separar visualmente: “prescrito”, “autónomo orientado pelo DNA Coach” e “autónomo por IA”.
+- [x] Separar visualmente: “prescrito”, “autónomo orientado pelo DNA Coach” e “autónomo por IA”. Evidência: somente planos com `autonomous_origin` exibem o novo rótulo; planos manuais preservam a apresentação estabilizada.
 - [ ] Não enviar notificação invasiva por cada abertura de card; notificar eventos relevantes segundo a política actual de Inbox.
 - [ ] Confirmar que o desligamento de acompanhamento corta o acesso futuro ao DNA e dados do TRAINER, sem alterar o histórico legítimo já registado.
 
