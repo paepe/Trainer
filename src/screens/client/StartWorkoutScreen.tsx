@@ -489,8 +489,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               .limit(1).maybeSingle(),
             // Recent sessions for stats
             supabase.from('workout_sessions')
-              .select('started_at, status')
+              .select('started_at, status, workout_plans!inner(source)')
               .eq('user_id', user.id)
+              // Prescribed TRAINER plans never consume the student's
+              // autonomous session allowance. This mirrors the server gate.
+              .eq('workout_plans.source', 'ai_generated')
               .gte('started_at', thirtyDaysAgo),
             // Recent check-ins for avg energy / readiness
             supabase.from('checkin_prontidao')
