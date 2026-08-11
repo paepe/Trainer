@@ -2182,6 +2182,7 @@ export type Database = {
           assigned_to: string
           created_at: string | null
           created_by: string | null
+          expires_at: string | null
           id: string
           protocol_id: string | null
           scheduled_date: string | null
@@ -2196,6 +2197,7 @@ export type Database = {
           assigned_to: string
           created_at?: string | null
           created_by?: string | null
+          expires_at?: string | null
           id?: string
           protocol_id?: string | null
           scheduled_date?: string | null
@@ -2210,6 +2212,7 @@ export type Database = {
           assigned_to?: string
           created_at?: string | null
           created_by?: string | null
+          expires_at?: string | null
           id?: string
           protocol_id?: string | null
           scheduled_date?: string | null
@@ -2586,6 +2589,10 @@ export type Database = {
         Args: { p_reason?: string | null }
         Returns: { ended_at: string | null; id: string; status: string }[]
       }
+      expire_assigned_workout_plans: {
+        Args: { p_client_id: string }
+        Returns: { expires_at: string | null; id: string }[]
+      }
       create_trainer_in_app_invitation: {
         Args: { p_client_id: string }
         Returns: { expires_at: string; id: string; status: string }[]
@@ -2624,6 +2631,10 @@ export type Database = {
         }[]
       }
       get_active_role: { Args: { uid?: string }; Returns: string }
+      start_assigned_workout_plan: {
+        Args: { p_plan_id: string }
+        Returns: { expires_at: string | null; outcome: string }[]
+      }
       get_device_tokens: {
         Args: never
         Returns: {

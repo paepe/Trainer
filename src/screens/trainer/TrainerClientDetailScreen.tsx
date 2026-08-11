@@ -254,7 +254,6 @@ interface TrainerClientDetailScreenProps {
   nav:             NavFn;
   user:            TrainerDashboardUser | null;
   selectedClient?: ClientProfile | null;
-  planExpiryDays?: number;
   dashboardLimit?: number;
 }
 
@@ -298,7 +297,6 @@ export function TrainerClientDetailScreen({
   nav,
   user,
   selectedClient,
-  planExpiryDays = 10,
   dashboardLimit = 10,
 }: TrainerClientDetailScreenProps) {
   const { t, dark } = useTrainerTheme();
@@ -320,7 +318,7 @@ export function TrainerClientDetailScreen({
   const load = React.useCallback(async (showSpinner = true) => {
     if (!clientId) return;
     if (showSpinner) setLoading(true);
-    void autoExpirePlans(clientId, 'trainer', planExpiryDays);
+    await autoExpirePlans(clientId, 'trainer');
     const [sessionsRes, plansRes, profV2Res, readinessRes, decisionsRes, feedbackRes, grantsRes] = await Promise.all([
       supabase.from('workout_sessions').select('id,plan_id,started_at,completed_at,total_duration_min,performance_score,status,workout_session_exercises(id,exercise_name,muscle_group,sets_prescribed,reps_prescribed,load_kg_prescribed,rest_seconds,notes,status,order_index,workout_set_logs(set_number,reps_done,load_kg,rpe))').eq('user_id', clientId).order('started_at', { ascending: false }).limit(dashboardLimit),
       supabase.from('workout_plans').select('id,status,scheduled_date,created_at,trainer_notes,plan_exercises(id,exercise_name,muscle_group,sets,reps,duration_seconds,load_kg,rest_seconds,notes,order_index)').eq('assigned_to', clientId).order('created_at', { ascending: false }).limit(dashboardLimit),
@@ -350,7 +348,7 @@ export function TrainerClientDetailScreen({
     setGrants(grantsMap);
     setLastUpdated(new Date());
     setLoading(false);
-  }, [clientId, user?.id, planExpiryDays, dashboardLimit]);
+  }, [clientId, user?.id, dashboardLimit]);
 
   // Initial load + Realtime: client check-ins and sessions update the screen live
   React.useEffect(() => {

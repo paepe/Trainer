@@ -1,5 +1,5 @@
-// Auto-cancel plans older than EXPIRE_DAYS that are still sent/postponed.
-// Called at screen load — fire-and-forget, never blocks the UI.
+// Auto-cancel plans whose immutable server-calculated expiry instant passed.
+// Called at screen load before querying actionable plans.
 //
 // Trigger points:
 //   Trainer opens TrainerClientDetailScreen → expires plans for the VIEWED client
@@ -9,51 +9,25 @@
 import { supabase } from '../supabase';
 import { notify, notifyLinkedTrainer } from './notify';
 
-const DEFAULT_EXPIRE_DAYS = 10;
-
 export async function autoExpirePlans(
   clientId: string,
   trigger: 'trainer' | 'client',
-  expiryDays: number = DEFAULT_EXPIRE_DAYS,
 ): Promise<number> {
   if (!clientId) return 0;
 
-  const cutoff = new Date(Date.now() - expiryDays * 24 * 60 * 60 * 1000).toISOString();
+  const { data: stale, error } = await supabase
+    .rpc('expire_assigned_workout_plans', { p_client_id: clientId });
 
-  const { data: stale } = await supabase
-    .from('workout_plans')
-    .select('id')
-    .eq('assigned_to', clientId)
-    .in('status', ['sent', 'postponed'])
-    .lt('created_at', cutoff);
+  if (error || !stale?.length) return 0;
 
-  if (!stale?.length) return 0;
-
-  const ids = stale.map(p => p.id);
-
-  await supabase
-    .from('workout_plans')
-    .update({ status: 'cancelled' })
-    .in('id', ids);
-
-  if (trigger === 'trainer') {
-    // Trainer opened client view → one notification per expired plan to CLIENT
-    for (const planId of ids) {
-      void notify(
-        clientId,
-        '', '',
-        undefined,
-        { type: 'plan_expired', templateKey: 'plans_expired', params: { count: 1, expiryDays }, entityType: 'workout_plan', entityId: planId }
-      );
-    }
-  } else {
-    // Client opened Workout/History → one notification per expired plan to TRAINER
-    for (const planId of ids) {
-      void notifyLinkedTrainer(clientId, '', '',
-        { type: 'plan_expired', templateKey: 'plans_expired', params: { count: 1, expiryDays }, entityType: 'workout_plan', entityId: planId }
-      );
-    }
+  // Both parties are informed regardless of which interface detected expiry.
+  for (const plan of stale) {
+    const params = { expiryAt: plan.expires_at };
+    void notify(clientId, '', '', undefined,
+      { type: 'plan_expired', templateKey: 'plans_expired', params, entityType: 'workout_plan', entityId: plan.id });
+    void notifyLinkedTrainer(clientId, '', '',
+      { type: 'plan_expired', templateKey: 'plans_expired', params, entityType: 'workout_plan', entityId: plan.id });
   }
 
-  return ids.length;
+  return stale.length;
 }

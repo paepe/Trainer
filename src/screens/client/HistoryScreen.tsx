@@ -48,18 +48,17 @@ export function HistoryScreen({ nav, t, dark, user, selectedClient, prefs }: His
 
   React.useEffect(() => {
     if (!targetUserId) { setLoading(false); return; }
-    // Auto-cancel stale plans (>10 days) for this user; notify trainer
-    void autoExpirePlans(targetUserId, 'client');
-    supabase
-      .from('workout_sessions')
-      .select('id, started_at, completed_at, total_duration_min, plan_id')
-      .eq('user_id', targetUserId)
-      .order('started_at', { ascending: false })
-      .limit(historyLimit)
-      .then(({ data }) => {
-        setSessions((data as Session[]) || []);
-        setLoading(false);
-      });
+    void (async () => {
+      await autoExpirePlans(targetUserId, 'client');
+      const { data } = await supabase
+        .from('workout_sessions')
+        .select('id, started_at, completed_at, total_duration_min, plan_id')
+        .eq('user_id', targetUserId)
+        .order('started_at', { ascending: false })
+        .limit(historyLimit);
+      setSessions((data as Session[]) || []);
+      setLoading(false);
+    })();
   }, [targetUserId, historyLimit]);
 
   const filtered = sessions.filter(s => {

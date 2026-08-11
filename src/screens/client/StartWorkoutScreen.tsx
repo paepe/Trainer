@@ -91,6 +91,7 @@ interface StartWorkoutScreenProps {
 interface PlanCard {
     id:        string;
     sentAt:    string | null;
+    expiresAt: string | null;
     status:    string;
     exercises: Array<{id:string; exercise_name:string; muscle_group?:string|null; sets?:number|null; reps?:number|null; duration_seconds?:number|null; load_kg?:number|null; rest_seconds?:number|null; notes?:string|null; order_index?:number|null; exercise_category?:string|null; phase?:string|null; name_source_locale?:string|null}>;
   }
@@ -160,6 +161,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   const [trainerPlans, setTrainerPlans] = React.useState<PlanCard[]>([]);
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
+  const [startingPlanId, setStartingPlanId] = React.useState<string | null>(null);
+  const [planStartNotice, setPlanStartNotice] = React.useState<string | null>(null);
   const [newPlanArrived, setNewPlanArrived] = React.useState(false);
   const activeCheckin = latestCheckin ?? checkin;
   // Real readiness/safety/duration signal for the local fallback generator,
@@ -381,7 +384,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     setGenState({ phase: 'loading' });
     setTrainerPlans([]);
     // Auto-cancel stale plans (>10 days); notify trainer
-    if (user?.id) void autoExpirePlans(user.id, 'client');
+    if (user?.id) await autoExpirePlans(user.id, 'client');
     try {
       const physicalProfile: Json | null = null;
       let resolvedCheckin = checkin;
@@ -395,7 +398,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         // Status is NOT mutated here — a plan only becomes 'active' when the workout actually starts.
         const { data: planRows } = await supabase
           .from('workout_plans')
-          .select('id, created_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category, phase, name_source_locale)')
+          .select('id, created_at, expires_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category, phase, name_source_locale)')
           .eq('assigned_to', user.id)
           .eq('source', 'manual')
           .in('status', ['sent', 'active', 'postponed'])
@@ -424,6 +427,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           setTrainerPlans(stillActionable.map(p => ({
             id:        p.id,
             sentAt:    p.created_at,
+            expiresAt: p.expires_at,
             status:    p.status ?? 'sent',
             exercises: ([...(p.plan_exercises ?? [])] as PlanCard['exercises'])
               .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)),
@@ -794,8 +798,34 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     void notifyLinkedTrainer(user.id, title, body, { type: kind === 'cancelled' ? 'plan_cancelled' : 'plan_postponed', templateKey: template, params: { name: user.name || tr('client.workout.notificationYourClient'), planDate: planDate.toString() }, entityType: 'workout_plan', entityId: p.id });
   };
 
-  const startPlan = (p: PlanCard) => {
-    supabase.from('workout_plans').update({ status: 'active' }).eq('id', p.id).then(({ error }) => { if (error) console.error('[plan start]', error); });
+  const startPlan = async (p: PlanCard) => {
+    setStartingPlanId(p.id);
+    setPlanStartNotice(null);
+    const { data, error } = await supabase.rpc('start_assigned_workout_plan', { p_plan_id: p.id });
+    const result = data?.[0];
+    setStartingPlanId(null);
+
+    if (error || result?.outcome !== 'started') {
+      if (result?.outcome === 'expired') {
+        const expiry = result.expires_at
+          ? new Intl.DateTimeFormat(i18n.language || 'en-US', {
+              day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+            }).format(new Date(result.expires_at))
+          : null;
+        setTrainerPlans(prev => prev.filter(plan => plan.id !== p.id));
+        setExpandedPlan(null);
+        setPlanStartNotice(expiry
+          ? tr('client.workout.planExpiredAt', { expiry })
+          : tr('client.workout.planUnavailable'));
+      } else {
+        setPlanStartNotice(tr('client.workout.planUnavailable'));
+      }
+      // Refresh through the same authoritative expiry gate so an unavailable
+      // manual plan cannot leave this screen without an actionable alternative.
+      void fetchPlan();
+      return;
+    }
+
     nav('workoutMode', {
       planId:    p.id,
       exercises: p.exercises.map(ex => ({
@@ -841,6 +871,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           fontSize: 11.5, color: t.amber ?? '#F5A623', lineHeight: 1.5,
         }}>
           {tr('client.workout.trainerTimeoutBanner')}
+        </div>
+      )}
+
+      {planStartNotice && (
+        <div role="alert" style={{ margin: '0 22px 12px', padding: '10px 12px', borderRadius: 10, background: `${t.amber}18`, border: `1px solid ${t.amber}55`, color: t.amber, fontSize: 12, lineHeight: 1.5 }}>
+          {planStartNotice}
         </div>
       )}
 
@@ -1053,12 +1089,14 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                         <button
                           onClick={() => startPlan(p)}
                           data-testid="start-plan-btn"
+                          disabled={startingPlanId === p.id}
                           style={{
                             flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
                             background: t.primary,
                             color: '#0E1A2B',
                             fontSize: 12, fontWeight: 700,
-                            cursor: 'pointer', fontFamily: 'inherit',
+                            cursor: startingPlanId === p.id ? 'default' : 'pointer', fontFamily: 'inherit',
+                            opacity: startingPlanId === p.id ? 0.6 : 1,
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                           }}
                         >
