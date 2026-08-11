@@ -45,7 +45,7 @@ export function WizardHeader({
         <div style={{ height: 3, borderRadius: 2, background: DARK.border, overflow: 'hidden', marginBottom: 16 }}>
           <div style={{
             height: '100%', width: `${(currentStep / totalSteps) * 100}%`,
-            background: `linear-gradient(90deg, #0F8C85 0%, ${BRAND.primary} 100%)`,
+            background: 'linear-gradient(90deg, var(--signature-deep) 0%, var(--signature) 100%)',
             borderRadius: 2, transition: 'width .35s ease',
           }}/>
         </div>
@@ -59,7 +59,7 @@ export function WizardHeader({
             fontWeight: 700,
             letterSpacing: '.15em',
             textTransform: 'uppercase',
-            color: BRAND.primary,
+            color: 'var(--signature)',
           }}
         >
           {stepPrefix} {String(currentStep).padStart(2, '0')} / {String(totalSteps).padStart(2, '0')}

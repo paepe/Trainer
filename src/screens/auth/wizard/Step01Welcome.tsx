@@ -20,7 +20,6 @@ interface Step01WelcomeProps {
 
 export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01WelcomeProps) {
   const { t: tr } = useTranslation();
-  const cyanDeep = '#0F8C85';
 
   return (
     <VStack padding="28px 24px 32px" style={{ minHeight: '100%' }}>
@@ -32,7 +31,7 @@ export function Step01Welcome({ dark, primary, onNext, profileExists }: Step01We
       }}>
         <div style={{
           width: 56, height: 56, borderRadius: 18,
-          background: `linear-gradient(135deg, ${primary} 0%, ${cyanDeep} 100%)`,
+          background: 'linear-gradient(135deg, var(--signature) 0%, var(--signature-deep) 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: `0 12px 30px ${primary}33`,
         }}>
