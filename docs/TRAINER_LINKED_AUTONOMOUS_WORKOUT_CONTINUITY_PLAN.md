@@ -115,9 +115,9 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 
 **Esforço:** médio · **Risco:** médio · **Migração:** sim
 
-- [ ] Criar migração reversível para persistir a proveniência de geração (`autonomous_direct` ou `trainer_timeout`) sem depender de texto livre em `ai_notes`.
+- [x] Criar migração reversível para persistir a proveniência de geração (`autonomous_direct` ou `trainer_timeout`) sem depender de texto livre em `ai_notes`. Evidência: migração `20260811220000_autonomous_workout_provenance.sql`; flag de DNA é derivada por trigger, não confiada ao browser.
 - [x] Associar a sugestão/plano gerado ao identificador do check-in efectivamente usado, sem duplicar conteúdo sensível do check-in. Evidência: `ai_suggestions.checkin_id` deixa de receber `null` na geração autónoma.
-- [ ] Guardar referência/versionamento mínimo do Coach DNA quando aplicado; não copiar o perfil completo nem dados de saúde para eventos de telemetria.
+- [x] Guardar referência/versionamento mínimo do Coach DNA quando aplicado; não copiar o perfil completo nem dados de saúde para eventos de telemetria. Evidência: `workout_plans.coach_dna_applied` é metadado booleano calculado no banco; o endpoint devolve apenas proveniência mínima ao dono do treino.
 - [ ] Definir estado de monitoramento posterior visível ao TRAINER, sem semântica de aprovação nem vigilância em tempo real.
 - [ ] Criar índices e RLS necessários para leitura apenas pelo aluno, TRAINER vinculado e backend autorizado.
 - [ ] Preparar rollback da migração e compatibilidade de leitura para planos já existentes.

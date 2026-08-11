@@ -294,5 +294,9 @@ export interface SmartWorkoutResponse {
     readinessScore: number;
     safetyStatus:   string;
     adaptations:    string[];
+    /** Server-resolved persisted check-in used for this generation, if any. */
+    checkinId:       string | null;
+    /** True only when the backend applied the linked TRAINER's active Coach DNA. */
+    coachDnaApplied: boolean;
   };
 }

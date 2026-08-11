@@ -2178,10 +2178,12 @@ export type Database = {
       workout_plans: {
         Row: {
           ai_notes: string | null
+          autonomous_origin: string | null
           approved_by: string | null
           assigned_to: string
           created_at: string | null
           created_by: string | null
+          coach_dna_applied: boolean
           expires_at: string | null
           id: string
           protocol_id: string | null
@@ -2193,10 +2195,12 @@ export type Database = {
         }
         Insert: {
           ai_notes?: string | null
+          autonomous_origin?: string | null
           approved_by?: string | null
           assigned_to: string
           created_at?: string | null
           created_by?: string | null
+          coach_dna_applied?: boolean
           expires_at?: string | null
           id?: string
           protocol_id?: string | null
@@ -2208,10 +2212,12 @@ export type Database = {
         }
         Update: {
           ai_notes?: string | null
+          autonomous_origin?: string | null
           approved_by?: string | null
           assigned_to?: string
           created_at?: string | null
           created_by?: string | null
+          coach_dna_applied?: boolean
           expires_at?: string | null
           id?: string
           protocol_id?: string | null

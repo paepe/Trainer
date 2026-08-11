@@ -305,6 +305,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     cycleContext: CycleContext | null,
     physicalProfile: Json | null,
     sourceCheckinId: string | null,
+    coachDnaApplied: boolean,
     // Provenance of the names in `exercises` (D7 — registered at write time,
     // never inferred). Pass the resolved client locale for AI-generated
     // names (the model was asked to write in it); pass null for the local
@@ -325,6 +326,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           assigned_to: user.id,
           created_by:  user.id,
           source:      'ai_generated',
+          autonomous_origin: source === 'trainer_timeout' ? 'trainer_timeout' : 'autonomous_direct',
+          coach_dna_applied: coachDnaApplied,
           status:      'active',
           ai_notes:    aiNotesParts.length > 0 ? aiNotesParts.join(' | ') : null,
           scheduled_date: new Date().toISOString().slice(0, 10),
@@ -361,7 +364,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         user_id:    user.id,
         plan_id:    planRow.id,
         checkin_id: sourceCheckinId,
-        context:    { checkin: sourceCheckin, cycleContext, physicalProfile } as unknown as Json,
+          context:    { checkin: sourceCheckin, cycleContext, physicalProfile } as unknown as Json,
         suggestion: JSON.stringify(exercises),
         accepted:   null,
       });
@@ -552,7 +555,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         if (!profileData) {
           const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: exerciseNamesLocale });
           setGenState({ phase: 'success', plan: exercises, planId: '', readinessScore: -1, adaptations: [] });
-          const planId = await persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile, sourceCheckinId, exerciseNamesLocale);
+          const planId = await persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile, sourceCheckinId, false, exerciseNamesLocale);
           if (source === 'trainer_timeout' && planId) void consumeTimeoutNotification(planId);
           return;
         }
@@ -672,8 +675,26 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 safety:          { aiLedBlocked: todayCtx.aiLedBlocked, safetyStatus: todayCtx.safetyStatus },
               });
               return local.blocked
-                ? { exercises: [] as GeneratedWorkoutExercise[], readinessScore: todayCtx.readinessScore, blocked: true, adaptations: [] as string[], safetyTitle: null as any, safetyMessage: null as any }
-                : { exercises: local.exercises, readinessScore: todayCtx.readinessScore, blocked: false, adaptations: [] as string[], safetyTitle: null as any, safetyMessage: null as any };
+                ? {
+                    exercises: [] as GeneratedWorkoutExercise[],
+                    readinessScore: todayCtx.readinessScore,
+                    blocked: true,
+                    adaptations: [] as string[],
+                    safetyTitle: null as any,
+                    safetyMessage: null as any,
+                    checkinId: sourceCheckinId,
+                    coachDnaApplied: false,
+                  }
+                : {
+                    exercises: local.exercises,
+                    readinessScore: todayCtx.readinessScore,
+                    blocked: false,
+                    adaptations: [] as string[],
+                    safetyTitle: null as any,
+                    safetyMessage: null as any,
+                    checkinId: sourceCheckinId,
+                    coachDnaApplied: false,
+                  };
             })();
 
         const readiness   = result.readinessScore;
@@ -700,7 +721,15 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         // Both paths now emit names already in exerciseNamesLocale — the
         // smart endpoint via its own `locale` param, the local generator via
         // the curated translations embedded in the Fase 3 mirror (Fase 4).
-        const planId = await persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile, sourceCheckinId, exerciseNamesLocale);
+        const planId = await persistGeneratedPlan(
+          result.exercises,
+          resolvedCheckin,
+          cycleContext,
+          physicalProfile,
+          result.checkinId ?? sourceCheckinId,
+          result.coachDnaApplied,
+          exerciseNamesLocale,
+        );
         if (source === 'trainer_timeout' && planId) void consumeTimeoutNotification(planId);
       } // end if (user?.id)
     } catch (err: unknown) {

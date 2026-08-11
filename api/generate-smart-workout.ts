@@ -607,6 +607,8 @@ interface SmartWorkoutResponse {
     readinessScore: number;
     safetyStatus:   string;
     adaptations:    string[];
+    checkinId:       string | null;
+    coachDnaApplied: boolean;
   };
 }
 
@@ -1143,6 +1145,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // request. Without one, the workout remains available using the state sent
   // by the client — this is intentionally not a check-in requirement.
   const persistedCheckin = await getLatestPersistedCheckinForClient(body.client.id);
+  const persistedCheckinId = typeof persistedCheckin?.id === 'string' ? persistedCheckin.id : null;
   const resolvedToday = persistedCheckin
     ? buildTodayContext(persistedCheckin as any) as TodayContext
     : body.today;
@@ -1187,6 +1190,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       readinessScore: resolvedToday.readinessScore,
       safetyStatus:   resolvedToday.safetyStatus,
       adaptations:    ['AI-led session blocked by safety gate'],
+      checkinId:       persistedCheckinId,
+      coachDnaApplied: !!activeCoachDNA,
     };
     const blockResponse: SmartWorkoutResponse = {
       insight: {
@@ -1361,11 +1366,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       output_tokens: data.usage?.completion_tokens ?? 0,
     };
 
-    const responsePayload = { ...parsed, usage, context_snapshot: parsed.context_snapshot ?? {
-      readinessScore: body.today.readinessScore,
-      safetyStatus:   body.today.safetyStatus,
-      adaptations:    [],
-    } };
+    // Keep authoritative provenance out of the model's control. The model may
+    // describe adaptations, but it cannot decide which check-in or Coach DNA
+    // the platform used.
+    const responsePayload = {
+      ...parsed,
+      usage,
+      context_snapshot: {
+        readinessScore: resolvedToday.readinessScore,
+        safetyStatus: resolvedToday.safetyStatus,
+        adaptations: parsed.context_snapshot?.adaptations ?? [],
+        checkinId: persistedCheckinId,
+        coachDnaApplied: !!activeCoachDNA,
+      },
+    };
     const completed = await completeAIRequest(requestClaimKey, responsePayload);
     if (requestClaimKey && !completed) {
       console.error('[generate-smart-workout] idempotency completion failed');

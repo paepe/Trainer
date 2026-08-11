@@ -36,6 +36,8 @@ export interface SmartWorkoutResult {
   readinessScore: number;
   safetyStatus:   string;
   adaptations:    string[];
+  checkinId:       string | null;
+  coachDnaApplied: boolean;
 }
 
 interface WorkoutGenerationResponse {
@@ -234,6 +236,8 @@ export async function requestSmartWorkout(
         readinessScore: snapshot.readinessScore,
         safetyStatus:   snapshot.safetyStatus,
         adaptations:    snapshot.adaptations,
+        checkinId:      snapshot.checkinId,
+        coachDnaApplied:snapshot.coachDnaApplied,
       };
     }
 
@@ -249,6 +253,8 @@ export async function requestSmartWorkout(
       readinessScore: snapshot.readinessScore,
       safetyStatus:   snapshot.safetyStatus,
       adaptations:    snapshot.adaptations,
+      checkinId:      snapshot.checkinId,
+      coachDnaApplied:snapshot.coachDnaApplied,
     };
 
   } catch (err) {
