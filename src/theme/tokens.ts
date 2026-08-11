@@ -35,7 +35,7 @@ export const TRAINER_BRAND = {
 
 // Shape of the `t` brand-theme object assembled in App.tsx (BRAND/TRAINER_BRAND
 // spread plus runtime fields). Used where components only need brand colours.
-export type BrandTheme = (typeof BRAND | typeof TRAINER_BRAND) & {
+export type BrandTheme = { -readonly [K in keyof typeof BRAND]: string } & {
   dark: boolean;
   role: string;
 };

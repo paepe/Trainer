@@ -1,6 +1,6 @@
 import React from 'react';
 import { supabase } from './supabase';
-import { BRAND, TRAINER_BRAND, setVizProfile } from './theme';
+import { BRAND, getClientLicenseSkin, TRAINER_BRAND, setVizProfile } from './theme';
 import { useAuth } from './hooks/useAuth';
 import { useProfileData }  from './hooks/useProfileData';
 import { useCheckinData }  from './hooks/useCheckinData';
@@ -148,7 +148,7 @@ export default function App() {
       isTrainer ? 'trainer-dark' : (dark ? 'client-dark' : clientLight);
   }, [isTrainer, dark, prefs.lightPalette]);
   const t = {
-    ...(isTrainer ? TRAINER_BRAND : BRAND),
+    ...(isTrainer ? TRAINER_BRAND : { ...BRAND, ...getClientLicenseSkin(subscription?.plan_key) }),
     dark,
     role: (profile?.role ?? 'client') as UserRole | 'client',
   };

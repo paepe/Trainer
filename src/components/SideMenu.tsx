@@ -36,10 +36,12 @@ const TRAINER_EXCLUDE = new Set(['profile', 'workout', 'cycle', 'studio']);
 const CLIENT_EXCLUDE   = new Set(['trainerLibraryExercises', 'studio', 'coachDNA']);
 
 import { TRAINER_ROLES } from '../types/auth';
+import { getClientLicenseSkin } from '../theme/licenseSkin';
 
 export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current, setUser, signOut, role, disabledScreens = [] }) => {
   const { t: tr } = useTranslation();
   const isTrainerRole = role != null && (TRAINER_ROLES as readonly string[]).includes(role);
+  const clientPlanSkin = getClientLicenseSkin(user.plan_key);
   const isMale = user.gender === 'male';
   const items = isTrainerRole
     ? MENU_ITEMS.filter(([, screen]) => !TRAINER_EXCLUDE.has(screen)).sort(([a], [b]) => a.localeCompare(b))
@@ -82,8 +84,9 @@ export const SideMenu: React.FC<SideMenuProps> = ({ open, nav, t, user, current,
           {user.plan_key && (
             <div style={{
               padding: '3px 9px', borderRadius: 999,
-              background: 'rgba(14,26,43,.18)', color: '#0E1A2B', fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em',
-              border: '1px solid rgba(14,26,43,.2)',
+              background: isTrainerRole ? 'rgba(14,26,43,.18)' : `${clientPlanSkin.primary}26`,
+              color: '#0E1A2B', fontSize: 9.5, fontWeight: 700, letterSpacing: '.06em',
+              border: isTrainerRole ? '1px solid rgba(14,26,43,.2)' : `1px solid ${clientPlanSkin.primary}88`,
             }}>
               {user.plan_key.replace(/_/g, ' ').toUpperCase()}
             </div>

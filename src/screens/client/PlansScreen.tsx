@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/Icon';
 import { TRAINER_ROLES, type NavFn, type UserRole, type PlanKey, type Subscription } from '../../types';
 import { TRAINER_BRAND } from '../../theme/tokens';
+import { getClientLicenseSkin } from '../../theme/licenseSkin';
 import { C } from './performance/perf-engines';
 import { T, FF_DISPLAY, FF_MONO, ScreenWrap, ScreenTitle } from './performance/perf-atoms';
 import { usePlanPrices } from '../../hooks/usePlanPrices';
@@ -220,6 +221,9 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
             const free      = cents === 0;
             const isSel     = selected === effectiveId;
             const isCurrent = currentPlanKey === effectiveId;
+            const licenseSkin = showingTrainer ? null : getClientLicenseSkin(effectiveId);
+            const planAccent = licenseSkin?.primary ?? TRAINER_PRIMARY;
+            const planDeep = licenseSkin?.primaryDeep ?? TRAINER_DEEP;
             // Onboarding recommendation may point at the welcome/trial-elevated
             // tier (nudge toward what they're already tasting) — deliberately
             // independent of isCurrent so the two badges can land on different
@@ -254,18 +258,18 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                 style={{
                   position: 'relative', width: '100%', textAlign: 'left',
                   padding: '16px 16px 15px', borderRadius: 16,
-                  background: isSel ? `${accent}14` : T.surf,
-                  border: `1.5px solid ${isSel ? accent : recommended ? `${accent}66` : T.border}`,
+                  background: isSel ? `${planAccent}14` : T.surf,
+                  border: `1.5px solid ${isSel ? planAccent : recommended ? `${planAccent}66` : T.border}`,
                   cursor: 'pointer', color: T.text, fontFamily: 'inherit',
-                  boxShadow: isSel ? `0 14px 36px ${accent}22` : 'none', transition: 'all .15s ease',
+                  boxShadow: isSel ? `0 14px 36px ${planAccent}22` : 'none', transition: 'all .15s ease',
                 }}
               >
                 {recommended && (
                   <div style={{
                     position: 'absolute', top: -10, left: 16, padding: '3px 9px', borderRadius: 999,
-                    background: accent, color: T.navy, fontSize: 9.5, fontWeight: 800, letterSpacing: '.06em',
+                    background: planAccent, color: T.navy, fontSize: 9.5, fontWeight: 800, letterSpacing: '.06em',
                     textTransform: 'uppercase', fontFamily: FF_MONO, display: 'inline-flex', alignItems: 'center', gap: 4,
-                    boxShadow: `0 6px 16px ${accent}55`,
+                    boxShadow: `0 6px 16px ${planAccent}55`,
                   }}>
                     <Icon name="sparkle" size={10} color={T.navy} stroke={2.4}/> {tr('plans.bestFit')}
                   </div>
@@ -284,9 +288,9 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                   <div style={{
                     width: 40, height: 40, borderRadius: 11, flexShrink: 0,
-                    background: isSel ? accent : `${accent}1f`,
+                    background: isSel ? planAccent : `${planAccent}1f`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: isSel ? T.navy : accent,
+                    color: isSel ? T.navy : planAccent,
                   }}>
                     <Icon name={plan.icon} size={19} stroke={2}/>
                   </div>
@@ -305,8 +309,8 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                   </div>
                   <div style={{
                     width: 20, height: 20, borderRadius: '50%', flexShrink: 0, marginTop: 2,
-                    border: `1.5px solid ${isSel ? accent : T.borderSoft}`,
-                    background: isSel ? accent : 'transparent',
+                    border: `1.5px solid ${isSel ? planAccent : T.borderSoft}`,
+                    background: isSel ? planAccent : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     {isSel && <Icon name="check" size={12} color={T.navy} stroke={2.6}/>}
@@ -327,8 +331,8 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                             key={band}
                             onClick={e => { e.stopPropagation(); setProBand(band); setSelected(band); }}
                             style={{
-                              flex: 1, padding: '8px 0', borderRadius: 10, border: `1.5px solid ${on ? accent : T.border}`,
-                              background: on ? accent : 'transparent', color: on ? T.navy : T.textSec,
+                              flex: 1, padding: '8px 0', borderRadius: 10, border: `1.5px solid ${on ? planAccent : T.border}`,
+                              background: on ? planAccent : 'transparent', color: on ? T.navy : T.textSec,
                               fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 13, cursor: 'pointer',
                               transition: 'all .14s ease',
                             }}
@@ -362,7 +366,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                 <div style={{ display: 'grid', gap: 7 }}>
                   {features.map((f, fi) => (
                     <div key={fi} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5 }}>
-                      <Icon name="check" size={13} color={accent} stroke={2.6}/>
+                      <Icon name="check" size={13} color={planAccent} stroke={2.6}/>
                       <span style={{ color: T.text }}>{f}</span>
                     </div>
                   ))}
@@ -373,8 +377,8 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                       <span style={{
                         marginLeft: 'auto', flexShrink: 0,
                         fontSize: 9, fontWeight: 700, letterSpacing: '.05em',
-                        color: accent, background: `${accent}18`,
-                        border: `1px solid ${accent}44`,
+                        color: planAccent, background: `${planAccent}18`,
+                        border: `1px solid ${planAccent}44`,
                         padding: '1px 6px', borderRadius: 4,
                         fontFamily: FF_MONO,
                       }}>
@@ -385,7 +389,7 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                 </div>
 
                 {note && (
-                  <div style={{ marginTop: 12, paddingTop: 11, borderTop: `1px solid ${T.border}`, fontSize: 11, color: accent, fontFamily: FF_MONO, lineHeight: 1.4 }}>
+                  <div style={{ marginTop: 12, paddingTop: 11, borderTop: `1px solid ${T.border}`, fontSize: 11, color: planAccent, fontFamily: FF_MONO, lineHeight: 1.4 }}>
                     {note}
                   </div>
                 )}
@@ -399,18 +403,14 @@ export function PlansScreen({ nav, user, source, upsertSubscription, updateProfi
                         padding: '9px 18px', borderRadius: 10, border: 'none',
                         background: isCurrent
                           ? T.surf2
-                          : showingTrainer
-                            ? `linear-gradient(135deg, ${TRAINER_PRIMARY} 0%, ${TRAINER_DEEP} 100%)`
-                            : C.green,
+                            : `linear-gradient(135deg, ${planAccent} 0%, ${planDeep} 100%)`,
                         color: isCurrent ? T.textMute : T.navy,
                         fontFamily: FF_DISPLAY, fontWeight: 800, fontSize: 13,
                         cursor: canConfirm ? 'pointer' : 'not-allowed',
                         opacity: canConfirm ? 1 : 0.45,
                         transition: 'all .15s ease',
                         boxShadow: canConfirm
-                          ? showingTrainer
-                            ? `0 6px 18px ${TRAINER_PRIMARY}55`
-                            : `0 6px 18px ${C.green}55`
+                          ? `0 6px 18px ${planAccent}55`
                           : 'none',
                         whiteSpace: 'nowrap',
                       }}

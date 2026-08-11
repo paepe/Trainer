@@ -1,5 +1,5 @@
 # Feature Access Matrix — TrAIner App
-**Versão:** 1.5
+**Versão:** 1.6
 **Data:** 2026-08-11
 **Estado:** Matriz de referência de acesso; Uso Justo publicado nos [Termos](https://trainer-lake.vercel.app/legal/terms) e na [Política](https://trainer-lake.vercel.app/legal/fair-use)
 
@@ -40,6 +40,8 @@ feature_permissions (Supabase)
 **Revisão 2026-08-11:** ao atingir a sessão autónoma semanal do FREE, a interface apresenta a limitação confirmada e o CTA contextual para AI FITNESS. O retorno autoritativo `sessions_per_week_limit_reached` não pode acionar o fallback local; assim, a comunicação e o backend mantêm a mesma regra. Não houve mudança de preço, entitlement, patrocínio, Termos ou Política de Uso Justo.
 
 **Revisão de comunicação 2026-08-11:** os dois cards de upgrade do FREE distinguem o benefício de AI FITNESS (check-in diário aplicado à adaptação do treino) do limite semanal atingido. A revisão apenas torna a proposta compreensível em PT/EN/ES/DE; não altera preço, entitlement, patrocínio, Termos ou Política de Uso Justo. Os CTAs partilham fundo primário, texto branco e borda arredondada.
+
+**Revisão visual 2026-08-11:** a identidade visual do CLIENT acompanha a licença comercial: FREE preserva ciano, AI FITNESS usa verde e AI PERFORMANCE usa lilás; o navy estrutural e a identidade coral do TRAINER permanecem inalterados. A mudança não altera preço, entitlement, limites, patrocínio, Termos ou Política de Uso Justo; apenas torna o nível actual e as opções de upgrade visualmente distinguíveis.
 
 | Funcionalidade | Descrição | FREE | AI FITNESS | AI PERFORMANCE |
 |---|---|:---:|:---:|:---:|
