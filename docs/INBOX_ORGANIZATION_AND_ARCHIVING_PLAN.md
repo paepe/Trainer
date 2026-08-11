@@ -1,6 +1,6 @@
 # Plano — Organização, Filtros e Arquivamento da Inbox
 
-**Status:** In validation — Phases 0–3 complete; Phase 4 local evidence in progress
+**Status:** In controlled pre-release validation — Phases 0–4 complete; Phase 5 in progress
 **Version:** 1.0
 **Created:** 2026-08-11
 **Last reviewed:** 2026-08-11
@@ -344,13 +344,30 @@ tests failed only at missing seed credentials and unavailable UI server `:5173`.
 **Objective:** validate the same commit in the shared pre-release environment
 without treating it as a commercial launch.
 
-- [ ] Apply the approved migration and deploy the validated commit to
-      pre-release under explicit operational authorisation.
+- [x] Apply the approved migration and deploy the validated commit to
+      pre-release under explicit operational authorisation. **Evidence
+      2026-08-11:** migration ledger reconciled without schema/data rewrite;
+      `supabase db push --linked` applied `20260811000000`–`20260811000400`;
+      commit `448da45` deployed as Vercel `dpl_5CVy65AgnwixZwgQyWezaqQqJpDx`
+      and `trainer-lake.vercel.app` returned HTTP 200.
 - [ ] Run authenticated visual smoke tests for one CLIENT and one TRAINER using
-      non-sensitive test data.
+      non-sensitive test data. **Partial evidence 2026-08-11:** TRAINER
+      `carlos.silva@trainer.test` loaded Inbox, pagination, categories, scope,
+      search and invitation management successfully. The isolated CLIENT
+      contract test was intentionally skipped against pre-release because the
+      workspace has no service-role credential for temporary fixture cleanup;
+      it passed in Docker local. Complete this item with a logged-in CLIENT
+      visual session or a controlled credentialed fixture run.
 - [ ] Confirm archive remains reversible and no notification/action is lost.
+      **Local evidence exists; pending pre-release visual confirmation.**
 - [ ] Confirm unread badges, Inbox navigation and logout remain unaffected.
-- [ ] Record deployment, test evidence, rollback reference and release posture.
+      **Inbox navigation passed for TRAINER; pending controlled CLIENT visual
+      confirmation.**
+- [x] Record deployment, test evidence, rollback reference and release posture.
+      **Evidence 2026-08-11:** source commit `448da45`; Vercel deployment
+      `dpl_5CVy65AgnwixZwgQyWezaqQqJpDx`; rollback is the preceding main
+      commit `b9ba842`. The target remains shared pre-release, not commercial
+      production.
 - [ ] Observe aggregate mailbox volume and archive use before introducing any
       retention or product policy change.
 
