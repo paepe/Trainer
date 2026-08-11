@@ -19,5 +19,5 @@
 - Um vínculo TRAINER–aluno permite colaboração prevista; não patrocina voz, interpretação ou adaptação por IA do aluno.
 - Operações internas não devem transformar custo técnico em direito comercial transferível.
 - Endpoints comerciais devem resolver a licença no backend do sujeito da funcionalidade, não no frontend.
-- O contrato alvo para aluno com TRAINER activo é usar Coach DNA e check-in persistido válidos; timeout é somente uma origem de navegação, não uma alteração de metodologia, licença ou quota. A resolução integral no backend permanece pendente na Fase 1 de `TRAINER_LINKED_AUTONOMOUS_WORKOUT_CONTINUITY_PLAN.md`.
+- Para aluno com TRAINER activo, `generate-smart-workout` resolve novamente no backend o vínculo e o Coach DNA activo; timeout é somente uma origem de navegação, não uma alteração de metodologia, licença ou quota. A resolução canónica do check-in permanece pendente na Fase 1 de `TRAINER_LINKED_AUTONOMOUS_WORKOUT_CONTINUITY_PLAN.md`.
 - Quando os endpoints autónomos `generate-smart-workout` ou `generate-workout` recusam por `sessions_per_week_limit_reached`, o cliente deve apresentar o estado comercial e não degradar para um treino local; fallback é reservado a indisponibilidade técnica, nunca a uma recusa de entitlement.

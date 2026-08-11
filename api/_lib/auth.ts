@@ -93,6 +93,36 @@ export async function hasActiveLink(userA: string, userB: string): Promise<boole
   }
 }
 
+/** Server-side source of an active TRAINER relationship for a client. */
+export async function getActiveTrainerIdForClient(clientId: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `${authSupabaseUrl()}/rest/v1/trainer_clients?select=trainer_id&client_id=eq.${encodeURIComponent(clientId)}&status=eq.active&limit=1`,
+      { headers: authServiceHeaders() },
+    );
+    if (!res.ok) return null;
+    const rows = await res.json() as { trainer_id?: string }[];
+    return rows[0]?.trainer_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Returns only the active Coach DNA row used to build a workout prompt. */
+export async function getActiveCoachDNA(trainerId: string): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch(
+      `${authSupabaseUrl()}/rest/v1/coach_dna?select=*&trainer_id=eq.${encodeURIComponent(trainerId)}&dna_active=eq.true&limit=1`,
+      { headers: authServiceHeaders() },
+    );
+    if (!res.ok) return null;
+    const rows = await res.json() as Record<string, unknown>[];
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Consent is read from the persisted profile, never from a client request body.
  * Missing, malformed, or unavailable consent is deliberately treated as denied.

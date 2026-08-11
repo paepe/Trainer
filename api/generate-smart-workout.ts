@@ -13,7 +13,7 @@
 // carry ("does not trace relative imports"). This was the first of the 3 AI
 // gates without server-side authority; see resolveAuthoritativeTaskGates
 // below for where the fix actually happens.
-import { hasJsonContentType, verifyRequestUser, hasActiveLink } from './_lib/auth.js';
+import { hasJsonContentType, verifyRequestUser, hasActiveLink, getActiveCoachDNA, getActiveTrainerIdForClient } from './_lib/auth.js';
 import {
   resolveUserEntitlements, countSessionsThisWeek, isSessionsPerWeekCapReached,
   resolveAuthoritativeTaskGates,
@@ -23,6 +23,7 @@ import { claimAIRequest, completeAIRequest, releaseAIOperation } from './_lib/ai
 import { isJsonObject } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
 import { rejectPostAuthAIBurst } from './_lib/postAuthRateLimit.js';
+import { buildTrainerContext } from '../src/ai/buildAIContext.js';
 
 type ProviderFailureKind = 'timeout' | 'http_error' | 'non_json_response' | 'invalid_json_response' | 'network_or_runtime';
 
@@ -1111,6 +1112,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(403).json({ error: 'Caller is not the client or their linked trainer' });
   }
 
+  // Coach DNA is an authority-owned professional profile. A client may choose
+  // to start autonomously, but never to supply, suppress, or alter a linked
+  // TRAINER's methodology in the request body. When there is no active DNA,
+  // the existing AI Coach + client-preference context remains applicable.
+  const activeTrainerId = isClientSelf
+    ? await getActiveTrainerIdForClient(caller.id)
+    : caller.id;
+  const activeCoachDNA = activeTrainerId
+    ? await getActiveCoachDNA(activeTrainerId)
+    : null;
+
   // ── Server-side authority for the AI generation gates (Fase 2 of
   // docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md, auditoria §3.1).
   // body.task.maxExercises/fitnessOnly are still accepted on the wire for
@@ -1187,6 +1199,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const ctx: AIContext = {
     ...body,
+    trainer: activeCoachDNA ? buildTrainerContext(activeCoachDNA as any) : body.trainer,
     // Overrides the client-supplied task gates with the server-resolved
     // ones — from here on, everything downstream (the prompt itself via
     // buildPrompt(ctx), requiresPerformanceContent(ctx), the post-hoc

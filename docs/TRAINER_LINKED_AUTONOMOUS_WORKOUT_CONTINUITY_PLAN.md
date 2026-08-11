@@ -93,7 +93,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 **Esforço:** médio · **Risco:** alto (fluxo runtime de treino) · **Migração:** provavelmente sim
 
 - [ ] Criar um resolvedor server-side único para `autonomous_direct` e `trainer_timeout`.
-- [ ] Resolver no servidor: aluno, vínculo TRAINER activo, estado do convite/relacionamento, entitlement efectivo, Coach DNA aplicável e check-in válido.
+- [~] Resolver no servidor: aluno, vínculo TRAINER activo, estado do convite/relacionamento, entitlement efectivo, Coach DNA aplicável e check-in válido. **Parcial:** `generate-smart-workout` já resolve no servidor o vínculo activo e o Coach DNA; validade/check-in canónico ainda é o próximo item.
 - [x] Remover a regra cliente que força `coachDNA = null` em `source === 'trainer_timeout'`. Evidência: `StartWorkoutScreen.tsx`; o timeout passa a usar o mesmo contexto Coach DNA do Workout directo.
 - [ ] Incluir Coach DNA no contrato de geração somente quando o vínculo e o DNA forem válidos; caso contrário, usar a IA padrão sem atribuição enganosa.
 - [ ] Aplicar `workout.sessions_per_week` e `workout.exercises_per_session` na mesma autoridade para ambos os pontos de entrada.
@@ -219,4 +219,4 @@ Não haverá fase marcada como concluída apenas por alteração de UI ou por te
 | Data | Fase | Evidência | Estado |
 |---|---|---|---|
 | 2026-08-11 | 0 | Matriz de acesso, política patrocinada e matriz de autoridade reconciliadas; telemetria/bounds/degradação revistos sem impacto material | Parcial — falta decidir e implementar validade do check-in. |
-| 2026-08-11 | 1–3 | Coach DNA preservado no timeout; `ai_suggestions.checkin_id` persistido; card de timeout consumido por RPC após plano persistido; 4 locales | Parcial — centralização integral server-side e rastreabilidade estruturada seguem pendentes. |
+| 2026-08-11 | 1–3 | Coach DNA preservado no timeout e resolvido novamente no servidor para impedir supressão/alteração no request; `ai_suggestions.checkin_id` persistido; card de timeout consumido por RPC após plano persistido; 4 locales | Parcial — check-in canónico server-side e rastreabilidade estruturada seguem pendentes. |
