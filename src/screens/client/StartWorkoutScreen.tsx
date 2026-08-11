@@ -161,6 +161,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const [trainerAvatarUrl, setTrainerAvatarUrl] = React.useState<string | null>(null);
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
+  // A check-in improves the relevance of an autonomous workout, but is never
+  // a prerequisite. This drives only a dismissible UI reminder.
+  const [hasPersistedCheckin, setHasPersistedCheckin] = React.useState<boolean | null>(null);
+  const [showCheckinAdvisory, setShowCheckinAdvisory] = React.useState(true);
   const [trainerPlans, setTrainerPlans] = React.useState<PlanCard[]>([]);
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [startingPlanId, setStartingPlanId] = React.useState<string | null>(null);
@@ -499,6 +503,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const profileData = profileRes.status === 'fulfilled' ? profileRes.value.data : null;
         // Also build legacy resolvedCheckin for UI display and persist
         const ciData = checkinRes.status === 'fulfilled' ? checkinRes.value.data : null;
+        setHasPersistedCheckin(!!ciData);
         const sourceCheckinId = ciData?.id ?? null;
         if (ciData) {
           const qd = ciData.quick_data as { pain?: { present?: boolean; region?: string }; fatigue?: number } | null;
@@ -894,6 +899,33 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {planStartNotice && (
         <div role="alert" style={{ margin: '0 22px 12px', padding: '10px 12px', borderRadius: 10, background: `${t.amber}18`, border: `1px solid ${t.amber}55`, color: t.amber, fontSize: 12, lineHeight: 1.5 }}>
           {planStartNotice}
+        </div>
+      )}
+
+      {/* Advisory only: autonomous Workout continues without a check-in.
+          Prescribed trainer plans retain their established realtime flow. */}
+      {hasPersistedCheckin === false && !hasTrainerPlans && planSource !== 'trainer' && showCheckinAdvisory && (
+        <div style={{ margin: '0 22px 12px', padding: '13px 14px', borderRadius: 12, background: `${t.primary}0d`, border: `1px solid ${t.primary}44` }}>
+          <div style={{ fontSize: 13, fontWeight: 750, color: inkPri(dark), marginBottom: 4 }}>
+            {tr('client.workout.checkinAdvisoryTitle')}
+          </div>
+          <div style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.5, marginBottom: 10 }}>
+            {tr('client.workout.checkinAdvisoryBody')}
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={() => nav('checkin')}
+              style={{ padding: '8px 12px', borderRadius: 9, border: `1px solid ${t.primary}99`, background: `${t.primary}16`, color: t.primary, fontFamily: 'inherit', fontSize: 12, fontWeight: 750, cursor: 'pointer' }}
+            >
+              {tr('client.workout.checkinAdvisoryCta')}
+            </button>
+            <button
+              onClick={() => setShowCheckinAdvisory(false)}
+              style={{ padding: '8px 4px', border: 'none', background: 'transparent', color: textSec(dark), fontFamily: 'inherit', fontSize: 12, cursor: 'pointer' }}
+            >
+              {tr('client.workout.checkinAdvisoryDismiss')}
+            </button>
+          </div>
         </div>
       )}
 

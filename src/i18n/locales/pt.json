@@ -1266,6 +1266,10 @@
       "aiLockedFree": "Seu treino pode se adaptar a como você está hoje.",
       "aiLockedFreeNote": "No AI Fitness, seu plano considera seu check-in diário para ajustar o treino à sua energia, sono e fadiga.",
       "aiLockedFreeCta": "Upgrade para AI Fitness",
+      "checkinAdvisoryTitle": "Confirme como você está hoje",
+      "checkinAdvisoryBody": "Você pode iniciar o treino agora. Um check-in ajuda a IA a considerar sua energia, sono e desconfortos de hoje.",
+      "checkinAdvisoryCta": "Fazer check-in",
+      "checkinAdvisoryDismiss": "Agora não",
       "limitWeekly": "Atingiu o limite de {{n}} sessão/semana do plano Free.",
       "limitWeeklyNote": "Continue treinando sempre que quiser com o AI Fitness.",
       "limitWeeklyCta": "Upgrade AI Fitness — sessões ilimitadas"
