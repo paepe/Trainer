@@ -1115,12 +1115,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               <button
                 onClick={() => nav('plans', { source: 'manage' })}
                 style={{
-                  padding: '6px 14px', borderRadius: 8, border: 'none',
+                  padding: '8px 18px', borderRadius: 999, border: 'none',
                   background: t.primary, color: '#fff',
-                  fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
                 }}
               >
-                {tr('trainer.dashboard.upgradeNow')}
+                {tr('client.workout.aiLockedFreeCta')}
               </button>
             </div>
           </div>
@@ -1160,11 +1160,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               {tr('client.workout.limitWeekly', { n: genState.limit })}
             </div>
             <div style={{ fontSize: 11.5, color: textSec(dark), lineHeight: 1.5, marginBottom: 12 }}>
-              {tr('client.workout.limitWeeklyCta')}
+              {tr('client.workout.limitWeeklyNote')}
             </div>
             <button onClick={() => nav('plans', { source: 'weekly-limit' })} style={{
               padding: '8px 18px', borderRadius: 999, border: 'none',
-              background: t.primary, color: '#0E1A2B',
+              background: t.primary, color: '#fff',
               fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
             }}>{tr('client.workout.limitWeeklyCta')}</button>
           </div>

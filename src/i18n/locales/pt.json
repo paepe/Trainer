@@ -1260,10 +1260,12 @@
       "notificationBodyPostponed": "{{name}} adiou o plano de treino de {{planDate}}.",
       "unknownError": "Erro desconhecido",
       "cancelLabel": "Cancelar",
-      "aiLockedFree": "A calibragem diária por check-in está disponível a partir do plano AI Fitness.",
-      "aiLockedFreeNote": "Seu plano já é gerado por IA, mas ainda não se adapta à sua energia, sono ou fadiga do dia. Faça upgrade para calibrá-lo pelo seu check-in diário.",
+      "aiLockedFree": "Seu treino pode se adaptar a como você está hoje.",
+      "aiLockedFreeNote": "No AI Fitness, seu plano considera seu check-in diário para ajustar o treino à sua energia, sono e fadiga.",
+      "aiLockedFreeCta": "Upgrade para AI Fitness",
       "limitWeekly": "Atingiu o limite de {{n}} sessão/semana do plano Free.",
-      "limitWeeklyCta": "Actualize para AI Fitness — sessões ilimitadas"
+      "limitWeeklyNote": "Continue treinando sempre que quiser com o AI Fitness.",
+      "limitWeeklyCta": "Upgrade AI Fitness — sessões ilimitadas"
     },
     "mode": {
       "finishWorkout": "Finalizar Treino",
