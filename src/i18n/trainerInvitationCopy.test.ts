@@ -22,6 +22,8 @@ describe('trainer invitation UI copy', () => {
       const detail = copy.trainer.detail;
       expect(detail.availableForLaterReview, `${locale}:detail.availableForLaterReview`).toEqual(expect.any(String));
       expect(detail.availableForLaterReview, `${locale}:detail.availableForLaterReview`).not.toHaveLength(0);
+      expect(detail.checkinApplied, `${locale}:detail.checkinApplied`).toEqual(expect.any(String));
+      expect(detail.checkinApplied, `${locale}:detail.checkinApplied`).not.toHaveLength(0);
       const workout = copy.client.workout;
       for (const key of ['trainerTimeoutBanner', 'trainerTimeoutBannerCoachDna', 'trainerTimeoutBannerAi', 'limitWeekly', 'limitWeeklyCta']) {
         expect(workout[key as keyof typeof workout], `${locale}:workout.${key}`).toEqual(expect.any(String));

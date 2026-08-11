@@ -1,6 +1,6 @@
 # TrAIner — Matriz de Autoridade dos Endpoints de IA
 
-**Estado:** inventário técnico verificado — 2026-08-11
+**Estado:** inventário técnico verificado — 2026-08-12
 
 | Endpoint | Natureza | Quem pode iniciar | Autoridade comercial | Proteção principal |
 |---|---|---|---|---|
@@ -20,6 +20,7 @@
 - Operações internas não devem transformar custo técnico em direito comercial transferível.
 - Endpoints comerciais devem resolver a licença no backend do sujeito da funcionalidade, não no frontend.
 - Para aluno com TRAINER activo, `generate-smart-workout` resolve novamente no backend o vínculo, o Coach DNA activo e o último check-in persistido quando existir; timeout é somente uma origem de navegação, não uma alteração de metodologia, licença ou quota. A proveniência `trainer_timeout` só é persistida se o banco confirmar a notificação `workout_timeout` ainda acionável, destinada ao aluno e vinculada ao TRAINER activo; caso contrário o plano é `autonomous_direct`. O identificador da notificação não é mostrado na UI nem enviado à telemetria. Ausência de check-in não bloqueia o Workout: a geração usa o estado disponível sem alegar calibração confirmada do dia.
+- O histórico do TRAINER recebe somente metadados minimizados do treino autónomo: origem, aplicação de Coach DNA e o booleano `checkin_applied`. A referência e o conteúdo do check-in permanecem em `ai_suggestions`, exclusiva do aluno; não há voz, interpretação, campos clínicos ou conteúdo de Ritmo Corporal copiados para `workout_plans`.
 - A quota `workout.sessions_per_week` conta exclusivamente sessões iniciadas de planos `ai_generated`; sessões de planos prescritos pelo TRAINER nunca consomem a quota autónoma do aluno.
 - Quando o aluno activa voluntariamente Ritmo Corporal, `generate-smart-workout` resolve dia/duração do ciclo e preferência de adaptação da `profile_v2` no backend para personalizar o seu próprio plano. Essa informação é enviada ao provedor de IA somente pelo backend; a sua divulgação ao TRAINER continua a depender exclusivamente da matriz de compartilhamento do aluno. Decisão explícita Product/Privacy registrada em 2026-08-11.
 - Quando os endpoints autónomos `generate-smart-workout` ou `generate-workout` recusam por `sessions_per_week_limit_reached`, o cliente deve apresentar o estado comercial e não degradar para um treino local; fallback é reservado a indisponibilidade técnica, nunca a uma recusa de entitlement.

@@ -1,8 +1,8 @@
 # Plano de Implementação — Workout Autónomo Vinculado ao TRAINER e Continuidade de Check-in
 
-**Versão:** 1.4
+**Versão:** 1.5
 **Data inicial:** 2026-08-11
-**Estado:** Em execução — Fases 0–3 concluídas; continuidade, proveniência, Inbox e CTAs publicadas no pre-release
+**Estado:** Em execução — Fases 0–4 concluídas; validação integrada e smoke permanecem na Fase 5
 **Referências:** `docs/WORKOUT_READY_TIMEOUT_PLAN.md` · `docs/WORKOUT_PLAN_EXPIRY_CONTROL.md` · `docs/FEATURE_ACCESS_MATRIX.md` · `docs/AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md` · `docs/AI_GOVERNANCE_CHANGE_GATE.md`
 
 ---
@@ -149,12 +149,12 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 **Esforço:** pequeno/médio · **Risco:** médio · **Migração:** depende da Fase 2
 
 - [x] Apresentar no histórico/dashboard do TRAINER que o aluno iniciou treino autónomo, incluindo origem e data/hora no locale adequado. Evidência: histórico `Plano & Treino` mostra treino autónomo por IA ou orientado pelo DNA Coach; a data existente usa o locale da aplicação.
-- [ ] Mostrar, quando permitido, que o treino usou o Coach DNA e o check-in aplicável, sem expor voz, interpretação ou conteúdo além das permissões existentes.
+- [x] Mostrar, quando permitido, que o treino usou o Coach DNA e o check-in aplicável, sem expor voz, interpretação ou conteúdo além das permissões existentes. Evidência: migrações `20260812001000` e `20260812003000` mantêm em `workout_plans` apenas `checkin_applied`, validando que sugestão e check-in pertencem ao aluno; `TrainerClientDetailScreen.tsx` mostra o booleano somente ao lado da proveniência autónoma. A referência e o conteúdo sensível continuam em `ai_suggestions`, sem ampliar RLS; `20260812002000` revoga a execução directa das funções internas.
 - [x] Separar visualmente: “prescrito”, “autónomo orientado pelo DNA Coach” e “autónomo por IA”. Evidência: somente planos com `autonomous_origin` exibem o novo rótulo; planos manuais preservam a apresentação estabilizada.
-- [ ] Não enviar notificação invasiva por cada abertura de card; notificar eventos relevantes segundo a política actual de Inbox.
-- [ ] Confirmar que o desligamento de acompanhamento corta o acesso futuro ao DNA e dados do TRAINER, sem alterar o histórico legítimo já registado.
+- [x] Não enviar notificação invasiva por cada abertura de card; notificar eventos relevantes segundo a política actual de Inbox. Evidência: abrir o card só navega ao Workout; a mensagem ao TRAINER é criada somente após geração de timeout bem-sucedida, que é um evento relevante já existente. A nova proveniência não cria notificação.
+- [x] Confirmar que o desligamento de acompanhamento corta o acesso futuro ao DNA e dados do TRAINER, sem alterar o histórico legítimo já registado. Evidência: `end_my_trainer_link` muda `trainer_clients.status` para `ended`; `getActiveTrainerIdForClient` e a policy remota `trainer reads client plans` exigem `status = active`. Assim, geração futura não lê Coach DNA e o TRAINER perde leitura futura, enquanto os registros históricos não são apagados.
 
-**Conclusão da fase:** o TRAINER consegue monitorar e avaliar depois, sem falsa expectativa de atendimento síncrono.
+**Conclusão da fase:** o TRAINER consegue monitorar e avaliar depois, sem falsa expectativa de atendimento síncrono. O gate de IA/licenciamento/dado sensível foi aplicado: não há nova categoria de dado, endpoint, telemetria, claim público ou aprovação externa necessária; a Matriz de Autoridade foi actualizada para registar a minimização.
 
 ---
 

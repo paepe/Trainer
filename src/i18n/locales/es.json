@@ -947,6 +947,7 @@
       "autonomousCoachDna": "Entrenamiento autónomo guiado por el ADN Coach",
       "autonomousAi": "Entrenamiento autónomo por IA",
       "availableForLaterReview": "Disponible para revisión posterior",
+      "checkinApplied": "Check-in aplicado como contexto del entrenamiento",
       "readinessCheckinFor": "Check-in de Preparación para {{name}}"
     },
     "planner": {

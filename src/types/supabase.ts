@@ -2184,6 +2184,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           coach_dna_applied: boolean
+          checkin_applied: boolean
           expires_at: string | null
           id: string
           protocol_id: string | null
@@ -2202,6 +2203,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           coach_dna_applied?: boolean
+          checkin_applied?: boolean
           expires_at?: string | null
           id?: string
           protocol_id?: string | null
@@ -2220,6 +2222,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           coach_dna_applied?: boolean
+          checkin_applied?: boolean
           expires_at?: string | null
           id?: string
           protocol_id?: string | null

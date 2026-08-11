@@ -947,6 +947,7 @@
       "autonomousCoachDna": "Autonomous workout guided by Coach DNA",
       "autonomousAi": "Autonomous AI workout",
       "availableForLaterReview": "Available for later review",
+      "checkinApplied": "Check-in applied as workout context",
       "readinessCheckinFor": "Readiness Check-in for {{name}}"
     },
     "planner": {

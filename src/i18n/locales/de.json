@@ -946,6 +946,7 @@
       "autonomousCoachDna": "Eigenständiges Training nach Coach DNA",
       "autonomousAi": "Eigenständiges KI-Training",
       "availableForLaterReview": "Zur späteren Überprüfung verfügbar",
+      "checkinApplied": "Check-in als Trainingskontext verwendet",
       "readinessCheckinFor": "Bereitschafts-Check-in für {{name}}"
     },
     "planner": {
