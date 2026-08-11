@@ -2,7 +2,7 @@
 
 **Versão:** 1.2
 **Data inicial:** 2026-08-11
-**Estado:** Em execução — Fase 0 parcialmente concluída; controlos iniciais de continuidade implementados localmente
+**Estado:** Em execução — Fase 0 concluída; controlos iniciais de continuidade implementados e publicados no pre-release
 **Referências:** `docs/WORKOUT_READY_TIMEOUT_PLAN.md` · `docs/WORKOUT_PLAN_EXPIRY_CONTROL.md` · `docs/FEATURE_ACCESS_MATRIX.md` · `docs/AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md` · `docs/AI_GOVERNANCE_CHANGE_GATE.md`
 
 ---
@@ -87,7 +87,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [x] Rever `AI_ENDPOINT_AUTHORITY_MATRIX.md`, `AI_TELEMETRY_DATA_CONTRACT.md`, `AI_ENDPOINT_OPERATIONAL_BOUNDS.md` e `AI_ENDPOINT_DEGRADATION_POLICY.md`; a origem do treino não é enviada à telemetria e não altera limites. Ritmo Corporal activado é resolvido de `profile_v2` pelo backend, permanece excluído da telemetria e, se a leitura falhar, a geração segue sem esse contexto — sem tornar o payload do cliente autoritativo.
 - [x] Definir a regra de check-in para geração autónoma: check-in é opcional. Quando houver um check-in persistido aplicável, a geração o utiliza; quando não houver confirmação actual, a UI recomenda validá-lo, sem bloquear Workout. Decisão de produto confirmada em 2026-08-11.
 - [x] Estender o aconselhamento opcional a Ritmo Corporal quando o próprio aluno o activou; ele é contexto da geração para o próprio aluno, enquanto a divulgação ao TRAINER permanece nas configurações existentes de compartilhamento. Autorização explícita Product/Privacy para o envio backend → DeepSeek de dia/duração do ciclo e preferência de adaptação, registrada em 2026-08-11. Evidência: `StartWorkoutScreen.tsx` e `buildAIContext.ts` usam `profile_v2.body_rhythm.enabled`; `AI_ENDPOINT_AUTHORITY_MATRIX.md` registra a autoridade e `AI_TELEMETRY_DATA_CONTRACT.md` mantém exclusão de telemetria.
-- [ ] Definir a apresentação de datas/horas com instante UTC autoritativo e formatação no locale do aluno.
+- [x] Definir a apresentação de datas/horas com instante UTC autoritativo e formatação no locale do aluno. Evidência: `WORKOUT_PLAN_EXPIRY_CONTROL.md`, migração `20260811201000_server_authoritative_workout_plan_expiry.sql` e `StartWorkoutScreen.tsx` validam no servidor e apresentam `expires_at` em `Intl.DateTimeFormat` no locale do aluno.
 - [x] Registar a decisão de aprovação Product/Privacy exigida: autorização explícita de 2026-08-11 para que o backend envie ao DeepSeek os dados de Ritmo Corporal activados pelo aluno, exclusivamente para gerar o seu plano; divulgação ao TRAINER não é alterada.
 
 **Conclusão da fase:** contrato técnico, comercial e documental sem contradições.
