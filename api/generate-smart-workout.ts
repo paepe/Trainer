@@ -13,7 +13,7 @@
 // carry ("does not trace relative imports"). This was the first of the 3 AI
 // gates without server-side authority; see resolveAuthoritativeTaskGates
 // below for where the fix actually happens.
-import { hasJsonContentType, verifyRequestUser, hasActiveLink, getActiveCoachDNA, getActiveTrainerIdForClient } from './_lib/auth.js';
+import { hasJsonContentType, verifyRequestUser, hasActiveLink, getActiveCoachDNA, getActiveTrainerIdForClient, getLatestPersistedCheckinForClient } from './_lib/auth.js';
 import {
   resolveUserEntitlements, countSessionsThisWeek, isSessionsPerWeekCapReached,
   resolveAuthoritativeTaskGates,
@@ -23,7 +23,7 @@ import { claimAIRequest, completeAIRequest, releaseAIOperation } from './_lib/ai
 import { isJsonObject } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
 import { rejectPostAuthAIBurst } from './_lib/postAuthRateLimit.js';
-import { buildTrainerContext } from '../src/ai/buildAIContext.js';
+import { buildTrainerContext, buildTodayContext } from '../src/ai/buildAIContext.js';
 
 type ProviderFailureKind = 'timeout' | 'http_error' | 'non_json_response' | 'invalid_json_response' | 'network_or_runtime';
 
@@ -1123,6 +1123,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? await getActiveCoachDNA(activeTrainerId)
     : null;
 
+  // Check-in is an optional workout input, never a client-side authority. If
+  // there is a persisted row, its readiness and safety values win over the
+  // request. Without one, the workout remains available using the state sent
+  // by the client — this is intentionally not a check-in requirement.
+  const persistedCheckin = await getLatestPersistedCheckinForClient(body.client.id);
+  const resolvedToday = persistedCheckin
+    ? buildTodayContext(persistedCheckin as any) as TodayContext
+    : body.today;
+
   // ── Server-side authority for the AI generation gates (Fase 2 of
   // docs/LICENSING_AUTHORITY_AND_COMMERCIAL_MODEL_PLAN.md, auditoria §3.1).
   // body.task.maxExercises/fitnessOnly are still accepted on the wire for
@@ -1158,10 +1167,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'DEEPSEEK_API_KEY not set' });
   }
 
-  if (body.today.aiLedBlocked || body.today.safetyStatus === 'blocked') {
+  if (resolvedToday.aiLedBlocked || resolvedToday.safetyStatus === 'blocked') {
     const snapshot = {
-      readinessScore: body.today.readinessScore,
-      safetyStatus:   body.today.safetyStatus,
+      readinessScore: resolvedToday.readinessScore,
+      safetyStatus:   resolvedToday.safetyStatus,
       adaptations:    ['AI-led session blocked by safety gate'],
     };
     const blockResponse: SmartWorkoutResponse = {
@@ -1200,6 +1209,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ctx: AIContext = {
     ...body,
     trainer: activeCoachDNA ? buildTrainerContext(activeCoachDNA as any) : body.trainer,
+    today: resolvedToday,
     // Overrides the client-supplied task gates with the server-resolved
     // ones — from here on, everything downstream (the prompt itself via
     // buildPrompt(ctx), requiresPerformanceContent(ctx), the post-hoc

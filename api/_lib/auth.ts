@@ -124,6 +124,34 @@ export async function getActiveCoachDNA(trainerId: string): Promise<Record<strin
 }
 
 /**
+ * Server-side source of the optional check-in context used by autonomous
+ * workout generation. The row stays inside the backend and is never exposed
+ * through this helper; callers use it only to build the AI context.
+ */
+export async function getLatestPersistedCheckinForClient(clientId: string): Promise<Record<string, unknown> | null> {
+  try {
+    const fields = [
+      'id', 'occurred_at', 'variant', 'readiness_score', 'energy_level',
+      'fatigue_level', 'pain_present', 'pain_intensity', 'sleep_quality',
+      'available_minutes', 'training_location', 'ai_led_blocked',
+      'safety_gate', 'quick_data', 'detailed_data',
+    ].join(',');
+    const res = await fetch(
+      `${authSupabaseUrl()}/rest/v1/checkin_prontidao?select=${fields}&user_id=eq.${encodeURIComponent(clientId)}&order=occurred_at.desc&limit=1`,
+      { headers: authServiceHeaders() },
+    );
+    if (!res.ok) return null;
+    const rows = await res.json() as Record<string, unknown>[];
+    return rows[0] ?? null;
+  } catch {
+    // Check-in is intentionally optional. An unavailable read must not make
+    // an autonomous workout unavailable; the endpoint falls back to the
+    // client's current non-clinical context below.
+    return null;
+  }
+}
+
+/**
  * Consent is read from the persisted profile, never from a client request body.
  * Missing, malformed, or unavailable consent is deliberately treated as denied.
  */

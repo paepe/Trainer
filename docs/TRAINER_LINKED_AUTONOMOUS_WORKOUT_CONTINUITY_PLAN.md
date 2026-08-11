@@ -97,7 +97,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 **Esforço:** médio · **Risco:** alto (fluxo runtime de treino) · **Migração:** provavelmente sim
 
 - [ ] Criar um resolvedor server-side único para `autonomous_direct` e `trainer_timeout`.
-- [~] Resolver no servidor: aluno, vínculo TRAINER activo, estado do convite/relacionamento, entitlement efectivo, Coach DNA aplicável e o último check-in persistido quando existir. **Parcial:** `generate-smart-workout` já resolve no servidor o vínculo activo e o Coach DNA; leitura canónica opcional do check-in ainda é o próximo item.
+- [x] Resolver no servidor: aluno, vínculo TRAINER activo, estado do convite/relacionamento, entitlement efectivo, Coach DNA aplicável e o último check-in persistido quando existir. Evidência: `generate-smart-workout` resolve vínculo, Coach DNA e check-in persistido no backend; na ausência de check-in, mantém a geração com o estado disponível, sem bloqueio.
 - [x] Remover a regra cliente que força `coachDNA = null` em `source === 'trainer_timeout'`. Evidência: `StartWorkoutScreen.tsx`; o timeout passa a usar o mesmo contexto Coach DNA do Workout directo.
 - [ ] Incluir Coach DNA no contrato de geração somente quando o vínculo e o DNA forem válidos; caso contrário, usar a IA padrão sem atribuição enganosa.
 - [ ] Aplicar `workout.sessions_per_week` e `workout.exercises_per_session` na mesma autoridade para ambos os pontos de entrada.
@@ -225,5 +225,5 @@ Não haverá fase marcada como concluída apenas por alteração de UI ou por te
 
 | Data | Fase | Evidência | Estado |
 |---|---|---|---|
-| 2026-08-11 | 0 | Matriz de acesso, política patrocinada e matriz de autoridade reconciliadas; telemetria/bounds/degradação revistos sem impacto material; check-in definido como opcional | Parcial — falta apenas a leitura canónica opcional do check-in. |
-| 2026-08-11 | 1–3 | Coach DNA preservado no timeout e resolvido novamente no servidor para impedir supressão/alteração no request; `ai_suggestions.checkin_id` persistido; card de timeout consumido por RPC após plano persistido; card de aconselhamento opcional de check-in em PT/EN/ES/DE | Parcial — leitura canónica opcional do check-in e rastreabilidade estruturada seguem pendentes. |
+| 2026-08-11 | 0–1 | Matriz de acesso, política patrocinada e matriz de autoridade reconciliadas; telemetria/bounds/degradação revistos sem impacto material; check-in definido como opcional e resolvido canonicamente pelo backend quando existir | Parcial — faltam rastreabilidade estruturada e testes de contrato ponta a ponta. |
+| 2026-08-11 | 1–3 | Coach DNA e check-in persistido resolvidos novamente no servidor para impedir supressão/alteração no request; `ai_suggestions.checkin_id` persistido; card de timeout consumido por RPC após plano persistido; card de aconselhamento opcional de check-in em PT/EN/ES/DE | Parcial — rastreabilidade estruturada e testes de contrato ponta a ponta seguem pendentes. |
