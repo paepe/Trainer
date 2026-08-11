@@ -19,6 +19,10 @@ O resultado deve ser um único contrato server-side que:
 4. diferencia treino **monitorado posteriormente** de treino prescrito/acompanhado;
 5. impede que um card histórico de timeout funcione como uma fonte infinita e ambígua de novos treinos.
 
+### Invariante de preservação
+
+O acompanhamento **realtime** de check-in pelo TRAINER e a capacidade de o profissional prescrever/enviar um treino a partir desse check-in são fluxos estabilizados e ficam fora do escopo funcional desta iniciativa. Nenhuma fase pode alterar o envio de `workout_ready`, a leitura realtime de `checkin_prontidao`, a decisão manual do TRAINER, nem os caminhos de plano `manual`, `workout_approved` e `workout_rejected`.
+
 ---
 
 ## 2. Decisões de produto já confirmadas
@@ -100,6 +104,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [ ] Distinguir plano prescrito de treino autónomo para que o primeiro não conte na quota autónoma FREE.
 - [ ] Consumir a quota somente após geração autónoma server-side bem-sucedida; falha, Safety Gate, check-in ausente ou clique no CTA não consomem sessão.
 - [ ] Garantir Safety Gate e dados de dor como invariantes, independentemente da licença, origem ou disponibilidade de calibração diária.
+- [ ] Proteger por testes de regressão o fluxo realtime existente: check-in do aluno → actualização no TRAINER → prescrição/envio de plano manual → aprovação/rejeição no aluno.
 - [ ] Definir respostas determinísticas: `generated`, `limit_reached`, `checkin_required`, `safety_blocked`, `relationship_unavailable` e `generation_unavailable`.
 
 **Conclusão da fase:** nenhum caminho de UI decide Coach DNA, quota ou validade clínica por conta própria.
@@ -159,6 +164,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [ ] Testes de autorização server-side: FREE no limite semanal, FREE fora do limite, AI FITNESS/PERFORMANCE, plano prescrito e tentativa de bypass do frontend.
 - [ ] Testes de segurança: Safety Gate bloqueado, dor sinalizada, queda de IA e continuação segura de uma sessão já iniciada.
 - [ ] Testes de Inbox: timeout uma vez, consumo da acção, retorno ao treino criado, reabertura do card e acesso normal pelo módulo Workout.
+- [ ] Regressão realtime: o TRAINER recebe o check-in do aluno em tempo real e continua podendo enviar plano manual a partir dele, sem interferência do caminho autónomo/timeout.
 - [ ] Smoke visual local nas quatro locales e nas assinaturas FREE/AI FITNESS/AI PERFORMANCE relevantes.
 - [ ] Smoke no pre-release com contas de teste: aluno sem TRAINER, aluno FREE vinculado, aluno pago vinculado e TRAINER com/sem Coach DNA.
 - [ ] Executar `npx tsc --noEmit`, `npm test`, `npm run build`, validação SQL/RLS e `git diff --check`.
@@ -181,6 +187,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 8. O TRAINER vê o treino para avaliação posterior, sem o sistema dizer que a sessão foi supervisionada ou aprovada.
 9. O backend é a autoridade de vínculo, Coach DNA, validade do check-in, safety e limites; a UI apenas apresenta a decisão.
 10. Nenhum plano ou sessão em curso é interrompido por mudanças nesta lógica.
+11. O fluxo realtime de check-in e prescrição remota do TRAINER mantém exactamente a autoridade e a experiência já validadas.
 
 ---
 
