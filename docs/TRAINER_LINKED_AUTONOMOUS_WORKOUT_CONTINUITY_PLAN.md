@@ -33,6 +33,7 @@ O acompanhamento **realtime** de check-in pelo TRAINER e a capacidade de o profi
 | Papel do Coach DNA | O treino autónomo do aluno vinculado é orientado pelo DNA do TRAINER quando há DNA activo; não deve ser apresentado como plano supervisionado. |
 | Plano prescrito | O plano prescrito pelo TRAINER usa a sua metodologia/Coach DNA, é integralmente executável pelo aluno e não consome a quota autónoma do aluno. |
 | Check-in | Não é obrigatório para iniciar Workout. Quando existir check-in persistido aplicável, ele orienta a geração; sem novo check-in, o aluno segue com o seu estado actual e recebe apenas aconselhamento para confirmar as condições do dia. O vínculo patrocina ao aluno FREE a captura manual detalhada, mas não voz, interpretação nem ajuste de IA. |
+| Ritmo Corporal | Para aluno que activou voluntariamente Ritmo Corporal e autorizou uso pela IA, o lembrete de Workout recomenda revê-lo junto do check-in. A geração continua opcional e a visibilidade para terceiros segue exclusivamente as configurações/grants já existentes do aluno. |
 | Fallback por timeout | É uma entrada alternativa para o mesmo treino autónomo, não uma autorização especial, nem crédito adicional de sessões. |
 | Monitoramento | O TRAINER pode avaliar posteriormente histórico, sessão, check-ins e progresso; não existe acompanhamento em tempo real nem aprovação tácita. |
 | Limites comerciais | FREE mantém 1 sessão autónoma/semana e até 6 exercícios; AI FITNESS e AI PERFORMANCE mantêm uso comercialmente ilimitado, sujeito a Uso Justo. Planos prescritos não consomem a quota autónoma. |
@@ -85,6 +86,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [x] Atualizar `AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md`: treino autónomo orientado por Coach DNA continua consumindo o entitlement do aluno; o vínculo não cria franquia adicional.
 - [x] Rever `AI_ENDPOINT_AUTHORITY_MATRIX.md`, `AI_TELEMETRY_DATA_CONTRACT.md`, `AI_ENDPOINT_OPERATIONAL_BOUNDS.md` e `AI_ENDPOINT_DEGRADATION_POLICY.md`; actualizada a matriz de autoridade. Telemetria, limites e degradação não têm impacto nesta entrega: a origem do treino não é enviada à telemetria, não altera limites e falha técnica continua no caminho de continuidade já existente.
 - [x] Definir a regra de check-in para geração autónoma: check-in é opcional. Quando houver um check-in persistido aplicável, a geração o utiliza; quando não houver confirmação actual, a UI recomenda validá-lo, sem bloquear Workout. Decisão de produto confirmada em 2026-08-11.
+- [x] Estender o aconselhamento opcional a Ritmo Corporal quando o próprio aluno o activou e autorizou para IA; não cria nova categoria de dado, permissão ou visibilidade. Evidência: `StartWorkoutScreen.tsx` usa apenas `profile_v2.body_rhythm.enabled` e `consent.allow_ai_adaptation`; cópia de Check-in passa a remeter às configurações existentes de compartilhamento.
 - [ ] Definir a apresentação de datas/horas com instante UTC autoritativo e formatação no locale do aluno.
 - [ ] Registar a decisão de aprovação Product/Privacy exigida se a redação pública ou a exposição de dados for alterada.
 

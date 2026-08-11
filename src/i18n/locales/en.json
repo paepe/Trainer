@@ -742,7 +742,7 @@
     "floorNote": "This information helps filter suitable exercises.",
     "signalsNote": "Reported signs trigger the Safety Gate: AI-led will be blocked and human review will be required.",
     "rhythmNote": "I want a more comfortable version today",
-    "rhythmPrivacy": "Private adaptation. We never display cycle phase or symptoms.",
+    "rhythmPrivacy": "Private adaptation. Visibility follows your sharing settings.",
     "intensity": "Intensity",
     "viewing": "Viewing",
     "blocks": {
@@ -1272,6 +1272,7 @@
       "checkinAdvisoryBody": "You can start your workout now. A check-in helps the AI consider today's energy, sleep and discomfort.",
       "checkinAdvisoryCta": "Do a check-in",
       "checkinAdvisoryDismiss": "Not now",
+      "bodyRhythmAdvisory": "If you use Body Rhythm, review it with your check-in to reflect how you feel today.",
       "limitWeekly": "You've reached your {{n}} session/week limit on the Free plan.",
       "limitWeeklyNote": "Keep training whenever you want with AI Fitness.",
       "limitWeeklyCta": "Upgrade to AI Fitness — unlimited sessions"

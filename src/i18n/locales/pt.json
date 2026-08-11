@@ -742,7 +742,7 @@
     "floorNote": "Esta informação ajuda a filtrar exercícios adequados.",
     "signalsNote": "Sinais relatados ativam o Safety Gate: sessões conduzidas por IA serão bloqueadas e revisão humana será necessária.",
     "rhythmNote": "Quero uma versão mais confortável hoje",
-    "rhythmPrivacy": "Adaptação privada. Nunca exibimos fase do ciclo ou sintomas.",
+    "rhythmPrivacy": "Adaptação privada. A visibilidade segue suas configurações de compartilhamento.",
     "intensity": "Intensidade",
     "viewing": "Visualizando",
     "blocks": {
@@ -1272,6 +1272,7 @@
       "checkinAdvisoryBody": "Você pode iniciar o treino agora. Um check-in ajuda a IA a considerar sua energia, sono e desconfortos de hoje.",
       "checkinAdvisoryCta": "Fazer check-in",
       "checkinAdvisoryDismiss": "Agora não",
+      "bodyRhythmAdvisory": "Se você usa Ritmo Corporal, revise-o junto do check-in para refletir como está hoje.",
       "limitWeekly": "Atingiu o limite de {{n}} sessão/semana do plano Free.",
       "limitWeeklyNote": "Continue treinando sempre que quiser com o AI Fitness.",
       "limitWeeklyCta": "Upgrade AI Fitness — sessões ilimitadas"

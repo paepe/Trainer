@@ -741,7 +741,7 @@
     "floorNote": "Diese Information hilft dabei, geeignete Übungen zu filtern.",
     "signalsNote": "Gemeldete Zeichen aktivieren das Safety Gate: KI-geführte Einheiten werden blockiert und eine menschliche Überprüfung wird erforderlich.",
     "rhythmNote": "Ich möchte heute eine komfortablere Version",
-    "rhythmPrivacy": "Private Anpassung. Wir zeigen niemals Zyklusphase oder Symptome an.",
+    "rhythmPrivacy": "Private Anpassung. Die Sichtbarkeit folgt deinen Freigabeeinstellungen.",
     "intensity": "Intensität",
     "viewing": "Ansicht",
     "blocks": {
@@ -1272,6 +1272,7 @@
       "checkinAdvisoryBody": "Du kannst dein Training jetzt starten. Ein Check-in hilft der KI, deine heutige Energie, deinen Schlaf und Beschwerden zu berücksichtigen.",
       "checkinAdvisoryCta": "Check-in machen",
       "checkinAdvisoryDismiss": "Jetzt nicht",
+      "bodyRhythmAdvisory": "Wenn du Körperrhythmus nutzt, überprüfe ihn zusammen mit deinem Check-in, damit dein heutiges Befinden berücksichtigt wird.",
       "limitWeekly": "Du hast das Limit von {{n}} Einheit/Woche im Free-Plan erreicht.",
       "limitWeeklyNote": "Trainiere mit AI Fitness, wann immer du möchtest.",
       "limitWeeklyCta": "Upgrade auf AI Fitness — unbegrenzte Einheiten"
