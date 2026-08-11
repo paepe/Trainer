@@ -1231,6 +1231,8 @@
       "newPlanFromTrainer": "Neuer Plan von deinem Trainer — tippen zum Laden",
       "trainerFallback": "Trainer",
       "trainerTimeoutBanner": "Dein Trainer hat nicht geantwortet — Plan von KI mit deinem Profil und heutigem Check-in erstellt.",
+      "trainerTimeoutBannerCoachDna": "Dein Trainer hat nicht geantwortet — dein eigenständiges Training wurde nach Coach DNA erstellt und kann später überprüft werden.",
+      "trainerTimeoutBannerAi": "Dein Trainer hat nicht geantwortet — dein eigenständiges Training wurde mit KI aus deinem aktuellen Kontext erstellt.",
       "by": "von ",
       "planCount_one": "{{count}} Plan wartet",
       "planCount_other": "{{count}} Pläne warten",

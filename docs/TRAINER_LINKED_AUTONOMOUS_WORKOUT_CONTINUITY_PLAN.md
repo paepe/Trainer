@@ -1,8 +1,8 @@
 # Plano de Implementação — Workout Autónomo Vinculado ao TRAINER e Continuidade de Check-in
 
-**Versão:** 1.3
+**Versão:** 1.4
 **Data inicial:** 2026-08-11
-**Estado:** Em execução — Fases 0, 1 e 2 concluídas; continuidade, proveniência e revisão posterior publicadas no pre-release
+**Estado:** Em execução — Fases 0–3 concluídas; continuidade, proveniência, Inbox e CTAs publicadas no pre-release
 **Referências:** `docs/WORKOUT_READY_TIMEOUT_PLAN.md` · `docs/WORKOUT_PLAN_EXPIRY_CONTROL.md` · `docs/FEATURE_ACCESS_MATRIX.md` · `docs/AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md` · `docs/AI_GOVERNANCE_CHANGE_GATE.md`
 
 ---
@@ -133,12 +133,12 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 **Esforço:** médio · **Risco:** médio · **Migração:** não (salvo apoio ao estado do card)
 
 - [x] Tornar a acção do card `workout_timeout` de uso único **após geração bem-sucedida**: o card passa a informar o resultado/encaminhar para o treino criado; em falha recuperável, permanece disponível com feedback apropriado. Evidência: RPC `consume_workout_timeout_notification`, migração `20260811213000` aplicada localmente.
-- [ ] Não bloquear o botão normal **Workout** depois de o card ser consumido; a autonomia continua sujeita somente aos limites da licença e segurança.
-- [ ] Ajustar a cópia do timeout para “treino autónomo orientado pelo DNA Coach” quando aplicável, e “treino autónomo por IA” quando não houver DNA.
+- [x] Não bloquear o botão normal **Workout** depois de o card ser consumido; a autonomia continua sujeita somente aos limites da licença e segurança. Evidência: o consumo marca somente a notificação de timeout após plano persistido; a navegação normal para `workout` não recebe `source=trainer_timeout` nem lê esse estado como bloqueio.
+- [x] Ajustar a cópia do timeout para “treino autónomo orientado pelo DNA Coach” quando aplicável, e “treino autónomo por IA” quando não houver DNA. Evidência: `StartWorkoutScreen` só apresenta a variante DNA após `coachDnaApplied` retornado pelo backend; as quatro locales têm ambas as variantes, sem alegar supervisão.
 - [x] Quando não houver check-in actual, exibir aconselhamento não bloqueante para confirmar o check-in; nunca substituir o Workout por uma exigência de check-in. Evidência: card dispensável em `StartWorkoutScreen.tsx`, com continuação do treino preservada e traduções PT/EN/ES/DE.
-- [ ] Exibir limite FREE com CTA de upgrade já padronizado, sem apresentar a mensagem de timeout como segunda oferta concorrente.
+- [x] Exibir limite FREE com CTA de upgrade já padronizado, sem apresentar a mensagem de timeout como segunda oferta concorrente. Evidência: no estado `weekly-limit`, o CTA comercial único é `limitWeeklyCta`; o card de calibração AI Fitness não é renderizado e o timeout permanece somente contextual.
 - [x] Localizar o estado de card consumido em PT/EN/ES/DE; validação visual e de contraste permanece no smoke da Fase 5.
-- [ ] Garantir que a abertura de um card não marca implicitamente uma acção clínica ou uma sessão como concluída.
+- [x] Garantir que a abertura de um card não marca implicitamente uma acção clínica ou uma sessão como concluída. Evidência: abrir `workout_timeout` somente navega para Workout; a notificação é consumida após plano autónomo persistido e não altera check-in, Safety Gate ou sessão.
 
 **Conclusão da fase:** a Inbox é uma porta de contexto e continuidade, não um gerador repetitivo de treinos nem um bloqueio à autonomia legítima.
 

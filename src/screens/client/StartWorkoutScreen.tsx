@@ -157,6 +157,9 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const m5 = useM5Data(user?.id ?? null);
   const [genState, setGenState] = React.useState<GenState>({ phase: 'idle' });
   const [planSource, setPlanSource] = React.useState<string | null>(null);
+  // The timeout card never promises professional methodology before the
+  // authoritative generation result confirms that active Coach DNA applied.
+  const [timeoutCoachDnaApplied, setTimeoutCoachDnaApplied] = React.useState<boolean | null>(null);
   const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
   const [trainerAvatarUrl, setTrainerAvatarUrl] = React.useState<string | null>(null);
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
@@ -565,6 +568,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         // entitlement has been checked.
         if (!profileData) {
           const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: exerciseNamesLocale });
+          if (source === 'trainer_timeout') setTimeoutCoachDnaApplied(false);
           setGenState({ phase: 'success', plan: exercises, planId: '', readinessScore: -1, adaptations: [] });
           const planId = await persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile, sourceCheckinId, false, exerciseNamesLocale);
           if (source === 'trainer_timeout' && planId) void consumeTimeoutNotification(planId);
@@ -711,6 +715,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const readiness   = result.readinessScore;
         const adaptResult = result.adaptations;
 
+        if (source === 'trainer_timeout') setTimeoutCoachDnaApplied(result.coachDnaApplied);
+
         if (result.blocked) {
           setGenState({
             phase: 'blocked',
@@ -783,6 +789,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         readinessScore: ctx.readinessScore ?? 60,
         adaptations:    [],
       });
+      if (source === 'trainer_timeout') setTimeoutCoachDnaApplied(false);
       setPlanSource('fallback');
     }
   };
@@ -932,7 +939,11 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           border: `1px solid ${t.amber ?? '#F5A623'}44`,
           fontSize: 11.5, color: t.amber ?? '#F5A623', lineHeight: 1.5,
         }}>
-          {tr('client.workout.trainerTimeoutBanner')}
+          {timeoutCoachDnaApplied === true
+            ? tr('client.workout.trainerTimeoutBannerCoachDna')
+            : timeoutCoachDnaApplied === false
+              ? tr('client.workout.trainerTimeoutBannerAi')
+              : tr('client.workout.trainerTimeoutBanner')}
         </div>
       )}
 
@@ -1235,7 +1246,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       {/* Today's AI plan — only when no actionable trainer plan exists */}
       {!hasTrainerPlans && (
       <div style={{ padding: '4px 22px 0' }}>
-        {!aiCheckinAllowed && (
+        {!aiCheckinAllowed && genState.phase !== 'weekly-limit' && (
           <div style={{
             padding: '12px 14px', borderRadius: 12, marginBottom: 10,
             background: `${t.primary}10`, border: `1px solid ${t.primary}33`,

@@ -1230,6 +1230,8 @@
       "newPlanFromTrainer": "Novo plano do seu treinador — toque para carregar",
       "trainerFallback": "Treinador",
       "trainerTimeoutBanner": "O seu treinador não respondeu — plano gerado pela IA com o seu perfil e check-in de hoje.",
+      "trainerTimeoutBannerCoachDna": "O seu treinador não respondeu — seu treino autónomo foi orientado pelo DNA Coach e poderá ser revisado depois.",
+      "trainerTimeoutBannerAi": "O seu treinador não respondeu — seu treino autónomo foi gerado por IA com o seu contexto atual.",
       "by": "por ",
       "planCount_one": "{{count}} plano aguardando",
       "planCount_other": "{{count}} planos aguardando",
