@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { resolveAuthoritativeTaskGates, isSessionsPerWeekCapReached, resolveUserEntitlements } from './entitlements';
+import { countSessionsThisWeek, resolveAuthoritativeTaskGates, isSessionsPerWeekCapReached, resolveUserEntitlements } from './entitlements';
 import { toEntitlements, DEFAULTS } from '../../src/licensing/entitlements';
 import type { FeaturePermission } from '../../src/types';
 
@@ -64,6 +64,19 @@ describe('isSessionsPerWeekCapReached', () => {
   it('nunca bloqueia quando o cap é null (ilimitado)', () => {
     expect(isSessionsPerWeekCapReached(performanceEntitlements, 0)).toBe(false);
     expect(isSessionsPerWeekCapReached(performanceEntitlements, 999)).toBe(false);
+  });
+});
+
+describe('countSessionsThisWeek', () => {
+  it('counts only autonomous AI sessions, never prescribed TRAINER plans', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify([{ id: 'autonomous-session' }]), { status: 200 }),
+    );
+
+    await expect(countSessionsThisWeek('client-id', new Date('2026-08-11T12:00:00.000Z'))).resolves.toBe(1);
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain('workout_plans!inner(source)');
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain('workout_plans.source=eq.ai_generated');
+    fetchSpy.mockRestore();
   });
 });
 

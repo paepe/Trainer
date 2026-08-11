@@ -73,8 +73,10 @@ export async function resolveUserEntitlements(userId: string): Promise<ResolvedU
 }
 
 /**
- * Sessions started since the current week's Monday 00:00, for enforcing
- * `workout.sessions_per_week` server-side. On fetch failure, returns 0
+ * Autonomous AI sessions started since the current week's Monday 00:00, for
+ * enforcing `workout.sessions_per_week` server-side. Prescribed TRAINER plans
+ * are deliberately excluded: they never consume the student's autonomous
+ * generation quota. On fetch failure, returns 0
  * (does not block generation) — deliberately fail-open here: this is a
  * volume/cost guardrail, not a content-safety boundary, and the content
  * gates (exercises_per_session, exercise_type) resolved via
@@ -85,7 +87,7 @@ export async function countSessionsThisWeek(userId: string, now: Date = new Date
   const weekStart = startOfWeek(now).toISOString();
   try {
     const res = await fetch(
-      `${authSupabaseUrl()}/rest/v1/workout_sessions?select=id&user_id=eq.${encodeURIComponent(userId)}&started_at=gte.${encodeURIComponent(weekStart)}`,
+      `${authSupabaseUrl()}/rest/v1/workout_sessions?select=id,workout_plans!inner(source)&user_id=eq.${encodeURIComponent(userId)}&started_at=gte.${encodeURIComponent(weekStart)}&workout_plans.source=eq.ai_generated`,
       { headers: authServiceHeaders() },
     );
     if (!res.ok) {
