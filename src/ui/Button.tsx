@@ -22,7 +22,7 @@ export function Button({
 }: ButtonProps) {
   const { t: tr } = useTranslation();
   const styles = {
-    primary: { background: BRAND.primary, color: DARK.bg, border: 'none' },
+    primary: { background: 'var(--signature)', color: DARK.bg, border: 'none' },
     ghost:   { background: 'transparent', color: DARK.textSec, border: `1px solid ${DARK.border}` },
     danger:  { background: `${BRAND.accent}18`, color: BRAND.accent, border: 'none' },
   };

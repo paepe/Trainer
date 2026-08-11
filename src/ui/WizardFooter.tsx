@@ -53,7 +53,7 @@ export function WizardFooter({
             borderRadius: 14,
             fontWeight: 700,
             fontSize: 14,
-            boxShadow: `0 10px 30px ${BRAND.primary}33`,
+            boxShadow: '0 10px 30px color-mix(in srgb, var(--signature) 20%, transparent)',
           }}
         >
           {effectiveNextLabel}

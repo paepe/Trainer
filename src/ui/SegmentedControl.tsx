@@ -19,7 +19,7 @@ export function SegmentedControl({
   options,
   value,
   onChange,
-  color = BRAND.primary,
+  color = 'var(--signature)',
   activeStyle,
 }: SegmentedControlProps) {
   return (
@@ -34,7 +34,7 @@ export function SegmentedControl({
               flex: 1,
               padding: '11px 0',
               borderRadius: 999,
-              background: on ? `${color}22` : 'transparent',
+              background: on ? `color-mix(in srgb, ${color} 13%, transparent)` : 'transparent',
               border: `1.5px solid ${on ? color : DARK.border}`,
               color: on ? color : DARK.textSec,
               fontFamily: 'inherit',

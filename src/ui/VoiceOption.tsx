@@ -23,8 +23,8 @@ export function VoiceOption({ note, onClick }: VoiceOptionProps) {
         textAlign: 'left',
         padding: '12px 14px',
         borderRadius: 14,
-        background: hover ? `${BRAND.primary}12` : DARK.surface,
-        border: `1.5px dashed ${hover ? BRAND.primary : DARK.borderSoft}`,
+        background: hover ? 'color-mix(in srgb, var(--signature) 7%, transparent)' : DARK.surface,
+        border: `1.5px dashed ${hover ? 'var(--signature)' : DARK.borderSoft}`,
         display: 'flex',
         alignItems: 'center',
         gap: 12,
@@ -37,20 +37,20 @@ export function VoiceOption({ note, onClick }: VoiceOptionProps) {
     >
       <div style={{
         width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-        background: `${BRAND.primary}22`,
+        background: 'color-mix(in srgb, var(--signature) 13%, transparent)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Icon name="mic" size={15} color={BRAND.primary} stroke={2.2} />
+        <Icon name="mic" size={15} color="var(--signature)" stroke={2.2} />
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.primary, marginBottom: 1 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--signature)', marginBottom: 1 }}>
           {tr('voiceOption.speakToApp')}
         </div>
         <div style={{ fontSize: 10.5, color: DARK.textMute, lineHeight: 1.4 }}>
           {note ?? tr('voiceOption.defaultNote')}
         </div>
       </div>
-      <Icon name="chevR" size={16} color={BRAND.primary} stroke={2} />
+      <Icon name="chevR" size={16} color="var(--signature)" stroke={2} />
     </button>
   );
 }

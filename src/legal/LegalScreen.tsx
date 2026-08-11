@@ -11,7 +11,7 @@ function LegalDocumentView({ document, versionLabel, publishedOnLabel }: { docum
   const publishedAt = new Intl.DateTimeFormat(document.locale, { dateStyle: 'long' }).format(new Date(`${document.publishedAt}T00:00:00Z`));
   return (
     <>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.1em', color: 'var(--accent, #2DD4E0)', textTransform: 'uppercase' }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.1em', color: 'var(--signature, #2DD4E0)', textTransform: 'uppercase' }}>
         {versionLabel} {document.version} · {publishedOnLabel} {publishedAt}
       </div>
       <h1 style={{ margin: '8px 0', color: 'var(--text-pri)', fontSize: 28, lineHeight: 1.15 }}>{document.title}</h1>

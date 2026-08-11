@@ -136,6 +136,9 @@ export default function App() {
   // Trainer is always dark per coach_dna_system_design.md §8; only the client
   // respects the persisted dark_mode preference.
   const dark = isTrainer ? true : prefs.darkMode;
+  const activeBrand = isTrainer
+    ? TRAINER_BRAND
+    : { ...BRAND, ...getClientLicenseSkin(subscription?.plan_key) };
   // Single profile switch: drives `t.primary` (all screens) and the static
   // data-viz signature (Performance Dashboard) from one place.
   setVizProfile(isTrainer, subscription?.plan_key);
@@ -144,11 +147,12 @@ export default function App() {
   // Trainer always-dark (§8); client toggles client-dark|client-light (Arctic).
   React.useEffect(() => {
     const clientLight = prefs.lightPalette === 'sand' ? 'client-light-sand' : 'client-light';
-    document.documentElement.dataset.theme =
-      isTrainer ? 'trainer-dark' : (dark ? 'client-dark' : clientLight);
-  }, [isTrainer, dark, prefs.lightPalette]);
+    document.documentElement.dataset.theme = isTrainer ? 'trainer-dark' : (dark ? 'client-dark' : clientLight);
+    document.documentElement.style.setProperty('--signature', activeBrand.primary);
+    document.documentElement.style.setProperty('--signature-deep', activeBrand.primaryDeep);
+  }, [isTrainer, dark, prefs.lightPalette, activeBrand.primary, activeBrand.primaryDeep]);
   const t = {
-    ...(isTrainer ? TRAINER_BRAND : { ...BRAND, ...getClientLicenseSkin(subscription?.plan_key) }),
+    ...activeBrand,
     dark,
     role: (profile?.role ?? 'client') as UserRole | 'client',
   };

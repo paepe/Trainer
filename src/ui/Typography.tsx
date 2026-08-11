@@ -39,7 +39,7 @@ export function Typography({
       case 'primary': return DARK.textPri;
       case 'secondary': return DARK.textSec;
       case 'muted': return DARK.textMute;
-      case 'brand': return BRAND.primary;
+      case 'brand': return 'var(--signature)';
       case 'accent': return BRAND.accent;
       default: return DARK.textPri;
     }

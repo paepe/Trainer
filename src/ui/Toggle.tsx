@@ -8,7 +8,7 @@ export interface ToggleProps {
   disabled?: boolean;
 }
 
-export function Toggle({ on, onChange, color = BRAND.primary, disabled = false }: ToggleProps) {
+export function Toggle({ on, onChange, color = 'var(--signature)', disabled = false }: ToggleProps) {
   return (
     <div
       onClick={() => !disabled && onChange(!on)}

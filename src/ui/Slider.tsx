@@ -22,7 +22,7 @@ export function Slider({
   max,
   step = 1,
   suffix = '',
-  color = BRAND.primary,
+  color = 'var(--signature)',
 }: SliderProps) {
   return (
     <VStack gap={4}>

@@ -41,7 +41,7 @@ export function TextInput({
     width: '100%',
     padding: suffix ? '12px 48px 12px 14px' : (icon ? '14px 14px 14px 44px' : '12px 14px'),
     borderRadius: 12,
-    border: `1.5px solid ${focus ? BRAND.primary : DARK.border}`,
+    border: `1.5px solid ${focus ? 'var(--signature)' : DARK.border}`,
     background: DARK.bg,
     color: DARK.textPri,
     fontSize: 14,
@@ -66,7 +66,7 @@ export function TextInput({
         {icon && (
           <div style={{ position: 'absolute', left: 14, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
             {typeof icon === 'string'
-              ? <Icon name={icon} size={16} color={focus ? BRAND.primary : DARK.textMute} stroke={2}/>
+              ? <Icon name={icon} size={16} color={focus ? 'var(--signature)' : DARK.textMute} stroke={2}/>
               : icon}
           </div>
         )}

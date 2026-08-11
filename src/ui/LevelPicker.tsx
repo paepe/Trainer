@@ -31,8 +31,8 @@ export function LevelPicker({ value, onChange, items }: LevelPickerProps) {
               gap: 12,
               padding: '12px 14px',
               borderRadius: 12,
-              border: `1.5px solid ${active ? BRAND.primary : DARK.border}`,
-              background: active ? `${BRAND.primary}14` : DARK.surface,
+              border: `1.5px solid ${active ? 'var(--signature)' : DARK.border}`,
+              background: active ? 'color-mix(in srgb, var(--signature) 8%, transparent)' : DARK.surface,
               cursor: 'pointer',
               textAlign: 'left',
               fontFamily: 'inherit',
@@ -46,7 +46,7 @@ export function LevelPicker({ value, onChange, items }: LevelPickerProps) {
                 height: 34,
                 borderRadius: 10,
                 flexShrink: 0,
-                background: active ? BRAND.primary : DARK.border,
+                background: active ? 'var(--signature)' : DARK.border,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -86,7 +86,7 @@ export function LevelPicker({ value, onChange, items }: LevelPickerProps) {
                     height: `${20 + b * 14}%`,
                     borderRadius: 2,
                     background:
-                      b <= bars ? (active ? BRAND.primary : DARK.textMute) : DARK.border,
+                      b <= bars ? (active ? 'var(--signature)' : DARK.textMute) : DARK.border,
                     transition: 'background .15s ease',
                   }}
                 />
