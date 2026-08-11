@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { supabase } from '../../supabase';
-import { Icon, AvatarImage, ScreenTitle, SectionLabel } from '../../components';
+import { Icon, ScreenTitle, SectionLabel } from '../../components';
 import { Spinner } from '../../ui';
 import { borderSubtle, textPri, textSec, primaryBtn } from '../../theme';
 import type { NavFn, CheckIn, Subscription } from '../../types';
@@ -160,8 +160,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   // The timeout card never promises professional methodology before the
   // authoritative generation result confirms that active Coach DNA applied.
   const [timeoutCoachDnaApplied, setTimeoutCoachDnaApplied] = React.useState<boolean | null>(null);
-  const [trainerName,      setTrainerName]      = React.useState<string | null>(null);
-  const [trainerAvatarUrl, setTrainerAvatarUrl] = React.useState<string | null>(null);
   const [cycleCtx,   setCycleCtx]   = React.useState<CycleContext | null>(null);
   const [latestCheckin, setLatestCheckin] = React.useState<CheckIn | null>(null);
   // A check-in improves the relevance of an autonomous workout, but is never
@@ -410,23 +408,26 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   const fetchPlan = async () => {
     if (!mountedRef.current) return;
     setGenState({ phase: 'loading' });
+    // A prescribed plan and an autonomous plan are separate, concurrent
+    // choices. Reset only the autonomous summary while both are refreshed.
+    setPlanSource(null);
     setTrainerPlans([]);
     // Auto-cancel stale plans (>10 days); notify trainer
     if (user?.id) await autoExpirePlans(user.id, 'client');
     try {
       const physicalProfile: Json | null = null;
       let resolvedCheckin = checkin;
-      // A timeout CTA is an explicit choice to train autonomously now.  A
-      // previously pending manual plan must not take precedence here: doing
-      // so leaves the user on a trainer-plan summary while suppressing the
-      // AI plan promised by the Inbox action.  Manual plans remain intact and
-      // appear again on the normal workout entry point.
+      // A prescribed plan and the autonomous Workout are independent paths.
+      // Load actionable prescribed plans for their own section, but never let
+      // their presence suppress the autonomous generation below. The timeout
+      // path intentionally skips this read because it is already an explicit
+      // autonomous action originating from the Inbox.
       if (user?.id && source !== 'trainer_timeout') {
         // Load ALL actionable trainer plans (sent / active / postponed) into one unified list.
         // Status is NOT mutated here — a plan only becomes 'active' when the workout actually starts.
         const { data: planRows } = await supabase
           .from('workout_plans')
-          .select('id, created_at, expires_at, created_by, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category, phase, name_source_locale)')
+          .select('id, created_at, expires_at, status, plan_exercises(id, exercise_name, muscle_group, sets, reps, duration_seconds, load_kg, rest_seconds, notes, order_index, exercise_category, phase, name_source_locale)')
           .eq('assigned_to', user.id)
           .eq('source', 'manual')
           .in('status', ['sent', 'active', 'postponed'])
@@ -460,19 +461,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             exercises: ([...(p.plan_exercises ?? [])] as PlanCard['exercises'])
               .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)),
           })));
-          setPlanSource('trainer');
-
-          // Trainer name + avatar from the most recent plan
-          const newest = stillActionable[0];
-          if (newest?.created_by) {
-            supabase.from('profiles').select('name, avatar_url').eq('id', newest.created_by).maybeSingle()
-              .then(({ data: trainerProfile }) => {
-                if (trainerProfile?.name) setTrainerName(trainerProfile.name.split(' ')[0] ?? null);
-                if (trainerProfile?.avatar_url) setTrainerAvatarUrl(trainerProfile.avatar_url);
-              });
-          }
-
-          return;
         }
       }
       if (user?.id) {
@@ -955,7 +943,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
       {/* Advisory only: autonomous Workout continues without a check-in.
           Prescribed trainer plans retain their established realtime flow. */}
-      {(hasPersistedCheckin === false || bodyRhythmEnabled) && !hasTrainerPlans && planSource !== 'trainer' && showCheckinAdvisory && (
+      {(hasPersistedCheckin === false || bodyRhythmEnabled) && showCheckinAdvisory && (
         <div style={{ margin: '0 22px 12px', padding: '13px 14px', borderRadius: 12, background: `${t.primary}0d`, border: `1px solid ${t.primary}44` }}>
           <div style={{ fontSize: 13, fontWeight: 750, color: inkPri(dark), marginBottom: 4 }}>
             {tr('client.workout.checkinAdvisoryTitle')}
@@ -1012,24 +1000,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           display: 'flex', alignItems: 'center', gap: 14,
           minHeight: 100,
         }}>
-          {/* Trainer avatar, or a distinct AI mark when no human trainer generated this plan */}
-          {planSource === 'trainer' ? (
-            <AvatarImage
-              url={trainerAvatarUrl}
-              label={trainerName ?? tr('client.workout.trainerFallback')}
-              w={64} h={64}
-              radius={16}
-              dark={dark}
-            />
-          ) : (
-            <img
-              src={aiPlanIcon}
-              alt={planSource === 'fallback'
-                ? tr('client.workout.localFallbackPlan')
-                : tr('client.workout.aiPoweredPlan')}
-              style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover', flexShrink: 0 }}
-            />
-          )}
+          <img
+            src={aiPlanIcon}
+            alt={planSource === 'fallback'
+              ? tr('client.workout.localFallbackPlan')
+              : tr('client.workout.aiPoweredPlan')}
+            style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover', flexShrink: 0 }}
+          />
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1039,9 +1016,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 letterSpacing: '.07em', textTransform: 'uppercase',
                 background: `${t.primary}22`, color: t.primary,
               }}>
-                {planSource === 'trainer'
-                  ? tr('client.workout.yourTrainer')
-                  : planSource === 'fallback'
+                {planSource === 'fallback'
                     ? tr('client.workout.localFallback')
                     : tr('client.workout.aiPlan')}
               </div>
@@ -1051,18 +1026,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               fontFamily: '"Plus Jakarta Sans",sans-serif', letterSpacing: '-0.01em',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
-              {planSource === 'trainer'
-                ? tr('client.workout.trainerPlan')
-                : planSource === 'fallback'
+              {planSource === 'fallback'
                   ? tr('client.workout.localFallbackPlan')
                   : tr('client.workout.aiPoweredPlan')}
             </div>
             <div style={{ fontSize: 12, color: dark ? 'rgba(255,255,255,.55)' : 'rgba(14,26,43,.5)', marginTop: 2 }}>
               {planSource === 'fallback' ? (
                 tr('client.workout.localFallbackNote')
-              ) : hasTrainerPlans ? (
-                <>{trainerName ? `${tr('client.workout.by')}${trainerName} · ` : ''}{trainerPlans.length === 1 ? tr('client.workout.planCount_one', { count: trainerPlans.length }) : tr('client.workout.planCount_other', { count: trainerPlans.length })}</>
-
               ) : (
                 <>{activeCheckin.goal} · {activeCheckin.minutes} min · {activeCheckin.location || tr('client.workout.gymFallback')}</>
               )}
@@ -1243,8 +1213,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         </div>
       )}
 
-      {/* Today's AI plan — only when no actionable trainer plan exists */}
-      {!hasTrainerPlans && (
+      {/* Autonomous Workout remains available alongside actionable trainer plans. */}
       <div style={{ padding: '4px 22px 0' }}>
         {!aiCheckinAllowed && genState.phase !== 'weekly-limit' && (
           <div style={{
@@ -1390,25 +1359,22 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           </div>
         )}
       </div>
-      )}
 
-      {/* Bottom CTA — drives the AI plan only; trainer plans start from their own card */}
-      {!hasTrainerPlans && (
-        <div style={{ padding: '16px 22px 28px' }}>
-          <button
-            onClick={() => nav('workoutMode', { planId: planId || null, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined })}
-            disabled={!plan || plan.length === 0 || loading || safetyBlocked}
-            data-testid="start-ai-plan-btn"
-            style={{
-              ...primaryBtn(t.primary),
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              opacity: (!plan || loading) ? 0.5 : 1,
-            }}
-          >
-            <Icon name="play" size={14} color="#0E1A2B"/> {tr('client.workout.startBtn')}
-          </button>
-        </div>
-      )}
+      {/* This CTA drives only the autonomous plan; prescribed plans keep their own actions. */}
+      <div style={{ padding: '16px 22px 28px' }}>
+        <button
+          onClick={() => nav('workoutMode', { planId: planId || null, exercises: plan, plannedDurationMin: activeCheckin.minutes ?? undefined })}
+          disabled={!plan || plan.length === 0 || loading || safetyBlocked}
+          data-testid="start-ai-plan-btn"
+          style={{
+            ...primaryBtn(t.primary),
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            opacity: (!plan || loading) ? 0.5 : 1,
+          }}
+        >
+          <Icon name="play" size={14} color="#0E1A2B"/> {tr('client.workout.startBtn')}
+        </button>
+      </div>
       {/* Cancel confirmation modal */}
       {confirmCancelPlan && (
         <div style={{

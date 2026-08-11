@@ -1,6 +1,6 @@
 # Plano de Implementação — Workout Autónomo Vinculado ao TRAINER e Continuidade de Check-in
 
-**Versão:** 1.5
+**Versão:** 1.6
 **Data inicial:** 2026-08-11
 **Estado:** Em execução — Fases 0–4 concluídas; validação integrada e smoke permanecem na Fase 5
 **Referências:** `docs/WORKOUT_READY_TIMEOUT_PLAN.md` · `docs/WORKOUT_PLAN_EXPIRY_CONTROL.md` · `docs/FEATURE_ACCESS_MATRIX.md` · `docs/AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md` · `docs/AI_GOVERNANCE_CHANGE_GATE.md`
@@ -64,7 +64,7 @@ Não usar “sessão acompanhada”, “aprovada” ou equivalente nos dois últ
 
 | Área | Estado actual | Lacuna a fechar |
 |---|---|---|
-| Workout directo de aluno vinculado | Lê Coach DNA e o último check-in persistido | Formalizar e testar o contrato comum no servidor. |
+| Workout directo de aluno vinculado | Lê Coach DNA e o último check-in persistido | Corrigida em 2026-08-12 a regressão de UI que ocultava o treino autónomo/CTA quando existia plano manual accionável; ambos agora coexistem e reutilizam o mesmo contrato server-side. Smoke visual deste caso permanece obrigatório na Fase 5. |
 | Fallback `trainer_timeout` | Usa check-in persistido, mas suprime o Coach DNA e força `DEFAULT_AI_TRAINER` | Deve usar o mesmo resolvedor de contexto do Workout directo. |
 | Card `workout_timeout` | Pode ser reaberto e gerar sucessivos treinos pela mesma mensagem | Consumir a **acção do card**, sem limitar a autonomia normal pelo módulo Workout. |
 | Limites FREE | Aplicados à geração autónoma | Garantir que ambos os pontos de entrada usam a mesma validação autoritativa. |
@@ -166,6 +166,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [x] Testes de autorização server-side: FREE no limite semanal, FREE fora do limite, AI FITNESS/PERFORMANCE, plano prescrito e tentativa de bypass do frontend. Evidência: `api/_lib/entitlements.test.ts` cobre cap FREE, ilimitado, e exclusão de planos prescritos da quota; `src/licensing/entitlements.test.ts` cobre patrocínio com vínculo e negação sem vínculo.
 - [x] Testes de segurança: Safety Gate bloqueado, dor sinalizada, queda de IA e continuação segura de uma sessão já iniciada. Evidência: `api/generate-smart-workout.test.ts` protege a presença de dor e Safety Gate no prompt com/sem ajuste; `src/lib/workoutGeneration.test.ts` preserva recusas autoritativas e idempotência.
 - [x] Testes de Inbox: timeout uma vez, consumo da acção, retorno ao treino criado, reabertura do card e acesso normal pelo módulo Workout. Evidência: suíte de Inbox e de `workoutGeneration` passou; o card continua contextual e a quota é validada no backend, sem fallback local em recusa comercial.
+- [ ] Regressão de coexistência no Workout: com plano manual accionável, manter simultaneamente a lista/CTA do plano prescrito e a geração/CTA do treino autónomo. Implementação local: `StartWorkoutScreen.tsx` deixou de interromper `fetchPlan` após carregar plano manual e deixou de ocultar a área autónoma; pendente smoke visual e validação integrada antes de marcar concluído.
 - [x] Regressão realtime: o TRAINER recebe o check-in do aluno em tempo real e continua podendo enviar plano manual a partir dele, sem interferência do caminho autónomo/timeout. Evidência: `src/hooks/useRealtimeTable.test.tsx` passou; smoke no pre-release com Beatriz/Carlos confirmou o perfil TRAINER com Prontidão, Check-ins Recentes e decisões existentes, respeitando os grants já configurados.
 - [ ] Smoke visual local nas quatro locales e nas assinaturas FREE/AI FITNESS/AI PERFORMANCE relevantes. Pendente apenas inspeção visual nas quatro combinações; as quatro cópias foram validadas por teste de localização, mas isso não substitui smoke visual.
 - [ ] Smoke no pre-release com contas de teste: aluno sem TRAINER, aluno FREE vinculado, aluno pago vinculado e TRAINER com/sem Coach DNA. Cobertura actual: Beatriz/Carlos passou (pago vinculado + TRAINER com DNA); André autenticou como FREE vinculado. O seu Workout foi bloqueado correctamente pela confirmação legal pendente antes de gerar treino; essa aceitação não foi enviada em nome da conta de teste. Continuam pendentes o fluxo após aceite legal, o aluno sem TRAINER e o TRAINER sem DNA.
