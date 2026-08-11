@@ -404,8 +404,13 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
         </div>
       )}
 
-      {!loading && (
-        <div style={{ padding: '0 22px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/*
+       * Keep the controls mounted while a filtered page is loading.  The search
+       * is deliberately server-backed and debounced; conditionally rendering
+       * this block on `loading` used to unmount the input after a partial match
+       * (for example "be"), which made the browser drop its focus and caret.
+       */}
+      <div aria-busy={loading} style={{ padding: '0 22px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SegmentedControl
             value={scope}
             color={t.primary}
@@ -455,8 +460,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
               {operationNotice}
             </div>
           )}
-        </div>
-      )}
+      </div>
 
       {!loading && items.length === 0 && (
         <div style={{ padding: '48px 22px', textAlign: 'center' }}>
