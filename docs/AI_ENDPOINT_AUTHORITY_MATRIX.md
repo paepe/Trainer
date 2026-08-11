@@ -4,7 +4,7 @@
 
 | Endpoint | Natureza | Quem pode iniciar | Autoridade comercial | Proteção principal |
 |---|---|---|---|---|
-| `generate-smart-workout` | Comercial: plano autônomo | Aluno ou TRAINER com vínculo ativo | Plano efetivo do aluno | JWT, vínculo, entitlement, cap de sessão, idempotência |
+| `generate-smart-workout` | Comercial: plano autônomo | Aluno ou TRAINER com vínculo ativo | Plano efetivo do aluno | JWT, vínculo, entitlement, cap de sessão, idempotência; origem `autonomous_direct`/`trainer_timeout` não muda a autoridade comercial |
 | `generate-workout` | Comercial: geração legada | Próprio aluno autenticado | Plano efetivo do caller | JWT, `ai.workout_generation`, payload limitado |
 | `parse-voice` | Comercial: voz + interpretação | Próprio aluno autenticado | Plano efetivo do aluno | JWT, `checkin.voice_input` + `ai.checkin_interpretation` |
 | `cleanup-voice-note` | Operação de apoio por propósito | Caller autenticado | Conforme propósito; não cria patrocínio de IA | JWT, propósito fechado, consentimento/entitlement/papel |
@@ -19,4 +19,5 @@
 - Um vínculo TRAINER–aluno permite colaboração prevista; não patrocina voz, interpretação ou adaptação por IA do aluno.
 - Operações internas não devem transformar custo técnico em direito comercial transferível.
 - Endpoints comerciais devem resolver a licença no backend do sujeito da funcionalidade, não no frontend.
+- O contrato alvo para aluno com TRAINER activo é usar Coach DNA e check-in persistido válidos; timeout é somente uma origem de navegação, não uma alteração de metodologia, licença ou quota. A resolução integral no backend permanece pendente na Fase 1 de `TRAINER_LINKED_AUTONOMOUS_WORKOUT_CONTINUITY_PLAN.md`.
 - Quando os endpoints autónomos `generate-smart-workout` ou `generate-workout` recusam por `sessions_per_week_limit_reached`, o cliente deve apresentar o estado comercial e não degradar para um treino local; fallback é reservado a indisponibilidade técnica, nunca a uma recusa de entitlement.

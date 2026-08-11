@@ -1,5 +1,5 @@
 # Feature Access Matrix — TrAIner App
-**Versão:** 1.6
+**Versão:** 1.7
 **Data:** 2026-08-11
 **Estado:** Matriz de referência de acesso; Uso Justo publicado nos [Termos](https://trainer-lake.vercel.app/legal/terms) e na [Política](https://trainer-lake.vercel.app/legal/fair-use)
 
@@ -52,7 +52,7 @@ feature_permissions (Supabase)
 | **Plano do treinador — dias activos** | Um plano prescrito por TRAINER vinculado é executado integralmente; a licença do aluno não filtra dias | Todos os dias | Todos os dias | Todos os dias |
 | **Plano do treinador — tipo exercícios** | O plano prescrito chega integralmente; aplicam-se apenas regras de segurança e adequação ao aluno, não um filtro de plano | Sem gate comercial | Sem gate comercial | Sem gate comercial |
 | **Check-in Rápido** | Registo de prontidão por toque único, sem perguntas detalhadas | ✅ | ✅ | ✅ |
-| **Check-in Completo** | Formulário detalhado (voz/texto) que alimenta o AI Checkin Adjustment | ❌ | ✅ | ✅ |
+| **Check-in Completo** | Captura manual detalhada; voz e interpretação são direitos separados da licença do aluno | ✅ manual se houver TRAINER activo; voz/interpretação/ajuste ❌ | ✅ | ✅ |
 | **Progresso — métricas básicas** | Treinos concluídos, sequência e indicadores essenciais no ecrã de Progresso | ✅ | ✅ | ✅ |
 | **Progresso — métricas fitness avançadas** | Evolução física detalhada (força, volume, tendências) | ❌ bloqueado | ✅ | ✅ |
 | **Progresso — métricas de desempenho** | Métricas atléticas (ATL/CTL/TSB — carga aguda/crónica e forma) | ❌ bloqueado | ❌ bloqueado | ✅ |
@@ -69,7 +69,7 @@ feature_permissions (Supabase)
 
 1. **Sessão única semanal:** A IA gera no máximo 1 sessão com 6 exercícios por semana. A escolha de exercícios segue objectivo, perfil e segurança, sem filtro comercial de categoria.
 2. **Plano do treinador:** Se vinculado a um treinador, executa integralmente o plano prescrito. A licença FREE não reduz dias nem filtra categorias do plano.
-3. **Check-in:** Apenas Check-in Rápido disponível.
+3. **Check-in:** Check-in Rápido disponível. Quando houver TRAINER activo, o vínculo patrocina a **captura manual detalhada**; não patrocina voz, interpretação nem ajuste por IA.
 4. **Progresso:** Todas as abas visíveis, mas métricas fitness avançadas e de desempenho bloqueadas.
 5. **Mensagem de upgrade** deve informar: número de treinos/semana e quantidade de exercícios por sessão; não deve prometer desbloqueio de categoria de treino.
 

@@ -89,6 +89,7 @@
       "startWorkout": "Training starten",
       "startWorkoutTimeout": "Mit KI-Plan trainieren",
       "startWorkoutTimeoutNote": "Dein Training wird von der KI mit deinem Profil und heutigem Check-in erstellt.",
+      "timeoutWorkoutStarted": "Dein autonomes Training wurde vorbereitet. Für ein weiteres Training verwende das Trainingsmodul innerhalb deiner Tarifgrenzen.",
       "viewWorkoutPlan": "Trainingsplan ansehen",
       "viewClientFeedback": "Bewertung ansehen."
     },

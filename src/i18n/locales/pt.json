@@ -90,6 +90,7 @@
       "startWorkout": "Iniciar Treino",
       "startWorkoutTimeout": "Treinar com plano da IA",
       "startWorkoutTimeoutNote": "O seu treino será gerado pela IA com o seu perfil e check-in de hoje.",
+      "timeoutWorkoutStarted": "O treino autónomo foi preparado. Para um novo treino, use o módulo Treino conforme os limites do seu plano.",
       "viewWorkoutPlan": "Ver Plano de Treino",
       "viewClientFeedback": "Veja a Avaliação."
     },

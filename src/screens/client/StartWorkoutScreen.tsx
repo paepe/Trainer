@@ -78,6 +78,8 @@ interface StartWorkoutScreenProps {
   cycleConfig:      AppCycleConfig | null;
   linkedTrainerId?: string; // non-empty = client has active trainer
   source?:          string | undefined; // 'trainer_timeout' = trainer did not respond; AI fallback
+  /** Inbox notification that opened a trainer-timeout workout path. */
+  timeoutNotificationId?: string | undefined;
   prefs?: {
     preferredIntensity?: TrainerContext['intensity'];
     aiFocusStrength?:    number;
@@ -120,7 +122,7 @@ function toContraindicationRegions(regions: readonly string[]): Contraindication
   );
 }
 
-export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', source, prefs }: StartWorkoutScreenProps) {
+export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, linkedTrainerId = '', source, timeoutNotificationId, prefs }: StartWorkoutScreenProps) {
   const { t: tr } = useTranslation();
 
   // Feature gate: trainers viewing a client always get full AI; clients follow the matrix.
@@ -298,14 +300,15 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     sourceCheckin: CheckIn,
     cycleContext: CycleContext | null,
     physicalProfile: Json | null,
+    sourceCheckinId: string | null,
     // Provenance of the names in `exercises` (D7 — registered at write time,
     // never inferred). Pass the resolved client locale for AI-generated
     // names (the model was asked to write in it); pass null for the local
     // fallback template, whose own per-exercise locale tagging is separate
     // scope (Fase 2/4 of docs/WORKOUT_ACCESS_AND_CONTINUITY_PLAN.md).
     nameSourceLocale: AppLanguage | null,
-  ) => {
-    if (!user?.id) return;
+  ): Promise<string | null> => {
+    if (!user?.id) return null;
 
     try {
       const aiNotesParts = [];
@@ -326,7 +329,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         .single();
 
       if (planError) throw planError;
-      if (!planRow?.id) return;
+      if (!planRow?.id) return null;
 
       setGenState(prev => prev.phase === 'success' ? { ...prev, planId: planRow.id } : prev);
 
@@ -353,7 +356,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       const { error: suggestionError } = await supabase.from('ai_suggestions').insert({
         user_id:    user.id,
         plan_id:    planRow.id,
-        checkin_id: null,
+        checkin_id: sourceCheckinId,
         context:    { checkin: sourceCheckin, cycleContext, physicalProfile } as unknown as Json,
         suggestion: JSON.stringify(exercises),
         accepted:   null,
@@ -372,10 +375,21 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             entityType: 'workout_plan', entityId: planRow.id },
         );
       }
+      return planRow.id;
     } catch (err) {
       console.error('[start-workout] failed to persist generated plan', err);
+      return null;
     }
-  }, [user?.id, source, linkedTrainerId]);
+  }, [user?.id, source, linkedTrainerId, tr]);
+
+  const consumeTimeoutNotification = React.useCallback(async (planId: string) => {
+    if (!timeoutNotificationId || !user?.id) return;
+    const { error } = await supabase.rpc('consume_workout_timeout_notification', {
+      p_notification_id: timeoutNotificationId,
+      p_plan_id: planId,
+    });
+    if (error) console.warn('[start-workout] failed to consume timeout notification', error);
+  }, [timeoutNotificationId, user?.id]);
 
   const mountedRef = React.useRef(true);
 
@@ -458,7 +472,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
             supabase.from('profile_v2').select('*').eq('user_id', user.id).maybeSingle(),
             // Latest check-in with safety gate
             supabase.from('checkin_prontidao')
-              .select('occurred_at, variant, readiness_score, energy_level, fatigue_level, pain_present, pain_intensity, sleep_quality, available_minutes, training_location, ai_led_blocked, safety_gate, quick_data, detailed_data')
+              .select('id, occurred_at, variant, readiness_score, energy_level, fatigue_level, pain_present, pain_intensity, sleep_quality, available_minutes, training_location, ai_led_blocked, safety_gate, quick_data, detailed_data')
               .eq('user_id', user.id)
               .order('occurred_at', { ascending: false })
               .limit(1).maybeSingle(),
@@ -485,6 +499,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const profileData = profileRes.status === 'fulfilled' ? profileRes.value.data : null;
         // Also build legacy resolvedCheckin for UI display and persist
         const ciData = checkinRes.status === 'fulfilled' ? checkinRes.value.data : null;
+        const sourceCheckinId = ciData?.id ?? null;
         if (ciData) {
           const qd = ciData.quick_data as { pain?: { present?: boolean; region?: string }; fatigue?: number } | null;
           resolvedCheckin = {
@@ -532,7 +547,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         if (!profileData) {
           const exercises = await requestWorkoutPlan({ checkin: resolvedCheckin, physicalProfile, cycleContext, locale: exerciseNamesLocale });
           setGenState({ phase: 'success', plan: exercises, planId: '', readinessScore: -1, adaptations: [] });
-          void persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile, exerciseNamesLocale);
+          const planId = await persistGeneratedPlan(exercises, resolvedCheckin, cycleContext, physicalProfile, sourceCheckinId, exerciseNamesLocale);
+          if (source === 'trainer_timeout' && planId) void consumeTimeoutNotification(planId);
           return;
         }
 
@@ -571,10 +587,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           predictiveScores: { progressionReadiness: 50, fatigueRisk: 20, painRecurrence: 10, sessionCompletion: 70, planFit: 70, acuteLoad: 50, trainingForm: 60, trainingStrain: 20 },
         };
 
-        // 5. TrainerContext — Coach DNA if linked, else DEFAULT_AI_TRAINER + client prefs.
-        // trainer_timeout: trainer did not respond — use DEFAULT_AI_TRAINER regardless of Coach DNA.
-        const isTrainerTimeout = source === 'trainer_timeout';
-        const coachDNA    = (!isTrainerTimeout && trainerRes.status === 'fulfilled') ? (trainerRes.value as any).data : null;
+        // 5. TrainerContext — every autonomous path for an actively linked
+        // client uses Coach DNA when available. A trainer timeout changes who
+        // initiated the session, not the methodology applied to it.
+        const coachDNA    = trainerRes.status === 'fulfilled' ? (trainerRes.value as any).data : null;
         const trainerCtx  = resolveTrainerContext(coachDNA, prefs);
 
         // 6. LibraryContext — profile-declared equipment is the baseline
@@ -679,7 +695,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         // Both paths now emit names already in exerciseNamesLocale — the
         // smart endpoint via its own `locale` param, the local generator via
         // the curated translations embedded in the Fase 3 mirror (Fase 4).
-        void persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile, exerciseNamesLocale);
+        const planId = await persistGeneratedPlan(result.exercises, resolvedCheckin, cycleContext, physicalProfile, sourceCheckinId, exerciseNamesLocale);
+        if (source === 'trainer_timeout' && planId) void consumeTimeoutNotification(planId);
       } // end if (user?.id)
     } catch (err: unknown) {
       // The server is authoritative for this entitlement. A confirmed weekly

@@ -2597,6 +2597,10 @@ export type Database = {
         Args: { p_client_id: string }
         Returns: { expires_at: string; id: string; status: string }[]
       }
+      consume_workout_timeout_notification: {
+        Args: { p_notification_id: string; p_plan_id: string }
+        Returns: boolean
+      }
       decline_trainer_invitation: {
         Args: { p_token: string }
         Returns: { declined_at: string; id: string; status: string }[]

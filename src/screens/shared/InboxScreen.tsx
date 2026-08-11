@@ -555,7 +555,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                           {tr('inbox.actions.startWorkoutTimeoutNote')}
                         </div>
                         <button
-                          onClick={() => nav('workout', { source: 'trainer_timeout' })}
+                          onClick={() => nav('workout', { source: 'trainer_timeout', timeoutNotificationId: item.id })}
                           style={{
                             width: '100%', padding: '11px 0', borderRadius: 10, border: 'none',
                             background: t.amber ?? '#F5A623', color: '#0E1A2B',
@@ -566,6 +566,12 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                           <Icon name="play" size={13} color="#0E1A2B" stroke={2.5} />
                           {tr('inbox.actions.startWorkoutTimeout')}
                         </button>
+                      </div>
+                    )}
+
+                    {!isTrainer && item.type === 'workout_timeout' && item.response === 'started_autonomously' && (
+                      <div style={{ marginBottom: 12, fontSize: 11.5, color: textSec(dark), lineHeight: 1.5 }}>
+                        {tr('inbox.actions.timeoutWorkoutStarted')}
                       </div>
                     )}
 

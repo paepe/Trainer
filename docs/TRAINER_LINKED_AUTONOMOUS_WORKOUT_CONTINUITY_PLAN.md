@@ -1,8 +1,8 @@
 # Plano de Implementação — Workout Autónomo Vinculado ao TRAINER e Continuidade de Check-in
 
-**Versão:** 1.1
+**Versão:** 1.2
 **Data inicial:** 2026-08-11
-**Estado:** Planeado — decisões de produto registadas; implementação ainda não iniciada
+**Estado:** Em execução — Fase 0 parcialmente concluída; controlos iniciais de continuidade implementados localmente
 **Referências:** `docs/WORKOUT_READY_TIMEOUT_PLAN.md` · `docs/WORKOUT_PLAN_EXPIRY_CONTROL.md` · `docs/FEATURE_ACCESS_MATRIX.md` · `docs/AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md` · `docs/AI_GOVERNANCE_CHANGE_GATE.md`
 
 ---
@@ -76,10 +76,10 @@ Não usar “sessão acompanhada”, “aprovada” ou equivalente nos dois últ
 
 Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenciamento, dados de saúde e comunicação comercial.
 
-- [ ] Aplicar o `AI_GOVERNANCE_CHANGE_GATE.md` e classificar o impacto: endpoint/prompt, entitlement, patrocínio TRAINER, telemetria minimizada e dados de check-in.
-- [ ] Atualizar `FEATURE_ACCESS_MATRIX.md`: FREE vinculado tem check-in manual detalhado patrocinado; manter a exclusão de voz, interpretação e ajuste por IA.
-- [ ] Atualizar `AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md`: treino autónomo orientado por Coach DNA continua consumindo o entitlement do aluno; o vínculo não cria franquia adicional.
-- [ ] Rever `AI_ENDPOINT_AUTHORITY_MATRIX.md`, `AI_TELEMETRY_DATA_CONTRACT.md`, `AI_ENDPOINT_OPERATIONAL_BOUNDS.md` e `AI_ENDPOINT_DEGRADATION_POLICY.md`; actualizar apenas os realmente afectados, com evidência de “sem impacto” nos restantes.
+- [x] Aplicar o `AI_GOVERNANCE_CHANGE_GATE.md` e classificar o impacto: endpoint/prompt, entitlement, patrocínio TRAINER, telemetria minimizada e dados de check-in. Evidência: revisão de 2026-08-11; não cria novo endpoint, provedor, custo, categoria de dado ou claim público.
+- [x] Atualizar `FEATURE_ACCESS_MATRIX.md`: FREE vinculado tem check-in manual detalhado patrocinado; manter a exclusão de voz, interpretação e ajuste por IA.
+- [x] Atualizar `AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md`: treino autónomo orientado por Coach DNA continua consumindo o entitlement do aluno; o vínculo não cria franquia adicional.
+- [x] Rever `AI_ENDPOINT_AUTHORITY_MATRIX.md`, `AI_TELEMETRY_DATA_CONTRACT.md`, `AI_ENDPOINT_OPERATIONAL_BOUNDS.md` e `AI_ENDPOINT_DEGRADATION_POLICY.md`; actualizada a matriz de autoridade. Telemetria, limites e degradação não têm impacto nesta entrega: a origem do treino não é enviada à telemetria, não altera limites e falha técnica continua no caminho de continuidade já existente.
 - [ ] Definir a validade do check-in para geração autónoma: recomendar check-in do dia local do aluno; quando expirado/ausente, encaminhar para novo check-in em vez de usar sinais antigos silenciosamente.
 - [ ] Definir a apresentação de datas/horas com instante UTC autoritativo e formatação no locale do aluno.
 - [ ] Registar a decisão de aprovação Product/Privacy exigida se a redação pública ou a exposição de dados for alterada.
@@ -94,7 +94,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 
 - [ ] Criar um resolvedor server-side único para `autonomous_direct` e `trainer_timeout`.
 - [ ] Resolver no servidor: aluno, vínculo TRAINER activo, estado do convite/relacionamento, entitlement efectivo, Coach DNA aplicável e check-in válido.
-- [ ] Remover a regra cliente que força `coachDNA = null` em `source === 'trainer_timeout'`.
+- [x] Remover a regra cliente que força `coachDNA = null` em `source === 'trainer_timeout'`. Evidência: `StartWorkoutScreen.tsx`; o timeout passa a usar o mesmo contexto Coach DNA do Workout directo.
 - [ ] Incluir Coach DNA no contrato de geração somente quando o vínculo e o DNA forem válidos; caso contrário, usar a IA padrão sem atribuição enganosa.
 - [ ] Aplicar `workout.sessions_per_week` e `workout.exercises_per_session` na mesma autoridade para ambos os pontos de entrada.
 - [ ] Distinguir plano prescrito de treino autónomo para que o primeiro não conte na quota autónoma FREE.
@@ -111,7 +111,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 **Esforço:** médio · **Risco:** médio · **Migração:** sim
 
 - [ ] Criar migração reversível para persistir a proveniência de geração (`autonomous_direct` ou `trainer_timeout`) sem depender de texto livre em `ai_notes`.
-- [ ] Associar o plano gerado ao identificador do check-in efectivamente usado, sem duplicar conteúdo sensível do check-in.
+- [x] Associar a sugestão/plano gerado ao identificador do check-in efectivamente usado, sem duplicar conteúdo sensível do check-in. Evidência: `ai_suggestions.checkin_id` deixa de receber `null` na geração autónoma.
 - [ ] Guardar referência/versionamento mínimo do Coach DNA quando aplicado; não copiar o perfil completo nem dados de saúde para eventos de telemetria.
 - [ ] Definir estado de monitoramento posterior visível ao TRAINER, sem semântica de aprovação nem vigilância em tempo real.
 - [ ] Criar índices e RLS necessários para leitura apenas pelo aluno, TRAINER vinculado e backend autorizado.
@@ -125,12 +125,12 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 
 **Esforço:** médio · **Risco:** médio · **Migração:** não (salvo apoio ao estado do card)
 
-- [ ] Tornar a acção do card `workout_timeout` de uso único **após geração bem-sucedida**: o card passa a informar o resultado/encaminhar para o treino criado; em falha recuperável, permanece disponível com feedback apropriado.
+- [x] Tornar a acção do card `workout_timeout` de uso único **após geração bem-sucedida**: o card passa a informar o resultado/encaminhar para o treino criado; em falha recuperável, permanece disponível com feedback apropriado. Evidência: RPC `consume_workout_timeout_notification`, migração `20260811213000` aplicada localmente.
 - [ ] Não bloquear o botão normal **Workout** depois de o card ser consumido; a autonomia continua sujeita somente aos limites da licença e segurança.
 - [ ] Ajustar a cópia do timeout para “treino autónomo orientado pelo DNA Coach” quando aplicável, e “treino autónomo por IA” quando não houver DNA.
 - [ ] Exibir `checkin_required` como CTA claro para realizar novo check-in, sem tentativa de geração.
 - [ ] Exibir limite FREE com CTA de upgrade já padronizado, sem apresentar a mensagem de timeout como segunda oferta concorrente.
-- [ ] Localizar todos os estados em PT/EN/ES/DE e validar contraste, hierarquia e continuidade da sessão.
+- [x] Localizar o estado de card consumido em PT/EN/ES/DE; validação visual e de contraste permanece no smoke da Fase 5.
 - [ ] Garantir que a abertura de um card não marca implicitamente uma acção clínica ou uma sessão como concluída.
 
 **Conclusão da fase:** a Inbox é uma porta de contexto e continuidade, não um gerador repetitivo de treinos nem um bloqueio à autonomia legítima.
@@ -213,3 +213,10 @@ Ao término de cada fase, actualizar nesta mesma revisão:
 4. pendências reais, sem marcar aceitação por presunção.
 
 Não haverá fase marcada como concluída apenas por alteração de UI ou por teste parcial do frontend.
+
+## 8. Registo de execução
+
+| Data | Fase | Evidência | Estado |
+|---|---|---|---|
+| 2026-08-11 | 0 | Matriz de acesso, política patrocinada e matriz de autoridade reconciliadas; telemetria/bounds/degradação revistos sem impacto material | Parcial — falta decidir e implementar validade do check-in. |
+| 2026-08-11 | 1–3 | Coach DNA preservado no timeout; `ai_suggestions.checkin_id` persistido; card de timeout consumido por RPC após plano persistido; 4 locales | Parcial — centralização integral server-side e rastreabilidade estruturada seguem pendentes. |

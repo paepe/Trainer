@@ -1,6 +1,7 @@
 # TrAIner — Política de Consumo de IA por TRAINER e Aluno (rascunho interno)
 
 **Estado:** proposta para aprovação de Product, Jurídico e Privacy — não publicada
+**Revisão técnica:** 2026-08-11 — alinhada ao contrato de treino autónomo vinculado
 
 ## Princípio
 
@@ -10,7 +11,8 @@ Uma licença TRAINER não patrocina recursos de IA individuais do aluno. O vínc
 
 | Situação | Autoridade comercial | Atribuição de custo/telemetria | Regra proposta |
 |---|---|---|---|
-| Aluno gera ou adapta treino autônomo | Plano efetivo do aluno | Plano do aluno; ator HMAC do aluno | Permitido somente pelos entitlements do aluno. |
+| Aluno gera treino autônomo com TRAINER ativo | Plano efetivo do aluno | Plano do aluno; ator HMAC do aluno | Permitido pelos entitlements do aluno. Coach DNA e check-in persistido orientam a geração quando válidos; o TRAINER monitora posteriormente, sem patrocínio de IA nem aprovação prévia. |
+| Aluno usa fallback após falta de resposta do TRAINER | Plano efetivo do aluno | Plano do aluno; ator HMAC do aluno | É a mesma geração autônoma: usa Coach DNA/check-in válidos e consome os mesmos limites; não cria franquia, crédito ou autorização adicional. |
 | TRAINER solicita treino autônomo para aluno vinculado | Plano efetivo do aluno | Plano do aluno; ator HMAC do TRAINER | O vínculo é verificado, mas não eleva nem patrocina a licença do aluno. |
 | TRAINER usa IA no próprio contexto profissional | Plano efetivo do TRAINER | Plano do TRAINER; ator HMAC do TRAINER | Requer endpoint e entitlement profissional específicos; não deve ser cobrado ao aluno por inferência. |
 | Aluno FREE patrocinado registra check-in manual detalhado | Regra de patrocínio operacional | Sem inferência paga de IA | Permitido conforme matriz; sem voz, interpretação ou ajuste por IA patrocinados. |
@@ -19,6 +21,10 @@ Uma licença TRAINER não patrocina recursos de IA individuais do aluno. O vínc
 ## Sem franquia implícita
 
 Enquanto o TrAIner comercializar uso pessoal normal como ilimitado, não há “franquia de IA do TRAINER” a transferir, revender ou consumir em nome de alunos. Qualquer futura oferta B2B com crédito, custo compartilhado ou pagamento por uso exige decisão comercial e alteração explícita da matriz, dos Termos, da telemetria e do consentimento aplicável.
+
+## Plano prescrito e treino autónomo
+
+Um plano prescrito pelo TRAINER é patrocinado pelo vínculo e executado integralmente pelo aluno; não consome a quota de geração autónoma. O treino autónomo — iniciado no módulo Workout ou após timeout — consome exclusivamente a quota do aluno quando a geração é concluída com sucesso. O check-in manual detalhado patrocinado para aluno FREE continua sendo captura operacional: não desbloqueia voz, interpretação ou ajuste de IA.
 
 ## Proteções
 
