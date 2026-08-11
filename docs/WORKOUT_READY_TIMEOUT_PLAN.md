@@ -1,8 +1,8 @@
 # Plano de Implementação — Fallback Automático de Treino por Timeout
 
-**Versão:** 2.0  
-**Data inicial:** 2026-06-23 · **Última actualização:** 2026-06-23  
-**Estado:** ✅ Fases A–E concluídas  
+**Versão:** 2.1
+**Data inicial:** 2026-06-23 · **Última actualização:** 2026-08-11
+**Estado:** ✅ Fases A–E concluídas
 **Referência:** `docs/FEATURE_GATING_IMPLEMENTATION_PLAN.md`
 
 ---
@@ -25,7 +25,7 @@
 |---|---|---|
 | D1 | Trigger do fallback | Aluno abre inbox e vê o botão — não é push automático |
 | D2 | Treinador notificado? | Sim — card amber "Treinou autonomamente" |
-| D3 | Plano do fallback | `DEFAULT_AI_TRAINER` (Coach DNA não aprovado = não usado) |
+| D3 | Plano do fallback | Mesmo contexto autónomo do aluno vinculado: Coach DNA activo quando existir; AI Coach + preferências do aluno quando não existir. |
 | D4 | Fallback se treinador rejeitou? | Não — rejeição clínica é definitiva |
 | D5 | Auditoria | `trainer_timeout: true` gravado em `ai_notes` de `workout_plans` |
 
@@ -35,6 +35,7 @@
 - Botão de notificação no `CheckInResult` passa a ter estado inteligente — bloqueia duplicados, mostra countdown, restaura automaticamente
 - Texto do botão de fallback: **"Continuar com plano personalizado pela IA"** (aprovado pelo produto)
 - `nav('checkin')` removido do `onAlert` — aluno permanece no resultado e acompanha o countdown
+- Revisão 2026-08-11: timeout não altera a metodologia nem cria direito adicional. O card é consumido apenas após um plano ser persistido; o aluno conserva o acesso normal ao módulo Workout conforme a própria licença.
 
 ---
 
@@ -62,9 +63,9 @@
 
 4. StartWorkoutScreen com source='trainer_timeout':
    → Banner amber informativo no topo
-   → DEFAULT_AI_TRAINER (Coach DNA ignorado)
+   → Coach DNA activo do TRAINER vinculado; na ausência de DNA, AI Coach + preferências do aluno
    → ai_notes inclui 'trainer_timeout: true'
-   → Plano gerado normalmente (Safety Gate, feature gating, tudo activo)
+   → Plano gerado normalmente (Safety Gate, feature gating e limites da licença do aluno activos)
 
 5. Treinador recebe card amber "Treinou autonomamente" na sua inbox
 ```
