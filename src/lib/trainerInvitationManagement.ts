@@ -19,10 +19,6 @@ export function effectiveInvitationStatus(invitation: Pick<ManagedTrainerInvitat
     : invitation.status as InvitationStatus;
 }
 
-function normalise(value: string) {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
-}
-
 export function visibleTrainerInvitations(
   invitations: ManagedTrainerInvitation[],
   archiveScope: InvitationArchiveScope,
@@ -30,11 +26,10 @@ export function visibleTrainerInvitations(
   search: string,
   sort: InvitationSort,
 ) {
-  const terms = normalise(search).trim().split(/\s+/).filter(Boolean);
   return invitations
     .filter(inv => archiveScope === 'archived' ? !!inv.archived_at : !inv.archived_at)
     .filter(inv => filter === 'all' || effectiveInvitationStatus(inv) === filter)
-    .filter(inv => terms.every(term => normalise(`${inv.invited_name} ${inv.invited_email}`).includes(term)))
+    .filter(inv => matchesOperationalSearch(`${inv.invited_name} ${inv.invited_email}`, search))
     .sort((a, b) => {
       if (sort === 'nameAsc') return a.invited_name.localeCompare(b.invited_name);
       if (sort === 'nameDesc') return b.invited_name.localeCompare(a.invited_name);
@@ -45,15 +40,14 @@ export function visibleTrainerInvitations(
 }
 
 export function toggleManagedSelection(current: ReadonlySet<string>, id: string) {
-  const next = new Set(current);
-  if (next.has(id)) next.delete(id);
-  else next.add(id);
-  return next;
+  return toggleOperationalSelection(current, id);
 }
 
 export function toggleAllManagedSelection(current: ReadonlySet<string>, ids: string[]) {
-  const next = new Set(current);
-  const allSelected = ids.length > 0 && ids.every(id => next.has(id));
-  ids.forEach(id => allSelected ? next.delete(id) : next.add(id));
-  return next;
+  return toggleAllOperationalSelection(current, ids);
 }
+import {
+  matchesOperationalSearch,
+  toggleAllOperationalSelection,
+  toggleOperationalSelection,
+} from './operationalListManagement';

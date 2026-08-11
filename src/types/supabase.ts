@@ -731,6 +731,51 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_mailbox_states: {
+        Row: {
+          archived_at: string | null
+          archived_by: string | null
+          notification_id: string
+          read_at: string | null
+          read_by: string | null
+          recipient_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
+          notification_id: string
+          read_at?: string | null
+          read_by?: string | null
+          recipient_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          archived_by?: string | null
+          notification_id?: string
+          read_at?: string | null
+          read_by?: string | null
+          recipient_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_mailbox_states_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: true
+            referencedRelation: "notification_log"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_mailbox_states_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operational_tasks: {
         Row: {
           client_id: string
@@ -2525,6 +2570,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      archive_inbox_notifications: {
+        Args: { p_archive?: boolean; p_notification_ids: string[] }
+        Returns: { archived_at: string | null; id: string; outcome: string }[]
+      }
       archive_trainer_invitations: {
         Args: { p_archive?: boolean; p_invitation_ids: string[] }
         Returns: { archived_at: string | null; id: string }[]
@@ -2607,6 +2656,66 @@ export type Database = {
       log_profile_access_view: {
         Args: { p_grant_id: string }
         Returns: undefined
+      }
+      list_inbox_notifications: {
+        Args: {
+          p_cursor_created_at?: string | null
+          p_cursor_id?: string | null
+          p_limit?: number
+          p_scope?: string
+          p_search?: string | null
+        }
+        Returns: {
+          archived_at: string | null
+          body: string
+          created_at: string
+          entity_id: string | null
+          expires_at: string | null
+          from_user_id: string | null
+          id: string
+          params: Json | null
+          peer_name: string | null
+          read_at: string | null
+          response: string | null
+          response_at: string | null
+          template_key: string | null
+          title: string
+          type: string | null
+        }[]
+      }
+      list_inbox_notifications_v2: {
+        Args: {
+          p_category?: string
+          p_cursor_created_at?: string | null
+          p_cursor_id?: string | null
+          p_cursor_sender_name?: string | null
+          p_limit?: number
+          p_scope?: string
+          p_search?: string | null
+          p_sort?: string
+        }
+        Returns: {
+          archived_at: string | null
+          body: string
+          created_at: string
+          entity_id: string | null
+          expires_at: string | null
+          from_user_id: string | null
+          id: string
+          params: Json | null
+          peer_name: string | null
+          read_at: string | null
+          response: string | null
+          response_at: string | null
+          sort_sender_name: string
+          template_key: string | null
+          title: string
+          type: string | null
+        }[]
+      }
+      mark_inbox_notifications_read: {
+        Args: { p_notification_ids: string[] }
+        Returns: { id: string; outcome: string; read_at: string | null }[]
       }
       search_discoverable_free_clients: {
         Args: { p_limit?: number; p_offset?: number; p_plan_keys?: string[] | null; p_query?: string }

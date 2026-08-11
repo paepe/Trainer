@@ -121,6 +121,23 @@
       "trainedAutonomously": "Treinou autonomamente",
       "trainerTimeout": "Treinador não respondeu"
     },
+    "management": {
+      "scopeLabel": "Mensagens",
+      "all": "Todas",
+      "scope": { "active": "Ativas", "archived": "Arquivadas" },
+      "search": "Buscar mensagens",
+      "category": { "actionRequired": "Ação necessária", "invitations": "Convites", "plansAndWorkouts": "Planos e treinos", "accessAndPrivacy": "Acesso e privacidade", "alerts": "Alertas", "informational": "Concluídas e informativas" },
+      "sort": { "recent": "Mais recentes", "oldest": "Mais antigas", "nameAsc": "Remetente A–Z", "nameDesc": "Remetente Z–A" },
+      "selectAll": "Selecionar todas",
+      "clearSelection": "Limpar seleção",
+      "selected": "{{count}} selecionadas",
+      "markRead": "Marcar como lidas",
+      "archive": "Arquivar selecionadas",
+      "restore": "Restaurar selecionadas",
+      "loadMore": "Carregar mais",
+      "noResults": "Nenhuma mensagem corresponde a estes filtros.",
+      "partialResult": "Algumas mensagens não puderam ser atualizadas."
+    },
     "workout_timeout": {
       "title": "O seu treinador não respondeu no prazo",
       "body": "Pode agora iniciar o seu treino com um plano gerado pela IA."

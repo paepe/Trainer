@@ -11,6 +11,17 @@ import { Icon }       from '../../components/Icon';
 import { ScreenTitle } from '../../components/ScreenTitle';
 import { surfRaised, textPri, textSec, textMute } from '../../theme';
 import { notify }     from '../../lib/notify';
+import { SegmentedControl, HStack } from '../../ui';
+import {
+  canArchiveInboxItem,
+  inboxCategoryFor,
+  isInboxActionable,
+  toggleAllOperationalSelection,
+  toggleOperationalSelection,
+  type InboxCategory,
+  type OperationalListScope,
+  type OperationalListSort,
+} from '../../lib/operationalListManagement';
 import type { NavFn } from '../../types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -30,6 +41,8 @@ export interface InboxItem {
   template_key?: string | null;
   params?:       Record<string, unknown> | null;
   entity_id?:    string | null;
+  archived_at?:  string | null;
+  sort_sender_name?: string | null;
 }
 
 function isExpired(item: InboxItem): boolean {
@@ -66,6 +79,15 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
   const [loading,  setLoading]  = React.useState(true);
   const [busy,     setBusy]     = React.useState<string | null>(null);
   const [expanded, setExpanded] = React.useState<string | null>(null);
+  const [scope, setScope] = React.useState<OperationalListScope>('active');
+  const [category, setCategory] = React.useState<'all' | InboxCategory>('all');
+  const [sort, setSort] = React.useState<OperationalListSort>('recent');
+  const [search, setSearch] = React.useState('');
+  const [debouncedSearch, setDebouncedSearch] = React.useState('');
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [operationNotice, setOperationNotice] = React.useState<string | null>(null);
+  const [hasMore, setHasMore] = React.useState(false);
+  const [loadingMore, setLoadingMore] = React.useState(false);
 
   const declineInvitation = async (item: InboxItem) => {
     const token = item.params?.inviteToken;
@@ -94,71 +116,56 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     setBusy(null);
   };
 
-  // ── Batch name resolution (1 query instead of N) ──────────────────────────
-  // Caches resolved names in a ref so Realtime INSERTs reuse them.
+  React.useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedSearch(search), 250);
+    return () => window.clearTimeout(id);
+  }, [search]);
 
-  const nameCache = React.useRef<Record<string, string>>({});
+  const loadInboxPage = React.useCallback(async (reset: boolean) => {
+    if (!userId) return;
+    if (reset) setLoading(true);
+    else setLoadingMore(true);
 
-  const enrichBatch = React.useCallback(async (rawList: Omit<InboxItem, 'peer_name'>[]): Promise<InboxItem[]> => {
-    // collect unique unresolved from_user_ids
-    const unresolved = [...new Set(
-      rawList.map(d => d.from_user_id).filter(Boolean) as string[],
-    )].filter(id => !nameCache.current[id]);
+    const previous = reset ? [] : items;
+    const last = previous.at(-1);
+    const { data, error } = await supabase.rpc('list_inbox_notifications_v2', {
+      p_scope: scope,
+      p_search: debouncedSearch || null,
+      p_category: category,
+      p_sort: sort,
+      p_cursor_created_at: last?.created_at ?? null,
+      p_cursor_sender_name: last?.sort_sender_name ?? null,
+      p_cursor_id: last?.id ?? null,
+      p_limit: 25,
+    });
 
-    if (unresolved.length > 0) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', unresolved);
-      if (data) {
-        for (const p of data as { id: string; name: string }[]) {
-          nameCache.current[p.id] = p.name;
-        }
-      }
-      // mark unresolved ones as null so we don't re-query them
-      for (const id of unresolved) {
-        if (!nameCache.current[id]) nameCache.current[id] = '';
-      }
+    if (error) {
+      console.error('[Inbox] load failed:', error.message);
+      if (reset) setItems([]);
+    } else {
+      const rows = (data ?? []) as InboxItem[];
+      setItems(reset ? rows : [...previous, ...rows.filter(row => !previous.some(item => item.id === row.id))]);
+      setHasMore(rows.length === 25);
     }
+    setLoading(false);
+    setLoadingMore(false);
+  }, [userId, items, scope, debouncedSearch, category, sort]);
 
-    return rawList.map(d => ({
-      ...d,
-      ...(d.from_user_id && nameCache.current[d.from_user_id]
-        ? { peer_name: nameCache.current[d.from_user_id] } : {}),
-    }));
-  }, []);
+  const reloadInboxRef = React.useRef<() => void>(() => undefined);
+  React.useEffect(() => {
+    reloadInboxRef.current = () => { void loadInboxPage(true); };
+  }, [loadInboxPage]);
 
-  // ── Initial load ───────────────────────────────────────────────────────────
+  // ── Initial/filter load ───────────────────────────────────────────────────
 
   React.useEffect(() => {
-    if (!userId) return;
-    setLoading(true);
-
-    supabase
-      .from('notification_log')
-      .select('id, type, title, body, from_user_id, created_at, expires_at, response, response_at, read_at, template_key, params, entity_id')
-      .eq('to_user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(50)
-      .then(async ({ data, error }) => {
-        if (error) console.error('[Inbox] load failed:', error.message);
-        if (data) {
-          const rows = data as unknown as Omit<InboxItem, 'peer_name'>[];
-          const enriched = await enrichBatch(rows);
-          setItems(enriched);
-
-          // Mark ALL unread rows as read, not just the ones loaded here —
-          // items beyond the 50-row window would otherwise stay unread
-          // forever and permanently inflate the unread badge.
-          supabase.from('notification_log')
-            .update({ read_at: new Date().toISOString() })
-            .eq('to_user_id', userId)
-            .is('read_at', null)
-            .then(({ error: uErr }) => { if (uErr) console.error('[Inbox] mark-read failed:', uErr.message); });
-        }
-        setLoading(false);
-      });
-  }, [userId, enrichBatch]);
+    setSelectedIds(new Set());
+    setExpanded(null);
+    void loadInboxPage(true);
+    // loadInboxPage intentionally changes as cursor items change; resets must
+    // be driven only by the active server query.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, scope, debouncedSearch, category, sort]);
 
   // ── Realtime subscription (only after initial load completes) ──────────────
 
@@ -169,40 +176,24 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
       .channel(`inbox:${userId}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${userId}` },
-        async (payload) => {
-          const [enriched] = await enrichBatch([payload.new as Omit<InboxItem, 'peer_name'>]);
-          if (!enriched?.id) return;
-          setItems(prev => {
-            if (prev.some(i => i.id === enriched.id)) return prev; // dedup
-            return [enriched, ...prev];
-          });
-        }
+        () => reloadInboxRef.current()
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'notification_log', filter: `to_user_id=eq.${userId}` },
-        (payload) => {
-          const old = payload.old as InboxItem;
-          const upd = payload.new as InboxItem;
-
-          // skip self-triggered mark-as-read updates (only read_at changed)
-          const onlyReadAtChanged =
-            old.read_at !== upd.read_at &&
-            old.response === upd.response &&
-            old.response_at === upd.response_at &&
-            old.title === upd.title &&
-            old.body === upd.body;
-
-          if (onlyReadAtChanged) return;
-
-          setItems(prev => prev.map(i =>
-            i.id === upd.id ? { ...i, ...(upd as Partial<InboxItem>) } : i
-          ));
-        }
+        () => reloadInboxRef.current()
+      )
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notification_mailbox_states', filter: `recipient_id=eq.${userId}` },
+        () => reloadInboxRef.current()
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'notification_mailbox_states', filter: `recipient_id=eq.${userId}` },
+        () => reloadInboxRef.current()
       )
       .subscribe();
 
     return () => { void supabase.removeChannel(channel); };
-  }, [userId, loading, enrichBatch]);
+  }, [userId, loading]);
 
   // ── Trainer: Approve / Reject (workout_ready) · Client: Grant / Deny (access_request) ──
 
@@ -268,6 +259,46 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     ));
     setBusy(null);
   };
+
+  const markRead = async (ids: readonly string[]) => {
+    const unreadIds = ids.filter(id => items.find(item => item.id === id)?.read_at == null);
+    if (unreadIds.length === 0) return;
+    setBusy('mark-read');
+    const { data, error } = await supabase.rpc('mark_inbox_notifications_read', { p_notification_ids: unreadIds });
+    if (!error && data) {
+      const now = new Date().toISOString();
+      const successful = new Set(data.filter(row => row.outcome === 'read').map(row => row.id));
+      setItems(previous => previous.map(item => successful.has(item.id) ? { ...item, read_at: now } : item));
+      if (successful.size !== unreadIds.length) setOperationNotice(tr('inbox.management.partialResult'));
+    } else {
+      setOperationNotice(tr('inbox.management.partialResult'));
+    }
+    setBusy(null);
+  };
+
+  const updateArchiveState = async (archive: boolean) => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    setBusy('archive');
+    const { data, error } = await supabase.rpc('archive_inbox_notifications', {
+      p_notification_ids: ids,
+      p_archive: archive,
+    });
+    if (!error && data) {
+      const successful = new Set(data.filter(row => row.outcome === (archive ? 'archived' : 'restored')).map(row => row.id));
+      if (successful.size > 0) {
+        setSelectedIds(new Set());
+        setItems(previous => previous.filter(item => !successful.has(item.id)));
+      }
+      if (successful.size !== ids.length) setOperationNotice(tr('inbox.management.partialResult'));
+    } else {
+      setOperationNotice(tr('inbox.management.partialResult'));
+    }
+    setBusy(null);
+  };
+
+  const toggleItemSelection = (id: string) => setSelectedIds(previous => toggleOperationalSelection(previous, id));
+  const toggleAllVisible = () => setSelectedIds(previous => toggleAllOperationalSelection(previous, items.map(item => item.id)));
 
   // ── Trainer: auto-notify client when workout_ready expires without response ──
   // Runs once after items load. For each expired workout_ready with no response,
@@ -352,6 +383,15 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     return item.response === 'approved' ? tr('inbox.responses.approved') : tr('inbox.responses.rejected');
   };
 
+  const categoryOptions: Array<'all' | InboxCategory> = ['all', 'actionRequired', 'invitations', 'plansAndWorkouts', 'accessAndPrivacy', 'alerts', 'informational'];
+  const actionableItems = scope === 'active' && category === 'all'
+    ? items.filter(item => isInboxActionable(item))
+    : [];
+  const historyItems = actionableItems.length > 0 ? items.filter(item => !isInboxActionable(item)) : items;
+  const selectedItems = items.filter(item => selectedIds.has(item.id));
+  const selectedCanArchive = selectedItems.length > 0 && selectedItems.every(item => canArchiveInboxItem(item));
+  const selectedHasUnread = selectedItems.some(item => item.read_at == null);
+
   return (
     <>
       <ScreenTitle dark={dark}>
@@ -364,18 +404,77 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
         </div>
       )}
 
+      {!loading && (
+        <div style={{ padding: '0 22px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <SegmentedControl
+            value={scope}
+            color={t.primary}
+            activeStyle={{ background: `${t.primary}14`, border: `1px solid ${t.primary}88` }}
+            options={[
+              { value: 'active', label: tr('inbox.management.scope.active') },
+              { value: 'archived', label: tr('inbox.management.scope.archived') },
+            ]}
+            onChange={(value) => setScope(value as OperationalListScope)}
+          />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={tr('inbox.management.search')}
+            aria-label={tr('inbox.management.search')}
+            style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: 11, border: `1px solid ${dark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.14)'}`, background: surfRaised(dark), color: textPri(dark), fontSize: 12.5, fontFamily: 'inherit' }}
+          />
+          <HStack gap={6} style={{ flexWrap: 'wrap' }}>
+            {categoryOptions.map(value => (
+              <button key={value} onClick={() => setCategory(value)} aria-pressed={category === value} style={{ padding: '5px 8px', borderRadius: 999, border: `1px solid ${category === value ? `${t.primary}88` : (dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)')}`, background: category === value ? `${t.primary}14` : 'transparent', color: category === value ? t.primary : textMute(dark), fontFamily: 'inherit', fontSize: 10.5, fontWeight: 650, cursor: 'pointer' }}>
+                {value === 'all' ? tr('inbox.management.all') : tr(`inbox.management.category.${value}`)}
+              </button>
+            ))}
+            <button onClick={() => setSort(value => value === 'recent' ? 'oldest' : value === 'oldest' ? 'nameAsc' : value === 'nameAsc' ? 'nameDesc' : 'recent')} style={{ padding: '5px 8px', borderRadius: 999, border: `1px solid ${dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'}`, background: 'transparent', color: textSec(dark), fontFamily: 'inherit', fontSize: 10.5, fontWeight: 650, cursor: 'pointer' }}>
+              <span aria-hidden="true">↕ </span>{tr(`inbox.management.sort.${sort}`)}
+            </button>
+          </HStack>
+          {items.length > 0 && (
+            <>
+              <button onClick={toggleAllVisible} style={{ alignSelf: 'flex-start', padding: '6px 10px', borderRadius: 999, border: `1px solid ${dark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.16)'}`, background: 'transparent', color: textSec(dark), fontSize: 11, fontFamily: 'inherit', cursor: 'pointer' }}>
+                {tr('inbox.management.selectAll')}
+              </button>
+              {selectedItems.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '9px 10px', borderRadius: 11, background: `${t.primary}12`, border: `1px solid ${t.primary}55` }}>
+                  <span style={{ flex: 1, fontSize: 11.5, fontWeight: 700, color: textPri(dark) }}>{tr('inbox.management.selected', { count: selectedItems.length })}</span>
+                  <button onClick={() => setSelectedIds(new Set())} disabled={busy !== null} style={{ padding: '6px 8px', border: 'none', background: 'transparent', color: textSec(dark), fontSize: 11, fontFamily: 'inherit', cursor: 'pointer' }}>{tr('inbox.management.clearSelection')}</button>
+                  {selectedHasUnread && <button onClick={() => void markRead([...selectedIds])} disabled={busy !== null} style={{ padding: '6px 8px', borderRadius: 8, border: `1px solid ${t.primary}66`, background: 'transparent', color: t.primary, fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{tr('inbox.management.markRead')}</button>}
+                  <button onClick={() => void updateArchiveState(scope === 'active')} disabled={busy !== null || (scope === 'active' && !selectedCanArchive)} style={{ padding: '6px 8px', borderRadius: 8, border: 'none', background: t.primary, color: '#0E1A2B', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: busy !== null || (scope === 'active' && !selectedCanArchive) ? .45 : 1 }}>
+                    {scope === 'active' ? tr('inbox.management.archive') : tr('inbox.management.restore')}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+          {operationNotice && (
+            <div role="status" style={{ padding: '8px 10px', borderRadius: 9, background: `${t.amber ?? '#F5A623'}14`, border: `1px solid ${t.amber ?? '#F5A623'}55`, color: t.amber ?? '#F5A623', fontSize: 11.5 }}>
+              {operationNotice}
+            </div>
+          )}
+        </div>
+      )}
+
       {!loading && items.length === 0 && (
         <div style={{ padding: '48px 22px', textAlign: 'center' }}>
           <Icon name="bell" size={32} color={textMute(dark)} />
           <div style={{ marginTop: 12, fontSize: 13, color: textMute(dark) }}>
-            {isTrainer ? tr('inbox.noAlerts') : tr('inbox.noMessages')}
+            {search || category !== 'all' || scope === 'archived'
+              ? tr('inbox.management.noResults')
+              : (isTrainer ? tr('inbox.noAlerts') : tr('inbox.noMessages'))}
           </div>
         </div>
       )}
 
       {!loading && items.length > 0 && (
         <div style={{ padding: '0 22px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {items.map(item => {
+          {actionableItems.length > 0 && (
+            <div style={{ fontSize: 10.5, fontWeight: 750, letterSpacing: '.06em', textTransform: 'uppercase', color: t.primary, marginBottom: -2 }}>{tr('inbox.management.category.actionRequired')}</div>
+          )}
+          {[...actionableItems, ...historyItems].map(item => {
             const open    = expanded === item.id;
             const expired = isExpired(item);
             const isReady = item.type === 'workout_ready';
@@ -397,11 +496,15 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
               }}>
                 {/* Colour accent stripe — only shown for unread cards */}
                 <div style={{ width: 4, flexShrink: 0, background: unread ? accentColor : 'transparent', borderRadius: '14px 0 0 14px' }} />
+                <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleItemSelection(item.id)} aria-label={tr('inbox.management.selected', { count: 1 })} style={{ accentColor: t.primary, flexShrink: 0, alignSelf: 'flex-start', margin: '20px 0 0 10px' }} />
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Card header */}
                 <button
-                  onClick={() => setExpanded(open ? null : item.id)}
+                  onClick={() => {
+                    setExpanded(open ? null : item.id);
+                    if (!open && item.read_at == null) void markRead([item.id]);
+                  }}
                   style={{
                     width: '100%', padding: '12px 14px 12px 12px',
                     display: 'flex', alignItems: 'center', gap: 11,
@@ -576,6 +679,11 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
               </div>
             );
           })}
+          {hasMore && (
+            <button onClick={() => void loadInboxPage(false)} disabled={loadingMore} style={{ padding: '10px 0', borderRadius: 10, border: `1px solid ${t.primary}66`, background: 'transparent', color: t.primary, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: loadingMore ? 'default' : 'pointer', opacity: loadingMore ? .6 : 1 }}>
+              {loadingMore ? tr('inbox.loading') : tr('inbox.management.loadMore')}
+            </button>
+          )}
         </div>
       )}
     </>

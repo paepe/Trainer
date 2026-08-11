@@ -120,6 +120,23 @@
       "trainedAutonomously": "Autonom trainiert",
       "trainerTimeout": "Trainer hat nicht geantwortet"
     },
+    "management": {
+      "scopeLabel": "Nachrichten",
+      "all": "Alle",
+      "scope": { "active": "Aktiv", "archived": "Archiviert" },
+      "search": "Nachrichten suchen",
+      "category": { "actionRequired": "Aktion erforderlich", "invitations": "Einladungen", "plansAndWorkouts": "Pläne & Trainings", "accessAndPrivacy": "Zugang & Datenschutz", "alerts": "Hinweise", "informational": "Abgeschlossen & informativ" },
+      "sort": { "recent": "Neueste", "oldest": "Älteste", "nameAsc": "Absender A–Z", "nameDesc": "Absender Z–A" },
+      "selectAll": "Alle auswählen",
+      "clearSelection": "Auswahl aufheben",
+      "selected": "{{count}} ausgewählt",
+      "markRead": "Als gelesen markieren",
+      "archive": "Ausgewählte archivieren",
+      "restore": "Ausgewählte wiederherstellen",
+      "loadMore": "Mehr laden",
+      "noResults": "Keine Nachrichten entsprechen diesen Filtern.",
+      "partialResult": "Einige Nachrichten konnten nicht aktualisiert werden."
+    },
     "workout_timeout": {
       "title": "Dein Trainer hat nicht rechtzeitig geantwortet",
       "body": "Du kannst jetzt dein Training mit einem KI-generierten Plan starten."

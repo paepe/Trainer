@@ -121,6 +121,23 @@
       "trainedAutonomously": "Trained autonomously",
       "trainerTimeout": "Trainer timed out"
     },
+    "management": {
+      "scopeLabel": "Messages",
+      "all": "All",
+      "scope": { "active": "Active", "archived": "Archived" },
+      "search": "Search messages",
+      "category": { "actionRequired": "Action required", "invitations": "Invitations", "plansAndWorkouts": "Plans & workouts", "accessAndPrivacy": "Access & privacy", "alerts": "Alerts", "informational": "Completed & informational" },
+      "sort": { "recent": "Most recent", "oldest": "Oldest", "nameAsc": "Sender A–Z", "nameDesc": "Sender Z–A" },
+      "selectAll": "Select all",
+      "clearSelection": "Clear selection",
+      "selected": "{{count}} selected",
+      "markRead": "Mark as read",
+      "archive": "Archive selected",
+      "restore": "Restore selected",
+      "loadMore": "Load more",
+      "noResults": "No messages match these filters.",
+      "partialResult": "Some messages could not be updated."
+    },
     "workout_timeout": {
       "title": "Your trainer did not respond in time",
       "body": "You can now start your workout with an AI-generated plan."

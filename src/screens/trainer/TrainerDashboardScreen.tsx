@@ -234,7 +234,7 @@ export function TrainerDashboardScreen({
     setReviewingId(null);
   }
 
-  async function fetchInvitations() {
+  const fetchInvitations = React.useCallback(async () => {
     if (!user?.id) return;
     const { data } = await invitationsTable()
       .select('id, invited_email, invited_name, status, created_at, expires_at, archived_at')
@@ -242,7 +242,25 @@ export function TrainerDashboardScreen({
       .order('created_at', { ascending: false })
       .limit(50);
     setInvitations(data ?? []);
-  }
+  }, [user?.id]);
+
+  // Keep the invitation-management sheet current when a prospect acts in a
+  // different session. The authoritative refresh preserves server filters and
+  // avoids optimistic status assumptions in the trainer UI.
+  React.useEffect(() => {
+    if (!user?.id || !showInvite) return;
+
+    void fetchInvitations();
+    const channel = supabase
+      .channel(`trainer-invitations:${user.id}`)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'trainer_invitations', filter: `trainer_id=eq.${user.id}` },
+        () => { void fetchInvitations(); }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [user?.id, showInvite, fetchInvitations]);
 
   async function sendInvite(email: string, name: string): Promise<{ ok: boolean; emailSent?: boolean; error?: string; limit?: number }> {
     if (!user?.id) return { ok: false };
