@@ -1,5 +1,5 @@
 # Feature Access Matrix — TrAIner App
-**Versão:** 1.5
+**Versão:** 1.4
 **Data:** 2026-08-11
 **Estado:** Matriz de referência de acesso; Uso Justo publicado nos [Termos](https://trainer-lake.vercel.app/legal/terms) e na [Política](https://trainer-lake.vercel.app/legal/fair-use)
 
@@ -38,8 +38,6 @@ feature_permissions (Supabase)
 **Auditoria de alinhamento 2026-08-07:** esta secção foi reconciliada com a configuração efectiva em produção e com a autoridade server-side (`api/_lib/entitlements.ts`). AI FITNESS tem sessões autónomas ilimitadas (`limit_value = null`); `workout.exercise_type` e `trainer_plan.days_per_week` são chaves legadas, não lidas. Portanto, categoria de exercício e dias de plano prescrito não são gates comerciais por licença. A diferença entre AI FITNESS e AI PERFORMANCE é o acesso à análise avançada e às métricas de desempenho — não um modelo de IA ou uma categoria de treino exclusiva.
 
 **Revisão 2026-08-11:** ao atingir a sessão autónoma semanal do FREE, a interface apresenta a limitação confirmada e o CTA contextual para AI FITNESS. O retorno autoritativo `sessions_per_week_limit_reached` não pode acionar o fallback local; assim, a comunicação e o backend mantêm a mesma regra. Não houve mudança de preço, entitlement, patrocínio, Termos ou Política de Uso Justo.
-
-**Revisão de comunicação 2026-08-11:** o CTA de AI FITNESS passou a comunicar directamente o benefício efectivo — check-in completo com voz e treino adaptado ao dia — sem alterar preço, entitlement, Termos ou Política de Uso Justo. Ambos os CTAs usam texto escuro sobre o fundo primário para contraste consistente.
 
 | Funcionalidade | Descrição | FREE | AI FITNESS | AI PERFORMANCE |
 |---|---|:---:|:---:|:---:|
