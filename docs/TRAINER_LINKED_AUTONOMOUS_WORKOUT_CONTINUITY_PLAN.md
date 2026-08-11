@@ -1,8 +1,8 @@
 # Plano de Implementação — Workout Autónomo Vinculado ao TRAINER e Continuidade de Check-in
 
-**Versão:** 1.0  
-**Data inicial:** 2026-08-11  
-**Estado:** Planeado — decisões de produto registadas; implementação ainda não iniciada  
+**Versão:** 1.1
+**Data inicial:** 2026-08-11
+**Estado:** Planeado — decisões de produto registadas; implementação ainda não iniciada
 **Referências:** `docs/WORKOUT_READY_TIMEOUT_PLAN.md` · `docs/WORKOUT_PLAN_EXPIRY_CONTROL.md` · `docs/FEATURE_ACCESS_MATRIX.md` · `docs/AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md` · `docs/AI_GOVERNANCE_CHANGE_GATE.md`
 
 ---
@@ -27,19 +27,31 @@ O resultado deve ser um único contrato server-side que:
 |---|---|
 | Autonomia do aluno | Um aluno com TRAINER activo pode iniciar treino autónomo directamente no **Workout**; não precisa de aprovação prévia. |
 | Papel do Coach DNA | O treino autónomo do aluno vinculado é orientado pelo DNA do TRAINER quando há DNA activo; não deve ser apresentado como plano supervisionado. |
+| Plano prescrito | O plano prescrito pelo TRAINER usa a sua metodologia/Coach DNA, é integralmente executável pelo aluno e não consome a quota autónoma do aluno. |
 | Check-in | A geração usa o check-in persistido aplicável. O vínculo patrocina ao aluno FREE a captura manual detalhada, mas não voz, interpretação nem ajuste de IA. |
 | Fallback por timeout | É uma entrada alternativa para o mesmo treino autónomo, não uma autorização especial, nem crédito adicional de sessões. |
 | Monitoramento | O TRAINER pode avaliar posteriormente histórico, sessão, check-ins e progresso; não existe acompanhamento em tempo real nem aprovação tácita. |
 | Limites comerciais | FREE mantém 1 sessão autónoma/semana e até 6 exercícios; AI FITNESS e AI PERFORMANCE mantêm uso comercialmente ilimitado, sujeito a Uso Justo. Planos prescritos não consomem a quota autónoma. |
 | Ausência de DNA | Se o TRAINER não tiver Coach DNA activo, o sistema usa o perfil/prefs do aluno e a IA padrão, sem alegar que o plano foi orientado pelo treinador. |
+| Sem TRAINER | O Workout autónomo usa o AI Coach e as preferências do aluno, sem associação a acompanhamento profissional. |
 
 ### Vocabulário obrigatório na UI
 
-- **Plano prescrito pelo TRAINER:** preparado ou ajustado pelo profissional.
+- **Plano prescrito pelo TRAINER:** preparado ou ajustado pelo profissional, sob a sua metodologia/Coach DNA, e executado integralmente pelo aluno.
 - **Treino autónomo orientado pelo DNA Coach:** iniciado pelo aluno, com metodologia do TRAINER quando disponível, para monitoramento posterior.
 - **Treino autónomo por IA:** iniciado pelo aluno sem DNA Coach aplicável.
 
 Não usar “sessão acompanhada”, “aprovada” ou equivalente nos dois últimos casos.
+
+### Matriz de aderência pactuada
+
+| Caminho | Coach DNA | Check-in persistido | Participação do TRAINER | Limites |
+|---|---|---|---|---|
+| Plano prescrito pelo TRAINER | Sim | Sim | Prescreve, ajusta e acompanha | Patrocinado pelo vínculo; aluno executa integralmente. |
+| Workout autónomo com TRAINER activo | Sim | Sim | Não aprova antes; monitora posteriormente por histórico, Progress e check-ins | Licença do aluno: FREE 1 sessão autónoma/semana; AI FITNESS/AI PERFORMANCE ilimitado comercialmente. |
+| Fallback após falta de resposta | Deve usar Coach DNA | Sim | Não respondeu no prazo; pode avaliar depois | Mesmos limites da licença; entrada alternativa para treino autónomo. |
+| Workout autónomo sem TRAINER | AI Coach + preferências do aluno | Sim | Não há acompanhamento profissional | Licença do aluno. |
+| Aluno FREE vinculado a TRAINER | Sim, nos treinos autónomos e prescritos | Sim; check-in detalhado manual patrocinado | Pode receber plano prescrito ou treinar autonomamente com DNA Coach; TRAINER acompanha depois | 1 sessão autónoma/semana; plano prescrito não consome a quota. |
 
 ---
 
@@ -86,6 +98,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [ ] Incluir Coach DNA no contrato de geração somente quando o vínculo e o DNA forem válidos; caso contrário, usar a IA padrão sem atribuição enganosa.
 - [ ] Aplicar `workout.sessions_per_week` e `workout.exercises_per_session` na mesma autoridade para ambos os pontos de entrada.
 - [ ] Distinguir plano prescrito de treino autónomo para que o primeiro não conte na quota autónoma FREE.
+- [ ] Consumir a quota somente após geração autónoma server-side bem-sucedida; falha, Safety Gate, check-in ausente ou clique no CTA não consomem sessão.
 - [ ] Garantir Safety Gate e dados de dor como invariantes, independentemente da licença, origem ou disponibilidade de calibração diária.
 - [ ] Definir respostas determinísticas: `generated`, `limit_reached`, `checkin_required`, `safety_blocked`, `relationship_unavailable` e `generation_unavailable`.
 
@@ -112,7 +125,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 
 **Esforço:** médio · **Risco:** médio · **Migração:** não (salvo apoio ao estado do card)
 
-- [ ] Tornar a acção do card `workout_timeout` de uso único: após iniciar a geração, o card passa a informar o resultado/encaminhar para o treino criado.
+- [ ] Tornar a acção do card `workout_timeout` de uso único **após geração bem-sucedida**: o card passa a informar o resultado/encaminhar para o treino criado; em falha recuperável, permanece disponível com feedback apropriado.
 - [ ] Não bloquear o botão normal **Workout** depois de o card ser consumido; a autonomia continua sujeita somente aos limites da licença e segurança.
 - [ ] Ajustar a cópia do timeout para “treino autónomo orientado pelo DNA Coach” quando aplicável, e “treino autónomo por IA” quando não houver DNA.
 - [ ] Exibir `checkin_required` como CTA claro para realizar novo check-in, sem tentativa de geração.
@@ -158,14 +171,16 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 
 ## 5. Critérios de aceitação globais
 
-1. Um aluno vinculado pode iniciar treino autónomo pelo Workout; o sistema usa Coach DNA válido e o check-in válido quando ambos existem.
-2. O mesmo aluno, após timeout, recebe o mesmo contrato de geração — não a IA padrão por uma diferença de origem.
-3. Reabrir a mensagem de timeout não cria uma autorização paralela nem repete a mesma acção; iniciar novo treino pelo módulo Workout continua possível conforme entitlement.
-4. Um aluno FREE vinculado pode capturar check-in manual detalhado, mas não ganha voz, interpretação, ajuste por IA ou quota adicional por patrocínio.
-5. Treino prescrito não consome sessão autónoma FREE; geração autónoma, inclusive via timeout, consome a quota aplicável.
-6. O TRAINER vê o treino para avaliação posterior, sem o sistema dizer que a sessão foi supervisionada ou aprovada.
-7. O backend é a autoridade de vínculo, Coach DNA, validade do check-in, safety e limites; a UI apenas apresenta a decisão.
-8. Nenhum plano ou sessão em curso é interrompido por mudanças nesta lógica.
+1. Um plano prescrito usa a metodologia/Coach DNA do TRAINER, é executado integralmente e não consome quota autónoma do aluno.
+2. Um aluno vinculado pode iniciar treino autónomo pelo Workout; o sistema usa Coach DNA válido e o check-in válido quando ambos existem.
+3. O mesmo aluno, após timeout, recebe o mesmo contrato de geração — não a IA padrão por uma diferença de origem.
+4. Reabrir a mensagem de timeout não cria uma autorização paralela nem repete a mesma acção; iniciar novo treino pelo módulo Workout continua possível conforme entitlement.
+5. Um aluno FREE vinculado pode capturar check-in manual detalhado, mas não ganha voz, interpretação, ajuste por IA ou quota adicional por patrocínio.
+6. Geração autónoma, inclusive via timeout, consome a quota aplicável apenas quando o servidor gera o plano com sucesso.
+7. Sem TRAINER ou DNA válido, a geração usa AI Coach + preferências do aluno, sem afirmar influência profissional inexistente.
+8. O TRAINER vê o treino para avaliação posterior, sem o sistema dizer que a sessão foi supervisionada ou aprovada.
+9. O backend é a autoridade de vínculo, Coach DNA, validade do check-in, safety e limites; a UI apenas apresenta a decisão.
+10. Nenhum plano ou sessão em curso é interrompido por mudanças nesta lógica.
 
 ---
 
@@ -176,8 +191,9 @@ Revisão concluída em 2026-08-11.
 | Verificação | Resultado |
 |---|---|
 | Autonomia vs. timeout | Coerente: o timeout deixa de ser permissão especial e passa a usar o contrato autónomo comum. |
-| Consumo do card vs. limite de treino | Coerente: consumir a acção da mensagem não consome nem bloqueia o direito de iniciar treino no módulo Workout. |
+| Consumo do card vs. limite de treino | Coerente: o card é consumido apenas após geração bem-sucedida; isso não consome nem bloqueia o direito de iniciar treino no módulo Workout. |
 | Coach DNA vs. promessa comercial | Coerente: o DNA orienta a geração apenas quando existe; a UI não atribui a metodologia ao TRAINER se não houver DNA válido. |
+| Plano prescrito vs. treino autónomo | Coerente: ambos podem usar Coach DNA, mas apenas o prescrito é um plano profissional integral; o autónomo é monitorado depois e segue a quota do aluno. |
 | Check-in patrocinado vs. IA patrocinada | Coerente: captura manual detalhada é acesso operacional; inferências continuam governadas pela licença do aluno. |
 | Monitoramento vs. acompanhamento | Coerente: o histórico permite avaliação posterior, sem alegação de presença, aprovação ou atendimento síncrono. |
 | Dados de saúde e timezone | Coerente: somente referências mínimas são persistidas; validade usa instante do servidor e é exibida no locale do aluno. |
