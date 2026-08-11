@@ -152,6 +152,8 @@
     "yourTrainerFallback": "Your trainer",
     "yourClientFallback": "Your client",
     "templates": {
+      "workout_timeout": "Your trainer did not respond in time",
+      "workout_timeout_body": "You can now start your workout with an AI-generated plan.",
       "workout_approved": "{{trainerName}} approved your workout!",
       "workout_approved_body": "Your workout plan was approved. Time to train!",
       "workout_rejected": "{{trainerName}} returned your workout request.",
