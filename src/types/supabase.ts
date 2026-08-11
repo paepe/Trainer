@@ -2190,6 +2190,7 @@ export type Database = {
           scheduled_date: string | null
           source: string | null
           status: string | null
+          timeout_notification_id: string | null
           trainer_notes: string | null
           updated_at: string | null
         }
@@ -2207,6 +2208,7 @@ export type Database = {
           scheduled_date?: string | null
           source?: string | null
           status?: string | null
+          timeout_notification_id?: string | null
           trainer_notes?: string | null
           updated_at?: string | null
         }
@@ -2224,6 +2226,7 @@ export type Database = {
           scheduled_date?: string | null
           source?: string | null
           status?: string | null
+          timeout_notification_id?: string | null
           trainer_notes?: string | null
           updated_at?: string | null
         }

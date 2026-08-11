@@ -98,7 +98,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 
 **Esforço:** médio · **Risco:** alto (fluxo runtime de treino) · **Migração:** provavelmente sim
 
-- [ ] Criar um resolvedor server-side único para `autonomous_direct` e `trainer_timeout`.
+- [x] Criar um resolvedor server-side único para `autonomous_direct` e `trainer_timeout`. Evidência: `set_autonomous_workout_provenance` valida no banco a notificação `workout_timeout`, o aluno destinatário, o vínculo activo e a acção ainda disponível; sem essa prova, a origem é normalizada para `autonomous_direct`. A geração continua no mesmo endpoint para ambos os caminhos.
 - [x] Resolver no servidor: aluno, vínculo TRAINER activo, estado do convite/relacionamento, entitlement efectivo, Coach DNA aplicável e o último check-in persistido quando existir. Evidência: `generate-smart-workout` resolve vínculo, Coach DNA e check-in persistido no backend; na ausência de check-in, mantém a geração com o estado disponível, sem bloqueio.
 - [x] Remover a regra cliente que força `coachDNA = null` em `source === 'trainer_timeout'`. Evidência: `StartWorkoutScreen.tsx`; o timeout passa a usar o mesmo contexto Coach DNA do Workout directo.
 - [x] Incluir Coach DNA no contrato de geração somente quando o vínculo e o DNA forem válidos; caso contrário, usar a IA padrão sem atribuição enganosa. Evidência: `resolveAuthoritativeTrainerContext` rejeita perfil profissional submetido pelo cliente na ausência de DNA activo.

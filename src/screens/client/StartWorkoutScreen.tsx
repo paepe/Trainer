@@ -322,7 +322,6 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     try {
       const aiNotesParts = [];
       if (cycleContext) aiNotesParts.push(`Phase: ${cycleContext.phase}, Day ${cycleContext.day}/${cycleContext.cycleLength}`);
-      if (source === 'trainer_timeout') aiNotesParts.push('trainer_timeout: true');
 
       const { data: planRow, error: planError } = await supabase
         .from('workout_plans')
@@ -331,12 +330,13 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           created_by:  user.id,
           source:      'ai_generated',
           autonomous_origin: source === 'trainer_timeout' ? 'trainer_timeout' : 'autonomous_direct',
+          timeout_notification_id: source === 'trainer_timeout' ? timeoutNotificationId ?? null : null,
           coach_dna_applied: coachDnaApplied,
           status:      'active',
           ai_notes:    aiNotesParts.length > 0 ? aiNotesParts.join(' | ') : null,
           scheduled_date: new Date().toISOString().slice(0, 10),
         })
-        .select('id')
+        .select('id, autonomous_origin')
         .single();
 
       if (planError) throw planError;
@@ -376,7 +376,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       if (suggestionError) throw suggestionError;
 
       // Notify trainer when client trained autonomously due to timeout
-      if (source === 'trainer_timeout' && linkedTrainerId) {
+      if (planRow.autonomous_origin === 'trainer_timeout' && linkedTrainerId) {
         void notifyLinkedTrainer(
           user.id,
           tr('inbox.trainer_timeout_workout.title', { name: user.name || tr('client.workout.notificationYourClient') }),
@@ -391,7 +391,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
       console.error('[start-workout] failed to persist generated plan', err);
       return null;
     }
-  }, [user?.id, source, linkedTrainerId, tr]);
+  }, [user?.id, source, timeoutNotificationId, linkedTrainerId, tr]);
 
   const consumeTimeoutNotification = React.useCallback(async (planId: string) => {
     if (!timeoutNotificationId || !user?.id) return;
