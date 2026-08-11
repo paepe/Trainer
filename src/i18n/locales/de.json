@@ -1260,8 +1260,8 @@
       "notificationBodyCancelled": "{{name}} hat den Trainingsplan vom {{planDate}} storniert.",
       "notificationBodyPostponed": "{{name}} hat den Trainingsplan vom {{planDate}} verschoben.",
       "unknownError": "Unbekannter Fehler",
-      "aiLockedFree": "Tägliche Check-in-Kalibrierung ist ab dem AI Fitness-Plan verfügbar.",
-      "aiLockedFreeNote": "Dein Plan wird bereits von der KI erstellt, passt sich aber noch nicht an deine heutige Energie, deinen Schlaf oder deine Erschöpfung an. Upgrade, um ihn an deinen täglichen Check-in zu kalibrieren.",
+      "aiLockedFree": "Vollständiger Check-in mit Spracheingabe.",
+      "aiLockedFreeNote": "Training, das sich deinem Tag anpasst.",
       "limitWeekly": "Du hast das Limit von {{n}} Einheit/Woche im Free-Plan erreicht.",
       "limitWeeklyCta": "Upgrade auf AI Fitness — unbegrenzte Einheiten"
     },

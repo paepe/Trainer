@@ -1116,7 +1116,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
                 onClick={() => nav('plans', { source: 'manage' })}
                 style={{
                   padding: '6px 14px', borderRadius: 8, border: 'none',
-                  background: t.primary, color: '#fff',
+                  background: t.primary, color: '#0E1A2B',
                   fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
                 }}
               >
