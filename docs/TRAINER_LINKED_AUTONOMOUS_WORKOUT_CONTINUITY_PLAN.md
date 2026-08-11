@@ -32,7 +32,7 @@ O acompanhamento **realtime** de check-in pelo TRAINER e a capacidade de o profi
 | Autonomia do aluno | Um aluno com TRAINER activo pode iniciar treino autónomo directamente no **Workout**; não precisa de aprovação prévia. |
 | Papel do Coach DNA | O treino autónomo do aluno vinculado é orientado pelo DNA do TRAINER quando há DNA activo; não deve ser apresentado como plano supervisionado. |
 | Plano prescrito | O plano prescrito pelo TRAINER usa a sua metodologia/Coach DNA, é integralmente executável pelo aluno e não consome a quota autónoma do aluno. |
-| Check-in | A geração usa o check-in persistido aplicável. O vínculo patrocina ao aluno FREE a captura manual detalhada, mas não voz, interpretação nem ajuste de IA. |
+| Check-in | Não é obrigatório para iniciar Workout. Quando existir check-in persistido aplicável, ele orienta a geração; sem novo check-in, o aluno segue com o seu estado actual e recebe apenas aconselhamento para confirmar as condições do dia. O vínculo patrocina ao aluno FREE a captura manual detalhada, mas não voz, interpretação nem ajuste de IA. |
 | Fallback por timeout | É uma entrada alternativa para o mesmo treino autónomo, não uma autorização especial, nem crédito adicional de sessões. |
 | Monitoramento | O TRAINER pode avaliar posteriormente histórico, sessão, check-ins e progresso; não existe acompanhamento em tempo real nem aprovação tácita. |
 | Limites comerciais | FREE mantém 1 sessão autónoma/semana e até 6 exercícios; AI FITNESS e AI PERFORMANCE mantêm uso comercialmente ilimitado, sujeito a Uso Justo. Planos prescritos não consomem a quota autónoma. |
@@ -84,7 +84,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [x] Atualizar `FEATURE_ACCESS_MATRIX.md`: FREE vinculado tem check-in manual detalhado patrocinado; manter a exclusão de voz, interpretação e ajuste por IA.
 - [x] Atualizar `AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md`: treino autónomo orientado por Coach DNA continua consumindo o entitlement do aluno; o vínculo não cria franquia adicional.
 - [x] Rever `AI_ENDPOINT_AUTHORITY_MATRIX.md`, `AI_TELEMETRY_DATA_CONTRACT.md`, `AI_ENDPOINT_OPERATIONAL_BOUNDS.md` e `AI_ENDPOINT_DEGRADATION_POLICY.md`; actualizada a matriz de autoridade. Telemetria, limites e degradação não têm impacto nesta entrega: a origem do treino não é enviada à telemetria, não altera limites e falha técnica continua no caminho de continuidade já existente.
-- [ ] Definir a validade do check-in para geração autónoma: recomendar check-in do dia local do aluno; quando expirado/ausente, encaminhar para novo check-in em vez de usar sinais antigos silenciosamente.
+- [x] Definir a regra de check-in para geração autónoma: check-in é opcional. Quando houver um check-in persistido aplicável, a geração o utiliza; quando não houver confirmação actual, a UI recomenda validá-lo, sem bloquear Workout. Decisão de produto confirmada em 2026-08-11.
 - [ ] Definir a apresentação de datas/horas com instante UTC autoritativo e formatação no locale do aluno.
 - [ ] Registar a decisão de aprovação Product/Privacy exigida se a redação pública ou a exposição de dados for alterada.
 
@@ -97,7 +97,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 **Esforço:** médio · **Risco:** alto (fluxo runtime de treino) · **Migração:** provavelmente sim
 
 - [ ] Criar um resolvedor server-side único para `autonomous_direct` e `trainer_timeout`.
-- [~] Resolver no servidor: aluno, vínculo TRAINER activo, estado do convite/relacionamento, entitlement efectivo, Coach DNA aplicável e check-in válido. **Parcial:** `generate-smart-workout` já resolve no servidor o vínculo activo e o Coach DNA; validade/check-in canónico ainda é o próximo item.
+- [~] Resolver no servidor: aluno, vínculo TRAINER activo, estado do convite/relacionamento, entitlement efectivo, Coach DNA aplicável e o último check-in persistido quando existir. **Parcial:** `generate-smart-workout` já resolve no servidor o vínculo activo e o Coach DNA; leitura canónica opcional do check-in ainda é o próximo item.
 - [x] Remover a regra cliente que força `coachDNA = null` em `source === 'trainer_timeout'`. Evidência: `StartWorkoutScreen.tsx`; o timeout passa a usar o mesmo contexto Coach DNA do Workout directo.
 - [ ] Incluir Coach DNA no contrato de geração somente quando o vínculo e o DNA forem válidos; caso contrário, usar a IA padrão sem atribuição enganosa.
 - [ ] Aplicar `workout.sessions_per_week` e `workout.exercises_per_session` na mesma autoridade para ambos os pontos de entrada.
@@ -105,7 +105,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [ ] Consumir a quota somente após geração autónoma server-side bem-sucedida; falha, Safety Gate, check-in ausente ou clique no CTA não consomem sessão.
 - [ ] Garantir Safety Gate e dados de dor como invariantes, independentemente da licença, origem ou disponibilidade de calibração diária.
 - [ ] Proteger por testes de regressão o fluxo realtime existente: check-in do aluno → actualização no TRAINER → prescrição/envio de plano manual → aprovação/rejeição no aluno.
-- [ ] Definir respostas determinísticas: `generated`, `limit_reached`, `checkin_required`, `safety_blocked`, `relationship_unavailable` e `generation_unavailable`.
+- [ ] Definir respostas determinísticas: `generated`, `generated_without_current_checkin`, `limit_reached`, `safety_blocked`, `relationship_unavailable` e `generation_unavailable`.
 
 **Conclusão da fase:** nenhum caminho de UI decide Coach DNA, quota ou validade clínica por conta própria.
 
@@ -133,7 +133,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [x] Tornar a acção do card `workout_timeout` de uso único **após geração bem-sucedida**: o card passa a informar o resultado/encaminhar para o treino criado; em falha recuperável, permanece disponível com feedback apropriado. Evidência: RPC `consume_workout_timeout_notification`, migração `20260811213000` aplicada localmente.
 - [ ] Não bloquear o botão normal **Workout** depois de o card ser consumido; a autonomia continua sujeita somente aos limites da licença e segurança.
 - [ ] Ajustar a cópia do timeout para “treino autónomo orientado pelo DNA Coach” quando aplicável, e “treino autónomo por IA” quando não houver DNA.
-- [ ] Exibir `checkin_required` como CTA claro para realizar novo check-in, sem tentativa de geração.
+- [ ] Quando não houver check-in actual, exibir aconselhamento não bloqueante para confirmar o check-in; nunca substituir o Workout por uma exigência de check-in.
 - [ ] Exibir limite FREE com CTA de upgrade já padronizado, sem apresentar a mensagem de timeout como segunda oferta concorrente.
 - [x] Localizar o estado de card consumido em PT/EN/ES/DE; validação visual e de contraste permanece no smoke da Fase 5.
 - [ ] Garantir que a abertura de um card não marca implicitamente uma acção clínica ou uma sessão como concluída.
@@ -178,14 +178,14 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 ## 5. Critérios de aceitação globais
 
 1. Um plano prescrito usa a metodologia/Coach DNA do TRAINER, é executado integralmente e não consome quota autónoma do aluno.
-2. Um aluno vinculado pode iniciar treino autónomo pelo Workout; o sistema usa Coach DNA válido e o check-in válido quando ambos existem.
+2. Um aluno vinculado pode iniciar treino autónomo pelo Workout; o sistema usa Coach DNA válido e o último check-in persistido quando existir, sem exigir check-in parcial ou completo.
 3. O mesmo aluno, após timeout, recebe o mesmo contrato de geração — não a IA padrão por uma diferença de origem.
 4. Reabrir a mensagem de timeout não cria uma autorização paralela nem repete a mesma acção; iniciar novo treino pelo módulo Workout continua possível conforme entitlement.
 5. Um aluno FREE vinculado pode capturar check-in manual detalhado, mas não ganha voz, interpretação, ajuste por IA ou quota adicional por patrocínio.
 6. Geração autónoma, inclusive via timeout, consome a quota aplicável apenas quando o servidor gera o plano com sucesso.
 7. Sem TRAINER ou DNA válido, a geração usa AI Coach + preferências do aluno, sem afirmar influência profissional inexistente.
 8. O TRAINER vê o treino para avaliação posterior, sem o sistema dizer que a sessão foi supervisionada ou aprovada.
-9. O backend é a autoridade de vínculo, Coach DNA, validade do check-in, safety e limites; a UI apenas apresenta a decisão.
+9. O backend é a autoridade de vínculo, Coach DNA, safety e limites; o check-in é um input opcional de contexto e a UI apenas recomenda sua confirmação quando necessário.
 10. Nenhum plano ou sessão em curso é interrompido por mudanças nesta lógica.
 11. O fluxo realtime de check-in e prescrição remota do TRAINER mantém exactamente a autoridade e a experiência já validadas.
 
@@ -203,10 +203,10 @@ Revisão concluída em 2026-08-11.
 | Plano prescrito vs. treino autónomo | Coerente: ambos podem usar Coach DNA, mas apenas o prescrito é um plano profissional integral; o autónomo é monitorado depois e segue a quota do aluno. |
 | Check-in patrocinado vs. IA patrocinada | Coerente: captura manual detalhada é acesso operacional; inferências continuam governadas pela licença do aluno. |
 | Monitoramento vs. acompanhamento | Coerente: o histórico permite avaliação posterior, sem alegação de presença, aprovação ou atendimento síncrono. |
-| Dados de saúde e timezone | Coerente: somente referências mínimas são persistidas; validade usa instante do servidor e é exibida no locale do aluno. |
+| Dados de saúde e timezone | Coerente: somente referências mínimas são persistidas; o check-in melhora a qualidade da recomendação, mas sua ausência não impede o treino autónomo. |
 | Fonte de verdade | Coerente: Fase 1 centraliza decisão no servidor; fases de UI não recriam regras. |
 
-**Risco residual deliberado:** a janela exacta de validade do check-in precisa de decisão de Product/Privacy na Fase 0. A recomendação é exigir check-in do dia local do aluno para uma nova geração autónoma, mantendo a segurança sem tornar o fluxo burocrático.
+**Regra deliberada:** a confirmação de check-in é uma recomendação contextual, não uma barreira. Não se deve inferir que preferências em Configurações substituem as condições actuais; quando o aluno não confirmar check-in, o treino é gerado com o estado disponível, sem alegar calibração do dia.
 
 ---
 
@@ -225,5 +225,5 @@ Não haverá fase marcada como concluída apenas por alteração de UI ou por te
 
 | Data | Fase | Evidência | Estado |
 |---|---|---|---|
-| 2026-08-11 | 0 | Matriz de acesso, política patrocinada e matriz de autoridade reconciliadas; telemetria/bounds/degradação revistos sem impacto material | Parcial — falta decidir e implementar validade do check-in. |
-| 2026-08-11 | 1–3 | Coach DNA preservado no timeout e resolvido novamente no servidor para impedir supressão/alteração no request; `ai_suggestions.checkin_id` persistido; card de timeout consumido por RPC após plano persistido; 4 locales | Parcial — check-in canónico server-side e rastreabilidade estruturada seguem pendentes. |
+| 2026-08-11 | 0 | Matriz de acesso, política patrocinada e matriz de autoridade reconciliadas; telemetria/bounds/degradação revistos sem impacto material; check-in definido como opcional | Parcial — falta a apresentação não bloqueante e a leitura canónica opcional do check-in. |
+| 2026-08-11 | 1–3 | Coach DNA preservado no timeout e resolvido novamente no servidor para impedir supressão/alteração no request; `ai_suggestions.checkin_id` persistido; card de timeout consumido por RPC após plano persistido; 4 locales | Parcial — leitura canónica opcional do check-in e rastreabilidade estruturada seguem pendentes. |
