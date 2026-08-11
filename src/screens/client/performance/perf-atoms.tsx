@@ -121,17 +121,22 @@ interface AIMessageProps {
   action?:  string;
 }
 
-const TONE_COLORS: Record<string, string> = {
-  cyan:     C.cyan,
-  coral:    C.coral,
-  amber:    C.amber,
-  green:    C.green,
-  lavender: C.lavender,
-};
+function toneColor(tone: NonNullable<AIMessageProps['tone']>): string {
+  // `C.cyan` is the runtime signature. Resolve it at render time rather than
+  // module evaluation so an already-loaded dashboard follows a plan change.
+  switch (tone) {
+    case 'coral': return C.coral;
+    case 'amber': return C.amber;
+    case 'green': return C.green;
+    case 'lavender': return C.lavender;
+    case 'cyan':
+    default: return C.cyan;
+  }
+}
 
 export function AIMessage({ title, body, tone = 'cyan', action }: AIMessageProps) {
   const { t: tr } = useTranslation();
-  const c = TONE_COLORS[tone] || C.cyan;
+  const c = toneColor(tone);
   return (
     <div style={{
       padding: 14, borderRadius: 14,
