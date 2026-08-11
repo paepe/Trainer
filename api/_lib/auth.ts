@@ -151,6 +151,47 @@ export async function getLatestPersistedCheckinForClient(clientId: string): Prom
   }
 }
 
+export interface PersistedBodyRhythm {
+  enabled: boolean;
+  cycleCurrentDay?: number;
+  cycleDurationDays?: number;
+  adaptationPreference?: string[];
+}
+
+/**
+ * Server-side source for Body Rhythm in a workout-generation request. The
+ * profile activation authorizes use in the student's own AI plan; disclosure
+ * to a TRAINER is governed by a separate sharing matrix and is not read here.
+ */
+export async function getPersistedBodyRhythmForClient(clientId: string): Promise<PersistedBodyRhythm | undefined> {
+  try {
+    const res = await fetch(
+      `${authSupabaseUrl()}/rest/v1/profile_v2?select=body_rhythm&user_id=eq.${encodeURIComponent(clientId)}&limit=1`,
+      { headers: authServiceHeaders() },
+    );
+    if (!res.ok) return undefined;
+    const rows = await res.json() as { body_rhythm?: Record<string, unknown> | null }[];
+    const rhythm = rows[0]?.body_rhythm;
+    if (!rhythm || rhythm.enabled !== true) return undefined;
+
+    const cycleCurrentDay = typeof rhythm.cycle_current_day === 'number'
+      ? rhythm.cycle_current_day
+      : undefined;
+    const cycleDurationDays = typeof rhythm.cycle_duration_days === 'number'
+      ? rhythm.cycle_duration_days
+      : undefined;
+    const adaptationPreference = Array.isArray(rhythm.adaptation_preference)
+      ? rhythm.adaptation_preference.filter((value): value is string => typeof value === 'string')
+      : undefined;
+
+    return { enabled: true, cycleCurrentDay, cycleDurationDays, adaptationPreference };
+  } catch {
+    // Body Rhythm is optional: a failed read must not block an otherwise safe
+    // workout, and must never make a client-provided cycle payload authoritative.
+    return undefined;
+  }
+}
+
 /**
  * Consent is read from the persisted profile, never from a client request body.
  * Missing, malformed, or unavailable consent is deliberately treated as denied.

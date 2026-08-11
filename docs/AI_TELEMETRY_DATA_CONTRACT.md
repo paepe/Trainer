@@ -24,6 +24,8 @@ One event is emitted after an authenticated request reaches a terminal outcome. 
 
 The event table and all fallbacks must never contain: request/response body, prompt, transcript, exercise note, trainer philosophy, health or cycle information, email, name, raw UUID, IP address, device token, or error body.
 
+Body Rhythm may be used by the workout-generation provider when the student has activated it, but it remains excluded from telemetry, diagnostics and operational events.
+
 The idempotency claim store is not telemetry. It may retain the completed API response for at most 10 minutes, under RLS and `service_role` only, solely to return the same response to a transport retry without repeating a paid provider call. It is never used for analytics, alerts or support investigation.
 
 ## Retention and access proposal

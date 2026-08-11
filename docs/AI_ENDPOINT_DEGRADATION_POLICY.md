@@ -24,6 +24,7 @@ Uma indisponibilidade do provedor, telemetria, idempotência ou futuro limitador
 - Para proteção de custo/idempotência, indisponibilidade é fail-closed antes de uma nova chamada paga. O fallback local é aplicado no cliente apenas onde foi projetado e testado.
 - Nenhum fallback escreve prompt, áudio, transcrição, resposta do modelo ou dado de saúde em logs.
 - Execução offline, registro de sets e treino em curso não dependem de endpoint de IA.
+- Se a geração com Ritmo Corporal activado estiver indisponível, o endpoint não persiste nem expõe o contexto de ciclo; o fluxo segue a mesma continuidade segura de `generate-smart-workout`.
 
 ## Verificação exigida antes de enforcement
 

@@ -2,8 +2,9 @@
 // Input:  SmartWorkoutRequest  (trainer + client + today + stats + library + task)
 // Output: SmartWorkoutResponse (workout | objectives | insight + usage + context_snapshot)
 // Uses DeepSeek deepseek-chat. No Supabase calls — client pre-fetches and sends data.
-// Privacy: sensitive_factors/body_rhythm are included in client.sensitiveFactors/bodyRhythm only when
-// consent.allow_ai_adaptation is true (gated in buildAIContext.ts). When false, both are omitted before the request is sent.
+// Privacy: sensitive_factors require consent.allow_ai_adaptation. Body Rhythm is
+// included when the student activates it for their own plan adaptation; its
+// disclosure to a TRAINER remains governed separately by the sharing matrix.
 // NOTE: All types and prompt-building logic are inlined (self-contained) for Vercel bundling.
 
 // Auth + entitlements now come from shared api/_lib modules — Fase 0/2 of
@@ -13,7 +14,7 @@
 // carry ("does not trace relative imports"). This was the first of the 3 AI
 // gates without server-side authority; see resolveAuthoritativeTaskGates
 // below for where the fix actually happens.
-import { hasJsonContentType, verifyRequestUser, hasActiveLink, getActiveCoachDNA, getActiveTrainerIdForClient, getLatestPersistedCheckinForClient } from './_lib/auth.js';
+import { hasJsonContentType, verifyRequestUser, hasActiveLink, getActiveCoachDNA, getActiveTrainerIdForClient, getLatestPersistedCheckinForClient, getPersistedBodyRhythmForClient } from './_lib/auth.js';
 import {
   resolveUserEntitlements, countSessionsThisWeek, isSessionsPerWeekCapReached,
   resolveAuthoritativeTaskGates,
@@ -1145,6 +1146,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // request. Without one, the workout remains available using the state sent
   // by the client — this is intentionally not a check-in requirement.
   const persistedCheckin = await getLatestPersistedCheckinForClient(body.client.id);
+  const persistedBodyRhythm = await getPersistedBodyRhythmForClient(body.client.id);
   const persistedCheckinId = typeof persistedCheckin?.id === 'string' ? persistedCheckin.id : null;
   const resolvedToday = persistedCheckin
     ? buildTodayContext(persistedCheckin as any) as TodayContext
@@ -1229,6 +1231,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ctx: AIContext = {
     ...body,
     trainer: resolveAuthoritativeTrainerContext(activeCoachDNA, body.trainer),
+    client: { ...body.client, bodyRhythm: persistedBodyRhythm },
     today: resolvedToday,
     // Overrides the client-supplied task gates with the server-resolved
     // ones — from here on, everything downstream (the prompt itself via

@@ -1822,7 +1822,7 @@
     },
     "step10": {
       "title": "Ritmo Corporal",
-      "subtitle": "Adaptación privada al ciclo fisiológico, siempre que quieras activarlo. Nunca inspeccionado.",
+      "subtitle": "Adaptación privada al ciclo fisiológico para personalizar tu plan. La divulgación al entrenador sigue tu configuración.",
       "activateLabel": "Activar Ritmo Corporal",
       "activateHint": "Esta función es opt-in. Puedes desactivar y eliminar los datos en cualquier momento.",
       "cycleDayLabel": "Día actual del ciclo",
@@ -1982,8 +1982,8 @@
       },
       "sensitive": "SENSIBLE",
       "aiUseLabel": "Permite uso de IA para adaptar el plan",
-      "aiUseDesc": "La IA usa los datos autorizados — no tiene acceso a lo que ocultaste.",
-      "aiUseOffNote": "Con esta autorización activa, tu plan es más preciso y personalizado para ti. Si la desactivas, la IA no usará tus datos sensibles de salud ni de ritmo corporal para personalizar el plan — puedes volver a activarla cuando quieras.",
+      "aiUseDesc": "La IA usa los datos sensibles autorizados para adaptar tu plan. Ritmo Corporal sigue su propia activación; la divulgación al entrenador sigue tu configuración.",
+      "aiUseOffNote": "Con esta autorización activa, tu plan es más preciso y personalizado para ti. Si la desactivas, la IA no usará tus otros datos sensibles de salud para personalizar el plan — puedes volver a activarla cuando quieras.",
       "maintainHistoryLabel": "Mantener historial de acceso",
       "maintainHistoryDesc": "Podrás auditar quién accedió a qué y cuándo.",
       "revokeNote": "Revocar el consentimiento impide el uso futuro no autorizado y mantiene un registro de decisión auditable."

@@ -38,7 +38,10 @@ describe('buildClientContext — AI adaptation consent', () => {
     expect(context.healthFreeText).toBeUndefined();
     expect(context.comorbidities).toEqual([]);
     expect(context.sensitiveFactors).toBeUndefined();
-    expect(context.bodyRhythm).toBeUndefined();
+    expect(context.bodyRhythm).toMatchObject({
+      enabled: true,
+      cycleCurrentDay: 12,
+    });
     expect(context.abandonHistory?.voiceNote).toBeUndefined();
   });
 
@@ -49,6 +52,10 @@ describe('buildClientContext — AI adaptation consent', () => {
     expect(context.healthVoiceNote).toBeUndefined();
     expect(context.comorbiditiesNote).toBeUndefined();
     expect(context.sensitiveFactors).toBeUndefined();
+    expect(context.bodyRhythm).toMatchObject({
+      enabled: true,
+      cycleCurrentDay: 12,
+    });
   });
 
   it('includes the authorized context only after explicit consent', () => {

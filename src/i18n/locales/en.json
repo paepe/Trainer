@@ -1822,7 +1822,7 @@
     },
     "step10": {
       "title": "Body Rhythm",
-      "subtitle": "Private adaptation to physiological cycle, whenever you want to activate it. Never inspected.",
+      "subtitle": "Private physiological-cycle adaptation to personalize your plan. Trainer disclosure follows your sharing settings.",
       "activateLabel": "Activate Body Rhythm",
       "activateHint": "This feature is opt-in. You can deactivate and delete data at any time.",
       "cycleDayLabel": "Current cycle day",
@@ -1982,8 +1982,8 @@
       },
       "sensitive": "SENSITIVE",
       "aiUseLabel": "Allows AI use for plan adaptation",
-      "aiUseDesc": "The AI uses authorized data — it does not have access to what you have hidden.",
-      "aiUseOffNote": "With this authorization on, your plan is more accurate and personalized to you. With it off, the AI won't use your sensitive health or body-rhythm data to personalize your plan — you can turn it back on anytime.",
+      "aiUseDesc": "The AI uses authorized sensitive data to adapt your plan. Body Rhythm follows its own activation; trainer disclosure follows your sharing settings.",
+      "aiUseOffNote": "With this authorization on, your plan is more accurate and personalized to you. With it off, the AI won't use your other sensitive health data to personalize your plan — you can turn it back on anytime.",
       "maintainHistoryLabel": "Maintain access history",
       "maintainHistoryDesc": "You will be able to audit who accessed what and when.",
       "revokeNote": "Revoking consent prevents unauthorized future use and maintains an auditable decision record."

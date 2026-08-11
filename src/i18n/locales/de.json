@@ -1822,7 +1822,7 @@
     },
     "step10": {
       "title": "Körperrhythmus",
-      "subtitle": "Private Anpassung an den physiologischen Zyklus, wann immer du ihn aktivieren möchtest. Wird niemals eingesehen.",
+      "subtitle": "Private Anpassung an den physiologischen Zyklus zur Personalisierung deines Plans. Die Weitergabe an den Trainer folgt deinen Einstellungen.",
       "activateLabel": "Körperrhythmus aktivieren",
       "activateHint": "Diese Funktion ist opt-in. Du kannst Daten jederzeit deaktivieren und löschen.",
       "cycleDayLabel": "Aktueller Zyklustag",
@@ -1982,8 +1982,8 @@
       },
       "sensitive": "SENSIBEL",
       "aiUseLabel": "KI-Nutzung zur Plananpassung erlauben",
-      "aiUseDesc": "Die KI verwendet autorisierte Daten — sie hat keinen Zugriff auf das, was du verborgen hast.",
-      "aiUseOffNote": "Mit aktivierter Erlaubnis ist dein Plan genauer und besser auf dich abgestimmt. Ist sie deaktiviert, verwendet die KI deine sensiblen Gesundheits- oder Körperrhythmusdaten nicht zur Personalisierung deines Plans — du kannst die Erlaubnis jederzeit wieder aktivieren.",
+      "aiUseDesc": "Die KI verwendet autorisierte sensible Daten, um deinen Plan anzupassen. Der Körperrhythmus folgt seiner eigenen Aktivierung; die Weitergabe an den Trainer folgt deinen Einstellungen.",
+      "aiUseOffNote": "Mit aktivierter Erlaubnis ist dein Plan genauer und besser auf dich abgestimmt. Ist sie deaktiviert, verwendet die KI deine anderen sensiblen Gesundheitsdaten nicht zur Personalisierung deines Plans — du kannst die Erlaubnis jederzeit wieder aktivieren.",
       "maintainHistoryLabel": "Zugriffshistorie pflegen",
       "maintainHistoryDesc": "Du kannst prüfen, wer wann auf was zugegriffen hat.",
       "revokeNote": "Das Widerrufen der Einwilligung verhindert künftige unbefugte Nutzung und führt ein prüfbares Entscheidungsprotokoll."

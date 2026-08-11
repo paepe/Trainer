@@ -115,7 +115,10 @@ export function buildClientContext(
       recreationalSubstance: profile.sensitive_factors.declares_recreational_substance,
       voiceNote:             profile.sensitive_factors.voice_note,
     } : undefined,
-    bodyRhythm:          (aiAdaptationAllowed && profile.body_rhythm?.enabled) ? {
+    // Activating Body Rhythm is the student's product choice for their own
+    // training adaptation. It is independent of what they choose to disclose
+    // to a TRAINER in the sharing matrix.
+    bodyRhythm:          profile.body_rhythm?.enabled ? {
       enabled:              true,
       cycleCurrentDay:      profile.body_rhythm.cycle_current_day,
       cycleDurationDays:    profile.body_rhythm.cycle_duration_days,

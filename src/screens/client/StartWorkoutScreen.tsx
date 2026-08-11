@@ -165,10 +165,10 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
   // a prerequisite. This drives only a dismissible UI reminder.
   const [hasPersistedCheckin, setHasPersistedCheckin] = React.useState<boolean | null>(null);
   const [showCheckinAdvisory, setShowCheckinAdvisory] = React.useState(true);
-  // This is an opt-in profile setting, never inferred from gender. It only
-  // personalizes the student's own reminder; every other surface continues
-  // to use the existing consent and access-grant model.
-  const [bodyRhythmEnabledForAi, setBodyRhythmEnabledForAi] = React.useState(false);
+  // This is an opt-in profile setting, never inferred from gender. It
+  // personalizes the student's own reminder; disclosure to a TRAINER remains
+  // governed by the existing sharing model.
+  const [bodyRhythmEnabled, setBodyRhythmEnabled] = React.useState(false);
   const [trainerPlans, setTrainerPlans] = React.useState<PlanCard[]>([]);
   const [expandedPlan,  setExpandedPlan] = React.useState<string | null>(null);
   const [startingPlanId, setStartingPlanId] = React.useState<string | null>(null);
@@ -510,12 +510,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
         const profileData = profileRes.status === 'fulfilled' ? profileRes.value.data : null;
         const profileForAdvisory = profileData as {
           body_rhythm?: { enabled?: boolean } | null;
-          consent?: { allow_ai_adaptation?: boolean } | null;
         } | null;
-        setBodyRhythmEnabledForAi(
-          profileForAdvisory?.body_rhythm?.enabled === true
-          && profileForAdvisory?.consent?.allow_ai_adaptation === true,
-        );
+        setBodyRhythmEnabled(profileForAdvisory?.body_rhythm?.enabled === true);
         // Also build legacy resolvedCheckin for UI display and persist
         const ciData = checkinRes.status === 'fulfilled' ? checkinRes.value.data : null;
         setHasPersistedCheckin(!!ciData);
@@ -945,7 +941,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
 
       {/* Advisory only: autonomous Workout continues without a check-in.
           Prescribed trainer plans retain their established realtime flow. */}
-      {(hasPersistedCheckin === false || bodyRhythmEnabledForAi) && !hasTrainerPlans && planSource !== 'trainer' && showCheckinAdvisory && (
+      {(hasPersistedCheckin === false || bodyRhythmEnabled) && !hasTrainerPlans && planSource !== 'trainer' && showCheckinAdvisory && (
         <div style={{ margin: '0 22px 12px', padding: '13px 14px', borderRadius: 12, background: `${t.primary}0d`, border: `1px solid ${t.primary}44` }}>
           <div style={{ fontSize: 13, fontWeight: 750, color: inkPri(dark), marginBottom: 4 }}>
             {tr('client.workout.checkinAdvisoryTitle')}
@@ -953,7 +949,7 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
           <div style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.5, marginBottom: 10 }}>
             {tr('client.workout.checkinAdvisoryBody')}
           </div>
-          {bodyRhythmEnabledForAi && (
+          {bodyRhythmEnabled && (
             <div style={{ fontSize: 12, color: textSec(dark), lineHeight: 1.5, marginBottom: 10 }}>
               {tr('client.workout.bodyRhythmAdvisory')}
             </div>
