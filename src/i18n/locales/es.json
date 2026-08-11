@@ -120,7 +120,7 @@
       "rejected": "Rechazado",
       "done": "Hecho",
       "trainedAutonomously": "Entrenó de forma autónoma",
-      "trainerTimeout": "Entrenador no respondió"
+      "trainerTimeout": "Plazo cerrado"
     },
     "management": {
       "scopeLabel": "Mensajes",
@@ -140,8 +140,8 @@
       "partialResult": "No se pudieron actualizar algunos mensajes."
     },
     "workout_timeout": {
-      "title": "Tu entrenador no respondió a tiempo",
-      "body": "Ahora puedes iniciar tu entrenamiento con un plan generado por IA."
+      "title": "Entrenamiento disponible",
+      "body": "Tu entrenador no respondió a tiempo. Ahora puedes iniciar un entrenamiento con IA."
     },
     "trainer_timeout_workout": {
       "title": "{{name}} entrenó de forma autónoma",
@@ -153,8 +153,8 @@
     "yourTrainerFallback": "Tu entrenador",
     "yourClientFallback": "Tu cliente",
     "templates": {
-      "workout_timeout": "Tu entrenador no respondió a tiempo",
-      "workout_timeout_body": "Ahora puedes iniciar tu entrenamiento con un plan generado por IA.",
+      "workout_timeout": "Entrenamiento disponible",
+      "workout_timeout_body": "Tu entrenador no respondió a tiempo. Ahora puedes iniciar un entrenamiento con IA.",
       "workout_approved": "¡{{trainerName}} aprobó tu entrenamiento!",
       "workout_approved_body": "Tu plan de entrenamiento fue aprobado. ¡A entrenar!",
       "workout_rejected": "{{trainerName}} devolvió tu solicitud de entrenamiento.",

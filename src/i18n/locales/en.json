@@ -120,7 +120,7 @@
       "rejected": "Rejected",
       "done": "Done",
       "trainedAutonomously": "Trained autonomously",
-      "trainerTimeout": "Trainer timed out"
+      "trainerTimeout": "Response window closed"
     },
     "management": {
       "scopeLabel": "Messages",
@@ -140,8 +140,8 @@
       "partialResult": "Some messages could not be updated."
     },
     "workout_timeout": {
-      "title": "Your trainer did not respond in time",
-      "body": "You can now start your workout with an AI-generated plan."
+      "title": "Workout available",
+      "body": "Your trainer did not respond in time. You can start an AI workout now."
     },
     "trainer_timeout_workout": {
       "title": "{{name}} trained autonomously",
@@ -153,8 +153,8 @@
     "yourTrainerFallback": "Your trainer",
     "yourClientFallback": "Your client",
     "templates": {
-      "workout_timeout": "Your trainer did not respond in time",
-      "workout_timeout_body": "You can now start your workout with an AI-generated plan.",
+      "workout_timeout": "Workout available",
+      "workout_timeout_body": "Your trainer did not respond in time. You can start an AI workout now.",
       "workout_approved": "{{trainerName}} approved your workout!",
       "workout_approved_body": "Your workout plan was approved. Time to train!",
       "workout_rejected": "{{trainerName}} returned your workout request.",

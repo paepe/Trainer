@@ -511,12 +511,15 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                   }}
                   style={{
                     width: '100%', padding: '12px 14px 12px 12px',
-                    display: 'flex', alignItems: 'center', gap: 11,
+                    display: 'grid', gridTemplateColumns: '40px minmax(0, 1fr) 14px',
+                    columnGap: 11, rowGap: 7, alignItems: 'center',
                     background: 'transparent', border: 'none',
                     cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                   }}
                 >
-                  <SenderAvatar name={item.peer_name} color={accentColor} dark={dark} />
+                  <div style={{ gridRow: '1 / span 2' }}>
+                    <SenderAvatar name={item.peer_name} color={accentColor} dark={dark} />
+                  </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {item.peer_name && (
@@ -532,8 +535,10 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                     </div>
                   </div>
 
-                  <StatusBadge item={item} expired={expired} isTrainer={isTrainer} t={t} dark={dark} />
-                  <span style={{ fontSize: 10, color: textMute(dark), flexShrink: 0, marginLeft: 4 }}>{open ? '▲' : '▼'}</span>
+                  <span style={{ gridColumn: 3, gridRow: 1, fontSize: 10, color: textMute(dark), justifySelf: 'end' }}>{open ? '▲' : '▼'}</span>
+                  <div style={{ gridColumn: '2 / 4', minWidth: 0 }}>
+                    <StatusBadge item={item} expired={expired} isTrainer={isTrainer} t={t} dark={dark} />
+                  </div>
                 </button>
 
                 {/* Expanded body */}
@@ -551,9 +556,6 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                     {/* CLIENT: fallback after trainer timeout — arrives as workout_timeout notification */}
                     {!isTrainer && item.type === 'workout_timeout' && !item.response && (
                       <div style={{ marginBottom: 12 }}>
-                        <div style={{ marginBottom: 8, fontSize: 11, color: textMute(dark), lineHeight: 1.4 }}>
-                          {tr('inbox.actions.startWorkoutTimeoutNote')}
-                        </div>
                         <button
                           onClick={() => nav('workout', { source: 'trainer_timeout', timeoutNotificationId: item.id })}
                           style={{

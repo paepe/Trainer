@@ -119,7 +119,7 @@
       "rejected": "Abgelehnt",
       "done": "Erledigt",
       "trainedAutonomously": "Autonom trainiert",
-      "trainerTimeout": "Trainer hat nicht geantwortet"
+      "trainerTimeout": "Frist abgelaufen"
     },
     "management": {
       "scopeLabel": "Nachrichten",
@@ -139,8 +139,8 @@
       "partialResult": "Einige Nachrichten konnten nicht aktualisiert werden."
     },
     "workout_timeout": {
-      "title": "Dein Trainer hat nicht rechtzeitig geantwortet",
-      "body": "Du kannst jetzt dein Training mit einem KI-generierten Plan starten."
+      "title": "Training verfügbar",
+      "body": "Dein Trainer hat nicht rechtzeitig geantwortet. Du kannst jetzt ein KI-Training starten."
     },
     "trainer_timeout_workout": {
       "title": "{{name}} hat autonom trainiert",
@@ -152,8 +152,8 @@
     "yourTrainerFallback": "Dein Trainer",
     "yourClientFallback": "Dein Kunde",
     "templates": {
-      "workout_timeout": "Dein Trainer hat nicht rechtzeitig geantwortet",
-      "workout_timeout_body": "Du kannst jetzt dein Training mit einem KI-generierten Plan starten.",
+      "workout_timeout": "Training verfügbar",
+      "workout_timeout_body": "Dein Trainer hat nicht rechtzeitig geantwortet. Du kannst jetzt ein KI-Training starten.",
       "workout_approved": "{{trainerName}} hat dein Training genehmigt!",
       "workout_approved_body": "Dein Trainingsplan wurde genehmigt. Zeit zu trainieren!",
       "workout_rejected": "{{trainerName}} hat deine Trainingsanfrage zurückgegeben.",
