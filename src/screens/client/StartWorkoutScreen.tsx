@@ -1115,8 +1115,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               <button
                 onClick={() => nav('plans', { source: 'manage' })}
                 style={{
-                  padding: '8px 18px', borderRadius: 999, border: 'none',
-                  background: t.primary, color: '#fff',
+                  padding: '8px 18px', borderRadius: 999,
+                  background: `${t.primary}14`, border: `1px solid ${t.primary}88`, color: t.primary,
                   fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
                 }}
               >
@@ -1163,8 +1163,8 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
               {tr('client.workout.limitWeeklyNote')}
             </div>
             <button onClick={() => nav('plans', { source: 'weekly-limit' })} style={{
-              padding: '8px 18px', borderRadius: 999, border: 'none',
-              background: t.primary, color: '#fff',
+              padding: '8px 18px', borderRadius: 999,
+              background: `${t.primary}14`, border: `1px solid ${t.primary}88`, color: t.primary,
               fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
             }}>{tr('client.workout.limitWeeklyCta')}</button>
           </div>
