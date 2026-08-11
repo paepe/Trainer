@@ -7,7 +7,7 @@
 // the right order while the prompt says nothing about order at all.
 
 import { describe, it, expect } from 'vitest';
-import { buildPrompt, classifyProviderFailure, enforceExerciseTypePolicy, cutExerciseCount, enforceCategoryFilter, isSmartWorkoutRequestWithinLimit, isValidIdempotencyToken, MAX_SMART_WORKOUT_REQUEST_CHARS, requiresPerformanceContent, resolveAuthoritativeTrainerContext } from './generate-smart-workout';
+import { buildPrompt, classifyProviderFailure, enforceExerciseTypePolicy, cutExerciseCount, enforceCategoryFilter, isSmartWorkoutRequestWithinLimit, isValidIdempotencyToken, MAX_SMART_WORKOUT_REQUEST_CHARS, requiresPerformanceContent, resolveAuthoritativeTrainerContext, resolveAutonomousGenerationOutcome } from './generate-smart-workout';
 import type { ExerciseTypePolicyReport } from './generate-smart-workout';
 import { DEFAULT_AI_TRAINER } from '../src/ai/buildAIContext';
 import { DEFAULT_SESSION_ORDER, SESSION_BLOCKS } from '../src/lib/sessionStructure';
@@ -134,6 +134,13 @@ describe('generate-smart-workout — request size guard', () => {
   it('accepts a normal structured request and rejects oversized payloads before provider work', () => {
     expect(isSmartWorkoutRequestWithinLimit({ client: { id: 'client-1' } })).toBe(true);
     expect(isSmartWorkoutRequestWithinLimit({ padding: 'x'.repeat(MAX_SMART_WORKOUT_REQUEST_CHARS) })).toBe(false);
+  });
+});
+
+describe('generate-smart-workout — deterministic autonomous outcomes', () => {
+  it('distinguishes a persisted check-in from an optional no-check-in generation', () => {
+    expect(resolveAutonomousGenerationOutcome(true)).toBe('generated');
+    expect(resolveAutonomousGenerationOutcome(false)).toBe('generated_without_current_checkin');
   });
 });
 

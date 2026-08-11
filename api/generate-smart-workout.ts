@@ -586,6 +586,14 @@ interface DailyInsight {
   tone:     string;
 }
 
+export type AutonomousGenerationOutcome =
+  | 'generated'
+  | 'generated_without_current_checkin'
+  | 'limit_reached'
+  | 'safety_blocked'
+  | 'relationship_unavailable'
+  | 'generation_unavailable';
+
 type SmartWorkoutRequest = {
   trainer: TrainerContext;
   client:  ClientContext;
@@ -597,6 +605,7 @@ type SmartWorkoutRequest = {
 };
 
 interface SmartWorkoutResponse {
+  outcome?:    AutonomousGenerationOutcome | undefined;
   workout?:    SmartWorkout    | undefined;
   objectives?: { analysis: string; objectives: { type: string; title: string; rationale: string; metrics: string; priority: string; timeframe: string }[]; adjustments: { aspect: string; current: string; suggested: string; reason: string }[] } | undefined;
   insight?:    DailyInsight    | undefined;
@@ -1076,6 +1085,13 @@ export function isSmartWorkoutRequestWithinLimit(value: unknown): boolean {
   }
 }
 
+/** Stable, presentation-neutral result for autonomous workout callers. */
+export function resolveAutonomousGenerationOutcome(
+  hasPersistedCheckin: boolean,
+): Extract<AutonomousGenerationOutcome, 'generated' | 'generated_without_current_checkin'> {
+  return hasPersistedCheckin ? 'generated' : 'generated_without_current_checkin';
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS — required for Capacitor WebView and for local dev, where the client
   // (Vite, one origin) and this function (api-server.mjs, another port) are
@@ -1127,7 +1143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     && await hasActiveLink(caller.id, body.client.id);
   if (!isClientSelf && !isLinkedTrainer) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 403, rejectionCode: 'relationship_denied' });
-    return res.status(403).json({ error: 'Caller is not the client or their linked trainer' });
+    return res.status(403).json({ outcome: 'relationship_unavailable', error: 'Caller is not the client or their linked trainer' });
   }
 
   // Coach DNA is an authority-owned professional profile. A client may choose
@@ -1165,6 +1181,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (isSessionsPerWeekCapReached(clientEntitlements, sessionsThisWeek)) {
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'rejected', httpStatus: 403, rejectionCode: 'sessions_cap_reached', planKey: clientEntitlements.planKey });
     return res.status(403).json({
+      outcome: 'limit_reached',
       error: 'sessions_per_week_limit_reached',
       limit: clientEntitlements['workout.sessions_per_week'].limitValue,
     });
@@ -1196,6 +1213,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       coachDnaApplied: !!activeCoachDNA,
     };
     const blockResponse: SmartWorkoutResponse = {
+      outcome: 'safety_blocked',
       insight: {
         title:  'Safety Gate Active',
         body:   'Your check-in data indicates this is not a safe moment for an AI-led session. Please consult your trainer before proceeding.',
@@ -1374,6 +1392,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // the platform used.
     const responsePayload = {
       ...parsed,
+      outcome: resolveAutonomousGenerationOutcome(!!persistedCheckin),
       usage,
       context_snapshot: {
         readinessScore: resolvedToday.readinessScore,
@@ -1430,11 +1449,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (diagnostic.kind === 'timeout') {
       console.warn('[generate-smart-workout] timed out');
       await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 504, rejectionCode, provider: 'deepseek', model: 'deepseek-chat', planKey: clientEntitlements.planKey });
-      return res.status(504).json({ error: 'Generation timed out' });
+      return res.status(504).json({ outcome: 'generation_unavailable', error: 'Generation timed out' });
     }
     console.error('[generate-smart-workout] provider request failed');
     await emitAIUsageEvent({ actorId: caller.id, endpoint: 'generate-smart-workout', outcome: 'provider_failed', httpStatus: 500, rejectionCode, provider: 'deepseek', model: 'deepseek-chat', planKey: clientEntitlements.planKey });
-    return res.status(500).json({ error: 'generation failed' });
+    return res.status(500).json({ outcome: 'generation_unavailable', error: 'generation failed' });
   } finally {
     clearTimeout(timeout);
     await releaseAIOperation(requestClaimKey);

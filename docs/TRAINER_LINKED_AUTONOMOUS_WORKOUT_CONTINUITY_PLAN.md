@@ -107,7 +107,7 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [x] Consumir a quota somente quando uma sessão autónoma é efectivamente iniciada; geração de plano, falha, Safety Gate, check-in ausente ou clique no CTA não consomem sessão. Evidência: `countSessionsThisWeek` conta `workout_sessions` iniciadas e ligadas apenas a `workout_plans.source = ai_generated`. Esta é a semântica coerente com o limite comercial de **sessões**, não de tentativas de geração.
 - [ ] Garantir Safety Gate e dados de dor como invariantes, independentemente da licença, origem ou disponibilidade de calibração diária.
 - [ ] Proteger por testes de regressão o fluxo realtime existente: check-in do aluno → actualização no TRAINER → prescrição/envio de plano manual → aprovação/rejeição no aluno.
-- [ ] Definir respostas determinísticas: `generated`, `generated_without_current_checkin`, `limit_reached`, `safety_blocked`, `relationship_unavailable` e `generation_unavailable`.
+- [x] Definir respostas determinísticas: `generated`, `generated_without_current_checkin`, `limit_reached`, `safety_blocked`, `relationship_unavailable` e `generation_unavailable`. Evidência: contrato de saída de `generate-smart-workout` e teste unitário de sucesso com/sem check-in persistido; o `error` legado é preservado para compatibilidade de UI.
 
 **Conclusão da fase:** nenhum caminho de UI decide Coach DNA, quota ou validade clínica por conta própria.
 
