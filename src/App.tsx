@@ -138,7 +138,7 @@ export default function App() {
   const dark = isTrainer ? true : prefs.darkMode;
   // Single profile switch: drives `t.primary` (all screens) and the static
   // data-viz signature (Performance Dashboard) from one place.
-  setVizProfile(isTrainer);
+  setVizProfile(isTrainer, subscription?.plan_key);
 
   // Active theme palette (theme/themes.css) — one attribute drives all CSS vars.
   // Trainer always-dark (§8); client toggles client-dark|client-light (Arctic).
