@@ -385,7 +385,12 @@ export function StartWorkoutScreen({ nav, t, dark, checkin, user, cycleConfig, l
     try {
       const physicalProfile: Json | null = null;
       let resolvedCheckin = checkin;
-      if (user?.id) {
+      // A timeout CTA is an explicit choice to train autonomously now.  A
+      // previously pending manual plan must not take precedence here: doing
+      // so leaves the user on a trainer-plan summary while suppressing the
+      // AI plan promised by the Inbox action.  Manual plans remain intact and
+      // appear again on the normal workout entry point.
+      if (user?.id && source !== 'trainer_timeout') {
         // Load ALL actionable trainer plans (sent / active / postponed) into one unified list.
         // Status is NOT mutated here — a plan only becomes 'active' when the workout actually starts.
         const { data: planRows } = await supabase
