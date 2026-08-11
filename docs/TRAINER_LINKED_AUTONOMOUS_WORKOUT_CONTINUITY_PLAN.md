@@ -1,8 +1,8 @@
 # Plano de Implementação — Workout Autónomo Vinculado ao TRAINER e Continuidade de Check-in
 
-**Versão:** 1.2
+**Versão:** 1.3
 **Data inicial:** 2026-08-11
-**Estado:** Em execução — Fase 0 concluída; controlos iniciais de continuidade implementados e publicados no pre-release
+**Estado:** Em execução — Fases 0, 1 e 2 concluídas; continuidade, proveniência e revisão posterior publicadas no pre-release
 **Referências:** `docs/WORKOUT_READY_TIMEOUT_PLAN.md` · `docs/WORKOUT_PLAN_EXPIRY_CONTROL.md` · `docs/FEATURE_ACCESS_MATRIX.md` · `docs/AI_TRAINER_SPONSORED_CONSUMPTION_POLICY_DRAFT.md` · `docs/AI_GOVERNANCE_CHANGE_GATE.md`
 
 ---
