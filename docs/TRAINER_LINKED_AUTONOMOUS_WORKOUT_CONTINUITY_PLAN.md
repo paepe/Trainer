@@ -120,9 +120,9 @@ Consolidar o contrato antes de alterar geração, pois ele influencia IA, licenc
 - [x] Criar migração reversível para persistir a proveniência de geração (`autonomous_direct` ou `trainer_timeout`) sem depender de texto livre em `ai_notes`. Evidência: migração `20260811220000_autonomous_workout_provenance.sql`; flag de DNA é derivada por trigger, não confiada ao browser.
 - [x] Associar a sugestão/plano gerado ao identificador do check-in efectivamente usado, sem duplicar conteúdo sensível do check-in. Evidência: `ai_suggestions.checkin_id` deixa de receber `null` na geração autónoma.
 - [x] Guardar referência/versionamento mínimo do Coach DNA quando aplicado; não copiar o perfil completo nem dados de saúde para eventos de telemetria. Evidência: `workout_plans.coach_dna_applied` é metadado booleano calculado no banco; o endpoint devolve apenas proveniência mínima ao dono do treino.
-- [ ] Definir estado de monitoramento posterior visível ao TRAINER, sem semântica de aprovação nem vigilância em tempo real.
-- [ ] Criar índices e RLS necessários para leitura apenas pelo aluno, TRAINER vinculado e backend autorizado.
-- [ ] Preparar rollback da migração e compatibilidade de leitura para planos já existentes.
+- [x] Definir estado de monitoramento posterior visível ao TRAINER, sem semântica de aprovação nem vigilância em tempo real. Evidência: histórico `Plano & Treino` apresenta “Disponível para revisão posterior” somente para treino autónomo, em PT/EN/ES/DE, sem criar aprovação ou notificação.
+- [x] Criar índices e RLS necessários para leitura apenas pelo aluno, TRAINER vinculado e backend autorizado. Evidência: índices `workout_plans_assigned_autonomous_origin_created_idx` e `workout_plans_timeout_notification_id_idx`; auditoria do schema remoto em 2026-08-11 confirma RLS `assigned user reads own plan`, `trainer reads client plans` com `view_client_history` + vínculo `active`, e service role para backend. Não foi necessário ampliar policy a `ai_suggestions`, que permanece exclusiva do aluno.
+- [x] Preparar rollback da migração e compatibilidade de leitura para planos já existentes. Evidência: `WORKOUT_AUTONOMOUS_PROVENANCE_ROLLBACK.md`; campos de proveniência são opcionais e o histórico trata `NULL` como legado.
 
 **Conclusão da fase:** cada treino autónomo pode ser explicado com proveniência, sem ampliar exposição de dados sensíveis.
 

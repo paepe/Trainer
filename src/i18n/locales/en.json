@@ -946,6 +946,7 @@
       "done": "DONE",
       "autonomousCoachDna": "Autonomous workout guided by Coach DNA",
       "autonomousAi": "Autonomous AI workout",
+      "availableForLaterReview": "Available for later review",
       "readinessCheckinFor": "Readiness Check-in for {{name}}"
     },
     "planner": {

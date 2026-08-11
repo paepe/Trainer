@@ -945,6 +945,7 @@
       "done": "FERTIG",
       "autonomousCoachDna": "Eigenständiges Training nach Coach DNA",
       "autonomousAi": "Eigenständiges KI-Training",
+      "availableForLaterReview": "Zur späteren Überprüfung verfügbar",
       "readinessCheckinFor": "Bereitschafts-Check-in für {{name}}"
     },
     "planner": {

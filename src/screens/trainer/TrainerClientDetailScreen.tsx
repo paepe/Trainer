@@ -936,9 +936,14 @@ export function TrainerClientDetailScreen({
                               {linkedSessions.length > 1 ? ` · ${linkedSessions.length} sessions` : ''}
                             </div>
                             {autonomousLabel && (
-                              <div style={{ fontSize: 10.5, color: p.coach_dna_applied ? t.primary : textMute(dark), marginTop: 3, fontWeight: 650 }}>
-                                {autonomousLabel}
-                              </div>
+                              <>
+                                <div style={{ fontSize: 10.5, color: p.coach_dna_applied ? t.primary : textMute(dark), marginTop: 3, fontWeight: 650 }}>
+                                  {autonomousLabel}
+                                </div>
+                                <div style={{ fontSize: 10.5, color: textMute(dark), marginTop: 2 }}>
+                                  {tr('trainer.detail.availableForLaterReview')}
+                                </div>
+                              </>
                             )}
                             {session && renderPostWorkoutFeedback(session, feedbackBySession[session.id], dark, tr)}
                           </div>

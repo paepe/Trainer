@@ -946,6 +946,7 @@
       "done": "HECHO",
       "autonomousCoachDna": "Entrenamiento autónomo guiado por el ADN Coach",
       "autonomousAi": "Entrenamiento autónomo por IA",
+      "availableForLaterReview": "Disponible para revisión posterior",
       "readinessCheckinFor": "Check-in de Preparación para {{name}}"
     },
     "planner": {

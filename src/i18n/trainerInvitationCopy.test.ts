@@ -19,6 +19,9 @@ describe('trainer invitation UI copy', () => {
         expect(dashboard[key as keyof typeof dashboard], `${locale}:${key}`).toEqual(expect.any(String));
         expect(dashboard[key as keyof typeof dashboard], `${locale}:${key}`).not.toHaveLength(0);
       }
+      const detail = copy.trainer.detail;
+      expect(detail.availableForLaterReview, `${locale}:detail.availableForLaterReview`).toEqual(expect.any(String));
+      expect(detail.availableForLaterReview, `${locale}:detail.availableForLaterReview`).not.toHaveLength(0);
       for (const plan of ['all', 'free', 'ai_fitness', 'ai_performance']) {
         expect(dashboard.candidatePlan[plan as keyof typeof dashboard.candidatePlan], `${locale}:${plan}`).toEqual(expect.any(String));
       }
