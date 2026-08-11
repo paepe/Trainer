@@ -23,7 +23,7 @@ import { claimAIRequest, completeAIRequest, releaseAIOperation } from './_lib/ai
 import { isJsonObject } from './_lib/requestSize.js';
 import { rejectUnauthenticatedAIBurst } from './_lib/preAuthRateLimit.js';
 import { rejectPostAuthAIBurst } from './_lib/postAuthRateLimit.js';
-import { buildTrainerContext, buildTodayContext } from '../src/ai/buildAIContext.js';
+import { buildTrainerContext, buildTodayContext, DEFAULT_AI_TRAINER } from '../src/ai/buildAIContext.js';
 
 type ProviderFailureKind = 'timeout' | 'http_error' | 'non_json_response' | 'invalid_json_response' | 'network_or_runtime';
 
@@ -608,6 +608,21 @@ interface SmartWorkoutResponse {
     safetyStatus:   string;
     adaptations:    string[];
   };
+}
+
+/**
+ * A request body can carry client preferences for the AI Coach, but can never
+ * attribute a methodology to an arbitrary trainer. Professional context is
+ * accepted only from the active Coach DNA resolved by the backend.
+ */
+export function resolveAuthoritativeTrainerContext(
+  activeCoachDNA: Record<string, unknown> | null,
+  submittedTrainer: TrainerContext,
+): TrainerContext {
+  if (activeCoachDNA) return buildTrainerContext(activeCoachDNA as any) as TrainerContext;
+  return submittedTrainer?.id === DEFAULT_AI_TRAINER.id
+    ? submittedTrainer
+    : DEFAULT_AI_TRAINER as TrainerContext;
 }
 
 // ─── Inlined prompt builder (from src/ai/buildPrompt.ts) ──────────────────────
@@ -1208,7 +1223,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const ctx: AIContext = {
     ...body,
-    trainer: activeCoachDNA ? buildTrainerContext(activeCoachDNA as any) : body.trainer,
+    trainer: resolveAuthoritativeTrainerContext(activeCoachDNA, body.trainer),
     today: resolvedToday,
     // Overrides the client-supplied task gates with the server-resolved
     // ones — from here on, everything downstream (the prompt itself via

@@ -7,7 +7,7 @@
 // the right order while the prompt says nothing about order at all.
 
 import { describe, it, expect } from 'vitest';
-import { buildPrompt, classifyProviderFailure, enforceExerciseTypePolicy, cutExerciseCount, enforceCategoryFilter, isSmartWorkoutRequestWithinLimit, isValidIdempotencyToken, MAX_SMART_WORKOUT_REQUEST_CHARS, requiresPerformanceContent } from './generate-smart-workout';
+import { buildPrompt, classifyProviderFailure, enforceExerciseTypePolicy, cutExerciseCount, enforceCategoryFilter, isSmartWorkoutRequestWithinLimit, isValidIdempotencyToken, MAX_SMART_WORKOUT_REQUEST_CHARS, requiresPerformanceContent, resolveAuthoritativeTrainerContext } from './generate-smart-workout';
 import type { ExerciseTypePolicyReport } from './generate-smart-workout';
 import { DEFAULT_AI_TRAINER } from '../src/ai/buildAIContext';
 import { DEFAULT_SESSION_ORDER, SESSION_BLOCKS } from '../src/lib/sessionStructure';
@@ -134,6 +134,18 @@ describe('generate-smart-workout — request size guard', () => {
   it('accepts a normal structured request and rejects oversized payloads before provider work', () => {
     expect(isSmartWorkoutRequestWithinLimit({ client: { id: 'client-1' } })).toBe(true);
     expect(isSmartWorkoutRequestWithinLimit({ padding: 'x'.repeat(MAX_SMART_WORKOUT_REQUEST_CHARS) })).toBe(false);
+  });
+});
+
+describe('generate-smart-workout — trainer methodology authority', () => {
+  it('does not accept a client-supplied professional identity without active Coach DNA', () => {
+    const spoofed = { ...DEFAULT_AI_TRAINER, id: 'other-trainer', name: 'Not linked' };
+    expect(resolveAuthoritativeTrainerContext(null, spoofed)).toEqual(DEFAULT_AI_TRAINER);
+  });
+
+  it('keeps the AI Coach context when no active Coach DNA exists', () => {
+    const requested = { ...DEFAULT_AI_TRAINER, intensity: 'low' };
+    expect(resolveAuthoritativeTrainerContext(null, requested)).toEqual(requested);
   });
 });
 
