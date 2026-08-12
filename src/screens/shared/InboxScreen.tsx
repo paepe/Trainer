@@ -780,6 +780,8 @@ function getBadgeColor(item: InboxItem, expired: boolean, isTrainer: boolean, t:
   if (item.type === 'workout_ready' && isTrainer) return t.primary;
   if (item.type === 'access_request' && !isTrainer) return t.primary;
   if (item.type === 'plan_sent')       return t.primary;
+  if (item.type === 'trainer_timeout_workout') return t.amber ?? '#F5A623';
+  if (item.type === 'workout_timeout')         return t.amber ?? '#F5A623';
   if (item.type === 'plan_cancelled')  return t.accent;
   if (item.type === 'plan_postponed')  return '#F5B45A';
   if (item.type === 'plan_expired')    return textMute(dark);
