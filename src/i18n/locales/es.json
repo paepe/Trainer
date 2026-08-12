@@ -88,7 +88,7 @@
       "ignoreRenewalRequest": "Ignorar",
       "reject": "Rechazar",
       "startWorkout": "Iniciar Entrenamiento",
-      "startWorkoutTimeout": "Entrenar con plan de IA",
+      "startWorkoutTimeout": "Preparar mi entrenamiento con IA",
       "startWorkoutTimeoutNote": "Tu entrenamiento será generado por IA con tu perfil y check-in de hoy.",
       "timeoutWorkoutStarted": "Tu entrenamiento autónomo ya está preparado. Para otro entrenamiento, usa el módulo Entrenamiento según los límites de tu plan.",
       "viewWorkoutPlan": "Ver Plan de Entrenamiento",
@@ -120,7 +120,7 @@
       "rejected": "Rechazado",
       "done": "Hecho",
       "trainedAutonomously": "Entrenó de forma autónoma",
-      "trainerTimeout": "Plazo cerrado"
+      "trainerTimeout": "Estado: Sin respuesta recibida"
     },
     "management": {
       "scopeLabel": "Mensajes",
@@ -140,8 +140,8 @@
       "partialResult": "No se pudieron actualizar algunos mensajes."
     },
     "workout_timeout": {
-      "title": "Entrenamiento disponible",
-      "body": "Tu entrenador no respondió a tiempo. Ahora puedes iniciar un entrenamiento con IA."
+      "title": "Tu entrenamiento puede continuar con IA",
+      "body": "Carlos no respondió a tu solicitud dentro del plazo, pero no necesitas interrumpir tu entrenamiento.\n\nLa IA puede preparar tu entrenamiento ahora, considerando tu plan, tu último check-in y las orientaciones de tu entrenador disponibles en la app.\n\nTu vínculo con Carlos continúa normalmente."
     },
     "trainer_timeout_workout": {
       "title": "{{name}} entrenó de forma autónoma",
@@ -153,8 +153,8 @@
     "yourTrainerFallback": "Tu entrenador",
     "yourClientFallback": "Tu cliente",
     "templates": {
-      "workout_timeout": "Entrenamiento disponible",
-      "workout_timeout_body": "Tu entrenador no respondió a tiempo. Ahora puedes iniciar un entrenamiento con IA.",
+      "workout_timeout": "Tu entrenamiento puede continuar con IA",
+      "workout_timeout_body": "Carlos no respondió a tu solicitud dentro del plazo, pero no necesitas interrumpir tu entrenamiento.\n\nLa IA puede preparar tu entrenamiento ahora, considerando tu plan, tu último check-in y las orientaciones de tu entrenador disponibles en la app.\n\nTu vínculo con Carlos continúa normalmente.",
       "workout_approved": "¡{{trainerName}} aprobó tu entrenamiento!",
       "workout_approved_body": "Tu plan de entrenamiento fue aprobado. ¡A entrenar!",
       "workout_rejected": "{{trainerName}} devolvió tu solicitud de entrenamiento.",

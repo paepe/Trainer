@@ -544,7 +544,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
                 {/* Expanded body */}
                 {open && (
                   <div style={{ padding: '0 14px 14px 12px', borderTop: `1px solid ${dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` }}>
-                    <p style={{ margin: '0 0 14px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6 }}>
+                    <p style={{ margin: '0 0 14px', fontSize: 12.5, color: textSec(dark), lineHeight: 1.6, whiteSpace: 'pre-line' }}>
                       {renderBody(item)}
                     </p>
 

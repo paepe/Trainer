@@ -88,7 +88,7 @@
       "ignoreRenewalRequest": "Ignorar",
       "reject": "Rejeitar",
       "startWorkout": "Iniciar Treino",
-      "startWorkoutTimeout": "Treinar com plano da IA",
+      "startWorkoutTimeout": "Preparar meu treino com IA",
       "startWorkoutTimeoutNote": "O seu treino será gerado pela IA com o seu perfil e check-in de hoje.",
       "timeoutWorkoutStarted": "O treino autónomo foi preparado. Para um novo treino, use o módulo Treino conforme os limites do seu plano.",
       "viewWorkoutPlan": "Ver Plano de Treino",
@@ -120,7 +120,7 @@
       "rejected": "Rejeitado",
       "done": "Concluído",
       "trainedAutonomously": "Treinou autonomamente",
-      "trainerTimeout": "Prazo encerrado"
+      "trainerTimeout": "Status: Resposta não recebida"
     },
     "management": {
       "scopeLabel": "Mensagens",
@@ -140,8 +140,8 @@
       "partialResult": "Algumas mensagens não puderam ser atualizadas."
     },
     "workout_timeout": {
-      "title": "Treino disponível",
-      "body": "Seu treinador não respondeu no prazo. Você pode iniciar um treino com IA agora."
+      "title": "Seu treino pode continuar com a IA",
+      "body": "Carlos não respondeu à sua solicitação dentro do prazo, mas você não precisa interromper seu treino.\n\nA IA pode preparar seu treino agora, considerando seu plano, seu último check-in e as orientações do seu treinador disponíveis no app.\n\nSeu vínculo com Carlos continua normalmente."
     },
     "trainer_timeout_workout": {
       "title": "{{name}} treinou autonomamente",
@@ -153,8 +153,8 @@
     "yourTrainerFallback": "Seu treinador",
     "yourClientFallback": "Seu cliente",
     "templates": {
-      "workout_timeout": "Treino disponível",
-      "workout_timeout_body": "Seu treinador não respondeu no prazo. Você pode iniciar um treino com IA agora.",
+      "workout_timeout": "Seu treino pode continuar com a IA",
+      "workout_timeout_body": "Carlos não respondeu à sua solicitação dentro do prazo, mas você não precisa interromper seu treino.\n\nA IA pode preparar seu treino agora, considerando seu plano, seu último check-in e as orientações do seu treinador disponíveis no app.\n\nSeu vínculo com Carlos continua normalmente.",
       "workout_approved": "{{trainerName}} aprovou seu treino!",
       "workout_approved_body": "Seu plano de treino foi aprovado. Hora de treinar!",
       "workout_rejected": "{{trainerName}} devolveu sua solicitação de treino.",

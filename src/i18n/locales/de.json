@@ -87,7 +87,7 @@
       "ignoreRenewalRequest": "Ignorieren",
       "reject": "Ablehnen",
       "startWorkout": "Training starten",
-      "startWorkoutTimeout": "Mit KI-Plan trainieren",
+      "startWorkoutTimeout": "Mein Training mit KI vorbereiten",
       "startWorkoutTimeoutNote": "Dein Training wird von der KI mit deinem Profil und heutigem Check-in erstellt.",
       "timeoutWorkoutStarted": "Dein autonomes Training wurde vorbereitet. Für ein weiteres Training verwende das Trainingsmodul innerhalb deiner Tarifgrenzen.",
       "viewWorkoutPlan": "Trainingsplan ansehen",
@@ -119,7 +119,7 @@
       "rejected": "Abgelehnt",
       "done": "Erledigt",
       "trainedAutonomously": "Autonom trainiert",
-      "trainerTimeout": "Frist abgelaufen"
+      "trainerTimeout": "Status: Keine Antwort erhalten"
     },
     "management": {
       "scopeLabel": "Nachrichten",
@@ -139,8 +139,8 @@
       "partialResult": "Einige Nachrichten konnten nicht aktualisiert werden."
     },
     "workout_timeout": {
-      "title": "Training verfügbar",
-      "body": "Dein Trainer hat nicht rechtzeitig geantwortet. Du kannst jetzt ein KI-Training starten."
+      "title": "Dein Training kann mit KI weitergehen",
+      "body": "Carlos hat nicht innerhalb der Frist auf deine Anfrage geantwortet, aber du musst dein Training nicht unterbrechen.\n\nDie KI kann dein Training jetzt vorbereiten und berücksichtigt deinen Plan, deinen letzten Check-in und die in der App verfügbaren Vorgaben deines Trainers.\n\nDeine Verbindung zu Carlos bleibt unverändert bestehen."
     },
     "trainer_timeout_workout": {
       "title": "{{name}} hat autonom trainiert",
@@ -152,8 +152,8 @@
     "yourTrainerFallback": "Dein Trainer",
     "yourClientFallback": "Dein Kunde",
     "templates": {
-      "workout_timeout": "Training verfügbar",
-      "workout_timeout_body": "Dein Trainer hat nicht rechtzeitig geantwortet. Du kannst jetzt ein KI-Training starten.",
+      "workout_timeout": "Dein Training kann mit KI weitergehen",
+      "workout_timeout_body": "Carlos hat nicht innerhalb der Frist auf deine Anfrage geantwortet, aber du musst dein Training nicht unterbrechen.\n\nDie KI kann dein Training jetzt vorbereiten und berücksichtigt deinen Plan, deinen letzten Check-in und die in der App verfügbaren Vorgaben deines Trainers.\n\nDeine Verbindung zu Carlos bleibt unverändert bestehen.",
       "workout_approved": "{{trainerName}} hat dein Training genehmigt!",
       "workout_approved_body": "Dein Trainingsplan wurde genehmigt. Zeit zu trainieren!",
       "workout_rejected": "{{trainerName}} hat deine Trainingsanfrage zurückgegeben.",
