@@ -43,7 +43,9 @@ export function isInboxActionable(item: InboxClassificationInput, now = new Date
   if (item.response) return false;
   if (item.type === 'trainer_invitation_renewal_request') return true;
   if (!['workout_ready', 'access_request', 'trainer_invitation'].includes(item.type ?? '')) return false;
-  return !item.expires_at || new Date(item.expires_at).getTime() > now.getTime();
+  // A missing deadline must never leave a historical request actionable forever.
+  // New actionable notifications persist their deadline at creation time.
+  return item.expires_at !== null && new Date(item.expires_at).getTime() > now.getTime();
 }
 
 export function inboxCategoryFor(item: InboxClassificationInput): InboxCategory {

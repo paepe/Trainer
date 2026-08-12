@@ -281,6 +281,25 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
     const ids = [...selectedIds];
     if (ids.length === 0) return;
     setBusy('archive');
+
+    // Archiving is a single deliberate management action. Persist the read
+    // state first, rather than relying on a prior card-open request having
+    // completed. The management UI keeps pending actions out of the archive
+    // selection, while the server remains the ownership authority.
+    if (archive) {
+      const { data: readData, error: readError } = await supabase.rpc('mark_inbox_notifications_read', {
+        p_notification_ids: ids,
+      });
+      const readIds = new Set((readData ?? []).filter(row => row.outcome === 'read').map(row => row.id));
+      if (readError || readIds.size !== ids.length) {
+        setOperationNotice(tr('inbox.management.partialResult'));
+        setBusy(null);
+        return;
+      }
+      const now = new Date().toISOString();
+      setItems(previous => previous.map(item => readIds.has(item.id) ? { ...item, read_at: now } : item));
+    }
+
     const { data, error } = await supabase.rpc('archive_inbox_notifications', {
       p_notification_ids: ids,
       p_archive: archive,
