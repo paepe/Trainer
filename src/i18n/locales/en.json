@@ -129,6 +129,8 @@
       "search": "Search messages",
       "category": { "actionRequired": "Action required", "invitations": "Invitations", "plansAndWorkouts": "Plans & workouts", "accessAndPrivacy": "Access & privacy", "alerts": "Alerts", "informational": "Completed & informational" },
       "sort": { "recent": "Most recent", "oldest": "Oldest", "nameAsc": "Sender A–Z", "nameDesc": "Sender Z–A" },
+      "manage": "Manage messages",
+      "finishManaging": "Finish managing",
       "selectAll": "Select all",
       "clearSelection": "Clear selection",
       "selected": "{{count}} selected",

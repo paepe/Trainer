@@ -129,6 +129,8 @@
       "search": "Buscar mensajes",
       "category": { "actionRequired": "Acción necesaria", "invitations": "Invitaciones", "plansAndWorkouts": "Planes y entrenamientos", "accessAndPrivacy": "Acceso y privacidad", "alerts": "Alertas", "informational": "Completados e informativos" },
       "sort": { "recent": "Más recientes", "oldest": "Más antiguos", "nameAsc": "Remitente A–Z", "nameDesc": "Remitente Z–A" },
+      "manage": "Gestionar mensajes",
+      "finishManaging": "Terminar gestión",
       "selectAll": "Seleccionar todos",
       "clearSelection": "Borrar selección",
       "selected": "{{count}} seleccionados",

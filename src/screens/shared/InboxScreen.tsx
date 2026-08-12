@@ -84,6 +84,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
   const [sort, setSort] = React.useState<OperationalListSort>('recent');
   const [search, setSearch] = React.useState('');
   const [debouncedSearch, setDebouncedSearch] = React.useState('');
+  const [managingMessages, setManagingMessages] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const [operationNotice, setOperationNotice] = React.useState<string | null>(null);
   const [hasMore, setHasMore] = React.useState(false);
@@ -440,19 +441,31 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
           </HStack>
           {items.length > 0 && (
             <>
-              <button onClick={toggleAllVisible} style={{ alignSelf: 'flex-start', padding: '6px 10px', borderRadius: 999, border: `1px solid ${dark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.16)'}`, background: 'transparent', color: textSec(dark), fontSize: 11, fontFamily: 'inherit', cursor: 'pointer' }}>
-                {tr('inbox.management.selectAll')}
+              <button onClick={() => {
+                setManagingMessages(value => {
+                  const next = !value;
+                  if (next) setExpanded(null);
+                  else setSelectedIds(new Set());
+                  return next;
+                });
+              }} style={{ alignSelf: 'flex-start', padding: '6px 10px', borderRadius: 999, border: `1px solid ${managingMessages ? `${t.primary}88` : (dark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.16)')}`, background: managingMessages ? `${t.primary}14` : 'transparent', color: managingMessages ? t.primary : textSec(dark), fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+                {managingMessages ? tr('inbox.management.finishManaging') : tr('inbox.management.manage')}
               </button>
-              {selectedItems.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '9px 10px', borderRadius: 11, background: `${t.primary}12`, border: `1px solid ${t.primary}55` }}>
-                  <span style={{ flex: 1, fontSize: 11.5, fontWeight: 700, color: textPri(dark) }}>{tr('inbox.management.selected', { count: selectedItems.length })}</span>
-                  <button onClick={() => setSelectedIds(new Set())} disabled={busy !== null} style={{ padding: '6px 8px', border: 'none', background: 'transparent', color: textSec(dark), fontSize: 11, fontFamily: 'inherit', cursor: 'pointer' }}>{tr('inbox.management.clearSelection')}</button>
-                  {selectedHasUnread && <button onClick={() => void markRead([...selectedIds])} disabled={busy !== null} style={{ padding: '6px 8px', borderRadius: 8, border: `1px solid ${t.primary}66`, background: 'transparent', color: t.primary, fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{tr('inbox.management.markRead')}</button>}
-                  <button onClick={() => void updateArchiveState(scope === 'active')} disabled={busy !== null || (scope === 'active' && !selectedCanArchive)} style={{ padding: '6px 8px', borderRadius: 8, border: 'none', background: t.primary, color: '#0E1A2B', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: busy !== null || (scope === 'active' && !selectedCanArchive) ? .45 : 1 }}>
-                    {scope === 'active' ? tr('inbox.management.archive') : tr('inbox.management.restore')}
-                  </button>
-                </div>
-              )}
+              {managingMessages && <>
+                <button onClick={toggleAllVisible} style={{ alignSelf: 'flex-start', padding: '6px 10px', borderRadius: 999, border: `1px solid ${dark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.16)'}`, background: 'transparent', color: textSec(dark), fontSize: 11, fontFamily: 'inherit', cursor: 'pointer' }}>
+                  {tr('inbox.management.selectAll')}
+                </button>
+                {selectedItems.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '9px 10px', borderRadius: 11, background: `${t.primary}12`, border: `1px solid ${t.primary}55` }}>
+                    <span style={{ flex: 1, fontSize: 11.5, fontWeight: 700, color: textPri(dark) }}>{tr('inbox.management.selected', { count: selectedItems.length })}</span>
+                    <button onClick={() => setSelectedIds(new Set())} disabled={busy !== null} style={{ padding: '6px 8px', border: 'none', background: 'transparent', color: textSec(dark), fontSize: 11, fontFamily: 'inherit', cursor: 'pointer' }}>{tr('inbox.management.clearSelection')}</button>
+                    {selectedHasUnread && <button onClick={() => void markRead([...selectedIds])} disabled={busy !== null} style={{ padding: '6px 8px', borderRadius: 8, border: `1px solid ${t.primary}66`, background: 'transparent', color: t.primary, fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>{tr('inbox.management.markRead')}</button>}
+                    <button onClick={() => void updateArchiveState(scope === 'active')} disabled={busy !== null || (scope === 'active' && !selectedCanArchive)} style={{ padding: '6px 8px', borderRadius: 8, border: 'none', background: t.primary, color: '#0E1A2B', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: busy !== null || (scope === 'active' && !selectedCanArchive) ? .45 : 1 }}>
+                      {scope === 'active' ? tr('inbox.management.archive') : tr('inbox.management.restore')}
+                    </button>
+                  </div>
+                )}
+              </>}
             </>
           )}
           {operationNotice && (
@@ -500,7 +513,7 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
               }}>
                 {/* Colour accent stripe — only shown for unread cards */}
                 <div style={{ width: 4, flexShrink: 0, background: unread ? accentColor : 'transparent', borderRadius: '14px 0 0 14px' }} />
-                <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleItemSelection(item.id)} aria-label={tr('inbox.management.selected', { count: 1 })} style={{ accentColor: t.primary, flexShrink: 0, alignSelf: 'flex-start', margin: '20px 0 0 10px' }} />
+                {managingMessages && <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleItemSelection(item.id)} aria-label={tr('inbox.management.selected', { count: 1 })} style={{ accentColor: t.primary, flexShrink: 0, alignSelf: 'flex-start', margin: '20px 0 0 10px' }} />}
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Card header */}
