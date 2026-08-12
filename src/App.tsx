@@ -667,6 +667,7 @@ export default function App() {
           forClientName={(screenPayload?.forClientName as string) ?? undefined}
           forClientId={(screenPayload?.forClientId as string) ?? undefined}
           returnTo={(screenPayload?.returnTo as string) ?? undefined}
+          readOnly={isTrainer && Boolean(screenPayload?.forClientId) && screenPayload?.forClientId !== user.id}
           freeSession={freeSession}
           onExitFreeSession={exitFreeSession}
           savePostWorkoutFeedback={savePostWorkoutFeedback}

@@ -693,7 +693,16 @@ export function InboxScreen({ nav, userId, userName, isTrainer, t, dark }: Inbox
 
                     {isTrainer && item.type === 'workout_completed' && item.entity_id && (
                       <button
-                        onClick={() => nav('workoutSummary', { sessionId: item.entity_id, durationMin: 0, completedCount: 0, total: 0, totalSets: 0, returnTo: 'alerts' })}
+                        onClick={() => nav('workoutSummary', {
+                          sessionId: item.entity_id,
+                          durationMin: 0,
+                          completedCount: 0,
+                          total: 0,
+                          totalSets: 0,
+                          returnTo: 'alerts',
+                          forClientId: item.from_user_id,
+                          forClientName: item.peer_name,
+                        })}
                         style={{
                           width: '100%', padding: '11px 0', borderRadius: 10, border: 'none',
                           background: '#4ade80', color: '#0E1A2B',

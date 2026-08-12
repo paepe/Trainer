@@ -226,7 +226,8 @@
     "notesOptional": "Notas (opcional)",
     "saveSaving": "Guardando…",
     "saveTrainerDashboard": "Guardar y volver al panel",
-    "saveContinue": "Guardar y continuar"
+    "saveContinue": "Guardar y continuar",
+    "returnToHistory": "Volver al Historial"
   },
   "perf": {
     "noData": "Sin datos disponibles",

@@ -27,6 +27,7 @@ interface PostWorkoutSummaryScreenProps {
   forClientName?:          string;
   forClientId?:            string;
   returnTo?:               string;
+  readOnly?:               boolean;
   freeSession?:            boolean;       // Free Training Session: exit free mode after saving
   onExitFreeSession?:      () => void;    // clears freeSession + selectedClient in App
   savePostWorkoutFeedback: (data: { session_id: string; overall_feeling: number; energy_after: number | null; notes: string | null; forUserId?: string }) => Promise<{ error: unknown }>;
@@ -39,6 +40,7 @@ export function PostWorkoutSummaryScreen({
   durationMin: durationMinProp, completedCount: completedCountProp,
   total: totalProp, totalSets: totalSetsProp,
   startedAt: startedAtProp, forClientName, forClientId, returnTo,
+  readOnly = false,
   freeSession = false, onExitFreeSession,
   savePostWorkoutFeedback,
 }: PostWorkoutSummaryScreenProps) {
@@ -115,6 +117,11 @@ export function PostWorkoutSummaryScreen({
   const isCompleted = sessionStatus === 'completed';
 
   const handleSubmit = async () => {
+    // A TRAINER can consult a client's assessment but never mutate it.
+    if (readOnly) {
+      nav('history');
+      return;
+    }
     setSaving(true);
     if (sessionId) {
       await savePostWorkoutFeedback({
@@ -220,7 +227,7 @@ export function PostWorkoutSummaryScreen({
       {isCompleted && (
         <>
           {/* Trainer context banner */}
-          {isTrainerSession && (
+          {isTrainerSession && !readOnly && (
             <div style={{ padding: '0 22px 14px' }}>
               <div style={{
                 padding: '10px 14px', borderRadius: 10,
@@ -239,11 +246,11 @@ export function PostWorkoutSummaryScreen({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
               {[1,2,3,4,5].map(n => (
-                <button key={n} onClick={() => setFeeling(n)} style={{
+                <button key={n} onClick={() => { if (!readOnly) setFeeling(n); }} disabled={readOnly} style={{
                   flex: 1, padding: '10px 0', borderRadius: 12, border: 'none',
                   background: feeling === n ? `${t.primary}22` : surfRaised(dark),
                   outline: `1.5px solid ${feeling === n ? t.primary : borderSubtle(dark)}`,
-                  cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  cursor: readOnly ? 'default' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                 }}>
                   <span style={{ fontSize: 20 }}>{FEELING_ICONS[n - 1]}</span>
                   <span style={{ fontSize: 10, fontWeight: 600, color: feeling === n ? t.primary : textMute(dark) }}>
@@ -261,11 +268,11 @@ export function PostWorkoutSummaryScreen({
             </div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
               {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                <button key={n} onClick={() => setEnergy(n)} style={{
+                <button key={n} onClick={() => { if (!readOnly) setEnergy(n); }} disabled={readOnly} style={{
                   width: 34, height: 34, borderRadius: 8, border: 'none',
                   background: energy === n ? t.primary : surfRaised(dark),
                   color: energy === n ? '#0E1A2B' : textPri(dark),
-                  fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: readOnly ? 'default' : 'pointer',
                   outline: `1.5px solid ${energy === n ? t.primary : borderSubtle(dark)}`,
                 }}>{n}</button>
               ))}
@@ -279,7 +286,8 @@ export function PostWorkoutSummaryScreen({
             </div>
             <textarea
               value={notes}
-              onChange={e => setNotes(e.target.value)}
+              onChange={e => { if (!readOnly) setNotes(e.target.value); }}
+              readOnly={readOnly}
               placeholder={tr('postWorkout.sessionPlaceholder')}
               rows={3}
               style={{
@@ -295,15 +303,15 @@ export function PostWorkoutSummaryScreen({
           <div style={{ padding: '0 22px 32px' }}>
             <button
               onClick={() => void handleSubmit()}
-              disabled={saving || submitted}
+              disabled={readOnly ? false : saving || submitted}
               style={{
                 ...primaryBtn(t.primary),
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                opacity: (saving || submitted) ? 0.65 : 1,
+                opacity: (!readOnly && (saving || submitted)) ? 0.65 : 1,
               }}
             >
-              <Icon name="check" size={15} color="#0E1A2B" stroke={2.5}/>
-              {saving ? tr('postWorkout.saveSaving') : isTrainerSession ? tr('postWorkout.saveTrainerDashboard') : tr('postWorkout.saveContinue')}
+              <Icon name={readOnly ? "back" : "check"} size={15} color="#0E1A2B" stroke={2.5}/>
+              {readOnly ? tr('postWorkout.returnToHistory') : saving ? tr('postWorkout.saveSaving') : isTrainerSession ? tr('postWorkout.saveTrainerDashboard') : tr('postWorkout.saveContinue')}
             </button>
           </div>
         </>

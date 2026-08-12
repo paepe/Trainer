@@ -225,7 +225,8 @@
     "notesOptional": "Notizen (optional)",
     "saveSaving": "Wird gespeichert…",
     "saveTrainerDashboard": "Speichern & zurück zum Dashboard",
-    "saveContinue": "Speichern & weiter"
+    "saveContinue": "Speichern & weiter",
+    "returnToHistory": "Zurück zum Verlauf"
   },
   "perf": {
     "noData": "Keine Daten verfügbar",
